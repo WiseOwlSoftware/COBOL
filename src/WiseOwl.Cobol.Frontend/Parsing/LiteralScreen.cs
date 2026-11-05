@@ -72,11 +72,14 @@ public static class LiteralScreen
     /// carries its own fixed position, like the directive stage's). True when no literal broke one of its own
     /// §8.3.3 rules or the sign rule — a literal that did has no value, and a caller that would evaluate the tree
     /// must not (the format-edition gates report too but leave the literal's value intact, so they do not count).
+    /// A literal the client wrote into an expansion's text (<paramref name="clientWritten"/>) is not screened again: the written
+    /// tree's screen has it.
     /// <paramref name="gateFormats"/> asks the edition question (<see cref="GateFormat"/>) too — false for a directive
     /// in an OMITTED branch, whose text is held to the syntax of §7.2.1 but is not compiled, so no construct it uses is
     /// introduced by it (the same posture as the directive's own gate and the boolean-operator gate).</summary>
-    public static bool Run(IParseTree tree, EditionInfo edition, IDiagnosticSink sink, bool gateFormats)
+    public static bool Run(IParseTree tree, EditionInfo edition, IDiagnosticSink sink, bool gateFormats, ClientWrittenTokens? clientWritten = null)
     {
+        clientWritten ??= ClientWrittenTokens.FlaggedOnly;
         bool clean = true;
         var pending = new Stack<IParseTree>();
         pending.Push(tree);
@@ -85,6 +88,7 @@ public static class LiteralScreen
             var node = pending.Pop();
             if (node is ITerminalNode t)
             {
+                if (clientWritten.Contains(t.Symbol)) continue;   // the client's own literal, screened once in the written tree (kb/Work PB4721)
                 if (LiteralTokens.Types.Contains(t.Symbol.Type)) clean &= Screen(t, edition, sink, gateFormats);
                 else if (gateFormats && LiteralTokens.FloatingPointTypes.Contains(t.Symbol.Type))
                     GateFloatingPoint(t, edition, sink);

@@ -122,6 +122,11 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// default.</summary>
     public bool RepositoryUpdate { get; set; } = true;
 
+    /// <summary>Which tokens of the text being compiled the client wrote into an expansion (kb/Work PB4721): the screens of the bind
+    /// report a fault of one of them once, where the group wrote it, and never again in the expansion's text
+    /// (<see cref="ClientWrittenTokens"/>).</summary>
+    public ClientWrittenTokens ClientWritten { get; init; } = ClientWrittenTokens.FlaggedOnly;
+
     /// <summary>The compilation's §4.2.10 warning mechanism is ON — the CLI's <c>--flag-extensions</c> (kb/Work
     /// PB1525): "An implementation shall provide a warning mechanism that optionally may be invoked by the user at
     /// compile time to indicate use of a nonstandard extension in a compilation group". Orthogonal to

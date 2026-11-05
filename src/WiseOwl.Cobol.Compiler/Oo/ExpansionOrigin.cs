@@ -56,5 +56,8 @@ internal sealed record SkeletonSource(string Name, string Identity, bool IsInter
 /// while the group binds the text is attributed to, where it is printed and who answers for it — the group withdraws the ones of a
 /// repository text that the expansion's own compilation, or the one that made an imported expansion, reports
 /// (<c>EditionContext.WithdrawWarningsOf</c>, kb/Work PB4469, PB4483).</param>
+/// <param name="ClientWritten">The texts of the tokens of <paramref name="Text"/> the CLIENT wrote (<see cref="ExpansionToken.ClientWritten"/>): the
+/// compilation of the expansion's own assembly lexes the text again, so its tokens carry no flag, and is handed these instead so it does not
+/// report a fault of the client's a second time, at the EXPANDS entry (<c>ClientWrittenTokens</c>, kb/Work PB4721).</param>
 internal sealed record ExpansionOrigin(SkeletonSource Skeleton, Core.RepositoryEntryContext Entry, IReadOnlyList<string> ActualWords, string Text,
-    DiagnosticRegion Region);
+    DiagnosticRegion Region, IReadOnlySet<string> ClientWritten);
