@@ -521,6 +521,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         {
             if (RefuseUnreservedPredefinedObject(arg.Arith?.Start, isSuper: false)) return false;   // kb/Work PB4153
             if (host.OoCurrentClass is not null) return true;
+            using var atWord = ctx.Edition.At(arg.Arith?.Start);   // SR1 is about the SELF word (kb/Work PB4652)
             _ = RefusePredefinedObjectOutsideMethod($"{subject} SELF");
             return false;
         }
@@ -1203,6 +1204,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (RefuseUnreservedPredefinedObject(arg.Arith?.Start, isSuper: false)) return null;   // kb/Work PB4153
             if (host.OoCurrentClass is not { } selfClass)
             {
+                using var atWord = ctx.Edition.At(arg.Arith?.Start);   // SR1 is about the SELF word (kb/Work PB4652)
                 Err("SELF is defined only within a method definition (ISO §8.4.3.8.3 SR1)");
                 return null;
             }
@@ -1847,6 +1849,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // node this convergence point (NULL/SELF/SUPER route + the data-sender re-route) produces.
         if (senderSuper)
         {
+            using var atWord = ctx.Edition.At(sender?.Predefined);   // SR9 is about the SUPER word (kb/Work PB4652)
             // ⛔ NAME THE RECEIVERS (kb/Work PB388's elision sweep): `targetRefs` is in hand, and the message
             // opened `SET … TO SUPER` — which the diagnostic renderer transliterates to `SET . TO SUPER`.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ObjectReferenceAssignmentNotConforming,
@@ -1891,6 +1894,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         {
             if (host.OoCurrentClass is not { } cur)
             {
+                using var atWord = ctx.Edition.At(sender?.Predefined);   // SR1 is about the SELF word (kb/Work PB4652)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ObjectReferenceAssignmentNotConforming,
                     // ⛔ INHERITED CITATION, RE-DERIVED (kb/Work PB388). This cited §14.9.39.3 SR12 c), which
                     // answers a DIFFERENT question: SR12 governs a receiver described with an OBJECT-CLASS-NAME,

@@ -48,6 +48,7 @@ internal sealed partial class OoBinder
     {
         if (UnreservedPredefinedObjectRefusal(s) is { } unreserved) return unreserved;   // kb/Work PB4153
         string written = DataBinder.WrittenText(s);
+        using var at = ctx.Edition.At(s);   // every refusal below is about the SELF / SUPER word (kb/Work PB4652)
         if (s.SUPER() is not null)
             return BoundExprError.Report(ctx.Edition, DiagnosticCatalog.SuperPosition,
                 $"'{written}' is written as an operand: SUPER may be specified only as the object in an object-property "

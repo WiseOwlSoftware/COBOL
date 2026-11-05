@@ -61,6 +61,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);
             if (atom?.predefinedNull() is not null || atom?.selfAndSuper()?.SUPER() is not null)
             {
+                using var atWord = ctx.Edition.At(atom);   // SR2 is about the NULL / SUPER word (kb/Work PB4652)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.RaiseOperandRule,
                     $"RAISE {(atom.predefinedNull() is not null ? "NULL" : "SUPER")}: NULL and SUPER shall not be "
                     + "specified as the raised object (ISO §14.9.29.3 SR2)");
@@ -76,6 +77,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             {
                 if (!host.InMethod)
                 {
+                    using var atWord = ctx.Edition.At(atom);   // SR1 is about the SELF word (kb/Work PB4652)
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.RaiseOperandRule,
                         "RAISE SELF may be specified only within a method definition (ISO §8.4.3.8.3 SR1)");
                 }
