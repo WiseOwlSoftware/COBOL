@@ -83,15 +83,40 @@ internal sealed class CheckValueLiteralClassesPass : IBindPass
     /// for a numeric-edited item is its usage — and §13.18.60.4 GR1 lets a group's USAGE clause supply that
     /// usage after the entry has bound. Asking at entry bind gave the GR1 spelling the opposite verdict from its
     /// written-clause twin in BOTH directions, which is exactly what the inheritance pass's invariant forbids
-    /// ("same syntax-rule verdicts, same diagnostics").</para></summary>
+    /// ("same syntax-rule verdicts, same diagnostics").</para>
+    /// <para>⛔ ONE VERDICT PER WRITTEN LITERAL, AT THE ENTRY THAT WROTE IT (kb/Work PB4678). It walks
+    /// <see cref="DataBinder.DeclaredForest"/>, the roots AND the TYPEDEF templates — ISO §13.18.58.4 GR1 makes the
+    /// entries subordinate to a type declaration and its condition-names part of the declaration, and a declaration
+    /// no item references still has to be a conforming one — and skips what a copy carried: an item whose VALUE was
+    /// copied from a template or a SAME AS target (<see cref="DataItem.ValueCopiedFrom"/>) and a condition-name a
+    /// clone reproduced (<see cref="Condition88.ClonedFrom"/>). A VALUE the TYPE reference site writes itself is no
+    /// copy, so it is asked at the reference site against the composed description.</para></summary>
     public void Run(DataBinder binder)
     {
-        foreach (var root in binder.State.Forest.Roots) Walk(root);
-        foreach (var list in binder.State.Forest.Conditions.Values)
-            foreach (var cond in list)
+        foreach (var item in binder.DeclaredForest())
+        {
+            // The subject of both screens is the entry that WROTE the VALUE (kb/Work PB4678): a TYPE / SAME AS copy
+            // carries the template's or target's literal (ValueCopiedFrom) and a cloned condition-name its source's
+            // (ClonedFrom), and each was answered where it is declared, once, however many reference sites copy it.
+            // The forest holds the TYPEDEF templates (ISO §13.18.58.4 GR1: their subordinate entries and
+            // condition-names are part of the declaration), so an UNUSED declaration answers too.
+            if (item.Pic is { } pic && !pic.IsRecovery && item.ValueCopiedFrom is null)
             {
-                if (cond.Parent.OperandPic is not { } cp) continue;
-                using var _ = binder.Edition.At(cond.Parent);
+                using var _ = binder.Edition.At(item);
+                string where = $"data item '{item.CobolName ?? "FILLER"}'";
+                var subject = ValueSubject.ForElementary(pic, item.IsDynamicLength, item.IsAnyLength, item.PicIsValueImplied);
+                if (item.RawValue is { } raw) ScreenNumericEditedLiteralClass(binder, pic, raw, where, subject);
+                // Each literal the clause WRITES, once — not once per table element it initializes (kb/Work PB1722),
+                // and read off the clause rather than the resolved plan, which a template never has (its OCCURS
+                // chain is where it ends up, ResolveTableValuesPass) and which omits a mis-shaped phrase.
+                if (item.TableValues is { } specs)
+                    foreach (var lit in specs.SelectMany(s => s.Literals).Distinct(StringComparer.Ordinal))
+                        ScreenNumericEditedLiteralClass(binder, pic, lit, where, subject);
+            }
+            foreach (var cond in item.Own88s)
+            {
+                if (cond.ClonedFrom is not null || cond.Parent.OperandPic is not { } cp) continue;
+                using var _ = binder.Edition.At(item);
                 foreach (var (lo, hi) in cond.Values)
                 {
                     ScreenNumericEditedLiteralClass(binder, cp, lo, $"condition-name '{cond.Name}'", ValueSubject.ForConditionName());
@@ -99,21 +124,6 @@ internal sealed class CheckValueLiteralClassesPass : IBindPass
                         ScreenNumericEditedLiteralClass(binder, cp, hi, $"condition-name '{cond.Name}'", ValueSubject.ForConditionName());
                 }
             }
-
-        void Walk(DataItem item)
-        {
-            if (item.Pic is { } pic && !pic.IsRecovery)
-            {
-                using var _ = binder.Edition.At(item);
-                string where = $"data item '{item.CobolName ?? "FILLER"}'";
-                var subject = ValueSubject.ForElementary(pic, item.IsDynamicLength, item.IsAnyLength, item.PicIsValueImplied);
-                if (item.RawValue is { } raw) ScreenNumericEditedLiteralClass(binder, pic, raw, where, subject);
-                // Each literal the clause WRITES, once — not once per table element it initializes (kb/Work PB1722).
-                if (item.TableValuePlan is { } plan)
-                    foreach (var lit in plan.Phrases.SelectMany(p => p.Literals).Distinct(StringComparer.Ordinal))
-                        ScreenNumericEditedLiteralClass(binder, pic, lit, where, subject);
-            }
-            foreach (var c in item.Children) Walk(c);
         }
     }
 }
