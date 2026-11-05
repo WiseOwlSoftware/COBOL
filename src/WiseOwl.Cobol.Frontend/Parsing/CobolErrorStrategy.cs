@@ -697,7 +697,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private static string? ReservedWordUse(Parser recognizer, OffendingPosition at)
     {
         // A reserved word where the entry's name is due is a name written, whatever verb or gated word it is not (kb/Work PB4604).
-        if (recognizer is not CobolParserCoreBase parser
+        // Where the slot yields to what follows the entry it is neither, and a header keyword a period lets follow is the
+        // period's wherever it stands (kb/Work PB4706): `01 LOCAL-STORAGE SECTION.`, `01 A PIC X` then `LOCAL-STORAGE SECTION.`.
+        if (recognizer is not CobolParserCoreBase parser || at.EntrySlotYields
+            || (at.WritesAHeader && HeaderWords(recognizer.Atn).Contains(at.Token.Type) && at.APeriodLetsTheSentenceFollow())
             || parser.ReservedUserWordViolation(at.Token, atAName: at.EntryNameIsDue) is not { } violation)
             return null;
         // No terminator ends a statement where an entry's name is due: END-IF there is a reserved word written as a name.
@@ -1918,13 +1921,15 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // made it a synonym of COPY or REPLACE (kb/Work PB4488): `CPY BOOK.` after EQUATE "COPY" WITH "CPY" is the user's
         // COPY statement, which ISO §7.3.10.4 GR6 keeps out of the directive, and the sentence before it has its period.
         // The listener names the directive and the rule beside the error (CobolErrorListener.NoteDirectingStatementSynonym).
-        if (expected?.Contains(CobolLexer.DOT) == true
-            && !(token.Text is { } spelled && CobolKeywords.StartsWith(spelled, "END-"))
+        // ⛔ At the entry-name slot the question is OffendingPosition.PeriodIsMissingBeforeTheEntrySlot, the one the slot itself
+        // asks (kb/Work PB4706). The expected set above is predicate-blind, so it holds a word the name's predicate refused
+        // (CobolParserCoreBase.noHeaderWrittenHere: LOCAL-STORAGE before SECTION), and that word is the missing period's too.
+        if (!(token.Text is { } spelled && CobolKeywords.StartsWith(spelled, "END-"))
             && !HasStructuralHint(hints)
             && !(recognizer is CobolParserCoreBase { CobolWords.IsEmpty: false } directed
                  && PreviousDefault(stream, token.TokenIndex) is { } previousWord
                  && directed.CobolWords.DirectingStatementSynonymOf(WrittenSource.Of(previousWord)) is not null)
-            && at.APeriodLetsTheSentenceFollow())
+            && (at.PeriodIsMissingBeforeTheEntrySlot || expected?.Contains(CobolLexer.DOT) == true && at.APeriodLetsTheSentenceFollow()))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0307, "A period may be missing at the end of the previous sentence.", 25));
 
         // ⛔ NO "A DATA-NAME IS EXPECTED HERE" / "A LITERAL VALUE IS EXPECTED HERE" GUESS (kb/Work PB3861). Hints 15
@@ -2022,7 +2027,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var atn = recognizer.Atn;
         var token = at.Token;
         bool refusedWord = predictionFailedAt && token.Type == CobolLexer.IDENTIFIER;
-        if (!(refusedWord || IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type)) return null;
+        // ⛔ A SECTION OR DIVISION HEADER WRITTEN WHERE A CLAUSE LIST STANDS IS A STRUCTURE FAULT, WHATEVER ITS FIRST WORD
+        // (kb/Work PB4706): "'SECTION' is not a clause ... for 'MAIN'" reads the header's two words as a name and a clause.
+        if (!(refusedWord || IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type) || at.WritesAHeader)
+            return null;
         // ⛔ A RESERVED WORD WHERE THE ENTRY'S NAME IS DUE IS THE NAME THE SOURCE WROTE, NOT A CLAUSE IT DOES NOT PRINT
         // (kb/Work PB4604): `01 MOVE PIC X.` writes MOVE where §13.16.3 SR4 puts the entry-name, so the fault is §8.3.2.1
         // 1)'s (the reserved-word report, or the extension word's own hint) and "not a clause of the data description
@@ -3493,25 +3501,47 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// <summary>⛔ IS THE ENTRY'S OWN NAME DUE AT THE TOKEN (kb/Work PB4604)? The token is the first word after the
         /// level-number of a data description entry that has written no data-name, so it is read two ways at once, as the
         /// entry-name and as the first clause (<see cref="ClosedFormats.EntryAwaitingItsName"/>). False where the report was
-        /// carried forward, a name or a clause stands between, or the word and the one after it begin what follows the
-        /// entry (<see cref="BeginsWhatFollows"/>: <c>01</c> then <c>LINKAGE SECTION.</c> is a missing period, kb/Work PB4646).</summary>
-        public bool EntryNameIsDue
-            => _entryNameIsDue ??= !CarriedForward && ClosedFormats.EntryAwaitingItsName(_recognizer.Context) is { } entry
-               && PreviousDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex)?.TokenIndex == entry.levelNumber()?.Stop?.TokenIndex
-               && !BeginsWhatFollows(entry);
+        /// carried forward, a name or a clause stands between, or the slot yields to what follows the entry
+        /// (<see cref="EntrySlotYields"/>).</summary>
+        public bool EntryNameIsDue => FollowsALevelNumber && !EntrySlotYields;
 
-        private bool? _entryNameIsDue;
+        /// <summary>⛔ DOES THE WORD AFTER THE LEVEL-NUMBER NAME NO ENTRY BECAUSE IT BEGINS WHAT FOLLOWS ONE (kb/Work PB4646,
+        /// PB4706)? ISO §13.16.2 ends the entry with a separator period, and a level-number whose period is forgotten runs into
+        /// the next line: the word and the one after it write a header wherever it may stand
+        /// (<see cref="WritesAHeader"/>: <c>01 FILE SECTION.</c> in the working-storage section), or a period lets them begin
+        /// what follows (<see cref="PeriodIsMissingBeforeTheEntrySlot"/>). Such a word is no reserved word written as a name
+        /// and no clause.</summary>
+        public bool EntrySlotYields => FollowsALevelNumber && (WritesAHeader || PeriodIsMissingBeforeTheEntrySlot);
 
-        /// <summary>⛔ DO THE TOKEN AND THE ONE AFTER IT BEGIN WHAT MAY FOLLOW <paramref name="entry"/> (kb/Work PB4646)? The entry
-        /// is walked from its end in its real context (<see cref="ResimulationWalk.After"/>: the next entry, the next
-        /// section, the procedure division, <c>END PROGRAM</c>, as the grammar and the edition print them), so the token
-        /// is the missing period's reading, the one the closed-format residue gives a header word and a word after the
-        /// period (<see cref="ClosedFormatResidue"/>), and not a reserved word written as the entry's name. Two tokens,
-        /// because the first alone cannot tell <c>01 LINKAGE SECTION.</c> from <c>01 LINKAGE PIC X.</c>, a name written.</summary>
-        private bool BeginsWhatFollows(ParserRuleContext entry)
-            => NextDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex) is { } next
-               && ResimulationWalk.After(_recognizer, entry, skipsErrorProductions: true) is var walk
-               && walk.Consume(Token.Type) && walk.Expected().Contains(next.Type);
+        /// <summary>⛔ IS THE WORD AFTER THE LEVEL-NUMBER WHAT THE ENTRY'S MISSING PERIOD RAN INTO (kb/Work PB4646, PB4706): do a
+        /// period, the token and the word after it read on (<c>01</c> then <c>LINKAGE SECTION.</c>, <c>END PROGRAM P.</c>)?
+        /// Two tokens, because the first alone cannot tell <c>01 LINKAGE SECTION.</c> from <c>01 LINKAGE PIC X.</c>, a name
+        /// written, and the sentence after them holds faults of its own, reported after the period's
+        /// (<c>01 END PROGRAM P Q.</c>). The report and the slot ask this one question (hint 14, <see cref="EntrySlotYields"/>;
+        /// the review's R1-1 on PB4646: two questions left a word that passed one and failed the other with neither report).
+        /// The word before the token is the level-number, so a header cannot have run into it, the second reading of
+        /// <see cref="APeriodLetsTheSentenceFollow"/>.</summary>
+        public bool PeriodIsMissingBeforeTheEntrySlot
+            => _periodIsMissingBeforeTheEntrySlot ??= FollowsALevelNumber && Walk is { } walk
+               && NextDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex) is { } next
+               && walk.TakesAll([CobolLexer.DOT, Token.Type, next.Type]);
+
+        private bool? _periodIsMissingBeforeTheEntrySlot;
+
+        /// <summary>Is the token the first word after the level-number of an entry that has written no data-name?</summary>
+        private bool FollowsALevelNumber
+            => _followsALevelNumber ??= !CarriedForward && ClosedFormats.EntryAwaitingItsName(_recognizer.Context) is { } entry
+               && PreviousDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex)?.TokenIndex == entry.levelNumber()?.Stop?.TokenIndex;
+
+        private bool? _followsALevelNumber;
+
+        /// <summary>⛔ DO THE TOKEN AND ITS NEIGHBOUR WRITE A SECTION OR DIVISION HEADER (kb/Work PB4706): the token is SECTION
+        /// or DIVISION (<see cref="CobolParserCoreBase.ClosesAHeader"/>), or the word before one? Such a run is a STRUCTURE fault
+        /// wherever it stands, a header out of order or after a missing period, never a clause or an entry-name.</summary>
+        public bool WritesAHeader
+            => CobolParserCoreBase.ClosesAHeader(Token.Type)
+               || NextDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex) is { } next
+               && CobolParserCoreBase.ClosesAHeader(next.Type);
 
         /// <summary>⛔ THE NAME OF THE ENTRY THE REPORT STANDS IN (kb/Work PB4645): <see cref="ClosedFormats.OwnerName"/> of the
         /// parser's context, and, where a prediction failed AHEAD of the parser (<c>01 W-A MOVE.</c>: the decision at the
@@ -3606,13 +3636,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         }
 
         /// <summary>The token types of the sentence that starts at <paramref name="first"/>: from it through the
-        /// separator period that ends it, or <see cref="MaxResimulatedTokens"/> tokens, or the end of the input.</summary>
+        /// separator period that ends it, or <see cref="MaxResimulatedTokens"/> tokens, or the end of the input. ⛔ A section
+        /// or division header ends at the word that closes it (<see cref="CobolParserCoreBase.ClosesAHeader"/>, kb/Work
+        /// PB4706): <c>LINKAGE SECTION FOO.</c> holds a fault of its own after the header, and that fault does not unwrite the
+        /// header or the period before it, which the report names first (the fault after it is the next report).</summary>
         private static int[] SentenceTypesFrom(ITokenStream stream, IToken first)
         {
             var types = new List<int> { first.Type };
             int index = first.TokenIndex;
-            while (types.Last() != CobolLexer.DOT && types.Count < MaxResimulatedTokens
-                   && NextDefault(stream, ref index) is { } next)
+            while (types.Last() != CobolLexer.DOT && !CobolParserCoreBase.ClosesAHeader(types.Last())
+                   && types.Count < MaxResimulatedTokens && NextDefault(stream, ref index) is { } next)
                 types.Add(next.Type);
             return [.. types];
         }

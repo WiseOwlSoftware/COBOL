@@ -58,7 +58,7 @@ A CD is a redefinition class, the FD's implicit record area applied to a new sec
 - Every record written after the CD joins the class by `RedefinitionKind.ImplicitCommunicationRecord`. The class's anchor is the FIRST written record when there is
   one, because "only the first redefinition may contain VALUE clauses" (SR5, SR9, SR14) and a class's seed is its anchor's.
 - The items are static like working-storage's (ISO/IEC 1989:2002 8.6.3), so they join `WorkingStorageRoots`, under `EntrySection.Communication`.
-- A cd-name is a user word of its own type (`UserWordKind.CdName`) and no data-name. The `cdName` rule does not ride `dataName`, whose FILLER and PROCEDURE are reserved words (A.1.2.1, 8.3.1.1.1): a word
+- A cd-name is a user word of its own type (`UserWordKind.CdName`) and no data-name. The `cdName` rule does not ride `dataName`, whose FILLER is a reserved word (A.1.2.1, 8.3.1.1.1): a word
   §8.9 reserves draws COBOL0901 through `reservedGatedWord` and `IsProvableUserWordPosition`, and FILLER or PROCEDURE draws COBOL5506. It qualifies an item of its entry (the file-cd-report-qualifier of 8.4.1.1.1), through the
   one qualifier walk. A cd-name written where a data item is required is "declared as a cd-name, not as a data item" (COBOL1639, `NonDataDeclarationKind.CdName`, ranked with the file-name, depth 0 because 8.4.5 keeps a cd-name to its own source element) and never "not defined"; X3.23-1985 `USE FOR DEBUGGING ON cd-name` is the staged debug subject (COBOL1571, `docs/CONFORMANCE.md` D-DEBUG-USE; kb/Work PB4713).
 

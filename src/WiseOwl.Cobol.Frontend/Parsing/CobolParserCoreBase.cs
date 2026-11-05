@@ -478,6 +478,19 @@ public abstract class CobolParserCoreBase : Parser
 
     private (int Index, bool Parses)? _entryClauseProbe;
 
+    /// <summary>⛔ A GATED WORD IS A DATA-NAME ONLY WHERE IT WRITES NO HEADER (kb/Work PB4706) — the predicate on
+    /// <c>dataName</c>'s <c>reservedGatedWord</c> alternative, the one way a keyword token reaches the name. <c>01</c> with its
+    /// period forgotten and then <c>LOCAL-STORAGE SECTION.</c> holds a word the name slot admits, and read as the name it left
+    /// the parse at SECTION, past the header, reporting a clause of an entry "for 'LOCAL-STORAGE'". No format follows a
+    /// data-name with SECTION or DIVISION (<see cref="ClosesAHeader"/>; <c>ReadingParsesFollowDriftTests</c> pins it on the
+    /// FOLLOW set), so no conforming source loses a reading: the parse stops at the word, where the missing period (ISO
+    /// §13.16.2 ends the entry with a separator period) is the report and the recovery. Read-only, so safe in prediction.</summary>
+    protected bool noHeaderWrittenHere() => !ClosesAHeader(TokenStream.LA(2));
+
+    /// <summary>Is <paramref name="tokenType"/> SECTION or DIVISION, the word a section or division header writes after its
+    /// first word (<c>LINKAGE SECTION</c>, <c>PROCEDURE DIVISION</c>)?</summary>
+    internal static bool ClosesAHeader(int tokenType) => tokenType is CobolLexer.SECTION or CobolLexer.DIVISION;
+
     /// <summary>⛔ A RESERVED WORD IS READ AS A PROCEDURE HEADER'S NAME ONLY WHERE THE HEADER IT WOULD BEGIN IS WRITTEN
     /// (kb/Work PB4132) — the predicate on the two definition slots, <c>paragraphName</c> (<paramref name="follower"/>
     /// the separator period) and <c>sectionName</c> (the word SECTION). ISO §14.4.3: "A paragraph consists of a

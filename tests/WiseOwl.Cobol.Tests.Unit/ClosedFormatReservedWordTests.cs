@@ -583,6 +583,98 @@ public sealed class ClosedFormatReservedWordTests
         }
     }
 
+    /// <summary>⛔ A HEADER WRITTEN AFTER A LEVEL-NUMBER IS NEVER A NAME AND A CLAUSE (kb/Work PB4706). SECTION and DIVISION
+    /// close a header, and no format follows a data-name with either. Where a period lets the header follow, the fault is
+    /// that period (ISO §13.16.2 ends the entry with one), one report, with no cascade from the header it used to swallow:
+    /// the second-report rows prove the recovery resumes in the procedure division. Where none does, the report is the plain
+    /// one at the word it fails, as after a complete entry. PROCEDURE is reserved at every edition (§8.3.2.1 1)), so it
+    /// names no entry whatever follows it.</summary>
+    [Theory]
+    [InlineData("01\n" + Proc, 85, "COBOL0307: unexpected 'PROCEDURE'. A period may be missing")]
+    [InlineData("01\n" + Proc, 2023, "COBOL0307: unexpected 'PROCEDURE'. A period may be missing")]
+    [InlineData("77\n" + Proc, 2023, "COBOL0307: unexpected 'PROCEDURE'. A period may be missing")]
+    [InlineData("01 W-A PIC X.\n       88\n" + Proc, 2023, "COBOL0307: unexpected 'PROCEDURE'. A period may be missing")]
+    [InlineData("01 LOCAL-STORAGE SECTION.\n" + Proc, 2002, "COBOL0307: cannot parse construct near 'LOCAL-STORAGE'. A period may be missing")]
+    [InlineData("01 LOCAL-STORAGE SECTION.\n" + Proc, 2023, "COBOL0307: cannot parse construct near 'LOCAL-STORAGE'. A period may be missing")]
+    [InlineData("01 SCREEN SECTION.\n" + Proc, 2023, "COBOL0307: cannot parse construct near 'SCREEN'. A period may be missing")]
+    [InlineData("01 W-A\n       LOCAL-STORAGE SECTION.\n" + Proc, 2023, "COBOL0307: cannot parse construct near 'LOCAL-STORAGE'. A period may be missing")]
+    [InlineData("01 W-A PIC X\n       LOCAL-STORAGE SECTION.\n" + Proc, 2023, "COBOL0307: missing token before 'LOCAL-STORAGE'. A period may be missing")]
+    [InlineData("01 LOCAL-STORAGE SECTION.\n" + Proc, 85, "COBOL0001: cannot parse construct near 'SECTION'")]
+    [InlineData("01 SCREEN SECTION.\n" + Proc, 85, "COBOL0001: cannot parse construct near 'SECTION'")]
+    [InlineData("01 FILE SECTION.\n" + Proc, 2023, "COBOL0001: unexpected 'FILE'")]
+    [InlineData("01 WORKING-STORAGE SECTION.\n" + Proc, 2023, "COBOL0001: unexpected 'WORKING-STORAGE'")]
+    [InlineData("01 DATA DIVISION.\n" + Proc, 2023, "COBOL0001: unexpected 'DATA'")]
+    [InlineData("01 MOVE SECTION.\n" + Proc, 2023, "COBOL0001: unexpected 'MOVE'")]
+    [InlineData("01\n       MAIN SECTION.\n" + Proc, 2023, "COBOL0001: cannot parse construct near 'SECTION'")]
+    [InlineData("01 FOO DIVISION.\n" + Proc, 2023, "COBOL0001: cannot parse construct near 'DIVISION'")]
+    [InlineData("01 W-A\n       MAIN SECTION.\n" + Proc, 2023, "COBOL0001: unexpected 'SECTION'")]
+    [InlineData("01 W-A PIC X\n       MAIN SECTION.\n" + Proc, 2023, "COBOL0001: unexpected 'SECTION'")]
+    [InlineData("01 W-A PIC X SECTION.\n" + Proc, 2023, "COBOL0001: unexpected 'SECTION'")]
+    [InlineData("01 PROCEDURE PIC X.\n" + Proc, 85, "COBOL0901: 'PROCEDURE' is a reserved word in COBOL-85")]
+    [InlineData("01 PROCEDURE PIC X.\n" + Proc, 2023, "COBOL0901: 'PROCEDURE' is a reserved word in COBOL-2023")]
+    [InlineData("01 PROCEDURE.\n" + Proc, 2023, "COBOL0901: 'PROCEDURE' is a reserved word in COBOL-2023")]
+    [InlineData("01 PROCEDURE MOVE.\n" + Proc, 2023, "COBOL0901: 'PROCEDURE' is a reserved word in COBOL-2023")]
+    public void AHeaderAfterALevelNumber_IsNeverANameAndAClause(string rest, int edition, string diagnostic)
+    {
+        var errors = Compile(Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       " + rest, edition);
+        Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        Assert.Contains("error " + diagnostic, errors[0]);
+    }
+
+    /// <summary>⛔ THE FAULT AFTER THE HEADER DOES NOT UNWRITE THE PERIOD BEFORE IT (kb/Work PB4706, the PB4646 review's R1-1): the
+    /// slot and hint 14 ask one question of the word and the one after it, so a word that begins what follows gets the
+    /// missing-period report whatever else its sentence holds, and that fault is the second report. With a name or a clause
+    /// before the header the sentence's reading ends at the header's closing word, the same question.</summary>
+    [Theory]
+    [InlineData("01 LINKAGE SECTION FOO.", "COBOL0307: unexpected 'LINKAGE'. A period may be missing", "COBOL0001: unexpected 'FOO'")]
+    [InlineData("01 END PROGRAM PB2533U FOO.", "COBOL0307: unexpected 'END'. A period may be missing", "COBOL0001: unexpected 'FOO'")]
+    [InlineData("01 W-A PIC X\n       LINKAGE SECTION FOO.", "COBOL0307: missing token before 'LINKAGE'. A period may be missing", "COBOL0001: unexpected 'FOO'")]
+    public void AFaultAfterTheHeader_IsTheSecondReport(string rest, string first, string second)
+    {
+        var errors = Compile(Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       " + rest + "\n" + Proc);
+        Assert.True(errors.Count >= 2, $"expected the period's report and the fault after it, got:\n{string.Join("\n", errors)}");
+        Assert.Contains("error " + first, errors[0]);
+        Assert.Contains("error " + second, errors[1]);
+    }
+
+    /// <summary>The header's words at the other slots that take a data-name (kb/Work PB4706): the report group and constant
+    /// entries of the report and screen sections, whose PROCEDURE alternative cascaded through the lost header.</summary>
+    [Theory]
+    [InlineData("SCREEN SECTION.\n       01")]
+    [InlineData("REPORT SECTION.\n       RD R.\n       01")]
+    [InlineData("REPORT SECTION.\n       RD R.\n       01 G")]
+    public void ADanglingLevelNumberOfAnotherSection_IsTheMissingPeriodToo(string section)
+    {
+        var errors = Compile(Head + "       DATA DIVISION.\n       " + section + "\n" + Proc);
+        Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        Assert.Contains("error COBOL0307: ", errors[0]);
+        Assert.Contains("'PROCEDURE'. A period may be missing", errors[0]);
+    }
+
+    /// <summary>The legal readings the header rule leaves alone (kb/Work PB4706): a word that only STARTS like a header, a word
+    /// §8.9 leaves free as an entry-name, and a gated word as an unnamed clause. NC205A's <c>77 PROCEDURE</c>, continued on its
+    /// next line, is one word (the 1985 word continuation, which COBOL-2023 removed), not the reserved word.</summary>
+    [Theory]
+    [InlineData("77 PROCEDURE-DIVISION PIC X.", 2023)]
+    [InlineData("01 SECTIONS PIC X.", 2023)]
+    [InlineData("01 LOCAL-STORAGE PIC X.", 85)]
+    [InlineData("01 SCREEN PIC X.", 85)]
+    [InlineData("01 BINARY-LONG.", 2023)]
+    [InlineData("77 PROCEDURE\n      -    DIVISION PIC X.", 85)]
+    public void ANameThatWritesNoHeader_IsAccepted(string entry, int edition)
+    {
+        string dir = ScratchDirectory.Create("WiseOwlCobol_PB4706_");
+        try
+        {
+            string src = Path.Combine(dir, "pb4706u.cob");
+            File.WriteAllText(src, Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       " + entry + "\n" + Proc);
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+                src, Path.Combine(dir, "pb4706u.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
+            Assert.True(r.Success, string.Join("\n", r.Errors));
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
     private static IReadOnlyList<string> Compile(string source, int edition = 2023)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_PB2533_");
