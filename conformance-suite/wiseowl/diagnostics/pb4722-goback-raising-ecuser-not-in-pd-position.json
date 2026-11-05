@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "(17,37): error COBOL0717: GOBACK RAISING EC-USER-FOO"}

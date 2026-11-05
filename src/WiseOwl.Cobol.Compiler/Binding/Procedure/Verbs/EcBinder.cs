@@ -88,6 +88,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);
             if (op.Item.Pic?.Category is not PicCategory.ObjectReference)
             {
+                using var atOperand = ctx.Edition.At(oref);   // SR2 is about identifier-1 (kb/Work PB4722, as EcBindRaising)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.RaiseOperandRule,
                     $"RAISE '{oref.GetText()}': identifier-1 shall be a USAGE OBJECT REFERENCE data item "
                     + "(ISO §14.9.29.3 SR2)");
@@ -95,7 +96,10 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             return new BoundRaiseObject(op);
         }
 
-        if (EcResolveLevel3(ecWord.GetText(), EcRaiseSite.Raise) is not { } info)
+        EcInfo? level3;
+        using (ctx.Edition.At(ecWord))   // the exception-name refusals are about that word (kb/Work PB4722, as EcBindRaising)
+            level3 = EcResolveLevel3(ecWord.GetText(), EcRaiseSite.Raise);
+        if (level3 is not { } info)
             return BoundRejected.Reported(ctx.Edition);   // diagnosed — fail the compile, bind a placeholder
         ctx.EcState.Raise = true;
         int line = r.Start.Line;
