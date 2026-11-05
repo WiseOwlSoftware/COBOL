@@ -20,12 +20,13 @@ using Core = CobolParserCore;
 /// <list type="number">
 /// <item><b>Import before expand.</b> An expansion of its name and key that the search space already holds is the class: the group
 /// emits nothing for its own copy and names the existing types (the copy it bound is the same text over the same surfaces, which is
-/// what the key says). That holds when the existing assembly references this group's own previous build — a reference cycle the CLR and
-/// Roslyn accept.</item>
+/// what the key says) — provided it is compiled against the assemblies THIS compilation's classes live in, which the key does not say
+/// (it hashes a class's record, not its home). That holds when the existing assembly references this group's own previous build — a
+/// reference cycle the CLR and Roslyn accept — for a class written here, and the imported class's assembly for one imported (kb/Work PB4650).</item>
 /// <item><b>Otherwise (a) an assembly of its own</b> when its code names no class or interface of THIS group — every actual and every
 /// resolution lies outside it: the driver compiles the expansion's text under the skeleton's recorded state into
 /// <c>&lt;externalized name&gt;.dll</c> beside the output; <b>or (b) this group's assembly</b>, because an assembly of its own would need
-/// the group's NEW assembly.</item>
+/// the group's NEW assembly, or because that file holds the same expansion compiled against other assemblies.</item>
 /// <item><b>A stale expansion</b> — the same name and the same definition and actuals under another key — is never imported: it is named
 /// by REPO-9 with the first component of its key that changed and every assembly of the search space that references it, and replaced.</item>
 /// </list>
@@ -135,6 +136,9 @@ internal static class ExpansionPlacementPass
             ExpansionPlacement? placement = null;
             string target = Path.Combine(external.OutputDirectory, ExternalizedNames.Form(externalized) + ".dll");
             var referenced = new HashSet<string>(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: file paths
+            // The assemblies the classes it names live in: the expansion's code is compiled against them, so an existing one serves this
+            // compilation only if it is compiled against these very assemblies (ISO §9.3.12: the expansion is the class it would have been here).
+            var homes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: assembly simple names
             if (origin.Skeleton.From is { } definedIn) referenced.Add(definedIn.AssemblyFile);
             foreach (var entry in resolutionEntries.Concat(actualEntries))
             {
@@ -142,29 +146,42 @@ internal static class ExpansionPlacementPass
                 if ((c?.Imported ?? i?.Imported) is { } importedFrom) referenced.Add(importedFrom.AssemblyFile);
                 object? named = c is not null ? c : i;
                 if (named is not null && placements.GetValueOrDefault(named) is { HoldingFile: { } held }) referenced.Add(held);
+                if (HomeOf(c, i, named) is { } home) homes.Add(home);
             }
+            bool OnTarget(MetadataRepositoryProvider.PublishedExpansion other) =>
+                string.Equals(Path.GetFullPath(other.From.AssemblyFile), Path.GetFullPath(target), StringComparison.OrdinalIgnoreCase);   // not a COBOL word: file paths
+            bool targetHeldElsewhere = false;   // the file placement (a) would write holds this very expansion, compiled against other assemblies
             foreach (var other in external.ExpansionsNamed(externalized))
             {
                 var theirs = other.Identity;
                 bool sameTriple = ExternalizedNames.Same(theirs.DefinitionIdentity, identity.DefinitionIdentity)
                     && theirs.ActualIdentities.SequenceEqual(identity.ActualIdentities, ExternalizedNames.Comparer);
-                if (sameTriple && theirs.Key == key && ExpansionKey.SurfaceText(other.Record) == mine)
+                bool sameClass = sameTriple && theirs.Key == key && ExpansionKey.SurfaceText(other.Record) == mine;
+                if (sameClass && external.IsCompiledAgainst(other, homes))
                     placement ??= new ExpansionPlacement(identity, ExpansionWhere.Imported, other.From.AssemblyFile, other.From.ClrNamespace,
                         other.Record.Class!.ClrName, other.Record.Class.FactoryType, LocalNameOf(symbol), LocalFactoryNameOf(symbol));
+                else if (sameClass)
+                    // The same class over the same published surfaces, but compiled against ANOTHER assembly's classes than the ones this
+                    // compilation names: importing it would type this compilation's callers with classes it does not hold (CS0012, or a type
+                    // no argument of this compilation converts to). It is no stale copy and no other class, so nothing is reported; this
+                    // compilation makes its own, and never over the file that holds that one (kb/Work PB4650).
+                    targetHeldElsewhere |= OnTarget(other);
                 else if (sameTriple)
                 {
                     if (reportedStale.Add(other.From.Mvid)) ReportStale(origin, externalized, other, identity, theirs.Key == key);
                 }
                 else ReportSameName(symbol, origin, externalized, other, shallNot: referenced.Contains(other.From.AssemblyFile)
-                    || (!namesGroup && string.Equals(Path.GetFullPath(other.From.AssemblyFile), Path.GetFullPath(target), StringComparison.OrdinalIgnoreCase)));   // not a COBOL word: file paths
+                    || (!namesGroup && OnTarget(other)));
             }
             if (placement is null)
             {
-                if (!namesGroup) placement = WillWrite(symbol, origin, externalized, identity, target);
+                if (!namesGroup && !targetHeldElsewhere) placement = WillWrite(symbol, origin, externalized, identity, target);
                 else
                 {
                     if (origin.Skeleton.From is not null && !origin.Skeleton.State.BindsAs(inputs.At(origin.Entry.Start.Line)))
-                        ReportForeignState(symbol, origin, externalized);
+                        ReportForeignState(symbol, origin, externalized, namesGroup
+                            ? "its code names a class or interface of this compilation group, which an assembly of its own cannot reference"
+                            : $"the file '{target}' it would be written to holds the same expansion compiled against other assemblies than this compilation's classes");
                     placement = new ExpansionPlacement(identity, ExpansionWhere.InGroup);
                 }
             }
@@ -209,7 +226,7 @@ internal static class ExpansionPlacementPass
             bool sameKey)
         {
             string changed = sameKey ? "members" : ExpansionKey.FirstDifference(mine.Parts, stale.Identity.Parts);
-            var referencers = external.ReferencersOf(stale.AssemblyName);
+            var referencers = external.ReferencersOf(stale.From.AssemblyName);
             using var at = edition.At(origin.Entry);
             edition.Warning(DiagnosticCatalog.RepositorySignatureDiffers,
                 $"the expansion \"{externalized}\" of {stale.Identity.DefinitionIdentity} USING {string.Join(" ", stale.Identity.ActualIdentities)} in '{stale.From.AssemblyFile}' is stale: "
@@ -236,15 +253,22 @@ internal static class ExpansionPlacementPass
                     + "assembly is one this compilation references or the file this expansion would be written to");
         }
 
-        void ReportForeignState(object symbol, ExpansionOrigin origin, string externalized)
+        void ReportForeignState(object symbol, ExpansionOrigin origin, string externalized, string whyNotApart)
         {
             using var at = edition.At(origin.Entry);
             edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
                 $"{RepositoryWord(symbol)} '{externalized}' EXPANDS {origin.Skeleton.Name}: the skeleton was compiled under another compile state than this "
-                + "compilation's, so its expansion must be compiled apart under that state, in an assembly of its own; but its code names a class "
-                + "or interface of this compilation group, which an assembly of its own cannot reference (ISO §9.3.12, §12.3.8.4 GR5; "
-                + "DESIGN-external-repository §10.5)");
+                + $"compilation's, so its expansion must be compiled apart under that state, in an assembly of its own; but {whyNotApart} "
+                + "(ISO §9.3.12, §12.3.8.4 GR5; DESIGN-external-repository §10.5)");
         }
+
+        // The simple name of the assembly the class or interface a specifier names lives in, or null for a class the standard supplies: the
+        // assembly it was imported from; else the one that holds the expansion it is; else THIS compilation's output (a class written here).
+        string? HomeOf(OoClassSymbol? c, OoInterfaceSymbol? i, object? named) =>
+            (c?.Imported ?? i?.Imported) is { } importedFrom ? importedFrom.AssemblyName
+            : named is not null && placements.GetValueOrDefault(named) is { HoldingFile: { } held } ? Path.GetFileNameWithoutExtension(held)
+            : named is OoClassSymbol { Origin: OoSymbolOrigin.Source } or OoInterfaceSymbol { Origin: OoSymbolOrigin.Source } ? external.OutputAssemblyName ?? ""
+            : null;
     }
 
     /// <summary>The REPOSITORY entry's leading words for the class or interface <paramref name="symbol"/> an expansion makes.</summary>
