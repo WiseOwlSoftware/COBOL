@@ -20,7 +20,8 @@ python scripts/spec/work.py check    # the register is well-formed
 The other views are subcommands, each with `--json` and `--top N`: `work.py blocked` · `unharmed` (open, no harm flag
 set) · `analyses` · `landed` (finished defects and the rows each closed) · `upstream` · `stats`. `next` (Fix next) =
 open, not process-only, not blocked, and carrying a harm flag (`work.HARM_FLAGS`: wrong answer, crash, rejects legal
-source, under-rejects, misleading diagnostic) — ranked by what a defect DOES to a user's program, never by its severity label. PB24 and PB39
+source, under-rejects, misleading diagnostic), or a ready prerequisite of such a note, which carries the harm it unblocks
+(`work.inherited_harm`, kb/Work PB4769) — ranked by what a defect DOES to a user's program, never by its severity label. PB24 and PB39
 are both `[MAJOR]` and only one of them returns a wrong answer.
 
 ⛔ **KEEP IT CURRENT IN THE SAME CHANGE SET AS THE WORK.** A landed fix flips its note's `status` in the commit
