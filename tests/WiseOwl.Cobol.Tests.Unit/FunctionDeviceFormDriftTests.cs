@@ -84,7 +84,10 @@ public sealed class FunctionDeviceFormDriftTests
         }
         string binder = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs"));
         Assert.Contains("FoldedFunction = sig.Name", binder, StringComparison.Ordinal);
-        Assert.Contains("FoldedFunction = l.FoldedFunction", binder, StringComparison.Ordinal);
+        // OperandOf carries the fold to the operand through the ONE literal-to-operand mapping, BoundNumLiteral.AsOperand (kb/Work PB4635).
+        Assert.Contains("BoundNumLiteral l => l.AsOperand()", binder, StringComparison.Ordinal);
+        string tree = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Bound", "BoundTree.cs"));
+        Assert.Contains("FoldedFunction = FoldedFunction", tree, StringComparison.Ordinal);
     }
 
     /// <summary>⛔ LENGTH AND BYTE-LENGTH OF A NUMERIC FUNCTION MEASURE THE TEMPORARY DISPLAY SHOWS, AND NOTHING ELSE (kb/Work PB3951). The binder sends
