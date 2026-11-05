@@ -52,4 +52,41 @@ public sealed class ParenthesizedIntrinsicArgumentPermissiveTests : WiseOwlCobol
             ["TRIM=123456789|123456789|", "TRIML=abc|abc|", "UPPER= ABC | ABC |", "NUMERIC=2|2|"],
             stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'));
     }
+
+    /// <summary>
+    /// ⛔ THE SHAPE RULE OF A CHARACTER-READING POSITION HAS NO <c>--permissive</c> COERCION (kb/Work PB4635, review R3-1 and R3-3).
+    /// CONCAT's arguments are "data items or literals" (§15.18.3 r1) and BASECONVERT's argument-1 "a usage display or national data item
+    /// or literal" (§15.12.3 r1); a parenthesized item is an arithmetic expression (§8.8.1.1) and a parenthesized boolean item "a boolean
+    /// expression enclosed in parentheses" (§8.8.2), neither of them either. The coercion <c>--permissive</c> offers an operand that holds
+    /// characters is its image, and an expression has none, so the violation stays an error in the mode that demotes the class rules
+    /// (FIND-STRING argument-3, an INTEGER position, reads the expression's value and keeps its coercion:
+    /// <see cref="IntrinsicArgumentRules.IsCoercible"/>).
+    /// </summary>
+    [Theory]
+    [InlineData("FUNCTION CONCAT((U2) \"A\")")]
+    [InlineData("FUNCTION CONCAT(\"A\" (U2))")]
+    [InlineData("FUNCTION BASECONVERT((U2) 10 16)")]
+    [InlineData("FUNCTION CONCAT((BB) \"A\")")]
+    [InlineData("FUNCTION LENGTH((BB))")]
+    public void AParenthesizedItemAtACharacterReadingPosition_IsAnErrorEvenUnderPermissive(string call)
+    {
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4635SHAPE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 U2 PIC 99 VALUE 12.
+            01 BB PIC 1(4) VALUE B"1010".
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY {call}
+                STOP RUN.
+            """;
+        string srcPath = Path.Combine(TempDir, "pb4635shape.cob");
+        File.WriteAllText(srcPath, source);
+        var compiled = CompilerDriver.Compile(new CompilerDriver.Options(
+            srcPath, Path.Combine(TempDir, "pb4635shape.dll"), DialectLevel: 2023, Permissive: true, SourceFormat: InitialReferenceFormat.Free));
+        Assert.False(compiled.Success, $"{call} compiled under --permissive");
+        Assert.Contains("COBOL1627", string.Join("\n", compiled.Errors));
+    }
 }

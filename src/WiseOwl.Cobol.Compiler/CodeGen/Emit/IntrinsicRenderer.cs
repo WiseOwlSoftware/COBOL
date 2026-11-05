@@ -1998,7 +1998,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // ⛔ THE --permissive COERCION OF A PARENTHESIZED ITEM OR LITERAL AT A CHARACTER POSITION (kb/Work PB4635 review R2-3): the
             // binder makes `(X9)` an arithmetic expression, so strict mode refuses it at a string function (COBOL0844 / COBOL1627) and
             // --permissive warns and coerces — the coercion offered every other operand that holds characters is its own image, and the
-            // enclosed item or literal is that operand (it ran as the bare spelling before the parentheses were kept).
+            // enclosed item or literal is that operand (it ran as the bare spelling before the parentheses were kept). The two
+            // numeric-admitting positions (CONCAT, BASECONVERT argument-1) are no coercion site: their "data item or literal" rule
+            // refuses the expression's SHAPE in every mode (IntrinsicArgumentRules.IsCoercible, review R3-1), so this arm never serves them.
             : n.EnclosedOperand is { } enclosed
                 ? enclosed.Accept(this)
             // ⛔ A NUMERIC FUNCTION'S RETURNED VALUE AT A NUMERIC-ADMITTING POSITION (kb/Work PB1420). CONCAT §15.18.3 r1

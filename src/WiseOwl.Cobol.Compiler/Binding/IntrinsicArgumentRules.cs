@@ -133,8 +133,10 @@ internal enum ArgPredicateKind
     /// <summary>"shall be [exactly] N character position(s) in length" (§15.70.3 r1's "one character position",
     /// §15.96.3 r2's "a single character"). Same static-width discipline as <see cref="MinWidth"/>.</summary>
     ExactWidth,
-    /// <summary>"shall be an integer data item or integer literal" (§15.37.3 r3) — NARROWER than §15.3 type 6:
-    /// an arithmetic expression is barred outright, whatever it evaluates to; a nested function-identifier is a
+    /// <summary>"shall be an integer data item or integer literal" (§15.37.3 r3), "data items or literals" (§15.18.3 r1) and "data
+    /// item or literal" (§15.12.3 r1's argument-1) — the SHAPE half, the integer-ness being the class kind's. NARROWER than §15.3 type 6:
+    /// an arithmetic expression (a parenthesized item or literal included) or a boolean expression is barred outright, whatever it
+    /// evaluates to; a nested function-identifier is a
     /// data item (<see cref="IntrinsicArgumentRules.IsDataItem"/>, kb/Work PB4507) and its integer-ness is the class
     /// kind's test.</summary>
     DataItemOrLiteralOnly,
@@ -906,7 +908,10 @@ internal static class IntrinsicArgumentRules
             // expression as it does FIND-STRING's integer (kb/Work PB2079); a nested integer function-identifier is a
             // data item and stays legal (PB4507). The value halves
             // (positive, range 2 to 16, unequal) stay in CheckBaseConvertArgs and the runtime twins.
+            // Argument-1 is "a usage display or national data item or literal" (the shape half rides position 1's predicate below,
+            // beside the usage half CheckBaseConvertArgs owns): a parenthesized item or literal is neither (kb/Work PB4635 review R3-1).
             ["BASECONVERT"] = Schema("§15.12.3 r1", [UnscreenedKind, 'i', 'i'])
+                .WithPredicate(0, ArgPredicate.DataItemOrLiteralOnly("§15.12.3 r1"))
                 .WithPredicate(1, ArgPredicate.DataItemOrLiteralOnly("§15.12.3 r1"))
                 .WithPredicate(2, ArgPredicate.DataItemOrLiteralOnly("§15.12.3 r1")),
             ["BOOLEAN-OF-INTEGER"] = Uniform('i', "§15.13.3 r1/r2"),         // both arguments positive integers
@@ -1115,7 +1120,10 @@ internal static class IntrinsicArgumentRules
             // §15.18.3 r1 — CONCAT admits "class alphabetic, alphanumeric, boolean, numeric or national" (the
             // 'c' kind: everything but index/object/pointer); r2's usage agreement and r3's usage-display +
             // unsigned-integer conditions are the StaticUsageOf-axis screen in IntrinsicBinder.CheckConcatArgs.
-            ["CONCAT"] = Uniform('c', "§15.18.3 r1"),
+            // r1 also says argument-1 and argument-2 "shall be data items or literals": every CONCAT argument is one or the other, so
+            // the shape predicate rides the tail. A parenthesized item or literal is an arithmetic expression (§8.8.1.1) and so
+            // neither, although the class kind admits class numeric (kb/Work PB4635 review R3-1).
+            ["CONCAT"] = Uniform('c', "§15.18.3 r1").WithTailPredicate(ArgPredicate.DataItemOrLiteralOnly("§15.18.3 r1")),
             // Zero-argument functions — present so the drift test can hold this table and the catalog in
             // agreement (the general format admits no argument; any argument is an arity error first).
             ["CURRENT-DATE"] = Uniform(' ', "§15.21.2 — no arguments"),
@@ -1432,8 +1440,10 @@ internal static class IntrinsicArgumentRules
         // nested FUNCTION-IDENTIFIER is a data item (§8.4.3.2.4 GR1: "a temporary data item"; an integer function's
         // is an integer one, §15.2 item 5) and so is admitted here; whether its function is INTEGER is the class
         // kind's integer test, not this predicate's (kb/Work PB4507 — it used to bar the function outright).
-        ArgPredicateKind.DataItemOrLiteralOnly when op is BoundComputedOperand && !IsDataItem(op) =>
-            $"is an arithmetic expression, not an integer data item or integer literal, which ISO {p.Clause} requires",
+        // The position's class kind says INTEGER where the rule does (§15.37.3 r3, §15.12.3 r1's bases) and class numeric, alphanumeric...
+        // where it does not (CONCAT, BASECONVERT argument-1), so the shape verdict names the shape alone.
+        ArgPredicateKind.DataItemOrLiteralOnly when op is (BoundComputedOperand or BoundBoolOperand) && !IsDataItem(op) =>
+            $"is {OperandShapeName(op)}, not a data item or literal, which ISO {p.Clause} requires",
         // §15.48.3 r3 "shall be a data item": the literal that rule was written to exclude, and an arithmetic or
         // boolean expression, are not one; a nested function-identifier IS (§8.4.3.2.4 GR1), kb/Work PB4507.
         ArgPredicateKind.DataItemOnly when !IsDataItem(op) =>
@@ -1444,6 +1454,18 @@ internal static class IntrinsicArgumentRules
         ArgPredicateKind.CharacterCategory when EditedCategoryOf(op) is { } edited =>
             $"is of an EDITED category ({edited}), which the CATEGORY wording of ISO {p.Clause} does not admit",
         _ => null,
+    };
+
+    /// <summary>Does <c>--permissive</c> offer a coercion for a violation of this predicate at this position? A "data item" rule is
+    /// about the operand's SHAPE, which no coercion relaxes (§15.48.3 r3, kb/Work PB58 / PB4507). A "data item or literal" rule at an INTEGER
+    /// position reads the expression's VALUE, which the computed operand has, so the coercion exists (FIND-STRING argument-3,
+    /// BASECONVERT's bases); at a CHARACTER-reading position (CONCAT, BASECONVERT argument-1) it reads an IMAGE of characters, which an
+    /// arithmetic or boolean expression does not have, so the shape stays an error (kb/Work PB4635 review R3-1).</summary>
+    public static bool IsCoercible(ArgPredicate p, ArgRule rule) => p.Kind switch
+    {
+        ArgPredicateKind.DataItemOnly => false,
+        ArgPredicateKind.DataItemOrLiteralOnly => rule.Kind == 'i',
+        _ => true,
     };
 
     /// <summary>⛔ THE ONE "IS THIS OPERAND A DATA ITEM" QUESTION of the argument screens (kb/Work PB4507). A data

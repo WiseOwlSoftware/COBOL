@@ -33,7 +33,7 @@ item was COBOL0844 (it compiled on main): the same written shape is also "a bool
 the other alternative section 8.4.3.2.3 SR8 lists. A new operand context, `OperandContext.GroupedFunctionArgument`, binds a parenthesized
 sole argument (the written shape asked through `SoleOperand.Unparenthesized`), and `OperandContextRules.Rules()` gained a fourth axis,
 `BooleanOperandAdmitted`, so its class screen (`ExpressionBinder.ClassScreenAdmits`, both screen doors) admits class boolean beside
-numeric; the item stays the field operand the boolean positions read. `ABS((BB) + 1)` is a compound arithmetic expression and is refused
+numeric (round 3 below makes it the boolean-expression operand 8.8.2 calls it). `ABS((BB) + 1)` is a compound arithmetic expression and is refused
 (COBOL0844; main accepted it). (R2-2) The device image of `ABS((I3))` was 000000003 where main and GnuCOBOL 3.2.0 show `+03`: the
 description of a selecting function's returned value is implementor-defined (section 15.4.1), CLAUDE.md rule 1 gives it to GnuCOBOL
 (DOC-A.1-92), and GnuCOBOL's parser makes `(I3)` the identifier. `FunctionDeviceText.Field` now describes a parenthesized item or literal
@@ -47,3 +47,31 @@ parenthesized line beside its bare spelling), negative `pb4635-abs-boolean-arith
 `ParenthesizedIntrinsicArgumentPermissiveTests`; `OperandContextRulesTests` pins the fourth axis. Comment repairs: the stale "an argument
 is NOT an arithmetic expression" statements (IntrinsicBinder, ExpressionBinder.BindFunctionArgumentExpr, IntrinsicArgumentRules) and the
 ABS negative's 8.8.1.2 citation (the quote is in 8.8.1.1). Docs: DESIGN-binder-bound-tree.md 3.6 table gained axis D and its row.
+
+Review round 3 found one blocker and two leads. (R3-1) The wrapper that made `(I3)` an arithmetic expression hid the item from the two
+functions whose class kind admits class numeric: `CONCAT((I3) "A")` printed `0LA`, `CONCAT((F2) "A")` `25A`, `BASECONVERT((F2) 10 16)` `19` and
+`BASECONVERT((I3) 10 16)` an empty string, with no diagnostic, where main and the bare spellings are COBOL1627 (15.18.3 r3) and COBOL1642
+(15.12.3 r1). Before round 1 the same arguments died in the string visitor's loud arm; the round-2 arm that renders the enclosed item turned
+that into a silent wrong answer. The root is that both rules open with a SHAPE ("data items or literals", "a usage display or national data
+item or literal") that neither schema row declared: `CONCAT` was `Uniform('c')` and `BASECONVERT` argument-1 `UnscreenedKind`, owned by
+`CheckBaseConvertArgs`, which reads only a field or literal operand. They now carry the `DataItemOrLiteralOnly` predicate (the CONCAT
+tail, BASECONVERT position 1), the same one FIND-STRING argument-3 and the BASECONVERT bases carry, and the predicate's text names the
+shape alone ("not a data item or literal"). `IntrinsicArgumentRules.IsCoercible` is the one answer to whether `--permissive` offers a
+coercion for a predicate: a data-item rule never does, a data-item-or-literal rule does at an INTEGER position (the expression's value) and not
+at a character-reading one (an expression has no character image), so the two new refusals are errors in every mode and the renderer's
+enclosed-item arm now serves only the class-coercion sites (TRIM, UPPER-CASE). Every other position that says "data item or literal" is a
+string position, where the numeric class of the wrapper is already refused (`REVERSE((I2))`, `FIND-STRING((I2) ...)`). (R3-3) A parenthesized
+class-boolean item was returned as the field operand "to every reader", so `LENGTH((BB))`, `BYTE-LENGTH((BB))` and `CONCAT((BB) "A")` compiled
+where `LENGTH((I2))` is refused. It is "a boolean expression enclosed in parentheses" (8.8.2), so the argument binder now returns the
+`BoundBoolOperand` (over `BoundBoolRef`) that `BB B-AND BC` binds to; those three positions refuse it as they refuse that, and
+`INTEGER-OF-BOOLEAN((BB))`, `((BB))`, `(BT)`, `(BE(1))` and the ref-mod keep their values (swept over REVERSE, UPPER-CASE, TRIM, ORD, NUMVAL, ABS, MAX,
+MIN, ORD-MAX, NATIONAL-OF, DISPLAY-OF: `(BB)` now answers exactly as `BB B-AND BC` at each). The predicate refuses a boolean expression too
+(CONCAT(BB B-AND BC "A") was accepted before; 15.18.3 r1 admits only data items and literals). (R3-2, answered no change) Under `--permissive`,
+`MAX((X9) "A")` differs from `MAX(X9 "A")`: the parenthesized item is the arithmetic expression 8.8.1.1 calls it, whose alphanumeric operand
+the COBOL0844 warning says is digit-decoded, and the second warning (COBOL1627) says the character literal then disagrees in class with a
+numeric first argument. The string-image coercion of round 2 belongs to the positions that read only characters; a selecting function reads
+either, and the strict edition refuses the program, so the warned permissive answer is the documented extension, not a divergence from a
+rule. Goldens: `pb4635_unparenthesized_data_item_arguments` (accept 2023) guards the legal side, and the refusals
+`pb4635-concat-parenthesized-item`, `pb4635-concat-parenthesized-boolean-item`, `pb4635-baseconvert-parenthesized-argument-1` and
+`pb4635-length-parenthesized-boolean-item`; the unit test `AParenthesizedItemAtACharacterReadingPosition_IsAnErrorEvenUnderPermissive` pins the
+permissive half. Docs: INTRINSICS_DESIGN.md names the three rules the predicate serves and `IsCoercible`.

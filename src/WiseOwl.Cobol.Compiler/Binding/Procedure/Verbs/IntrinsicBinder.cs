@@ -2002,10 +2002,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // each its own rule with its own clause; the class kind below is the last of them, not the only one.
             // A "shall be a data item" violation is about the operand's SHAPE (a literal or an expression written where
             // an item is required), which no --permissive coercion relaxes: it stays the error it always was
-            // (§15.48.3 r3, kb/Work PB58 / PB4507).
+            // (§15.48.3 r3, kb/Work PB58 / PB4507); IntrinsicArgumentRules.IsCoercible says which predicates are.
             foreach (var p in rule.Predicates)
                 if (IntrinsicArgumentRules.PredicateViolation(p, args[i], KnownWidth(args[i])) is { } pWhy)
-                    Emit($"FUNCTION {sig.Name} argument-{i + 1} {pWhy}", coercible: p.Kind is not ArgPredicateKind.DataItemOnly);
+                    Emit($"FUNCTION {sig.Name} argument-{i + 1} {pWhy}", coercible: IntrinsicArgumentRules.IsCoercible(p, rule));
             if (IntrinsicArgumentRules.Violation(rule, args[i]) is not { } why) continue;
             ReportClass($"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})", args[i]);
         }
@@ -3062,11 +3062,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // literal" position (FIND-STRING argument-3, §15.37.3 3); BASECONVERT arguments 2 and 3, §15.12.3 1)) admitted it as if the bare
         // item had been written. Asked of the written shape, as IsSoleFunctionIdentifier is; every other bound shape is already the
         // computed operand OperandOf makes of it. A class-BOOLEAN item is the boolean expression it encloses (§8.8.2), not an arithmetic
-        // one, and is the item to every reader (INTEGER-OF-BOOLEAN((BB)), review R2-1).
+        // one (INTEGER-OF-BOOLEAN((BB)), review R2-1), and so a boolean-expression operand like `BB B-AND BC`, which a position that
+        // takes a data item or a literal and no boolean expression (LENGTH, BYTE-LENGTH, CONCAT) refuses as it refuses that (review R3-3).
         if (!soleOperand && bound is BoundNumRef or BoundNumLiteral)
         {
             var enclosedOperand = OperandOf(bound, functionValue: false);
-            return IntrinsicArgumentRules.ClassOf(enclosedOperand) is CobolClass.Boolean ? enclosedOperand : new BoundComputedOperand(bound);
+            return IntrinsicArgumentRules.ClassOf(enclosedOperand) is not CobolClass.Boolean ? new BoundComputedOperand(bound)
+                : enclosedOperand is BoundFieldOperand { Place: var item } ? new BoundBoolOperand(new BoundBoolRef(item))
+                : enclosedOperand;
         }
         return OperandOf(bound, functionValue: IsSoleFunctionIdentifier(written, bound));
     }
