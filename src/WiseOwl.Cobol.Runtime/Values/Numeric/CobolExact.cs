@@ -294,9 +294,12 @@ public readonly struct CobolExact
     /// <summary>The value's integer at its own <see cref="Scale"/>: the wide form, or the SDIDI's significand.</summary>
     private CobolWide Significand => _sdidi ? CobolWide.From(_dec.Sig) : _wide;
 
-    /// <summary>The negation, on the value's own carrier; the same precision.</summary>
+    /// <summary>The negation, on the value's own carrier; the same precision. ⛔ AN APPROXIMATION NEGATES AS THE BINARY64 IT REMEMBERS
+    /// (kb/Work PB4753): the sign flip of a binary64 is exact, so <c>- FUNCTION MAX (F FUNCTION EXP10 (-3))</c> lands the negated double,
+    /// not the truncation of the negated decimal one binary64 below it. Every other operation forms a new value and drops the memory.</summary>
     public static CobolExact Negate(CobolExact a) =>
         a._isBig ? new(CobolBig.Negate(a._big), a._precision)
+        : a._isApproximation ? new(CobolDec.Negate(a._dec), a._precision, -a._approximation)
         : a._sdidi ? new(CobolDec.Negate(a._dec), a._precision)
         : new(CobolWide.Negate(a._wide), a._scale, a._precision);
 
