@@ -45,6 +45,9 @@ internal readonly struct CobolBig
 
     internal int Sign => Value.Sign;
 
+    /// <summary>The decimal digits of the unscaled magnitude.</summary>
+    internal string MagnitudeDigits() => BigInteger.Abs(Value).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
     // ── construction ────────────────────────────────────────────────────────────────────────────────────────
 
     private static CobolSizeError Overflow() => new("a native intermediate exceeds the exact range "
