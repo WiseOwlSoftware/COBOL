@@ -365,7 +365,8 @@ def _self_test() -> int:
     check("account 1 resets Sunday 03:00", (a1.weekly_reset["weekday"], a1.weekly_reset["hour"]), (6, 3))
     a2 = current(rules, {ENV: str(home / ".claude-acct2")})
     check("acct2 dir -> account2", (a2.name, a2.explicit), ("account2", True))
-    check("account 2 resets Saturday 10:00", (a2.weekly_reset["weekday"], a2.weekly_reset["hour"]), (5, 10))
+    check("account 2 resets Saturday 17:00 UTC", (a2.weekly_reset["weekday"], a2.weekly_reset["hour"], a2.weekly_reset["tz"]),
+          (5, 17, "UTC"))
     check("explicit global config is inside the dir", a2.global_config, home / ".claude-acct2" / ".claude.json")
     check("by name", by_name("account2", rules).config_dir, home / ".claude-acct2")
     check("project dir key", a2.project_dir(r"E:\COBOL"), home / ".claude-acct2" / "projects" / "E--COBOL")

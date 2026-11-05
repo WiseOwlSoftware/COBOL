@@ -162,7 +162,8 @@ r = subprocess.run([sys.executable, str(HERE / "budget.py"), "--json", "--accoun
                    capture_output=True, text=True)
 check("CLI: an account the table lacks is refused", r.returncode, 2)
 
-# 7. two accounts (kb/Work PB2478). Account 2's week resets Saturday 10:00 Los Angeles (2026-10-10 is a Saturday).
+# 7. two accounts (kb/Work PB2478). Account 2's week resets Saturday 17:00 UTC, 10:00 Los Angeles in daylight saving time
+#    (2026-10-10 is a Saturday).
 check("account 2 week start, Saturday after 10:00", budget.week_start(at(2026, 10, 10, 11), RESET2), at(2026, 10, 10, 10))
 check("account 2 week start, Saturday before 10:00", budget.week_start(at(2026, 10, 10, 9), RESET2), at(2026, 10, 3, 10))
 check("account 2 week start, Sunday", budget.week_start(at(2026, 10, 11, 4), RESET2), at(2026, 10, 10, 10))
@@ -174,7 +175,11 @@ r2 = {"noted_at": at(2026, 10, 10, 9).isoformat(), "account": "account2", "weekl
 r = budget.estimate(sat, [r2], source([]), FIXTURE, A2)
 check("Saturday-10:00 reset: account 2's new week", (r["anchor"], r["weekly_est_pct"], r["day"], r["decision"]),
       (None, 0.0, 1, "go"))
-check("Saturday-10:00 reset: the week start", r["week_start"], at(2026, 10, 10, 10).isoformat())
+check("Saturday-10:00 reset: the week start", dt.datetime.fromisoformat(r["week_start"]), at(2026, 10, 10, 10))
+# the reset is a fixed instant (Saturday 17:00 UTC): after daylight saving time ends it is 09:00 Pacific, not 10:00
+# (owner 2026-11-05: "The reset moved to 09:00 AM")
+r = budget.estimate(at(2026, 11, 7, 9, 30), [], source([]), FIXTURE, A2)
+check("after DST ends the reset is 09:00 Pacific", dt.datetime.fromisoformat(r["week_start"]), at(2026, 11, 7, 9))
 r = budget.estimate(sat, [dict(r2, account="account1")], source([]), FIXTURE, A1)
 check("the same instant is still account 1's old week", (r["weekly_est_pct"], r["day"]), (90.0, 7))
 # 7b. interleaved readings: account 1 at 86 % (13:08), account 2 at 0 % (13:26), an unstamped one in between

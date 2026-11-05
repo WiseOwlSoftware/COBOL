@@ -39,11 +39,11 @@
         "config_dir": "~/.claude-acct2",
         "weekly_reset": {
           "weekday": 5,
-          "hour": 10,
+          "hour": 17,
           "minute": 0,
-          "tz": "America/Los_Angeles"
+          "tz": "UTC"
         },
-        "_source": "owner 2026-10-07 13:36 PDT: 'your usage resets on Saturday at 10 AM'; its /usage at 13:34 read 'Resets Oct 10, 9:59am'",
+        "_source": "owner 2026-10-07 13:36 PDT: 'your usage resets on Saturday at 10 AM'; its /usage at 13:34 read 'Resets Oct 10, 9:59am'. The reset is a fixed instant, Saturday 17:00 UTC: owner 2026-11-05, after daylight saving time ended, 'The reset moved to 09:00 AM' (its /usage read 'Resets Nov 7, 8:59am'), so the row is kept in UTC, not as a local wall-clock time",
         "quota_overrides": [
           {
             "until": "2026-10-17T10:00:00-07:00",
