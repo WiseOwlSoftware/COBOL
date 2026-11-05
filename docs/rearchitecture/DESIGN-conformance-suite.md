@@ -363,8 +363,8 @@ unpaired). Untracked, alternatives go unwitnessed: a lexical scan of 6,324 progr
 
 **Must-diagnose format points.** Elements "shall be written in the compilation group in the sequence given in the
 general format" (§5.2.1), keywords are required (§5.2.2), one alternative of a brace "shall be explicitly specified or is
-implicitly selected" (§5.2.6.3), and of choice indicators "any single alternative shall be specified only once"
-(§5.2.6.4). So each FMT row owes, once each: per brace with no default, no alternative written; per choice-indicator
+implicitly selected" (§5.2.6.3), and of choice indicators §5.2.6.4 says "any single alternative shall be specified
+only once". So each FMT row owes, once each: per brace with no default, no alternative written; per choice-indicator
 set, one alternative written twice; per required keyword, the keyword left out. Each is one line of a control's
 `.flagged.jsonl`; S14 counts them.
 
