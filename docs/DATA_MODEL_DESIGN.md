@@ -2346,6 +2346,13 @@ character-1 repeated twice or more is a floating string, exactly as `$$$` is. Tw
   (a private-use mask character plus a twin rule with `Floating: false`) once the string as written has passed
   `PictureComposition.Validate`, and every consumer then reads exactly one kind per key.
 
+`Render` reports WHICH symbol's string stands at a position (`placedBy[i]`, the upper-cased symbol, `'\0'` for none)
+and not merely that one does, because a floating string lands on a simple insertion symbol EMBEDDED in it (rule 6:
+"part of the string"): the landed text is the floating symbol's, never the embedded symbol's own, and `Materialize`
+writes it at the end of the embedded symbol's slot (kb/Work PB4703). `DeEdit` reads that layout back
+(`LandingZones`/`LandedStringAt`, over the one `FloatingZone` extent `FindFloatingPlacement` also reads); a blank
+negative text of a floating FOR string is read as the positive text never landing.
+
 Goldens `2023/pb491_editing_variable_width` (Annex D.24's own images and sizes) and
 `negative/pb568-editing-char1-quoted`, `negative/pb491-editing-unequal-literal-widths`.
 
