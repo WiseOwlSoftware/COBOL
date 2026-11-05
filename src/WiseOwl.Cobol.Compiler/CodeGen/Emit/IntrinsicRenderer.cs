@@ -212,7 +212,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // native float lane a float operand selects.
         if (sig.RuntimeMethod is "MaxScaled" or "MinScaled" or "OrdMax" or "OrdMin" or "MedianScaled"
             && IntrinsicCarrierRules.SelectionNeedsExactLane(AnyRealArgument(ic), AllRealArguments(ic),
-                AnyFloatItemArgument(ic), AnyApproximateArgument(ic), IntrinsicCarrierRules.ReturnsMeanOfMiddlePair(ic))
+                AnyFloatItemArgument(ic), AnyApproximateArgument(ic), IntrinsicCarrierRules.ReturnsMeanOfMiddlePair(sig.Name, ic.Args))
             && RenderDec(ic) is { } decSelection)
             return decSelection;
         // ⛔ A SELECTION THE RECEIVER'S INT128 HEADROOM WOULD CUT RIDES THE SDIDI TOO (kb/Work PB3839, review R1-1). MAX/MIN

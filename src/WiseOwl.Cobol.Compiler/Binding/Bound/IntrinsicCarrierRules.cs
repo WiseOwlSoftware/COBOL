@@ -149,12 +149,12 @@ internal static class IntrinsicCarrierRules
         bool meanOfMiddlePair) =>
         anyBinary64 && (!allBinary64 || (!meanOfMiddlePair && anyFloatItem && anyApproximation));
 
-    /// <summary>Is the value of <paramref name="call"/> the arithmetic MEAN of the two middle arguments and not a selected argument
+    /// <summary>Is the value of the call of <paramref name="functionName"/> over <paramref name="arguments"/> the arithmetic MEAN of the two middle arguments and not a selected argument
     /// (kb/Work PB4753)? True for MEDIAN over an even, statically known count (§15.61.4 r2); a table(ALL) argument stands for an unknown
     /// count and is treated as a selection, the lane it had. A mean is a NEW value that no argument's own kind describes, so the
     /// kind-preserving exact lane of <see cref="SelectionNeedsExactLane"/> has nothing to preserve for it.</summary>
-    internal static bool ReturnsMeanOfMiddlePair(BoundIntrinsicCall call) =>
-        call.Sig.Name == "MEDIAN" && call.Args.Count % 2 == 0 && !call.Args.Any(a => a is BoundFieldOperand { Place: TableAllPlace });
+    internal static bool ReturnsMeanOfMiddlePair(string functionName, IReadOnlyList<BoundOperand> arguments) =>
+        functionName == "MEDIAN" && arguments.Count % 2 == 0 && !arguments.Any(a => a is BoundFieldOperand { Place: TableAllPlace });
 
     /// <summary>The functions <see cref="ReturnsExactParse"/> answers true for, as a set so that
     /// <c>ReceiverShapeReaderDriftTests</c> can hold each member's runtime body against the renderer (no <c>RenderNum</c>

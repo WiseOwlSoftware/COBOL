@@ -129,7 +129,7 @@ internal static class FunctionValueLane
         if (Selections.Contains(sig.RuntimeMethod) && sdidiBody
             && IntrinsicCarrierRules.SelectionNeedsExactLane(anyReal, allReal,
                 args.Any(a => a.Kind == CarrierKind.Real), args.Any(a => a.Kind == CarrierKind.ApproximateReal),
-                IntrinsicCarrierRules.ReturnsMeanOfMiddlePair(call)))
+                IntrinsicCarrierRules.ReturnsMeanOfMiddlePair(sig.Name, call.Args)))
             return OnSdidiBody(sig.RuntimeMethod);
         if (sig.Float) return CarrierKind.ApproximateReal;
         // RenderNum's last dispatch: a binary64 argument at a numeric position moves the whole call onto the float lane. The value
