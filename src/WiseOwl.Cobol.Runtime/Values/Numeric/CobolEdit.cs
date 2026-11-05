@@ -519,6 +519,11 @@ public static partial class CobolEdit
         // before "the first nonzero numeric character in the item", so a '-' at an embedded character-1 whose literal
         // is itself '-' is the landed sign while no digit precedes it and the literal once one does (kb/Work PB4514).
         bool digitSeen = false;
+        // The extent of the mask's floating '+'/'-' string: only a character-1 INSIDE it (embedded, or immediately
+        // right of its last symbol) can hold the landed sign; one left of it always shows its literal (PB4621).
+        var (signStart, signEnd) = facts.Plus + facts.Minus > 1 && edits is not null
+            ? FloatingZone(pattern, facts.Plus > 0 ? '+' : '-', edits)
+            : (-1, -1);
         for (int i = 0; i < pattern.Length && phys < image.Length; i++)
         {
             char p = char.ToUpperInvariant(pattern[i]);
@@ -536,8 +541,10 @@ public static partial class CobolEdit
                     // (rule 6: "simple insertion editing symbols embedded in this string ... are part of the string"),
                     // so the sign lands there as '-' when the literal was overwritten: the same read as at a string
                     // member below (kb/Work PB4514; FindFloatingPlacement writes it). A literal that is itself '-'
-                    // is told from the landed sign by position (digitSeen above).
-                    else if (c == '-' && facts.Plus + facts.Minus > 1 && (!digitSeen || !Matches(image, phys, e.Pos))) negative = true;
+                    // is told from the landed sign by position (digitSeen above). A character-1 outside the string
+                    // (left of its first symbol, or past its end) is never a landing position: its '-' is the
+                    // literal (kb/Work PB4621; FloatingZone is the one extent both walks read).
+                    else if (c == '-' && i >= signStart && i < signEnd && (!digitSeen || !Matches(image, phys, e.Pos))) negative = true;
                     phys += w;
                     continue;
                 }
@@ -802,21 +809,33 @@ public static partial class CobolEdit
     /// insertion character(s) will contain the space character", which pass 2 has already done.</summary>
     private static int FindFloatingPlacement(string pattern, char[] output, char floatChar, EditRule[]? edits)
     {
-        char target = char.ToUpperInvariant(floatChar);
+        var (start, end) = FloatingZone(pattern, floatChar, edits);
         int lastSuppressed = -1;
-        bool inZone = false;
-        for (int i = 0; i < pattern.Length; i++)
+        for (int i = start; i >= 0 && i < end; i++)
         {
-            char p = char.ToUpperInvariant(pattern[i]);
-            if (p == target)
-            {
-                inZone = true;
-                if (output[i] == ' ') lastSuppressed = i;
-                else break;
-            }
-            else if (inZone && output[i] == ' ' && TrySimpleInsertion(pattern[i], edits, out _)) lastSuppressed = i;
-            else if (inZone) break;
+            if (output[i] != ' ') break;   // a digit or a literal ends the suppressed run
+            lastSuppressed = i;
         }
         return lastSuppressed;
+    }
+
+    /// <summary>⛔ THE EXTENT OF A FLOATING STRING — written ONCE, read by <see cref="FindFloatingPlacement"/> (where
+    /// the sign lands) and by <see cref="DeEdit"/> (where a landed sign can be read back). ISO §13.18.40.5 rule 6:
+    /// "Any of the simple insertion editing symbols embedded in this string or to the immediate right of this
+    /// string are part of the string", so the string runs from the first <paramref name="floatChar"/> through
+    /// every following occurrence of it or simple insertion symbol (<see cref="TrySimpleInsertion"/>), and ends at
+    /// the first other symbol. A simple insertion symbol LEFT of the first occurrence is not part of it and always
+    /// shows its own character (kb/Work PB4621). Returns the half-open range, <c>Start = -1</c> when the mask holds
+    /// no occurrence.</summary>
+    private static (int Start, int End) FloatingZone(string pattern, char floatChar, EditRule[]? edits)
+    {
+        char target = char.ToUpperInvariant(floatChar);
+        int start = pattern.AsSpan().IndexOfAny(target, char.ToLowerInvariant(target));
+        if (start < 0) return (-1, -1);
+        int end = start;
+        while (end < pattern.Length
+               && (char.ToUpperInvariant(pattern[end]) == target || TrySimpleInsertion(pattern[end], edits, out _)))
+            end++;
+        return (start, end);
     }
 }
