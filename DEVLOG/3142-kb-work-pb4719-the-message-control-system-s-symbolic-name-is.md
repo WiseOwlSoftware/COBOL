@@ -1,4 +1,4 @@
-## kb/Work PB4719: the message control system's symbolic name is a file-name component on every host
+## Entry 3142 — 2026-11-04 23:23 PST — kb/Work PB4719: the message control system's symbolic name is a file-name component on every host
 
 The device of a destination or a terminal is the file `<name>.out` of the MCS directory, and `MessageStoreState.NameOf` screened a name only for `/` and `\`. On Windows a name holding a colon was still defined with status 00: `C:EVIL` is a drive-relative path, `A:B` opens an NTFS alternate stream, and `NUL`, `CON` or `COM1` (with or without an extension) are devices, not files. Re-probed first: the 34 new refusal cases of `UnusableDefinitionFile_IsStatus91_OnEveryStatement` all failed against the old screen (the definition was accepted), then passed with the fix.
 
@@ -9,3 +9,4 @@ Self-review: the stem rule follows Microsoft's "Naming Files, Paths, and Namespa
 Branch review round 1 found the user guide (`docs/manual/user-guide/communication.md`) still stating the whole name rule as "1 to 12 characters", while the screen now refuses `PRN`, `LPT1`, `A:B` and the like with status 91 and a message nobody sees; the guide now states the rule and its consequence. Two comments that overstated or misdescribed the rule (the `NotInAFileName` summary, the summary of `NameResemblingAReservedOne_IsDefined`) were corrected. Left for the clerk: names are distinct by ordinal case but a Windows device file is not, so destinations `Aa` and `aA` share one `.out` file there (`MessageStore.cs`), a set-level refusal outside the NameOf-only direction.
 
 The landing met main's redesign of the same section of DESIGN-communication-facility.md (the paged store): the merge keeps this name rule and main's sentence on when `messages` enter. Review round 2's lead is answered in the same commit: the guide now lists every device name the screen refuses (`COM0`, `LPT0`, the superscript digits, `CONIN$`, `CONOUT$`, trailing spaces).
+
