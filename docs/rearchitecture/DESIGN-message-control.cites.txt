@@ -1,0 +1,538 @@
+$ cite.py --check 14.9.38.3 "Data-name-1 and data-name-2 shall be the name of a message-tag data item"
+OK  §14.9.38.3 4)  (Syntax rules)
+    4\) Data-name-1 and data-name-2 shall be the name of a message-tag data item.
+
+$ cite.py --check 14.9.38.3 "Literal-1 shall be an alphanumeric or national literal"
+OK  §14.9.38.3 1)  (Syntax rules)
+    1\) Literal-1 shall be an alphanumeric or national literal.
+
+$ cite.py --check 14.9.38.3 "Message-server-name-1 is the name of a message server run unit"
+OK  §14.9.38.3 2)  (Syntax rules)
+    2\) Message-server-name-1 is the name of a message server run unit.
+
+$ cite.py --check 14.9.38.3 "the OCCURS clause with the DEPENDING ON phrase where the depending on data item is not within identifier-1, the POINTER clause, the FUNCTION-POINTER clause or the PROGRAM-POINTER clause"
+OK  §14.9.38.3 3)  (Syntax rules)
+    3\) The data description entries of identifier-1 or any data items subordinate to it shall not contain the ANY LENGTH clause, the BASED clause, the DYNAMIC-LENGTH clause, the OBJECT-REFERENCE clause, the OCCURS clause wi
+
+$ cite.py --check 14.9.38.4 "The number of character positions of identifier-1 shall not be zero nor larger than the message server allows"
+OK  §14.9.38.4 1)  (General rules)
+    1\) The number of character positions of identifier-1 shall not be zero nor larger than the message server allows. If so and checking for that exception is enabled, the EC-MCS-MESSAGE-LENGTH exception is set to exist and
+
+$ cite.py --check 14.9.38.4 "the EC-MCS-MESSAGE-LENGTH exception is set to exist and the execution of the RECEIVE statement is unsuccessful"
+OK  §14.9.38.4 1)  (General rules)
+    1\) The number of character positions of identifier-1 shall not be zero nor larger than the message server allows. If so and checking for that exception is enabled, the EC-MCS-MESSAGE-LENGTH exception is set to exist and
+
+$ cite.py --check 14.9.38.4 "The message contains the content of data-name-1 as well as any additional implementor-defined data"
+OK  §14.9.38.4 4)  (General rules)
+    4\) A message is sent to the run unit identified by the content of literal-1 or message-server-name-1. The message contains the content of data-name-1 as well as any additional implementor-defined data. This additional d
+
+$ cite.py --check 14.9.38.4 "The statement suspends execution until the message is received by the server run unit"
+OK  §14.9.38.4 4)  (General rules)
+    4\) A message is sent to the run unit identified by the content of literal-1 or message-server-name-1. The message contains the content of data-name-1 as well as any additional implementor-defined data. This additional d
+
+$ cite.py --check 14.9.38.4 "The server run unit does not necessarily have to respond to the message"
+OK  §14.9.38.4 4)  (General rules)
+    4\) A message is sent to the run unit identified by the content of literal-1 or message-server-name-1. The message contains the content of data-name-1 as well as any additional implementor-defined data. This additional d
+
+$ cite.py --check 14.9.38.4 "If such a run unit is not identified, the EC-MCS-NO-SERVER exception condition is set to exist"
+OK  §14.9.38.4 5)  (General rules)
+    5\) Message-server-name-1 or literal-1 identify a message server run unit. If such a run unit is not identified, the EC-MCS-NO-SERVER exception condition is set to exist, and the execution of the SEND statement is unsucc
+
+$ cite.py --check 14.9.38.4 "data-name-1 contains the implementor-defined information (the message tag) that identifies the server run unit and the message sent"
+OK  §14.9.38.4 6)  (General rules)
+    6\) If the execution of the SEND statement is successful, data-name-1 contains the implementor-defined information (the message tag) that identifies the server run unit and the message sent.
+
+$ cite.py --check 14.9.38.4 "has not yet been responded to by a SEND statement in the current run unit"
+OK  §14.9.38.4 7)  (General rules)
+    7\) Data-name-2 shall contain a message tag that identifies a requestor run unit that was received by the current run unit via a RECEIVE statement and has not yet been responded to by a SEND statement in the current run 
+
+$ cite.py --check 14.9.38.4 "If data-name-2 does not identify such a run unit, the EC-MCS-NO-RECEIVER exception condition is raised"
+OK  §14.9.38.4 7)  (General rules)
+    7\) Data-name-2 shall contain a message tag that identifies a requestor run unit that was received by the current run unit via a RECEIVE statement and has not yet been responded to by a SEND statement in the current run 
+
+$ cite.py --check 14.9.38.4 "exception-name-1 or the name of the last exception raised in the current run unit is sent to the requestor program"
+OK  §14.9.38.4 8)  (General rules)
+    8\) If the RAISING phrase is specified, exception-name-1 or the name of the last exception raised in the current run unit is sent to the requestor program.
+
+$ cite.py --check 14.9.38.2 "Format 2 (message-server-response)"
+OK  §14.9.38.2   (General formats)
+    Format 2 (message-server-response)
+
+$ cite.py --check 14.9.31.3 "Data-name-1 shall be the name of a message-tag data item"
+OK  §14.9.31.3 1)  (Syntax rules)
+    1\) Data-name-1 shall be the name of a message-tag data item.
+
+$ cite.py --check 14.9.31.3 "Data-name-2 shall be an integer data item of the class numeric"
+OK  §14.9.31.3 3)  (Syntax rules)
+    3\) Data-name-2 shall be an integer data item of the class numeric.
+
+$ cite.py --check 14.9.31.3 "the CONSTANT RECORD clause, the DYNAMIC-LENGTH clause, the FUNCTION-POINTER clause"
+OK  §14.9.31.3 2)  (Syntax rules)
+    2\) The data description entries of identifier-1 or any data items subordinate to it shall not contain the ANY LENGTH clause, the BASED clause, the CONSTANT RECORD clause, the DYNAMIC-LENGTH clause, the FUNCTION-POINTER 
+
+$ cite.py --check 14.9.31.4 "in the case where the current run unit is being activated as a server run unit, from that requestor run unit"
+OK  §14.9.31.4 1)  (General rules)
+    1\) The RECEIVE statement receives a message from a server run unit or, in the case where the current run unit is being activated as a server run unit, from that requestor run unit.
+
+$ cite.py --check 14.9.31.4 "the RECEIVE statement is waiting for any requestor run unit to send a message to the current run unit"
+OK  §14.9.31.4 1) a)  (General rules)
+    a) If the content of data-name-1 is the value NULL before the execution of the RECEIVE statement, the RECEIVE statement is waiting for any requestor run unit to send a message to the current run unit. At the successful c
+
+$ cite.py --check 14.9.31.4 "the content of data-name-1 is an implementor-defined value that identifies the run unit that sent a message to the current run unit via a SEND statement"
+OK  §14.9.31.4 1) b)  (General rules)
+    b) Otherwise, the content of data-name-1 is an implementor-defined value that identifies the run unit that sent a message to the current run unit via a SEND statement. The content of identifier-1 is the content of the me
+
+$ cite.py --check 14.9.31.4 "If the content of the message tag does not identify a requestor or is not a correct format for the MCS, the RECEIVE statement is unsuccessful and the EC-MCS-INVALID-TAG exception condition is set to exist"
+OK  §14.9.31.4 1) b)  (General rules)
+    b) Otherwise, the content of data-name-1 is an implementor-defined value that identifies the run unit that sent a message to the current run unit via a SEND statement. The content of identifier-1 is the content of the me
+
+$ cite.py --check 14.9.31.4 "If the content of the message tag specifies a requestor that does not exist, the RECEIVE statement is unsuccessful and the EC-MCS-REQUESTOR-FAILED exception condition is set to exist"
+OK  §14.9.31.4 1) b)  (General rules)
+    b) Otherwise, the content of data-name-1 is an implementor-defined value that identifies the run unit that sent a message to the current run unit via a SEND statement. The content of identifier-1 is the content of the me
+
+$ cite.py --check 14.9.31.4 "In the latter case, the content of identifier-1 will be all space characters and the RECEIVE statement is assumed to be successful"
+OK  §14.9.31.4 2)  (General rules)
+    2\) If the CONTINUE phrase is specified, the RECEIVE statement execution is completed either when the message or an exception is returned from the MCS or when the CONTINUE parameters are completed. In the latter case, th
+
+$ cite.py --check 14.9.31.4 "data-name-2 will contain the length, in alphanumeric characters, of the message received"
+OK  §14.9.31.4 3)  (General rules)
+    3\) If the execution of the RECEIVE statement was successful, data-name-2 will contain the length, in alphanumeric characters, of the message received. If that length exceeds the length of identifier-1, the EC-MCS-MESSAG
+
+$ cite.py --check 14.9.31.4 "If that length exceeds the length of identifier-1, the EC-MCS-MESSAGE-LENGTH exception condition is set to exist"
+OK  §14.9.31.4 3)  (General rules)
+    3\) If the execution of the RECEIVE statement was successful, data-name-2 will contain the length, in alphanumeric characters, of the message received. If that length exceeds the length of identifier-1, the EC-MCS-MESSAG
+
+$ cite.py --check 13.18.60.4 "The class and category of a message-tag data item are message-tag"
+OK  §13.18.60.4 9)  (General rules)
+    9\) The MESSAGE-TAG clause specifies that a data item is a message-tag data item and contains an implementor-defined value that identifies a message and a server or requestor. The class and category of a message-tag data
+
+$ cite.py --check 13.18.60.4 "Each implementor specifies the precise effect of the USAGE MESSAGE-TAG clause upon the alignment and representation of the data item in the storage of the computer, including the number of bytes contained in the data item"
+OK  §13.18.60.4 9)  (General rules)
+    9\) The MESSAGE-TAG clause specifies that a data item is a message-tag data item and contains an implementor-defined value that identifies a message and a server or requestor. The class and category of a message-tag data
+
+$ cite.py --check 13.18.60.3 "If MESSAGE-TAG is specified, no other usage clauses shall be specified in the data description entry"
+OK  §13.18.60.3 21)  (Syntax rules)
+    21\) If MESSAGE-TAG is specified, no other usage clauses shall be specified in the data description entry.
+
+$ cite.py --check 13.18.60.3 "may be specified only for an elementary data item at level 1 or an elementary data item subordinate to a type declaration that includes the STRONG phrase"
+OK  §13.18.60.3 14)  (Syntax rules)
+    14\) A USAGE clause with the MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, or PROGRAM-POINTER phrase may be specified only for an elementary data item at level 1 or an elementary data item subordinate to a ty
+
+$ cite.py --check 13.18.60.3 "shall not be specified in a data item described with the CONSTANT RECORD clause"
+OK  §13.18.60.3 4)  (Syntax rules)
+    4\) The INDEX, MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, and PROGRAM-POINTER phrases shall not be specified in a data item described with the CONSTANT RECORD clause, or in any item subordinate to a data i
+
+$ cite.py --check 8.5.2.9 "An elementary data item explicitly described as usage message-tag item"
+OK  §8.5.2.9   (Message-tag category)
+    An elementary data item explicitly described as usage message-tag item.
+
+$ cite.py --check 8.4.3.10.1 "NULL is a predefined address of class pointer or a predefined content of class message-tag"
+OK  §8.4.3.10.1   (General)
+    NULL is a predefined address of class pointer or a predefined content of class message-tag.
+
+$ cite.py --check 8.4.3.10.3 "it may be used only as a sending operand in an INITIALIZE or a SET statement or in a message-tag relation condition"
+OK  §8.4.3.10.3 1) b)  (Syntax rules)
+    b) If the class of the associated data item is message-tag, it may be used only as a sending operand in an INITIALIZE or a SET statement or in a message-tag relation condition.
+
+$ cite.py --check 8.4.3.10.4 "The null content is an implementor-defined value that is guaranteed not to represent a message server or message requestor"
+OK  §8.4.3.10.4 4)  (General rules)
+    4\) When associated with a message-tag, the predefined content NULL references a data item of category message-tag that contains the null content. The null content is an implementor-defined value that is guaranteed not t
+
+$ cite.py --check 8.8.4.2.1 "Two operands of class message-tag"
+OK  §8.8.4.2.1 9)  (General)
+    9\) Two operands of class message-tag.
+
+$ cite.py --check 8.8.4.2.3 "Identifier-3 and identifier-4 shall reference data items of class message-tag, object, or pointer, and shall be of the same category"
+OK  §8.8.4.2.3 5)  (Syntax rules)
+    5\) Identifier-3 and identifier-4 shall reference data items of class message-tag, object, or pointer, and shall be of the same category.
+
+$ cite.py --check 8.8.4.2.14 "The operands are equal if they reference the same message requestor or message server of the same name or one is NULL and the other is NULL"
+OK  §8.8.4.2.14   (Comparisons of operands of class message-tag)
+    The operands are equal if they reference the same message requestor or message server of the same name or one is NULL and the other is NULL.
+
+$ cite.py --check 14.9.39.1 "setting the content of a message-tag data item to NULL or another message-tag"
+OK  §14.9.39.1   (General)
+    — setting the content of a message-tag data item to NULL or another message-tag
+
+$ cite.py --check 14.9.39.3 "Data-name-4 and data-name-5 shall be message-tag data items"
+OK  §14.9.39.3 35)  (Syntax rules)
+    35\) Data-name-4 and data-name-5 shall be message-tag data items.
+
+$ cite.py --check 14.9.39.4 "If data-name-5 is specified, the content of data-name-4 is moved to data-name-5"
+OK  §14.9.39.4 40)  (General rules)
+    40\) If data-name-5 is specified, the content of data-name-4 is moved to data-name-5.
+
+$ cite.py --check 14.9.39.4 "If NULL is specified, the content of data-name-5 shall be set to that of the null value"
+OK  §14.9.39.4 41)  (General rules)
+    41\) If NULL is specified, the content of data-name-5 shall be set to that of the null value.
+
+$ cite.py --check 14.9.20.4 "If the category of the receiving-operand is data-pointer, function-pointer, message-tag, or program-pointer, the sending-operand is the predefined address NULL"
+OK  §14.9.20.4 6) a) 1.  (General rules)
+    1\. If the category of the receiving-operand is data-pointer, function-pointer, message-tag, or program-pointer, the sending-operand is the predefined address NULL;
+
+$ cite.py --check 13.18.63.4 "data items of class message-tag, class object, and class pointer are initialized to null"
+OK  §13.18.63.4 4)  (General rules)
+    When VALUE clauses take effect, data items with a VALUE clause are initialized to the specified value and data items of class message-tag, class object, and class pointer are initialized to null; the values of other data
+
+$ cite.py --check 14.2.2 "Each data-name-1 specified in a BY VALUE phrase shall be defined as a data item of class numeric, message-tag, object, or pointer"
+OK  §14.2.2 2)  (Syntax rules)
+    2\) Each data-name-1 specified in a BY VALUE phrase shall be defined as a data item of class numeric, message-tag, object, or pointer.
+
+$ cite.py --check 14.9.25.4 "except as may be required by an implementation for subordinate items of class message-tag, object, or pointer"
+OK  §14.9.25.4 4)  (General rules)
+    Any move that is not an elementary move, and does not reference a variable-length group, is treated exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion of data from o
+
+$ cite.py --check 14.6.11 "If the run unit has an active message or messages to which it has not replied, an implicit SEND statement of the form 'SEND TO data-name FROM temp RAISING EXCEPTION EC-MCS-NORMAL-TERMINATION' is executed for each such message"
+OK  §14.6.11 7)  (Normal run unit termination)
+    7\) If the run unit has an active message or messages to which it has not replied, an implicit SEND statement of the form 'SEND TO data-name FROM temp RAISING EXCEPTION EC-MCS-NORMAL-TERMINATION' is executed for each suc
+
+$ cite.py --check 14.6.11 "temp is a temporary data item that is the size of the receiving data item in the associated RECEIVE statement for that message-tag"
+OK  §14.6.11 7)  (Normal run unit termination)
+    7\) If the run unit has an active message or messages to which it has not replied, an implicit SEND statement of the form 'SEND TO data-name FROM temp RAISING EXCEPTION EC-MCS-NORMAL-TERMINATION' is executed for each suc
+
+$ cite.py --check 14.6.12 "RAISING EXCEPTION EC-MCS-ABNORMAL-TERMINATION' is executed for each such message"
+OK  §14.6.12   (Abnormal run unit termination)
+    If the run unit has an active message or messages to which it has not replied, an implicit SEND statement of the form 'SEND TO data-name FROM temp RAISING EXCEPTION EC-MCS-ABNORMAL-TERMINATION' is executed for each such 
+
+$ cite.py --check 14.6.12 "the runtime system attempts to perform the operations of normal termination as specified in 14.6.11"
+OK  §14.6.12   (Abnormal run unit termination)
+    Then in all cases, unless the exception occurs in a MERGE statement, a SORT statement, or an I-O statement for which the implementor specifies otherwise, the runtime system attempts to perform the operations of normal te
+
+$ cite.py --check 14.6.13.1.1 "An exception condition is set to exist only if checking for that condition is enabled by default or by the TURN compiler directive"
+OK  §14.6.13.1.1   (General)
+    NOTE 3    An exception condition is set to exist only if checking for that condition is enabled by default or by the TURN compiler directive. If the exception condition occurs and it is not enabled, the results of the op
+
+$ cite.py --check 14.6.13.1.6 "EC-MCS-NO-REQUESTER"
+OK  §14.6.13.1.6   (Exception-names and exception conditions)
+    | EC-MCS-NO-REQUESTER | NF | RECEIVE statement |
+
+$ cite.py --check 14.6.13.1.6 "Server failed before replying to message"
+OK  §14.6.13.1.6   (Exception-names and exception conditions)
+    | EC-MCS-ABNORMAL-TERMINATION | NF | Server failed before replying to message |
+
+$ cite.py --check 14.6.13.1.6 "Server terminated before replying to message"
+OK  §14.6.13.1.6   (Exception-names and exception conditions)
+    | EC-MCS-NORMAL-TERMINATION | NF | Server terminated before replying to message |
+
+$ cite.py --check 14.6.13.1.6 "Implementor-defined message control exception"
+OK  §14.6.13.1.6   (Exception-names and exception conditions)
+    | EC-MCS-IMP | Imp | Implementor-defined message control exception |
+
+$ cite.py --check 3.118 "implementor-defined system that sends and receives messages exchanged between run units"
+OK  §3.118   ()
+    implementor-defined system that sends and receives messages exchanged between run units
+
+$ cite.py --check 3.120 "implementor-defined unit of data that specifies the requestor or sender of a message and any additional information about the message"
+OK  §3.120   ()
+    implementor-defined unit of data that specifies the requestor or sender of a message and any additional information about the message
+
+$ cite.py --check A.3 "The asynchronous messaging facility is dependent on the capability of a processor to allow run units to communicate with each other"
+OK  §A.3 4)  (Processor-dependent language element list)
+    4\) The asynchronous messaging facility is dependent on the capability of a processor to allow run units to communicate with each other.
+
+$ cite.py --check A.1 "USAGE MESSAGE-TAG (size and contents). This item is required. This item shall be documented in the implementor's user documentation"
+OK  §A.1 212)  (Implementor-defined language element list)
+    212\) USAGE MESSAGE-TAG (size and contents). This item is required. This item shall be documented in the implementor's user documentation. (13.18.60, USAGE clause, General rule 9)
+
+$ cite.py --check E.3.2 "Asynchronous messaging. A method of allowing communication between run units via messages is provided"
+OK  §E.3.2 1)  (Possibly affecting because of the addition of new words or names)
+    1\) **Asynchronous messaging.** A method of allowing communication between run units via messages is provided. The run units may be on the same processor or different processors and the processors do not have to be in th
+
+$ cite.py --check E.3.2 "EC-MCS-NO-REQUESTOR"
+OK  §E.3.2 3)  (Possibly affecting because of the addition of new words or names)
+    — For the Asynchronous messaging facility (EC-MCS, EC-MCS-ABNORMAL-TERMINATION, EC-MCS-IMP, EC-MCS-INVALID-TAG, EC-MCS-MESSAGE-LENGTH, EC-MCS-NO-REQUESTOR, EC-MCS-NO-SERVER, EC-MCS-NORMAL-TERMINATION, EC-MCS-REQUESTOR-FA
+
+$ cite.py --check D.6.6 "One run unit can communicate with another run unit that is running concurrently or is initiated then runs concurrently"
+OK  §D.6.6   (Run unit communication with other run units)
+    One run unit can communicate with another run unit that is running concurrently or is initiated then runs concurrently. These run units can be in one processor or in completely different processors in the same or separat
+
+$ cite.py --check D.6.6 "Receive-message-tag has to be NULL, so the system knows to accept messages from anywhere"
+OK  §D.6.6   (Run unit communication with other run units)
+    The server gets the message with a RECEIVE. Receive-message-tag has to be NULL, so the system knows to accept messages from anywhere.
+
+$ cite.py --check D.6.6 "If bpo-length is zero, no message was received, and you had a time out"
+OK  §D.6.6   (Run unit communication with other run units)
+    **If bpo-length is zero, no message was received, and you had a time out.**
+
+$ cite.py --check 14.9.9.4 "the implementor shall specify the maximum meaningful value"
+OK  §14.9.9.4 1)  (General rules)
+    1\) If the AFTER phrase is specified, arithmetic-expression-1 specifies the number of seconds that execution is suspended. The CONTINUE statement behaves as though the length of time that execution shall be suspended was
+
+
+# Rendered from the PDF (scripts/render-spec-page.py --dpi 110 --out E:/COBOL-coord/scratch/pb4700/pages):
+#   p732 RECEIVE general format; p756 SEND formats 1 and 2; p762 SET format 17; p218 relation format 3; p533 USAGE.
+#   p732, p756 and p762 viewed: they match specs/ISO_COBOL.md (RETURNING and END-SEND unbracketed; FROM, AFTER, SECONDS optional).
+# Not cite.py-checkable (outside the tracked text): the 202x CD 1.3 (cd/COBOL_ISO_IEC_1989_202x-CD_1.3.pdf.txt lines 36290-36346).
+
+# Fix pass (check.md F1-F15), 2026-11-04
+$ cite.py --check 8.4.3.10.1 "NULL is a predefined address of class pointer or a predefined content of class message-tag"
+OK  §8.4.3.10.1   (General)
+    NULL is a predefined address of class pointer or a predefined content of class message-tag.
+
+$ cite.py --check 8.4.3.10.3 "it may be used only as a sending operand in an INITIALIZE or a SET statement or in a message-tag relation condition"
+OK  §8.4.3.10.3 1) b)  (Syntax rules)
+    b) If the class of the associated data item is message-tag, it may be used only as a sending operand in an INITIALIZE or a SET statement or in a message-tag relation condition.
+
+$ cite.py --check 8.4.3.10.4 "The null content is an implementor-defined value that is guaranteed not to represent a message server or message requestor"
+OK  §8.4.3.10.4 4)  (General rules)
+    4\) When associated with a message-tag, the predefined content NULL references a data item of category message-tag that contains the null content. The null content is an implementor-defined value that is guaranteed not t
+
+$ cite.py --check 14.6.13.1.1 "the results of the operation are undefined"
+OK  §14.6.13.1.1   (General)
+    NOTE 3    An exception condition is set to exist only if checking for that condition is enabled by default or by the TURN compiler directive. If the exception condition occurs and it is not enabled, the results of the op
+
+$ cite.py --check 14.9.38.4 "The message server will determine if the size of the message sent differs from the size of the message expected and will return the appropriate exception condition"
+OK  §14.9.38.4 1)  (General rules)
+    NOTE The user is responsible for ensuring that the content of identifier-1 and the matching data item in the message server RECEIVE statement correspond. It is not possible for the MCS to detect any differences. The mess
+
+$ cite.py --check 14.9.20.4 "Message-tag | Predefined content NULL"
+OK  §14.9.20.4 6)  (General rules)
+    | Message-tag | Predefined content NULL |
+
+$ cite.py --check 8.8.4.2.3 "Strongly-typed group items that contain elementary items of class boolean, message-tag, object, or pointer, may be compared only for equality or inequality"
+OK  §8.8.4.2.3 4)  (Syntax rules)
+    4\) Strongly-typed group items that contain elementary items of class boolean, message-tag, object, or pointer, may be compared only for equality or inequality.
+
+$ cite.py --check 8.8.4.2.12 "each elementary item of the first operand is compared with the corresponding elementary item of the second operand"
+OK  §8.8.4.2.12   (Comparison of strongly-typed group items)
+    When two strongly-typed group items are compared, each elementary item of the first operand is compared with the corresponding elementary item of the second operand, in accordance with the rules for comparison of element
+
+$ cite.py --check 14.9.4.3 "identifier-4 shall be of class numeric, object, or pointer"
+OK  §14.9.4.3 22)  (Syntax rules)
+    22\) If identifier-4 or its corresponding formal parameter is specified with a BY VALUE phrase, identifier-4 shall be of class numeric, object, or pointer.
+
+$ cite.py --check 14.2.2 "Each data-name-1 specified in a BY VALUE phrase shall be defined as a data item of class numeric, message-tag, object, or pointer"
+OK  §14.2.2 2)  (Syntax rules)
+    2\) Each data-name-1 specified in a BY VALUE phrase shall be defined as a data item of class numeric, message-tag, object, or pointer.
+
+$ cite.py --check 14.9.23.3 "identifier-5 shall be of class message-tag, numeric, object or pointer"
+OK  §14.9.23.3 15)  (Syntax rules)
+    15\) If identifier-5 or its corresponding formal parameter is specified with the BY VALUE phrase, identifier-5 shall be of class message-tag, numeric, object or pointer.
+
+$ cite.py --check 14.9.1.3 "Identifier-2 shall not reference a data item of class alphabetic, boolean, index, message-tag, object, or pointer"
+OK  §14.9.1.3 3)  (Syntax rules)
+    3\) Identifier-2 shall not reference a data item of class alphabetic, boolean, index, message-tag, object, or pointer.
+
+$ cite.py --check 14.9.20.3 "For each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or PROGRAM-POINTER phrase specified as the category-name in the REPLACING phrase, identifier-2 shall be specified"
+OK  §14.9.20.3 3)  (Syntax rules)
+    3\) For each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or PROGRAM-POINTER phrase specified as the category-name in the REPLACING phrase, identifier-2 shall be specified.
+
+$ cite.py --check 14.9.20.3 "a SET statement with identifier-2 as the sending operand and an item of the specified category as the receiving operand shall be valid"
+OK  §14.9.20.3 4)  (Syntax rules)
+    4\) For each of the categories data-pointer, function-pointer, message-tag, object-reference, and program-pointer specified in the REPLACING phrase, a SET statement with identifier-2 as the sending operand and an item of
+
+$ cite.py --check 14.9.20.4 "Either the category of the elementary data item is data-pointer, message-tag, object-reference, or program-pointer"
+OK  §14.9.20.4 5) c) 1.  (General rules)
+    a. Either the category of the elementary data item is data-pointer, message-tag, object-reference, or program-pointer, or
+
+$ cite.py --check 14.6.13.1.6 "EC-MCS-INVALID-TAG | NF | RECEIVE or SEND statement"
+OK  §14.6.13.1.6   (Exception-names and exception conditions)
+    | EC-MCS-INVALID-TAG | NF | RECEIVE or SEND statement |
+
+$ cite.py --check 14.6.13.1.6 "EC-MCS-NO-REQUESTER | NF | RECEIVE statement"
+OK  §14.6.13.1.6   (Exception-names and exception conditions)
+    | EC-MCS-NO-REQUESTER | NF | RECEIVE statement |
+
+$ cite.py --check 14.6.13.1.6 "EC-MCS-IMP | Imp | Implementor-defined message control exception"
+OK  §14.6.13.1.6   (Exception-names and exception conditions)
+    | EC-MCS-IMP | Imp | Implementor-defined message control exception |
+
+$ cite.py --check 14.6.13.1.1 "Only the lowest level exception-names are associated with exception status indicators"
+OK  §14.6.13.1.1   (General)
+    Exception-names are organized into a hierarchy of three levels for the purpose of enabling checking, selecting a declarative or a WHEN phrase of a PERFORM statement, and reporting the exception that occurred. The highest
+
+$ cite.py --check D.6.6 "one can wait forever or give a time limit by adding this"
+OK  §D.6.6   (Run unit communication with other run units)
+    After requesting a return, one can wait forever or give a time limit by adding this adding this CONTINUE phrase to the end of the RECEIVE.
+
+$ cite.py --check 14.9.31.4 "when the message or an exception is returned from the MCS or when the CONTINUE parameters are completed"
+OK  §14.9.31.4 2)  (General rules)
+    2\) If the CONTINUE phrase is specified, the RECEIVE statement execution is completed either when the message or an exception is returned from the MCS or when the CONTINUE parameters are completed. In the latter case, th
+
+$ cite.py --check 14.9.38.4 "A message is sent to the run unit identified by the content of literal-1 or message-server-name-1"
+OK  §14.9.38.4 4)  (General rules)
+    4\) A message is sent to the run unit identified by the content of literal-1 or message-server-name-1. The message contains the content of data-name-1 as well as any additional implementor-defined data. This additional d
+
+$ cite.py --check 14.8.2.3.2 "If neither the formal parameter nor the argument is of class message-tag, object, or pointer, the conformance rules are the following"
+OK  §14.8.2.3.2 4)  (Elementary items passed by reference)
+    If neither the formal parameter nor the argument is of class message-tag, object, or pointer, the conformance rules are the following:
+
+$ cite.py --check 14.8.2.3.2 "If either the argument or the formal parameter is of class pointer, the corresponding formal parameter or argument shall be of class pointer and the corresponding items shall be of the same category"
+OK  §14.8.2.3.2 4)  (Elementary items passed by reference)
+    If either the argument or the formal parameter is of class pointer, the corresponding formal parameter or argument shall be of class pointer and the corresponding items shall be of the same category. If either is a restr
+
+$ cite.py --check 14.9.18.3 "Exception-name-1 shall be a level-3 exception-name"
+OK  §14.9.18.3 2)  (Syntax rules)
+    2\) Exception-name-1 shall be a level-3 exception-name as specified in 14.6.13.1, Exception conditions.
+
+$ cite.py --check 14.9.9.4 "If checking for FC-CONTINUE-LESS-THAN-ZERO is enabled, the EC-CONTINUE-LESS-THAN-ZERO exception condition is set to exist"
+OK  §14.9.9.4 1) b)  (General rules)
+    b) If checking for FC-CONTINUE-LESS-THAN-ZERO is enabled, the EC-CONTINUE-LESS-THAN-ZERO exception condition is set to exist and processing continues as specified in 14.6.13.1.4, Nonfatal exception conditions.
+
+$ cite.py --check 14.9.31.4 "If the execution of the RECEIVE statement was successful, data-name-2 will contain the length"
+OK  §14.9.31.4 3)  (General rules)
+    3\) If the execution of the RECEIVE statement was successful, data-name-2 will contain the length, in alphanumeric characters, of the message received. If that length exceeds the length of identifier-1, the EC-MCS-MESSAG
+
+$ cite.py --check 14.9.31.3 "Data-name-1 shall be the name of a message-tag data item"
+OK  §14.9.31.3 1)  (Syntax rules)
+    1\) Data-name-1 shall be the name of a message-tag data item.
+
+$ cite.py --check 14.6.13.1.6 "EC-MCS-ABNORMAL-TERMINATION | NF | Server failed before replying to message"
+OK  §14.6.13.1.6   (Exception-names and exception conditions)
+    | EC-MCS-ABNORMAL-TERMINATION | NF | Server failed before replying to message |
+
+$ cite.py --check 14.6.13.1.6 "EC-MCS-NORMAL-TERMINATION | NF | Server terminated before replying to message"
+OK  §14.6.13.1.6   (Exception-names and exception conditions)
+    | EC-MCS-NORMAL-TERMINATION | NF | Server terminated before replying to message |
+
+$ cite.py --check 14.6.13.1.6 "EC-MCS-NO-SERVER | NF | SEND statement"
+OK  §14.6.13.1.6   (Exception-names and exception conditions)
+    | EC-MCS-NO-SERVER | NF | SEND statement |
+
+$ cite.py --check 14.6.13.1.6 "EC-MCS-REQUESTOR-FAILED | NF | RECEIVE statement"
+OK  §14.6.13.1.6   (Exception-names and exception conditions)
+    | EC-MCS-REQUESTOR-FAILED | NF | RECEIVE statement |
+
+$ cite.py --check 14.6.13.1.6 "EC-MCS-MESSAGE-LENGTH | NF | RECEIVE or SEND statement"
+OK  §14.6.13.1.6   (Exception-names and exception conditions)
+    | EC-MCS-MESSAGE-LENGTH | NF | RECEIVE or SEND statement |
+
+$ cite.py --check 14.9.38.3 "Message-server-name-1 is the name of a message server run unit"
+OK  §14.9.38.3 2)  (Syntax rules)
+    2\) Message-server-name-1 is the name of a message server run unit.
+
+$ cite.py --check 14.9.31.4 "is not a correct format for the MCS"
+OK  §14.9.31.4 1) b)  (General rules)
+    b) Otherwise, the content of data-name-1 is an implementor-defined value that identifies the run unit that sent a message to the current run unit via a SEND statement. The content of identifier-1 is the content of the me
+
+$ cite.py --check 13.18.60.4 "The class and category of a message-tag data item are message-tag"
+OK  §13.18.60.4 9)  (General rules)
+    9\) The MESSAGE-TAG clause specifies that a data item is a message-tag data item and contains an implementor-defined value that identifies a message and a server or requestor. The class and category of a message-tag data
+
+$ cite.py --check 14.9.38.4 "the EC-MCS-NO-RECEIVER exception condition is raised"
+OK  §14.9.38.4 7)  (General rules)
+    7\) Data-name-2 shall contain a message tag that identifies a requestor run unit that was received by the current run unit via a RECEIVE statement and has not yet been responded to by a SEND statement in the current run 
+
+$ cite.py --check 14.9.38.4 "the execution of the RECEIVE statement is unsuccessful"
+OK  §14.9.38.4 1)  (General rules)
+    1\) The number of character positions of identifier-1 shall not be zero nor larger than the message server allows. If so and checking for that exception is enabled, the EC-MCS-MESSAGE-LENGTH exception is set to exist and
+
+$ cite.py --check 14.9.38.4 "The message contains the content of data-name-1 as well as any additional implementor-defined data"
+OK  §14.9.38.4 4)  (General rules)
+    4\) A message is sent to the run unit identified by the content of literal-1 or message-server-name-1. The message contains the content of data-name-1 as well as any additional implementor-defined data. This additional d
+
+$ cite.py --check 14.9.39.4 "If data-name-5 is specified, the content of data-name-4 is moved to data-name-5"
+OK  §14.9.39.4 40)  (General rules)
+    40\) If data-name-5 is specified, the content of data-name-4 is moved to data-name-5.
+
+$ cite.py --check 14.9.38.4 "exception-name-1 or the name of the last exception raised in the current run unit is sent to the requestor program"
+OK  §14.9.38.4 8)  (General rules)
+    8\) If the RAISING phrase is specified, exception-name-1 or the name of the last exception raised in the current run unit is sent to the requestor program.
+
+
+# DESIGN-communication-facility.md (paged store plus bell revision), 2026-11-04
+$ cite.py --check 14.9.38.4 "The statement suspends execution until the message is received by the server run unit"
+OK  §14.9.38.4 4)  (General rules)
+    4\) A message is sent to the run unit identified by the content of literal-1 or message-server-name-1. The message contains the content of data-name-1 as well as any additional implementor-defined data. This additional d
+
+# revision 2026-11-04: peer transport (§5, §6, §7.2, §8, §9)
+$ cite.py --check 14.9.38.4 "The statement suspends execution until the message is received by the server run unit"
+OK  §14.9.38.4 4)  (General rules)
+    4\) A message is sent to the run unit identified by the content of literal-1 or message-server-name-1. The message contains the content of data-name-1 as well as any additional implementor-defined data. This additional d
+
+$ cite.py --check 14.9.38.4 "If such a run unit is not identified, the EC-MCS-NO-SERVER exception condition is set to exist"
+OK  §14.9.38.4 5)  (General rules)
+    5\) Message-server-name-1 or literal-1 identify a message server run unit. If such a run unit is not identified, the EC-MCS-NO-SERVER exception condition is set to exist, and the execution of the SEND statement is unsucc
+
+$ cite.py --check 14.9.38.4 "has not yet been responded to by a SEND statement in the current run unit"
+OK  §14.9.38.4 7)  (General rules)
+    7\) Data-name-2 shall contain a message tag that identifies a requestor run unit that was received by the current run unit via a RECEIVE statement and has not yet been responded to by a SEND statement in the current run 
+
+$ cite.py --check 14.9.38.4 "The server run unit does not necessarily have to respond to the message"
+OK  §14.9.38.4 4)  (General rules)
+    4\) A message is sent to the run unit identified by the content of literal-1 or message-server-name-1. The message contains the content of data-name-1 as well as any additional implementor-defined data. This additional d
+
+$ cite.py --check 14.9.38.4 "the EC-MCS-NO-RECEIVER exception condition is raised"
+OK  §14.9.38.4 7)  (General rules)
+    7\) Data-name-2 shall contain a message tag that identifies a requestor run unit that was received by the current run unit via a RECEIVE statement and has not yet been responded to by a SEND statement in the current run 
+
+$ cite.py --check 14.9.31.4 "If the content of the message tag specifies a requestor that does not exist, the RECEIVE statement is unsuccessful and the EC-MCS-REQUESTOR-FAILED exception condition is set to exist"
+OK  §14.9.31.4 1) b)  (General rules)
+    b) Otherwise, the content of data-name-1 is an implementor-defined value that identifies the run unit that sent a message to the current run unit via a SEND statement. The content of identifier-1 is the content of the me
+
+$ cite.py --check 14.9.31.4 "In the latter case, the content of identifier-1 will be all space characters and the RECEIVE statement is assumed to be successful"
+OK  §14.9.31.4 2)  (General rules)
+    2\) If the CONTINUE phrase is specified, the RECEIVE statement execution is completed either when the message or an exception is returned from the MCS or when the CONTINUE parameters are completed. In the latter case, th
+
+$ cite.py --check 14.9.31.4 "the RECEIVE statement is waiting for any requestor run unit to send a message to the current run unit"
+OK  §14.9.31.4 1) a)  (General rules)
+    a) If the content of data-name-1 is the value NULL before the execution of the RECEIVE statement, the RECEIVE statement is waiting for any requestor run unit to send a message to the current run unit. At the successful c
+
+$ cite.py --check 14.6.11 "If the run unit has an active message or messages to which it has not replied"
+OK  §14.6.11 7)  (Normal run unit termination)
+    7\) If the run unit has an active message or messages to which it has not replied, an implicit SEND statement of the form 'SEND TO data-name FROM temp RAISING EXCEPTION EC-MCS-NORMAL-TERMINATION' is executed for each suc
+
+$ cite.py --check 14.6.11 "temp is a temporary data item that is the size of the receiving data item in the associated RECEIVE statement for that message-tag"
+OK  §14.6.11 7)  (Normal run unit termination)
+    7\) If the run unit has an active message or messages to which it has not replied, an implicit SEND statement of the form 'SEND TO data-name FROM temp RAISING EXCEPTION EC-MCS-NORMAL-TERMINATION' is executed for each suc
+
+$ cite.py --check 14.6.12 "the runtime system attempts to perform the operations of normal termination as specified in 14.6.11"
+OK  §14.6.12   (Abnormal run unit termination)
+    Then in all cases, unless the exception occurs in a MERGE statement, a SORT statement, or an I-O statement for which the implementor specifies otherwise, the runtime system attempts to perform the operations of normal te
+
+$ cite.py --check 14.6.12 "EC-MCS-ABNORMAL-TERMINATION"
+OK  §14.6.12   (Abnormal run unit termination)
+    If the run unit has an active message or messages to which it has not replied, an implicit SEND statement of the form 'SEND TO data-name FROM temp RAISING EXCEPTION EC-MCS-ABNORMAL-TERMINATION' is executed for each such 
+
+$ cite.py --check 3.118 "implementor-defined system that sends and receives messages exchanged between run units"
+OK  §3.118   ()
+    implementor-defined system that sends and receives messages exchanged between run units
+
+$ cite.py --check A.3 "The asynchronous messaging facility is dependent on the capability of a processor to allow run units to communicate with each other"
+OK  §A.3 4)  (Processor-dependent language element list)
+    4\) The asynchronous messaging facility is dependent on the capability of a processor to allow run units to communicate with each other.
+
+$ cite.py --check 8.8.4.2.14 "The operands are equal if they reference the same message requestor or message server of the same name or one is NULL and the other is NULL"
+OK  §8.8.4.2.14   (Comparisons of operands of class message-tag)
+    The operands are equal if they reference the same message requestor or message server of the same name or one is NULL and the other is NULL.
+
+$ cite.py --check 14.9.31.4 "the EC-MCS-REQUESTOR-FAILED exception condition is set to exist"
+OK  §14.9.31.4 1) b)  (General rules)
+    b) Otherwise, the content of data-name-1 is an implementor-defined value that identifies the run unit that sent a message to the current run unit via a SEND statement. The content of identifier-1 is the content of the me
+
+$ cite.py --check 14.9.31.4 "the content of identifier-1 will be all space characters and the RECEIVE statement is assumed to be successful"
+OK  §14.9.31.4 2)  (General rules)
+    2\) If the CONTINUE phrase is specified, the RECEIVE statement execution is completed either when the message or an exception is returned from the MCS or when the CONTINUE parameters are completed. In the latter case, th
+
+$ cite.py --check 14.9.38.4 "If such a run unit is not identified, the EC-MCS-NO-SERVER exception condition is set to exist"
+OK  §14.9.38.4 5)  (General rules)
+    5\) Message-server-name-1 or literal-1 identify a message server run unit. If such a run unit is not identified, the EC-MCS-NO-SERVER exception condition is set to exist, and the execution of the SEND statement is unsucc
+
+$ cite.py --check 14.9.27.4 "a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful, and the I-O status associated with file-name-1 is set to '39'"
+OK  §14.9.27.4 10)  (General rules)
+    10\) During the execution of the OPEN statement when the file connector is matched with the file and the file exists, the attributes of the file connector as specified in the file control paragraph and the file descripti
+
+$ cite.py --check 9.1.6 "There are three organizations: sequential, relative, and indexed"
+OK  §9.1.6   (Fixed file attributes)
+    A physical file has several attributes that apply to the file at the time it is created and cannot be changed throughout the lifetime of the file. The primary attribute is the organization of the file, that describes its
+
+$ cite.py --check 8.9 "The following is the list of reserved words"
+OK  §8.9   (Reserved words)
+    The following is the list of reserved words:
+
+$ cite.py --check 14.9.38.4 "If such a run unit is not identified, the EC-MCS-NO-SERVER exception condition is set to exist"
+OK  §14.9.38.4 5)  (General rules)
+    5\) Message-server-name-1 or literal-1 identify a message server run unit. If such a run unit is not identified, the EC-MCS-NO-SERVER exception condition is set to exist, and the execution of the SEND statement is unsucc
+
+$ cite.py --check 14.9.38.4 "The statement suspends execution until the message is received by the server run unit"
+OK  §14.9.38.4 4)  (General rules)
+    4\) A message is sent to the run unit identified by the content of literal-1 or message-server-name-1. The message contains the content of data-name-1 as well as any additional implementor-defined data. This additional d
+
+$ cite.py --check 14.9.38.3 "the OCCURS clause with the DEPENDING ON phrase where the depending on data item is not within identifier-1, the POINTER clause, the FUNCTION-POINTER clause or the PROGRAM-POINTER clause"
+OK  §14.9.38.3 3)  (Syntax rules)
+    3\) The data description entries of identifier-1 or any data items subordinate to it shall not contain the ANY LENGTH clause, the BASED clause, the DYNAMIC-LENGTH clause, the OBJECT-REFERENCE clause, the OCCURS clause wi
+
+$ cite.py --check 14.9.1.3 "Identifier-2 shall not reference a data item of class alphabetic, boolean, index, message-tag, object, or pointer"
+OK  §14.9.1.3 3)  (Syntax rules)
+    3\) Identifier-2 shall not reference a data item of class alphabetic, boolean, index, message-tag, object, or pointer.
+

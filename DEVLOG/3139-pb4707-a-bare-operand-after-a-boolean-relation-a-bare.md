@@ -1,0 +1,12 @@
+## Entry 3139 — 2026-11-04 22:43 PST — PB4707 — a bare operand after a boolean relation, a bare boolean operand and a refused abbreviation's object are judged as an IF judges them
+
+Group F of wave 20261872 (ConditionBinder), one note: PB4707, both leads of the PB4627 review reproduced on the branch build.
+
+**What the re-probe showed.** The standalone walk of a refused or surplus EVALUATE object (`BindBareOperandStandalone`) asked "is an insertion in flight?" before "is the carried relation a boolean one?", the opposite of `BindSoleOperandCondition`. A relation of boolean expressions (`B1 B-AND B2 = B"0"`) is recorded by `BindPrimaryBoolean` as a boolean relation with NO subject, so `WHEN > 1 AND B1 B-AND B2 = B"0" AND 5` drew COBOL2318 ("no condition") where an IF draws COBOL2723 (§8.8.4.12.3 SR1); after a boolean relation with a subject (`B1 = B2`) the walk's address-identifier arm drew nothing. Its boolean arm ended the insertion without the §8.8.4.3.3 SR1 length-1 screen, which only the `AsCondition` wrapper carries (`WHEN > 1 AND BW` drew COBOL1634 alone, an IF COBOL1511).
+
+**Siblings found in the same file.** `BindComparison`'s bare address-identifier arm had the same single-question shape, so an IF `B1 B-AND B2 = B"0" AND ADDRESS OF A` drew COBOL2318 instead of COBOL2723. A refused abbreviation (after a boolean relation, or with no subject to insert) returned before it bound its object, hiding COBOL1639 / COBOL2096 behind COBOL2723 / COBOL2552 in an IF, the IF counterpart of PB4446.
+
+**Fix shape.** `ConditionBinder.BareObjectRoleOf` is the one decision (boolean relation, then insertion, then neither: `AbbreviationAfterBooleanRelation`, `ObjectOfRelation`, `NotACondition`), asked by `BindSoleOperandCondition`, `BindComparison`'s address arm and the walk's address and value arms, so the order cannot differ again. The walk's boolean arm calls `AsCondition`. `RefuseAbbreviationAfterBooleanRelation` takes the binder of the abbreviation's object, and `BindAbbreviatedRelation` binds it before COBOL2552. `docs/CONDITIONS_EXCEPTIONS_DESIGN.md` D5a states the decision.
+
+**Goldens.** `EvaluateObjectOperandFaultTests` gains 15 walk rows and 8 IF rows; five refusal goldens `pb4707-*` (2002, 2014, 2023): value and address-identifier after a boolean relation in a refused pair (COBOL2723), a length-2 boolean operand in a refused pair (COBOL1511), the IF address-identifier after a boolean-expression relation (COBOL2723) and the IF refused abbreviation's undefined object (COBOL1639). No inventory row is claimed or closed.
+
