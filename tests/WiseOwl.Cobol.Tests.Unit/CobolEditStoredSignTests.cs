@@ -264,6 +264,25 @@ public sealed class CobolEditStoredSignTests
         Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
     }
 
+    // A BLANK landing wider than one position, with suppressed Z positions after the floating string (§13.18.40.3
+    // SR12 b admits Z beside a FOR character-1): the run of spaces holds the whole string, the landing at its last
+    // position, and the Z positions after it, so the widths must be summed past the string (PB4755).
+    [Theory]
+    [InlineData("LLLZZ9", 5, "      5")]
+    [InlineData("LLLZZ9", -5, "  ((  5")]
+    [InlineData("LLLZZ9", 35, "     35")]
+    [InlineData("LLLZZ9", -35, "  (( 35")]
+    [InlineData("LLLZZ9", 4321, "   4321")]
+    [InlineData("LLLZZ9", 0, "      0")]
+    [InlineData("LLLZZZ", 0, "       ")]
+    public void DeEdit_FloatingExtendedSignBlankWideLandingBeforeSuppressedZ_RoundTrips(
+        string mask, long value, string image)
+    {
+        CobolEdit.EditRule[] rules = [new CobolEdit.EditRule('L', "((", "  ", SimpleInsertion: false, Floating: true)];
+        Assert.Equal(image, CobolEdit.Format(value, 0, mask, edits: rules));
+        Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
+    }
+
     // §13.18.40.5 rule 6 a): "a single occurrence of the replacement character(s) is (are) placed into the
     // character position(s) immediately preceding" the first nonzero digit, and GR14 'es' counts an embedded
     // symbol's whole literal in the size. A floating '+' or '-' landing on an embedded symbol TWO characters wide
