@@ -91,6 +91,20 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
         _open.Peek().Entries.Add(new Entry(operand, before.PreOps, Pending.Mark()));
     }
 
+    /// <summary>⛔ THE BINDER REPLACED AN ARGUMENT OPERAND THE WINDOW HAS ALREADY RECORDED (kb/Work PB4709, review R2-1): the window keys
+    /// every entry by REFERENCE to the operand as bound, and <see cref="Window.Settle"/> / <see cref="Window.Freeze"/> match the call's
+    /// arguments against those keys, so an operand swapped for an equal-valued one (the scale-0 form of an Integer-row argument,
+    /// <c>IntrinsicResultType.IntegerRowArguments</c>) must say so here, or it is never frozen and is read after a later argument's
+    /// activation, which loses §8.4.3.2.4 GR2's left-to-right order. The pending counts of the entry stay: the replacement registers
+    /// no pre-op of its own. Ignored outside any window, as <see cref="Record"/> is.</summary>
+    internal void Rebind(BoundOperand recorded, BoundOperand replacement)
+    {
+        if (_open.Count == 0) return;
+        var entries = _open.Peek().Entries;
+        int at = entries.FindIndex(e => ReferenceEquals(e.Operand, recorded));
+        if (at >= 0) entries[at] = entries[at] with { Operand = replacement };
+    }
+
     internal readonly record struct Entry(BoundOperand Operand, int Before, int After);
 
     /// <summary>One function's argument list. See <see cref="ArgumentOrder"/>.</summary>

@@ -1771,12 +1771,17 @@ internal static class IntrinsicArgumentRules
 
     /// <summary>Is <paramref name="e"/> an integer for EVERY valuation of the items it references? Sound, not
     /// complete: true only for a literal fold with an integral value, an item whose description admits only
-    /// integers, and +, −, ×, unary − and a non-negative integral literal power over such terms. A quotient over
-    /// an item, a function and every other shape answer false — the caller then fails open.
-    /// <para>⛔ It must agree with <see cref="NonIntegralItemsBeneath"/>: a subtree that returns true here has no
-    /// item beneath it that admits a non-integral value, which is why <see cref="CollectAdditive"/> may skip the
-    /// opaque marking for it.</para></summary>
-    private static bool ProvablyIntegral(BoundExpr e) => e switch
+    /// integers, an integer-type function-identifier, and +, −, ×, unary − and a non-negative integral literal power
+    /// over such terms. A quotient over an item, a numeric function and every other shape answer false — the caller
+    /// then fails open.
+    /// <para>It is also the ONE reading of §15.3 type 6's "arithmetic expression that will always result in an integer
+    /// value" for the result-type rows (<c>IntrinsicResultType.IsIntegerArgument</c>, kb/Work PB4709): an argument that
+    /// is such an expression keeps ABS, MAX, MIN, RANGE and SUM on their Integer row (the per-function result tables of
+    /// §15.7.1 and its siblings, summarized by Table 21 in §15.6), and <see cref="IntegralForm"/> then rewrites it to the
+    /// scale-0 form that row's value needs.</para>
+    /// <para>A COUNTER REGISTER is an unsigned integer data item (§8.4.3.14.4 GR1, §8.4.3.15.4 GR1), so it answers true as
+    /// <c>IntrinsicResultType.IsIntegerOperand</c> does (kb/Work PB4709 review R1-3).</para></summary>
+    internal static bool ProvablyIntegral(BoundExpr e) => e switch
     {
         _ when ExactValue(e) is { } v => v.IsInteger,
         // Category NUMERIC only: any other operand an extension admits (a de-edited numeric-edited item, say) is
@@ -1785,7 +1790,68 @@ internal static class IntrinsicArgumentRules
             => !AdmitsNonIntegralValue(p),
         BoundBinary { Op: '+' or '-' or '*' } b => ProvablyIntegral(b.Left) && ProvablyIntegral(b.Right),
         BoundNegate n => ProvablyIntegral(n.Operand),
+        // An INTEGER-TYPE function-identifier is an integer for every reference (§15.2 type 5 - its value is an integer by the
+        // function's TYPE, never by this reference's value), so a sum, product or negation over one is always integral. The
+        // ARGUMENTS beneath the call are the call's business, not terms of this sum.
+        BoundIntrinsicCall { ResultType: IntrinsicType.Integer } => true,
+        _ when AlgebraicRanges.IsCounterRegister(e) => true,
         BoundPower { Exp: var x } pw => ProvablyIntegral(pw.Base) && ExactValue(x) is { IsInteger: true, Sign: >= 0 },
+        _ => false,
+    };
+
+    /// <summary>⛔ THE SCALE-0 FORM OF AN ARGUMENT THAT <see cref="ProvablyIntegral"/> PROVED INTEGRAL (kb/Work PB4709, review R1-1).
+    /// An integer function "has an operational sign and no digits to the right of the decimal point" (§15.2 5)), and ABS, MAX, MIN,
+    /// RANGE and SUM return their argument's value at the argument's own scale, so an argument integral by VALUE but written with
+    /// fraction digits (<c>I2 + 1.0</c>, <c>1.5 + 0.5</c>, <c>4 / 2</c>) would return <c>4.0</c> from a function whose type says it has
+    /// none: <c>MOVE FUNCTION ABS(I2 + 1.0) TO A10</c> stored <c>4.0</c>. The rewrite replaces every integral-valued subtree WRITTEN with
+    /// fraction digits (a literal of fraction or floating-point form, a quotient) by the integer literal of its exact value (the folds
+    /// <see cref="ExactValue"/> makes, the very folds the proof read) and walks the remaining +, −, ×, unary − and ** spine, so the value is
+    /// the same and every carrier it reaches is at scale 0. Everything else (an integer-form literal or constant, an item, a register, an
+    /// integer function) is returned as the instance it was. Null when the value is an integer wider than the scaled carrier
+    /// (<see cref="PicInfo.ScaledCarrierDigits"/>): the argument cannot be given a scale-0 literal, so it is not an Integer argument.</summary>
+    internal static BoundExpr? IntegralForm(BoundExpr e)
+    {
+        // ⛔ A SUBTREE THAT NEEDS NO REWRITE IS RETURNED AS THE INSTANCE IT WAS: the binder's evaluation-order analysis
+        // (ArgumentOrder, §8.4.3.2.4 GR2) holds an argument by reference, and a rebuilt-but-equal node made it lose
+        // the frozen value of `FUNCTION SUM(WS-B * WS-B, FUNCTION RVBMP(WS-B))` (pb3974_expression_subject_frozen_past_carrier);
+        // an integer constant such as `10 ** 40` is no business of this rewrite either.
+        if (!WrittenWithFraction(e)) return e;
+        if (ExactValue(e) is { IsInteger: true } value)
+        {
+            string text = value.Numerator.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return text.TrimStart('-').Length <= PicInfo.ScaledCarrierDigits ? new BoundNumLiteral(text) : null;
+        }
+        switch (e)
+        {
+            case BoundBinary b:
+            {
+                if (IntegralForm(b.Left) is not { } left || IntegralForm(b.Right) is not { } right) return null;
+                return ReferenceEquals(left, b.Left) && ReferenceEquals(right, b.Right) ? b : b with { Left = left, Right = right };
+            }
+            case BoundNegate n:
+            {
+                if (IntegralForm(n.Operand) is not { } operand) return null;
+                return ReferenceEquals(operand, n.Operand) ? n : n with { Operand = operand };
+            }
+            case BoundPower pw:
+            {
+                if (IntegralForm(pw.Base) is not { } @base || IntegralForm(pw.Exp) is not { } exponent) return null;
+                return ReferenceEquals(@base, pw.Base) && ReferenceEquals(exponent, pw.Exp) ? pw : pw with { Base = @base, Exp = exponent };
+            }
+            default:
+                return e;
+        }
+    }
+
+    /// <summary>Does the expression carry a number written with digits to the right of the decimal point, or a quotient, anywhere in its
+    /// +, −, ×, ÷, unary − and ** spine? A floating-point literal is such a number (its significand includes a decimal point, §8.3.3.3.3
+    /// r2). The leaves beneath an item or a call are not the spine's.</summary>
+    private static bool WrittenWithFraction(BoundExpr e) => e switch
+    {
+        BoundNumLiteral l => l.Carrier is not null || !WiseOwl.Cobol.Common.NumericLiteral.IsIntegerLiteralForm(l.Text),
+        BoundBinary b => b.Op == '/' || WrittenWithFraction(b.Left) || WrittenWithFraction(b.Right),
+        BoundNegate n => WrittenWithFraction(n.Operand),
+        BoundPower pw => WrittenWithFraction(pw.Base) || WrittenWithFraction(pw.Exp),
         _ => false,
     };
 
@@ -1907,6 +1973,29 @@ internal static class IntrinsicArgumentRules
             case BoundPower p2:
                 foreach (var x in NonIntegralItemsBeneath(p2.Base)) yield return x;
                 foreach (var x in NonIntegralItemsBeneath(p2.Exp)) yield return x;
+                break;
+            // ⛔ A CALL MOVES WITH THE ITEMS IN ITS ARGUMENTS (kb/Work PB4709, review R1-4): in `S2 - FUNCTION ABS(S2)` the term
+            // ABS(S2) equals S2 for every value of an unsigned S2, so the sum is 0 and always an integer, but the walk saw no item
+            // beneath the call, left S2's additive witness standing, and the screen refused legal source. The witness argument
+            // (hold every other leaf constant and step the item) fails for the same reason it fails under `F * 1`: the term moves
+            // with the item, so the item is marked opaque and the screen fails open.
+            case BoundIntrinsicCall call:
+                foreach (var argument in call.Args)
+                    foreach (var x in NonIntegralItemsBeneath(argument)) yield return x;
+                break;
+        }
+    }
+
+    /// <summary>The items an intrinsic ARGUMENT references (<see cref="NonIntegralItemsBeneath(BoundExpr)"/>'s operand-side twin): a
+    /// data item named as the argument, or an arithmetic expression over them.</summary>
+    private static IEnumerable<(DataItem Item, int Scale, bool Float)> NonIntegralItemsBeneath(BoundOperand argument)
+    {
+        switch (argument)
+        {
+            case BoundFieldOperand { Place.Item: { IsGroup: false, Pic: { } p } and { } it } when AdmitsNonIntegralValue(p):
+                yield return (it, p.Scale, p.IsFloat); break;
+            case BoundComputedOperand { Expr: var inner }:
+                foreach (var x in NonIntegralItemsBeneath(inner)) yield return x;
                 break;
         }
     }
