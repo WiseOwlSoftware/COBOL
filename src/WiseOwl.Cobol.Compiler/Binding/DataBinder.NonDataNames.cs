@@ -27,6 +27,10 @@ internal enum NonDataDeclarationKind
     TypeDeclarationCondition,
     /// <summary>A file-name: a SELECT entry of this source element, or the GLOBAL file of a containing one (§13.18.27.4 GR1).</summary>
     FileName,
+    /// <summary>A cd-name: a communication description entry of this source element (ISO/IEC 1989:2002 A.1.2). It is this element's alone,
+    /// since a cd-name "may be referenced only by statements and entries in the source element that contains the communication section
+    /// in which it is declared" (2002 8.4.5), so it is never inherited.</summary>
+    CdName,
 }
 
 /// <summary>A declaration that gives a name although it declares no data item: its kind, for a type declaration's
@@ -47,7 +51,7 @@ internal readonly record struct NonDataDeclaration(
         NonDataDeclarationKind.ScreenEntry => "is declared as a SCREEN SECTION entry, not as a data item",
         NonDataDeclarationKind.AlphabetName => "is declared as an alphabet-name in the SPECIAL-NAMES paragraph, not as a data item",
         NonDataDeclarationKind.ConstantName or NonDataDeclarationKind.IndexName or NonDataDeclarationKind.ConditionName
-            or NonDataDeclarationKind.FileName => $"is declared as {ClassPhrase}, not as a data item",
+            or NonDataDeclarationKind.FileName or NonDataDeclarationKind.CdName => $"is declared as {ClassPhrase}, not as a data item",
         NonDataDeclarationKind.TypeName => "is declared as a type-name (a TYPEDEF entry), not as a data item: a type "
             + "declaration has no storage associated with it (ISO §13.18.58.4 GR2)",
         NonDataDeclarationKind.TypeDeclarationMember =>
@@ -73,6 +77,7 @@ internal readonly record struct NonDataDeclaration(
         NonDataDeclarationKind.IndexName => "an index-name (an INDEXED BY phrase, ISO §13.18.38)",
         NonDataDeclarationKind.ConditionName => "a condition-name (a level-88 entry)",
         NonDataDeclarationKind.FileName => "a file-name (a file control entry, ISO §12.4.5)",
+        NonDataDeclarationKind.CdName => "a cd-name (a communication description entry, ISO/IEC 1989:2002 A.1.2)",
         _ => throw new System.Diagnostics.UnreachableException(Kind.ToString()),
     };
 }
@@ -138,7 +143,8 @@ public sealed partial class DataBinder
 
     /// <summary>⛔ THE ONE LIST OF THE NAME CLASSES BESIDE A CONDITION-NAME, each with the depth of the element that declares
     /// it (kb/Work PB4432): the constant-name, the index-name and the file-name of the spelling (this element's own SELECT
-    /// or a containing element's GLOBAL file, §13.18.27.4 GR1), in the order a tie at one depth keeps.
+    /// or a containing element's GLOBAL file, §13.18.27.4 GR1) and this element's cd-name (never inherited, so depth 0; kb/Work
+    /// PB4713), in the order a tie at one depth keeps.
     /// <see cref="NonDataDeclarationOf"/> ranks them with the condition-name for a reference that identifies no data
     /// item, and <see cref="NonConditionDeclarationNearerThan"/> asks the same list the other way round for the
     /// condition-name lookup, so a class added here ranks in both. (A named CAPACITY register is not in it: the register
@@ -166,6 +172,9 @@ public sealed partial class DataBinder
                 Depth: indexes.Count > 0 ? indexes.NearestDepth(i => State.Forest.DeclaringDepth(i.Table)) : int.MaxValue);
         if (!dataName && qualifiers.Count == 0 && State.VisibleFiles.TryGetValue(name, out var file))
             yield return new(NonDataDeclarationKind.FileName, Depth: State.Inherited.FileDepth(file));
+        // A cd-name is this element's own (2002 8.4.5), so it ranks at depth 0 (kb/Work PB4713).
+        if (!dataName && qualifiers.Count == 0 && State.Communication.ByName.ContainsKey(name))
+            yield return new(NonDataDeclarationKind.CdName);
     }
 
     /// <summary>⛔ ISO §8.4.6.2.1 3) a) FOR A CONDITION-NAME REFERENCE AGAINST THE OTHER NAME CLASSES (kb/Work PB4432, the

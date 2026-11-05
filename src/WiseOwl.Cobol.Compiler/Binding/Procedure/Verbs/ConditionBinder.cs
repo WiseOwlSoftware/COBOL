@@ -646,9 +646,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 else ins.End();
                 return;
             case Core.AbbreviatedRelationContext ar:
-                if (ins.BooleanRelation) _ = RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(ar));
-                else if (!ins.Active) ReportAbbreviatedRelationWithoutSubject(ar);
-                _ = ComparisonOperand(ar.comparisonOperand());
+                if (ins.BooleanRelation)
+                    _ = RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(ar), () => ComparisonOperand(ar.comparisonOperand()));
+                else
+                {
+                    if (!ins.Active) ReportAbbreviatedRelationWithoutSubject(ar);
+                    _ = ComparisonOperand(ar.comparisonOperand());
+                }
                 return;
             case Core.UnaryLogicalExpressionContext u:
                 BindPartialOperandsStandalone(u.primaryCondition(), ins);
@@ -685,17 +689,32 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// ONE bare-operand analysis, because a level-88 condition-name, a switch-status condition-name and a boolean
     /// operand are complete simple conditions that end the insertion (§8.8.4.12.4 GR1) and that the analysis has
     /// already bound, and a bare class-name is the identifier-less class condition of the leading position or, anywhere
-    /// else, no condition. Only a plain VALUE (or an address-identifier) is an operand, and only WHILE THE INSERTION
-    /// LASTS is it the object of the carried relation (§8.8.4.12.4 GR1), where its reference faults (§8.4.2.1,
-    /// §8.4.2.3.3 SR2 and SR5, §8.8.1.1) are reported; after a complete simple condition it is no object and no
-    /// condition either, and is refused as every written condition's bare operand is (COBOL2318, §8.8.4.2.1;
-    /// kb/Work PB4627). The relation itself is not built: it needs the subject.</summary>
+    /// else, no condition. Only a plain VALUE (or an address-identifier) is an operand, and what it is turns on
+    /// <see cref="BareObjectRoleOf(bool, bool)"/>, the ONE decision the bound condition asks too: after a BOOLEAN relation it is an
+    /// abbreviation §8.8.4.12.3 SR1 refuses (COBOL2723); WHILE THE INSERTION LASTS it is the object of the carried relation
+    /// (§8.8.4.12.4 GR1), where its reference faults (§8.4.2.1, §8.4.2.3.3 SR2 and SR5, §8.8.1.1) are reported; after a
+    /// complete simple condition it is no object and no condition either, and is refused as every written condition's bare
+    /// operand is (COBOL2318, §8.8.4.2.1; kb/Work PB4627). A boolean operand is a §8.8.4.3 simple boolean condition and
+    /// draws SR1's length-1 screen (<see cref="AsCondition"/>, kb/Work PB4707). The relation itself is not built: it needs
+    /// the subject.</summary>
     private void BindBareOperandStandalone(Core.ComparisonOperandContext operand, StandaloneInsertion ins)
     {
+        var role = BareObjectRoleOf(ins.BooleanRelation, ins.Active);
         if (operand.addressIdentifier() is { } address)
         {
-            if (ins.Active) _ = ComparisonOperand(operand);
-            else { ReportAddressIdentifierAsCondition(address); ins.End(); }
+            switch (role)
+            {
+                case BareObjectRole.AbbreviationAfterBooleanRelation:
+                    _ = RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(address), () => ComparisonOperand(operand));
+                    break;
+                case BareObjectRole.ObjectOfRelation:
+                    _ = ComparisonOperand(operand);
+                    break;
+                default:
+                    ReportAddressIdentifierAsCondition(address);
+                    ins.End();
+                    break;
+            }
             return;
         }
         var vo = operand.valueOperand();
@@ -707,18 +726,58 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 return;
             // A class-name is no operand, but as the object of a carried relation it is read as one, as
             // BindSoleOperandCondition reads it: the operand binder refuses the word (COBOL1639).
-            case BareOperandForm.Value or BareOperandForm.ClassName when ins.Active:
-                if (ins.BooleanRelation) _ = RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(vo!));
-                else _ = ComparisonOperandOf(vo);
-                return;
             case BareOperandForm.Value or BareOperandForm.ClassName:
-                _ = RefuseNonCondition(vo);
+                switch (role)
+                {
+                    case BareObjectRole.AbbreviationAfterBooleanRelation:
+                        _ = RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(vo!), () => ComparisonOperandOf(vo));
+                        break;
+                    case BareObjectRole.ObjectOfRelation:
+                        _ = ComparisonOperandOf(vo);
+                        break;
+                    default:
+                        _ = RefuseNonCondition(vo);
+                        break;
+                }
                 return;
             default:
-                ins.End();   // a condition-name, a switch-status or a boolean operand: a complete simple condition
+                // A condition-name or a switch-status condition-name (bound by the analysis) or a boolean operand: a
+                // complete simple condition, which ends the insertion. A boolean operand is a §8.8.4.3 simple boolean
+                // condition ONLY through the wrapper, which is where SR1's length-1 screen is written
+                // (BindSimpleBooleanCondition), and AnalyzeBareOperand binds it unwrapped (kb/Work PB4707).
+                _ = AsCondition(analysis);
+                ins.End();
                 return;
         }
     }
+
+    /// <summary>What a bare operand (a value, a class-name or an address-identifier) that is NOT itself a complete simple
+    /// condition is, given the abbreviation state in front of it — the ONE decision, asked by <see cref="BindSoleOperandCondition"/>,
+    /// <see cref="BindComparison"/>'s address-identifier arm and <see cref="BindBareOperandStandalone"/> alike, so the
+    /// order of the questions cannot differ between the bound condition and the standalone walk (kb/Work PB4707).</summary>
+    private enum BareObjectRole
+    {
+        /// <summary>The relation the insertion would inherit from is a boolean relation, and the operand is an abbreviated
+        /// relation after it: refused by §8.8.4.12.3 SR1 (COBOL2723). A stated boolean relation outranks the insertion.</summary>
+        AbbreviationAfterBooleanRelation,
+        /// <summary>A subject and operator are inserted (§8.8.4.12.4 GR1): the operand is the object of the carried relation.</summary>
+        ObjectOfRelation,
+        /// <summary>No insertion is in flight: the operand is no condition (COBOL2318, §8.8.4.2.1).</summary>
+        NotACondition,
+    }
+
+    /// <summary>The decision of <see cref="BareObjectRole"/>: the boolean relation is asked BEFORE the insertion, because
+    /// <see cref="BindPrimaryBoolean"/> records a boolean-expression relation with <see cref="AbbrevCarry.BooleanRelation"/> true
+    /// and NO subject, so a question about the insertion alone would call the operand after it no condition at all.</summary>
+    private static BareObjectRole BareObjectRoleOf(bool booleanRelation, bool inserting) =>
+        booleanRelation ? BareObjectRole.AbbreviationAfterBooleanRelation
+        : inserting ? BareObjectRole.ObjectOfRelation
+        : BareObjectRole.NotACondition;
+
+    /// <summary><see cref="BareObjectRoleOf(bool, bool)"/> over the bound condition's carry: an insertion is in flight when
+    /// both the subject and the operator are carried.</summary>
+    private static BareObjectRole BareObjectRoleOf(AbbrevCarry carry) =>
+        BareObjectRoleOf(carry.BooleanRelation, carry is { Subject: not null, Op: not null });
 
     private BoundCondition BindCondition(IParseTree node, AbbrevCarry carry) => node switch
     {
@@ -863,9 +922,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// it used to be refused unreported, which the COBOL2319 internal-error net caught).</summary>
     private BoundCondition BindAbbreviatedRelation(Core.AbbreviatedRelationContext ar, AbbrevCarry carry)
     {
-        if (carry.BooleanRelation) return RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(ar));
+        if (carry.BooleanRelation)
+            return RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(ar), () => ComparisonOperand(ar.comparisonOperand()));
         if (carry.Subject is not { } subject)
         {
+            _ = ComparisonOperand(ar.comparisonOperand());   // its object's own faults are not hidden by the missing subject
             ReportAbbreviatedRelationWithoutSubject(ar);
             return Refused("abbreviated relation with no preceding relation subject");
         }
@@ -886,9 +947,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>⛔ ISO §8.8.4.12.3 SR1 — a succeeding relation that omits its subject (or its subject and operator)
     /// after a BOOLEAN relation condition (<see cref="AbbrevCarry.BooleanRelation"/>). Both consumers of the carry —
     /// <see cref="BindAbbreviatedRelation"/> and the bare object of <see cref="BindSoleOperandCondition"/> — ask it
-    /// here, so the rule is reported once, in one wording (kb/Work PB1391).</summary>
-    private BoundCondition RefuseAbbreviationAfterBooleanRelation(string written)
+    /// here, so the rule is reported once, in one wording (kb/Work PB1391). The abbreviation's object is still a reference
+    /// the program wrote, so <paramref name="bindObject"/> binds it first and its own faults (§8.4.2.1, §8.4.2.3.3 SR2 …)
+    /// are indicated beside the refusal rather than hidden behind it (kb/Work PB4446, PB4707).</summary>
+    private BoundCondition RefuseAbbreviationAfterBooleanRelation(string written, System.Func<BoundOperand> bindObject)
     {
+        _ = bindObject();
         ctx.Edition.Error(DiagnosticCatalog.AbbreviatedRelationAfterBooleanRelation,
             $"'{written}' abbreviates a relation after a boolean relation condition, and the first relation condition of "
             + "an abbreviated combined relation condition shall not be a boolean relation condition (ISO §8.8.4.12.3 SR1; "
@@ -1222,12 +1286,19 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (operands.Length == 1)
         {
             // A bare address-identifier is the OBJECT of an abbreviated relation (§8.8.4.12) when a subject and
-            // operator are carried, and otherwise no condition at all (§8.8.4.2.1) — kb/Work PB1021.
-            if (operands[0].addressIdentifier() is { } bareAddr && carry is not { Subject: not null, Op: not null })
+            // operator are carried, an abbreviation §8.8.4.12.3 SR1 refuses after a boolean relation, and otherwise no
+            // condition at all (§8.8.4.2.1) — kb/Work PB1021, PB4707.
+            if (operands[0].addressIdentifier() is { } bareAddr)
             {
-                carry.Reset();
-                ReportAddressIdentifierAsCondition(bareAddr);
-                return Refused($"condition '{DataBinder.WrittenText(bareAddr)}'");
+                switch (BareObjectRoleOf(carry))
+                {
+                    case BareObjectRole.AbbreviationAfterBooleanRelation:
+                        return RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(bareAddr), () => ComparisonOperand(operands[0]));
+                    case BareObjectRole.NotACondition:
+                        carry.Reset();
+                        ReportAddressIdentifierAsCondition(bareAddr);
+                        return Refused($"condition '{DataBinder.WrittenText(bareAddr)}'");
+                }
             }
             return BindSoleOperandCondition(operands[0].valueOperand(), () => ComparisonOperand(operands[0]), carry);
         }
@@ -1264,10 +1335,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return sole;
         }
         // A bare object after a boolean relation would be an abbreviation (§8.8.4.12.1 2), which SR1 forbids.
-        if (carry.BooleanRelation) return RefuseAbbreviationAfterBooleanRelation(vo is null ? "operand" : DataBinder.WrittenText(vo));
-        if (carry is { Subject: { } subject, Op: { } op })
-            return WrittenRelational(subject, op, bindOperand());
-        return RefuseNonCondition(vo);
+        return BareObjectRoleOf(carry) switch
+        {
+            BareObjectRole.AbbreviationAfterBooleanRelation =>
+                RefuseAbbreviationAfterBooleanRelation(vo is null ? "operand" : DataBinder.WrittenText(vo), bindOperand),
+            BareObjectRole.ObjectOfRelation => WrittenRelational(carry.Subject!, carry.Op!, bindOperand()),
+            _ => RefuseNonCondition(vo),
+        };
     }
 
     /// <summary>⛔ A BARE OPERAND THAT IS NONE OF THE CONDITIONS IS A COMPILE-TIME ERROR (kb/Work PB982). ISO

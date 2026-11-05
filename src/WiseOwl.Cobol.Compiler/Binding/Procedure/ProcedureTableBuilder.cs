@@ -628,7 +628,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     else if (subject.Range is { } drange)
                         for (int pc = drange.Start; pc <= drange.End; pc++)
                             AddDebugSubject(pc, section);
-                    else if (NamesDataItem(dr) || NamesFile(dr) || !ReportUnresolvedDebugOperand(dr, section))
+                    else if (NamesDataItem(dr) || NamesFile(dr) || NamesCommunicationDescription(dr) || !ReportUnresolvedDebugOperand(dr, section))
                         ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"declarative section '{section.Name}': USE FOR DEBUGGING "
                             + $"ON '{nm}' names a file-name, cd-name, or data item (not a procedure-name of this "
                             + "program) — only the ON procedure-name / ALL PROCEDURES leg is modeled; the file / "
@@ -699,7 +699,14 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         operand.dataReferenceSuffix().Length == 0 && operand.cobolWord() is { } word
         && ctx.Data.State.VisibleFiles.ContainsKey(word.GetText());
 
-    /// <summary>An operand that is no procedure, data item or file is told why. A qualified word whose HEAD is a
+    /// <summary>Whether the operand is a bare cd-name of this program (the cd-name subject of USE FOR DEBUGGING: X3.23-1985's debug
+    /// module triggers on the ENABLE, DISABLE, PURGE, RECEIVE and SEND of a cd-name, kb/Work PB4713). A cd-name is this source
+    /// element's alone (ISO/IEC 1989:2002 8.4.5), so the element's own slice is the whole scope.</summary>
+    private bool NamesCommunicationDescription(Core.DataReferenceContext operand) =>
+        operand.dataReferenceSuffix().Length == 0 && operand.cobolWord() is { } word
+        && ctx.Data.State.Communication.ByName.ContainsKey(word.GetText());
+
+    /// <summary>An operand that is no procedure, data item, file or cd-name is told why. A qualified word whose HEAD is a
     /// paragraph or section the program declares (<c>P1 OF NOSEC</c>) is a procedure-name that identifies nothing,
     /// and is reported as every other procedure-name operand is (<c>RejectProcedureName</c>, COBOL1639): the data
     /// resolver's "no declaration gives the name P1" would send the user hunting for a declaration that is there.
