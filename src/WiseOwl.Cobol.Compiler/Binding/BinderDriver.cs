@@ -878,6 +878,7 @@ internal sealed class BinderDriver
             // kb/Work PB237 — the unit's visible program prototypes (§12.3.8.2 specifiers resolved through
             // §12.3.8.4 GR10, plus §8.4.6.8's containing-program spelling).
             ProgramPrototypes = ProgramPrototypesOf(data, unit, session.Repository, unit.SourcePosition, session.Binders),
+            Repository = session.Repository,
             UnitRecursive = unit.Recursive,   // §14.9.7.3 SR1 / §14.9.36.3 SR1 (kb/Work PB137)
         };
         binder.ConfigureEc(session.Turn, session.DirectiveSites, unit.Name);   // the EC bind context (TURN fold + directive sites + §15.30 location element)

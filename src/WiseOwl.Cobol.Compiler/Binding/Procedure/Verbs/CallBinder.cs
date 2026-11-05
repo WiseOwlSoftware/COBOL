@@ -189,9 +189,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // called, according to the rules specified in 12.3.8, REPOSITORY paragraph."
                 prototype = bareProto;
             else if (spellingB && BarePrototypeWord(dref) is { } declaredWord
-                     && DeclaresProgramSpecifier(declaredWord))
-                // The word is a PROGRAM specifier no provider answered (REPO-1 at the specifier, DESIGN-external-repository
-                // §8.2 step 4): it registered no prototype, so this is SR16's undeclared prototype — never a data name.
+                     && ctx.Data.State.Configuration.DeclaresProgramSpecifier(declaredWord))
+                // The word is a declared PROGRAM specifier that registered no prototype — no provider answered it (REPO-1 at
+                // the specifier, DESIGN-external-repository §8.2 step 4) or its literal-3 was refused (kb/Work PB4708) — so
+                // this is SR16's undeclared prototype, never a data name.
             {
                 _ = ResolvePrototype(declaredWord, "CALL");
                 return BoundRejected.Reported(ctx.Edition);
@@ -1136,29 +1137,42 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// paragraph") state the SAME obligation about the same subject, and §8.4.6.8 adds the one further spelling
     /// they both inherit — "the program-name of a containing program definition". The table
     /// (<c>BinderDriver.ProgramPrototypesOf</c>) carries all of it, so both verbs ask this one question. Reports
-    /// COBOL1760 and returns null when the name is not a program prototype here. The sentence differs by WHY: a word no
-    /// PROGRAM specifier declares is the undeclared name of the rule; a word a specifier DOES declare but no provider
-    /// answered (<see cref="DeclaresProgramSpecifier"/>) is declared, so saying it is "neither declared" would be false
-    /// (kb/Work PB4633) — it is the follow-on of the specifier's own refusal (§12.3.8.3 SR14, COBOL5962), named as such.</summary>
+    /// COBOL1760 and returns null when the name is not a program prototype here; the sentence says WHY
+    /// (<see cref="WhyNoPrototype"/>).</summary>
     private ProgramPrototype? ResolvePrototype(string name, string verb, string alsoNot = "")
     {
         if (host.ProgramPrototypes?.GetValueOrDefault(name) is { } proto) return proto;
-        string why = DeclaresProgramSpecifier(name)
-            ? "it is declared by a PROGRAM specifier in the REPOSITORY paragraph (ISO §12.3.8.2), but no program of this "
-              + "compilation group and no entry of the external repository answers that specifier, which is itself "
-              + "refused (ISO §12.3.8.3 SR14), so it registers no program prototype"
-            : "it is neither declared by a PROGRAM specifier in the REPOSITORY paragraph (ISO §12.3.8.2) nor the "
-              + "program-name of a containing program definition (§8.4.6.8)";
         ctx.Edition.Error(DiagnosticCatalog.ProgramPrototypeUndeclared,
-            $"{verb} {name}: '{name}' is not a program prototype — {why}{alsoNot}");
+            $"{verb} {name}: '{name}' is not a program prototype — {WhyNoPrototype(name)}{alsoNot}");
         return null;
     }
 
-    /// <summary>Whether a PROGRAM specifier of the REPOSITORY paragraph in scope declares <paramref name="name"/>
-    /// (<c>ConfigurationSlice.ProgramSpecifiers</c>, the table <c>BinderDriver.ProgramPrototypesOf</c> resolves through
-    /// §12.3.8.4 GR10). A declared word absent from <c>host.ProgramPrototypes</c> is one no provider answered.</summary>
-    private bool DeclaresProgramSpecifier(string name) =>
-        ctx.Data.State.Configuration.ProgramSpecifiers.ContainsKey(name);
+    /// <summary>WHY <paramref name="name"/> is no program prototype here, the one sentence <see cref="ResolvePrototype"/> adds
+    /// to COBOL1760 (kb/Work PB4633, PB4708). A word a specifier DECLARES is never called "neither declared"; the three
+    /// routes to a declared word with no prototype name three different refusals, and only the first is REPO-1:
+    /// <list type="number">
+    /// <item>no provider answers the specifier (§12.3.8.3 SR14: a program prototype of the group, a program definition
+    /// specified previously, or information in the external repository) and COBOL5962 is reported where it is written;</item>
+    /// <item>the same, but the external repository holds an entry whose own finding refuses it, which suppresses REPO-1
+    /// (<c>RepositoryResolver.ReportUnanswered</c>) — the sentence then names no REPO-1 and no code;</item>
+    /// <item>the specifier's AS literal-3 was refused (§12.3.8.3 SR2), so it registered no row at all.</item>
+    /// </list></summary>
+    private string WhyNoPrototype(string name)
+    {
+        var configuration = ctx.Data.State.Configuration;
+        const string declared = "it is declared by a PROGRAM specifier in the REPOSITORY paragraph (ISO §12.3.8.2), but ";
+        if (configuration.ProgramSpecifiers.TryGetValue(name, out var specifier))
+            return host.Repository?.External.Refused(RepositoryFamily.Program, name, specifier.ExternalizedName) == true
+                ? declared + "the external repository's entry for it was refused by that repository's own finding, so it "
+                  + "registers no program prototype"
+                : declared + "no program prototype and no program definition specified previously in this compilation group "
+                  + "and no information in the external repository answers that specifier (ISO §12.3.8.3 SR14, COBOL5962), "
+                  + "so it registers no program prototype";
+        return configuration.DeclaresProgramSpecifier(name)
+            ? declared + "that specifier's AS literal-3 was refused (ISO §12.3.8.3 SR2), so it registers no program prototype"
+            : "it is neither declared by a PROGRAM specifier in the REPOSITORY paragraph (ISO §12.3.8.2) nor the "
+              + "program-name of a containing program definition (§8.4.6.8)";
+    }
 
     /// <summary>The BARE user-defined word a data reference spells, or null when it is qualified, subscripted,
     /// reference-modified, or one of the special registers the rule lists first. A program-prototype-name is a

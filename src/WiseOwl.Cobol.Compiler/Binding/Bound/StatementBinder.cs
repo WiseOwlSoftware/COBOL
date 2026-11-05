@@ -131,6 +131,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// direct construction.</summary>
     internal IReadOnlyDictionary<string, ProgramPrototype>? ProgramPrototypes { get; set; }
 
+    /// <summary>The compilation's repository resolver — the authority <see cref="ProgramPrototypes"/> was resolved through —
+    /// for the one question a refused lookup asks of it: whether the external repository's own finding already refused a
+    /// specifier no provider answered (<see cref="RepositoryResolver.External"/>, kb/Work PB4708). Set wherever
+    /// <see cref="ProgramPrototypes"/> is; null in unit-test direct construction.</summary>
+    internal RepositoryResolver? Repository { get; set; }
+
     /// <summary>The two restrictions of a pointer restricted to program-prototype <paramref name="prototypeName"/>, which a
     /// program-address-identifier argument is described with: its TO phrase by the prototype's externalized name
     /// (<see cref="PrototypeSignatures.NamedRestriction(string)"/>) and what it may contain, the identity of the prototype's

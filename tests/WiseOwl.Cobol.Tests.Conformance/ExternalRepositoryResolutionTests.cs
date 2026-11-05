@@ -157,6 +157,48 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
+    /// <summary>kb/Work PB4708: the SECOND route to a declared word with no prototype. <c>PROGRAM R4708P AS ""</c> is refused
+    /// by §12.3.8.3 SR2 (a zero-length literal-3), so it registers no ProgramSpecifiers row, yet the REPOSITORY paragraph
+    /// DECLARES the word: CALL, CANCEL and CALL AS say so, cite SR2 rather than SR14 (no REPO-1 exists on this route), and
+    /// the USAGE PROGRAM-POINTER TO screen does not add its own "not declared" refusal.</summary>
+    [Fact]
+    public void ASpecifierWhoseLiteral3IsRefused_IsDeclaredAndNamesSr2()
+    {
+        WithDirectory("repo-literal3-refused", dir =>
+        {
+            const string source = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. R4708C.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    PROGRAM R4708P AS "".
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 A PIC 9(4) VALUE 42.
+                01 P TYPEDEF USAGE PROGRAM-POINTER TO R4708P.
+                PROCEDURE DIVISION.
+                    CALL R4708P USING A
+                    CANCEL R4708P
+                    CALL "ZZ" AS R4708P USING A
+                    GOBACK.
+                END PROGRAM R4708C.
+                """;
+            var r = Compile(dir, "R4708C", source);
+            Assert.False(r.Success);
+            foreach (string declared in new[] { "CALL R4708P", "CANCEL R4708P", "CALL AS R4708P" })
+            {
+                string text = Refusal1760(r, declared);
+                Assert.Contains("declared by a PROGRAM specifier in the REPOSITORY paragraph", text, StringComparison.Ordinal);
+                Assert.Contains("AS literal-3 was refused (ISO §12.3.8.3 SR2)", text, StringComparison.Ordinal);
+                Assert.DoesNotContain("neither declared", text, StringComparison.Ordinal);
+                Assert.DoesNotContain("SR14", text, StringComparison.Ordinal);
+            }
+            Assert.DoesNotContain(r.Errors, e => e.Contains("PROGRAM-POINTER TO R4708P", StringComparison.Ordinal)
+                                                 && e.Contains("is not a program-prototype-name", StringComparison.Ordinal));
+        });
+    }
+
     [Fact]   // §9.3: a --repository directory is searched instead of the output directory, and a --reference file after it.
     public void TheNamedDirectoriesAndReferences_AreTheSearchSpace()
     {
@@ -205,6 +247,11 @@ public sealed class ExternalRepositoryResolutionTests
             Assert.False(r.Success);
             Assert.Contains("COBOL5964", Codes(r), StringComparison.Ordinal);
             Assert.DoesNotContain("COBOL5962", Codes(r), StringComparison.Ordinal);
+            // kb/Work PB4708: no REPO-1 exists on this route, so the CALL's sentence cites no SR14 refusal either.
+            string call = Refusal1760(r, "CALL R2103P");
+            Assert.Contains("refused by that repository's own finding", call, StringComparison.Ordinal);
+            Assert.DoesNotContain("SR14", call, StringComparison.Ordinal);
+            Assert.DoesNotContain("neither declared", call, StringComparison.Ordinal);
         });
     }
 
