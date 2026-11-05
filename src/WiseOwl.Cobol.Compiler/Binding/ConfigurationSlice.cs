@@ -252,18 +252,20 @@ public sealed class ConfigurationSlice(Action<Antlr4.Runtime.RuleContext?, strin
     /// <c>BinderDriver.ProgramPrototypesOf</c>, exactly as the function twin resolves in <c>BinderDriver.UserFunctionsOf</c>.</summary>
     internal Dictionary<string, ProgramSpecifier> ProgramSpecifiers { get; } = new(CobolNames.Comparer);
 
-    /// <summary>The program-prototype-names whose PROGRAM specifier was WRITTEN but registers no row of
-    /// <see cref="ProgramSpecifiers"/> because its <c>AS literal-3</c> was refused (§12.3.8.3 SR2, reported where it was
-    /// written). The word is still DECLARED by the REPOSITORY paragraph, so a reference to it is never "undeclared"
-    /// (kb/Work PB4708); ask <see cref="DeclaresProgramSpecifier"/>, not either table.</summary>
-    internal HashSet<string> RefusedProgramSpecifiers { get; } = new(CobolNames.Comparer);
+    /// <summary>The program-prototype-names whose PROGRAM specifier was refused where it is written, and why. The word is
+    /// still DECLARED by the REPOSITORY paragraph, so a reference to it is never "undeclared" (kb/Work PB4708); ask
+    /// <see cref="DeclaresProgramSpecifier"/> for that, not either table. <see cref="ProgramSpecifierRefusal.Literal3"/> is
+    /// recorded by the specifier's binding (no <see cref="ProgramSpecifiers"/> row exists for it);
+    /// <see cref="ProgramSpecifierRefusal.RepositoryFinding"/> by <c>BinderDriver.ProgramPrototypesOf</c> when the external
+    /// repository's own finding refused a specifier no provider answered.</summary>
+    internal Dictionary<string, ProgramSpecifierRefusal> RefusedProgramSpecifiers { get; } = new(CobolNames.Comparer);
 
     /// <summary>Whether a PROGRAM specifier of the REPOSITORY paragraph in scope declares <paramref name="name"/> — the
     /// written declaration, whatever became of its externalized name (kb/Work PB4708). The ONE question both readers of
     /// "is this word a declared program-prototype-name" ask: the sentence of <c>CallBinder.ResolvePrototype</c> and the
     /// USAGE PROGRAM-POINTER TO screen of the data binder.</summary>
     internal bool DeclaresProgramSpecifier(string name) =>
-        ProgramSpecifiers.ContainsKey(name) || RefusedProgramSpecifiers.Contains(name);
+        ProgramSpecifiers.ContainsKey(name) || RefusedProgramSpecifiers.ContainsKey(name);
 
     /// <summary>The unit's REPOSITORY user-function specifiers (§12.3.8 — <c>FUNCTION function-prototype-name</c>
     /// WITHOUT the INTRINSIC phrase): the precondition for a user-function reference, and per §12.3.8.4 GR12

@@ -1161,8 +1161,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     {
         var configuration = ctx.Data.State.Configuration;
         const string declared = "it is declared by a PROGRAM specifier in the REPOSITORY paragraph (ISO §12.3.8.2), but ";
-        if (configuration.ProgramSpecifiers.TryGetValue(name, out var specifier))
-            return host.Repository?.External.Refused(RepositoryFamily.Program, name, specifier.ExternalizedName) == true
+        if (configuration.ProgramSpecifiers.ContainsKey(name))
+            return configuration.RefusedProgramSpecifiers.TryGetValue(name, out var refusal)
+                   && refusal == ProgramSpecifierRefusal.RepositoryFinding
                 ? declared + "the external repository's entry for it was refused by that repository's own finding, so it "
                   + "registers no program prototype"
                 : declared + "no program prototype and no program definition specified previously in this compilation group "
