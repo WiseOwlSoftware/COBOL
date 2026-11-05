@@ -1,4 +1,4 @@
-## kb/Work PB4749: the orchestrator loop no longer has a meter unit
+## Entry 3149 — 2026-11-05 10:35 PST — kb/Work PB4749: the orchestrator loop no longer has a meter unit
 
 The loop still chose a `meter` unit whenever `readings.json` held no reading from the last three hours, and that unit
 tried to read the claude.ai usage page through Claude in Chrome. The owner had ruled the page out, and `budget.py` has
@@ -11,3 +11,4 @@ The meter unit is gone. That covers its rule in `next_unit.py` (rules 4 to 7 are
 `--chrome` launch, and the read-only unit handling only it used in `orchestrate.ps1`. The schema, `steer.ps1` and
 `model_rules.json` drop it too. The design doc and MANDATORY-PRACTICES O3 now say the meter is `budget.py` and never the
 usage page. A new core self-test proves that no unit is launched with `--chrome`.
+
