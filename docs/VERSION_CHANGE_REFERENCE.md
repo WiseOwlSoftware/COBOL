@@ -103,6 +103,8 @@ names), or if a spec LINE number reappears anywhere in this file — so the ledg
 | close-with-lock-removed-2023 | 85 | removed 2023 | COBOL0902 | done | 7 |
 | cobol-words-directive-2023 | 2023 | — | COBOL0900 | done | 11, 55 |
 | col7-continuation-obsolete-2023 | 85 | obsolete 2023 | COBOL0903 | done | 94 |
+| communication-facility-removed-2014 | 85 | removed 2014 | COBOL0902 | done | 7.51 |
+| communication-key-phrase-removed-2002 | 85 | removed 2002 | COBOL0902 | done | 7.51 |
 | constant-record-2014 | 2014 | — | COBOL0900 | done | 7.48 |
 | copy-literal-name-2002 | 2002 | — | COBOL0900 | done | 7.44 |
 | copy-replacing-non-pseudo-text-removed-2023 | 85 | removed 2023 | COBOL0902 | done | 4 |
