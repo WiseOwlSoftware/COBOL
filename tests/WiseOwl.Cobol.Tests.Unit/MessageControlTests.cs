@@ -106,6 +106,57 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("92", InputStatus(session.AcceptMessageCount(InputArea("Q1"))));
     }
 
+    [Theory]
+    [InlineData("{}")]
+    [InlineData("null")]
+    [InlineData("[]")]
+    [InlineData("""{ "queues": [ null ], "sources": [], "destinations": [], "terminals": [] }""")]
+    [InlineData("""{ "queues": [ { "path": "Q1" } ], "sources": [], "destinations": [], "terminals": [] }""")]
+    public void StateOfTheWrongShape_IsStatus92(string state)
+    {
+        var session = Session();
+        File.WriteAllText(Path.Combine(_root, "mcs-state.json"), state);
+        Assert.Equal("92", InputStatus(session.AcceptMessageCount(InputArea("Q1"))));
+    }
+
+    /// <summary>Table A.1's PURGE column and Table A.2's error keys, on the arms the goldens do not reach: a disabled destination with a portion is 10 and key 2, and with an unknown destination beside it 80;
+    /// an input-output CD's disabled terminal is 10; a store that refuses a SEND leaves the portion the run unit had.</summary>
+    [Fact]
+    public void Purge_FollowsTheTables()
+    {
+        var session = Session("""{ "destinations": [ { "name": "OFF", "enabled": false } ], "terminals": [ { "name": "T1" } ] }""");
+        Assert.Equal("10", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "OFF"), "A", SendIndicator.None)));
+        string purged = session.Purge("C", CommunicationFormat.Output, OutputArea(1, "OFF"));
+        Assert.Equal("10", OutputStatus(purged));
+        Assert.Equal('2', purged[10]);
+        Assert.Equal("70", OutputStatus(session.Purge("C", CommunicationFormat.Output, OutputArea(1, "OFF"))));
+        session.Send("C", CommunicationFormat.Output, OutputArea(1, "OFF"), "A", SendIndicator.None);
+        string two = "0002" + "0001" + "99" + " " + "NOPE".PadRight(12) + " " + "OFF".PadRight(12);
+        string combined = session.Purge("C", CommunicationFormat.Output, two);
+        Assert.Equal("80", OutputStatus(combined));
+        Assert.Equal('1', combined[10]);
+        Assert.Equal('2', combined[23]);
+        session.Send("I", CommunicationFormat.InputOutput, InOutArea("T1", 1), "A", SendIndicator.None);
+        session.SetPath("I", CommunicationFormat.InputOutput, CommunicationPath.InputOutputTerminal, InOutArea("T1"), null, enable: false);
+        Assert.Equal("10", InOutStatus(session.Purge("I", CommunicationFormat.InputOutput, InOutArea("T1"))));
+    }
+
+    [Fact]
+    public void SendTheStoreRefuses_KeepsThePortionTheRunUnitHad()
+    {
+        var session = Session();
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "A", SendIndicator.None)));
+        string state = Path.Combine(_root, "mcs-state.json");
+        string saved = File.Exists(state) ? File.ReadAllText(state) : "";
+        File.Delete(state);
+        Directory.CreateDirectory(state);
+        Assert.Equal("92", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "B", SendIndicator.EndOfMessage)));
+        Directory.Delete(state);
+        if (saved.Length > 0) File.WriteAllText(state, saved);
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "C", SendIndicator.EndOfMessage)));
+        Assert.Equal("ACX", session.Receive("R", CommunicationFormat.Input, InputArea("Q2"), false, "XXX", noDataPhrase: true).Into);
+    }
+
     [Fact]
     public void Message_OutlivesTheRunUnitThatSentIt()
     {

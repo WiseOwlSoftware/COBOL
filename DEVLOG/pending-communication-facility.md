@@ -8,6 +8,8 @@ Goldens: `pb4677_cd_area_layout`, `pb4677_initial_cd_spaces`, `pb4677_user_words
 
 Two stale sentences went with it: the grammar and `cobol-words.json` said RECEIVE and SEND were user words at 2002 (PB4297 corrected the table to 85 and 2002 reserved, 2014 free).
 
-Self-review, four lenses: GATE_SELF_REVIEW
+The drift rules corrected the first shape: `RuntimeConfig` registers the two `WISEOWL_COBOL_MCS` variables, the integer and constant-name slots are classified or witnessed, the empty NO DATA and WITH DATA blocks draw COBOL2072, and `CommunicationBinder` is a pair on the tolerated Bound to Procedure row PB2347 removes (a partial of `StatementBinder` measured four new pairs against that one). pb332's expected message follows the parse: an optional WITH can now follow a statement, in RECEIVE's phrases, so the START recovery reads "cannot parse construct near '2'" and still says "expected LENGTH".
+
+Self-review, four lenses. Architecture: one bound node, one emitter, the store behind the session; the store's transaction and what it holds are two files. Full code: reading the rules back found a reference-modified RECEIVE receiver going through the whole-group store, PIC A admitted where SR2 says category alphanumeric, FILLER admitted in a clause, a store refusal keeping the run unit's half, and a state file of the wrong shape escaping as a NullReferenceException; each is fixed with its test. Performance: the SEND predicate runs only where the word is SEND. Duplication: the positions are written twice, `CommunicationFormats` in the compiler and `CommunicationArea` in the runtime, because the compiler's table builds DataItems and the runtime's reads an image; `pb4677_mcs_receive` reads through the first what the second wrote, field by field, and a unit test holds the sizes.
 
 GATE_VERDICT
