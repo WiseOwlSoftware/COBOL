@@ -1,4 +1,4 @@
-## An existing expansion is imported only when it was made over the classes this compilation names (PB4650)
+## Entry 3120 — 2026-11-04 16:57 PST — An existing expansion is imported only when it was made over the classes this compilation names (PB4650)
 
 PB4650 (filed from PB4483's report): `ExpansionPlacementPass.Place`'s import arm took any expansion of the search space with the
 same definition, actuals, `ExpansionKey` and surface. The key hashes a class's RECORD, not the assembly the class lives in, so an
@@ -33,3 +33,4 @@ COBOL2240 reason text), and the conformance golden `12.3.8-REPOSITORY/pb4650_unu
 across two groups, accepted from 2002; refused at 85 by `pb4650_unused_actual_expansion_refused_at_85`). In the reverse client order
 the second client finds the first client's `BOX` (its assembly is searched too) and so imports the expansion that assembly holds.
 No inventory row is claimed or closed.
+
