@@ -1824,14 +1824,18 @@ relations), `typedef_external` (two programs, one ExternalStore cell) + `Typedef
 already covered); SAME AS carries its own row `same-as-clause-2002`; an EXTERNAL-typedef row is NOT warranted
 (TYPEDEF is unreachable below 2002, so the composition needs no second 0900); 1531–1535/1555–1558 are
 edition-INVARIANT compile-time diagnostics (no cross-edition behavior variance). The restricted data-pointer
-`USAGE POINTER TO type-name` (ISO §13.18.60.2 / Annex D.9.2.2) stays deferred — catalogued as the pending matrix
-row `usage-pointer-to-type-2014` (the P12 re-scout re-anchored the former "`TYPE TO` pointer-target" label: plain
-`TYPE [TO]` is the TYPE clause's optional word, §13.18.57.2, already live).
+`USAGE POINTER TO type-name` (ISO §13.18.60.2 / Annex D.9.2.2) is LIVE (kb/Work PB153) and is a COBOL-2002 construct
+(ISO/IEC 1989:2002 has `POINTER [ TO type-name-1 ]`, the TYPEDEF requirement and the restricted-pointer rule): it has NO
+matrix row of its own, because a gate would repeat the ones its dependencies already carry — below 2002 the form draws
+COBOL0900 through the TYPEDEF, TYPE and BASED rows (kb/Work PB4612 deleted the unwired row `usage-pointer-to-type-2014`,
+whose 2014 edge was wrong); the witness is `13.18.60-USAGE/pb153_restricted_pointer` (2002 to 2023). Plain
+`TYPE [TO]` is the TYPE clause's optional word, §13.18.57.2, already live.
 
 (5) **Declaration-first expansion (kb/Work PB1302, PB1301, PB1476).** `ExpandTypes` completes every one of the unit's
 type declarations AS A DECLARATION before any storage item copies one: `ExpandTemplate` expands the template's own
-chained TYPE clause (`01 S2 TYPEDEF TYPE S.`) and then every TYPE and SAME AS reference among its members, in source
-order, and a declaration reached while it is still IN PROGRESS is the recursion §13.18.58.3 SR2 forbids (**1530**) —
+chained TYPE clause (`01 S2 TYPEDEF TYPE S.`) and then every TYPE and SAME AS reference among the declaration and its
+members, in source order (a SAME AS on the declaration itself is a refused co-clause, §13.16.3 SR12, that the recovery
+keeps, so it is expanded as a legal one would be; kb/Work PB4638), and a declaration reached while it is still IN PROGRESS is the recursion §13.18.58.3 SR2 forbids (**1530**) —
 a property of the declaration, diagnosed whether or not anything references it, and independent of declaration
 order. A copy therefore never re-expands anything (`CloneItem` asserts its source carries no pending TYPE / SAME AS
 reference), and a SAME AS target's whole subtree is likewise completed, on the current chain, before it is copied,

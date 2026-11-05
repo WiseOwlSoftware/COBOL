@@ -253,8 +253,8 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   at 2023 (error strict / warning permissive).
 > - **Edition gates:** the OPTIONS paragraph is 2002+ (COBOL0804, `options-paragraph-2002` — with ARITHMETIC
 >   NATIVE|STANDARD); the 2014-only clauses each carry their own 0900 row (`options-default-rounded-2014`,
->   `options-intermediate-rounding-2014`, `options-entry-convention-2014` [conservative — the in-repo 85/2002
->   evidence establishes only ARITHMETIC at 2002], `options-float-binary/decimal-2014`, `options-initialize-2014`,
+>   `options-intermediate-rounding-2014`, `options-entry-convention-2014` [the COBOL alternative only — the clause
+>   with an entry-convention-name is 2002, kb/Work PB4611], `options-float-binary/decimal-2014`, `options-initialize-2014`,
 >   and the STANDARD-BINARY/STANDARD-DECIMAL keyword rows); ROUNDED MODE IS is 2014+ (COBOL0803); the
 >   composite-of-operands check is 31 at EVERY edition (§14.7.7 rule 2 — an 85-specific tightening to 18 is
 >   refuted by CCVS-85 itself: NC101A composes 21 digits in a MULTIPLY).
@@ -838,6 +838,17 @@ keeps every integer digit, as GnuCOBOL 3.2's `cob_div_quotient` does: `DIVIDE 10
 identifier-3 had made `DIVIDE 123456 BY 7 GIVING Q REMAINDER R` into `Q PIC 9(4) COMP-5` 70004 instead of 4, kb/Work PB3017).
 The native lane's subsidiary quotient carries the quotient's own digit bound (`NumericRenderer.QuotientDigitBound`, the
 rule the nested quotient states) into the back-multiply.
+⛔ **A native sender on the EXACT WIDE form (a nested product or a FUNCTION value past the Int128 carrier, `NumX.Wide` /
+`NumX.Exact`, no binary64) forms its subsidiary quotient from the operands' EXACT values** (kb/Work PB4640;
+`ArithmeticEmitter.TakesExactSubsidiary`, `NumericRenderer.ExactSubsidiaryQuotient`, `CobolExact.SubsidiaryQuotient`): the exact
+quotient truncated toward zero at identifier-3's scale with every integer digit, an exact value that GR7's back-multiply and
+subtraction keep exact. The stored quotient is the final transfer's, `FinalQuotient`, held to the SDIDI's 34 digits
+(`CobolExact.DivToOdd`), and truncating THAT at the scale gave a subsidiary quotient of 34 digits: `DIVIDE FUNCTION ABS (A * A * A + 4321)
+BY 1000 GIVING Q REMAINDER R` (A = 10^15 - 1, a 42-digit quotient, a size error at `Q PIC S9(18)` with the remainder still stored,
+DOC-A.1-70) stored R = 99999999994 where GnuCOBOL's exact `cob_div_remainder` and rule 7 give 320. The truncation is the nested
+quotient's, `CobolExact.TruncatedQuotient`, at the receiver's own scale. The standard-decimal lane and an SDIDI-only native pair keep
+the SDIDI's 34-digit quotient (§14.9.12.4 GR1 names the SDIDI expression; DOC-A.1-82 the lane). The STORED quotient of a size error is
+still the 34-digit image's low-order digits (a lead, not a rule).
 
 **The subsidiary quotient is identifier-3's SHAPE under truncation, one arm per form (kb/Work PB2923;
 `ArithmeticEmitter.SubsidiaryShapeOf`, `SubsidiaryForm`).** §14.9.12.4 6) c) gives it "the same number of digits and the same

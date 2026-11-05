@@ -2,12 +2,17 @@
 *> id: pb153_restricted_pointer
 *> rules: [SR-13.18.60.3-18, GR-13.18.60.4-23, SR-14.9.3.3-4,
 *>    SR-14.9.3.3-5]
-*> accept: [2023]
+*> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB153RP.
+      *> THE EDITION IS 2002 (kb/Work PB4612): ISO/IEC 1989:2002 has USAGE POINTER [ TO type-name-1 ]
+      *> (t2002.txt:19354), the SR "If type-name-1 is specified, the TYPEDEF clause shall be
+      *> specified for the subject of the entry" (19422) and the GR "this data item is a restricted data-pointer"
+      *> (19574), and its TYPEDEF STRONG, BASED, ALLOCATE and SET ADDRESS OF are the other statements below.
+      *> Below 2002 the program draws COBOL0900 through the TYPEDEF and BASED gates, so no row of its own gates it.
       *> kb/Work PB153 - RESTRICTED DATA-POINTERS, END TO END.
       *> ANNEX D.9.2.2: "A RESTRICTED DATA-POINTER MAY CONTAIN ONLY
       *> THE PREDEFINED ADDRESS NULL OR THE ADDRESS OF A DATA ITEM OF

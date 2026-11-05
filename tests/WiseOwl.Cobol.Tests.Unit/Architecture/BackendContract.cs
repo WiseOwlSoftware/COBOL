@@ -120,7 +120,8 @@ internal static class BackendContract
             "Model.NamingConvention.SetAccessorName()", "Model.NamingConvention.SumCounterName()",
             "Model.NamingConvention.SumCounterPrefix", "Model.OoClassSymbol.FactoryOrInstanceClrNames",
             "Model.OoInterfaceSymbol.ImplementedClrNames", "Model.OoMethodBinding.FormalName()", "Model.OoFormal.ParamName",
-            "Model.OoFormal.AreaParam", "Model.OoFormal.OmittedFlag", "Model.ImportedFrom.ClrNamespace",
+            "Model.OoFormal.AreaParam", "Model.OoFormal.OmittedFlag", "Model.ImportedFrom.ClrNamespace", "Model.ImportedFrom.AssemblyName",
+            "Model.ExpansionIdentity.Homes",
         ]),
         new(NeutralKind.LiteralValue,
         [

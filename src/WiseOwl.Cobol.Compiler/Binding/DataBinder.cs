@@ -1317,25 +1317,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // ValidateValueCategory above, which is the funnel EVERY format's literal passes through: the item VALUE
         // (formats 1 and 2), the level-88 set (format 3) and the group-level VALUE. It used to be split, and the
         // split WAS the defect — see that method's remarks; D21/PB66, kb/Work PB97 + PB921.)
-        // VCR 34 (ISO §13.18.63 SR4/SR5; Annex E.2 item 27): at >=2023 an alphanumeric edited-image literal VALUE on
-        // a numeric-edited item is checked against the PICTURE size — a literal LONGER than the edited width is
-        // rejected (below 2023 it was stored truncated — the "unclear value"). Under --permissive the check
-        // downgrades to a warning (a removed-capability posture). The national-class-mismatch leg is already
-        // COBOL0898 (ValidateValueCategory); only a plain alphanumeric literal (leading '"') reaches this size check.
-        // ⛔ THE SIZE IS THE SUBJECT'S, not pic.Length — the SAME discipline the SR4/SR5/SR10 size arms follow
-        // (kb/Work PB598). This IS a size rule, so a subject that indicates no size has none to be measured
-        // against; today the two quantities coincide for every subject that reaches here (a numeric-edited
-        // picture is neither DYNAMIC LENGTH — §13.18.19.3 SR1 admits only one 'N' or 'X' — nor a group), and a
-        // CONDITION-NAME subject, which this funnel also serves (kb/Work PB586), carries no size at all, so the
-        // check stays dark for it exactly as §13.18.63.3 SR4/SR5's size sentences do (kb/Work PB598).
-        if (pic is { Category: PicCategory.NumericEdited } && Edition.DialectLevel >= 2023
-            && raw.StartsWith('"') && subject.SizePositions is { } editedWidth
-            && CobolLiteral.Decode(raw).Length > editedWidth)
-            Edition.Sink.Report(new EditionDiagnostic(DiagnosticCatalog.ValueNumericEditedOversize.Code,
-                EditionSeverityPolicy.For(ConstructAvailability.Removed, Edition.Edition), DiagnosticCatalog.ValueNumericEditedOversize.Id,
-                $"{where}: the VALUE literal ({CobolLiteral.Decode(raw).Length} characters) exceeds the "
-                + $"numeric-edited item's {editedWidth}-character edited size (ISO §13.18.63.3 SR4/SR5; COBOL-2023, "
-                + "Annex E.2 item 27)", where, "ISO §13.18.63.3 SR4/SR5; Annex E.2 item 27"));
+        // (⛔ The SIZE sentences of §13.18.63.3 SR4 are ValidateValueCategory's, for EVERY category they reach:
+        // the alphanumeric item AND the numeric-edited item, at every edition. The numeric-edited arm used to
+        // sit here behind a hard-coded `DialectLevel >= 2023`, a second copy of the rule with an edition axis
+        // the sentence does not have, kb/Work PB4610.)
         return raw;
     }
 
@@ -1616,6 +1601,26 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     + $"{(subject.IsGroup ? $"group item's {alnumLimit} character positions"
                                           : $"item's {alnumLimit} character positions indicated by its PICTURE clause")}"
                     + " (ISO §13.18.63.3 SR4)");
+                break;
+            // ── The SAME sentence on a NUMERIC-EDITED elementary subject (kb/Work PB4610). SR4's size sentences name
+            //    "Alphanumeric literals in the VALUE clause of an elementary item", not the categories of the sentence
+            //    before them, and a numeric-edited item of usage DISPLAY is of class alphanumeric (§8.5.2.1 Table 2),
+            //    so the alphanumeric literal that seeds it (SR7) is measured against the edited PICTURE's size, the
+            //    editing characters counted. The sentence is in ISO/IEC 1989:2002 (SR4, and SR8: "Editing characters
+            //    in a picture character-string are included in determining the size of the data item"), the 2014 FCD
+            //    and 2023 alike, so there is NO edition test and no construct row here: Annex E.2 item 27 describes
+            //    the content of a literal that fits, not this length rule. The same Error at every edition as the
+            //    alphanumeric arm above (a truncating --permissive store is no response to a "shall"). 1985: no text
+            //    is held and the 2002 Annex F.1 list of 1985-to-2002 changes names no VALUE-literal size change, so
+            //    the rule is read as 1985's too, as the unconditional alphanumeric arm already does. The size is the
+            //    SUBJECT'S (kb/Work PB598), so a CONDITION-NAME subject, which carries none, stays dark. A national
+            //    literal on a USAGE NATIONAL numeric-edited item is SR7's class half AND SR5's size half, both asked
+    //    once the usage is resolved (CheckValueLiteralClassesPass.ScreenNumericEditedLiteralClass).
+            case PicCategory.NumericEdited when lit is LiteralClass.Alphanumeric
+                    && subject.SizePositions is { } editedLimit && CobolLiteral.Decode(raw).Length > editedLimit:
+                Edition.Error(DiagnosticCatalog.ValueNumericEditedOversize, $"{where}: the VALUE literal "
+                    + $"({CobolLiteral.Decode(raw).Length} characters) exceeds the numeric-edited item's "
+                    + $"{editedLimit}-character edited size (ISO §13.18.63.3 SR4)");
                 break;
         }
         return raw;
@@ -2088,8 +2093,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return true;
         if (_templateComplete.TryGetValue(template, out bool complete)) return complete;
         _templateComplete[template] = false;
-        if (template.TypeRefName is not null) ExpandType(template);
-        foreach (var member in DataItem.DescendantsOf(template).ToList())
+        // The declaration's own references, then its members' — the order ExpandTypesPass.Run gives every storage item
+        // (TYPE, then SAME AS), by one walk over the declaration and its subtree. A SAME AS on the declaration itself
+        // is a refused co-clause (§13.16.3 SR12 lists no TYPEDEF) whose recovery keeps the role clause and the
+        // reference (kb/Work PB4602), so it is expanded here as a legal one would be (§13.18.49.4 GR1): the
+        // references to the type then draw nothing further (kb/Work PB4638).
+        foreach (var member in DataItem.SelfAndDescendantsOf(template).ToList())
         {
             if (member.TypeRefName is not null) ExpandType(member);
             if (member.SameAsName is not null) ExpandSameAs(member, []);

@@ -96,6 +96,30 @@ public sealed class CobolEditStoredSignTests
         Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
     }
 
+    // §13.18.40.5 rule 6 makes only the simple insertion symbols embedded in a floating string, or immediately right
+    // of it, part of the string; a character-1 LEFT of the string, or past a digit position after it, always shows
+    // its literal and is never a landing position (PB4621), so a '-' literal there is not the item's sign.
+    [Theory]
+    [InlineData("T--9", 55)]
+    [InlineData("T--9", -55)]
+    [InlineData("T++9", 55)]
+    [InlineData("T++9", -55)]
+    [InlineData("T--9", 0)]
+    [InlineData("--9T9", 55)]
+    [InlineData("--9T9", -55)]
+    [InlineData("++9T9", 55)]
+    [InlineData("++9T9", -55)]
+    [InlineData("--T9", 55)]
+    [InlineData("--T9", -55)]
+    [InlineData("T--T9", 55)]
+    [InlineData("T--T9", -55)]
+    public void DeEdit_Character1OutsideTheFloatingString_ShowsItsLiteralAndIsNotTheSign(string mask, long value)
+    {
+        CobolEdit.EditRule[] rules = [new CobolEdit.EditRule('T', "-", "-", SimpleInsertion: true, Floating: false)];
+        string image = CobolEdit.Format(value, 0, mask, edits: rules);
+        Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
+    }
+
     [Fact]
     public void Format_FixedExtendedSign_FollowsTheStoredValue()
     {
