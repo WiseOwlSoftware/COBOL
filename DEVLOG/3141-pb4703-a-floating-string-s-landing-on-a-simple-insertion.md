@@ -1,4 +1,4 @@
-## PB4703: a floating string's landing on a simple insertion symbol embedded in it is rendered and de-edited as the landing
+## Entry 3141 — 2026-11-04 23:13 PST — PB4703: a floating string's landing on a simple insertion symbol embedded in it is rendered and de-edited as the landing
 
 kb/Work PB4703 was filed from the PB4621 review: `CobolEdit.DeEdit` misses a sign landed on an IS-form PICTURE EDITING
 character-1 embedded in a FOR-form floating string (R1-1), and the upper bound `i < signEnd` of PB4621's fix had no witness
@@ -33,3 +33,4 @@ still wrote its sign across a wider embedded character-1's whole slot (`PIC --T-
 `  --555`, two signs where rule 6 a) places "a single occurrence"). `Render` records `placedBy` at the two floating-sign
 placements, `Materialize` writes the one sign at the end of the slot, and `DeEdit` reads it there; the determination in
 docs/CONFORMANCE.md now says it covers every floating symbol. Unit theories and golden lines J1-J5 and K1-K4 cover both.
+
