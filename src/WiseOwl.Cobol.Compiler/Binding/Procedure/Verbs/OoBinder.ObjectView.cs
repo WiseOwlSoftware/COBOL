@@ -43,15 +43,19 @@ internal sealed partial class OoBinder
         // §8.4.3.5.3 SR1: "Identifier-1 shall be of class object; the predefined object references SUPER and NULL shall
         // not be specified." Both are admitted by the grammar (the P3 superset parse) so they are refused by THIS rule.
         if (term.predefinedNull() is not null || term.selfAndSuper()?.SUPER() is not null)
+        {
+            using var atWord = ctx.Edition.At(term);   // the refusal is about the NULL / SUPER word (kb/Work PB4652)
             return RefuseViewSubject(written, $"the predefined object reference {(term.predefinedNull() is not null ? "NULL" : "SUPER")} "
                 + "shall not be specified as identifier-1");
+        }
 
         Place? source = null;   // null = SELF, the object the method was invoked on (§8.4.3.8.4)
         if (term.selfAndSuper() is not null)
         {
             if (!host.InMethod || host.OoCurrentClass is null)
             {
-                // The shared §8.4.3.8.3 SR1 refusal reports; the expression channel carries the refusal on.
+                // The shared §8.4.3.8.3 SR1 refusal reports, at the SELF word; the expression channel carries it on.
+                using var atWord = ctx.Edition.At(term);   // kb/Work PB4652
                 _ = RefusePredefinedObjectOutsideMethod($"the object-view '{DataBinder.WrittenText(ov)}': SELF");
                 return BoundExprError.Refused(ctx.Edition, "object-view of SELF outside a method");
             }

@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "(17,34): error COBOL6002: INVOKE NULL USING argument SELF"}
