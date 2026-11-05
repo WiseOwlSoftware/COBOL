@@ -1,4 +1,4 @@
-## PB4640: DIVIDE ... GIVING Q REMAINDER R forms its subsidiary quotient from the exact operands when the quotient passes 34 digits
+## Entry 3116 — 2026-11-04 16:22 PST — PB4640: DIVIDE ... GIVING Q REMAINDER R forms its subsidiary quotient from the exact operands when the quotient passes 34 digits
 
 **What was wrong.** `DIVIDE FUNCTION ABS (A * A * A + 4321) BY 1000 GIVING Q REMAINDER R` (A = 10^15 - 1, Q `PIC S9(18)`) divides a
 45-digit dividend: the quotient has 42 digits, a size error at Q, and with checking off and no SIZE ERROR phrase DOC-A.1-70 stores
@@ -35,3 +35,4 @@ the remainder, and a 30-digit quotient that fits as the no-size-error control. E
 **A lead, not fixed.** The stored quotient of that size error is still the 34-digit image's low-order digits (000003000100000000 where
 the exact decimal has 000003000000000000). It is the final transfer's quotient, shared with COMPUTE and DIVIDE GIVING without
 REMAINDER, and exactness there means landing the final transfer from the exact wide quotient; it is on the report as a lead.
+
