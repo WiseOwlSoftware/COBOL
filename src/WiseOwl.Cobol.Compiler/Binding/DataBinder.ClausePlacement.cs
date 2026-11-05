@@ -36,7 +36,8 @@ internal enum EntrySections
     LocalStorage = 1 << (int)EntrySection.LocalStorage,
     Linkage = 1 << (int)EntrySection.Linkage,
     File = 1 << (int)EntrySection.File,
-    All = WorkingStorage | LocalStorage | Linkage | File,
+    Communication = 1 << (int)EntrySection.Communication,
+    All = WorkingStorage | LocalStorage | Linkage | File | Communication,
 }
 
 /// <summary>One placement rule, transcribed from its sentence. <see cref="Clauses"/> is the SUBJECT set (every
@@ -321,6 +322,7 @@ public sealed partial class DataBinder
         EntrySection.LocalStorage => "local-storage section",
         EntrySection.Linkage => "linkage section",
         EntrySection.File => "file section",
+        EntrySection.Communication => "communication section",
         _ => section.ToString(),
     };
 

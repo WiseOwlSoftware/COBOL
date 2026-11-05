@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Binding;
 using Core = CobolParserCore;
 
 /// <summary>The sections of a DATA DIVISION (ISO §13.2), the columns of <see cref="OoDefinitionRules"/>'s table.</summary>
-internal enum OoDataSection { File, WorkingStorage, LocalStorage, Linkage, Report, Screen }
+internal enum OoDataSection { File, WorkingStorage, LocalStorage, Linkage, Report, Screen, Communication }
 
 /// <summary>
 /// ⛔ THE ONE HOME OF THE OO DATA-DIVISION PLACEMENT RULES (kb/Work PB1251; the DATA-division twin of
@@ -47,6 +47,9 @@ internal static class OoDefinitionRules
     /// standard admits it there. Total over <see cref="DataBearingKinds"/> × <see cref="OoDataSection"/>.</summary>
     internal static string? RefusedBy(OoDefinition kind, OoDataSection section) => (kind, section) switch
     {
+        // ISO/IEC 1989:2002 Annex A: "The communication facility may be used only in a program definition"; 10.5 SR4 for a method.
+        (OoDefinition.Factory or OoDefinition.Instance or OoDefinition.Method, OoDataSection.Communication) => "ISO/IEC 1989:2002 Annex A",
+
         // Factory and instance definitions: the "only in a factory or instance" sections are theirs; the two
         // sections that belong to a function, program or method are not.
         (OoDefinition.Factory or OoDefinition.Instance, OoDataSection.File or OoDataSection.WorkingStorage
@@ -183,6 +186,7 @@ internal static class OoDefinitionRules
         if (data.workingStorageSection() is { } w) yield return (OoDataSection.WorkingStorage, w);
         if (data.localStorageSection() is { } l) yield return (OoDataSection.LocalStorage, l);
         if (data.linkageSection() is { } k) yield return (OoDataSection.Linkage, k);
+        if (data.communicationSection() is { } c) yield return (OoDataSection.Communication, c);
         if (data.reportSection() is { } r) yield return (OoDataSection.Report, r);
         if (data.screenSection() is { } s) yield return (OoDataSection.Screen, s);
     }

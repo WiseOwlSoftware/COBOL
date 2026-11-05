@@ -159,6 +159,7 @@ internal static class AreaPlacementPass
         public override object? VisitWorkingStorageSection(Core.WorkingStorageSectionContext ctx) => Section(ctx);
         public override object? VisitLocalStorageSection(Core.LocalStorageSectionContext ctx) => Section(ctx);
         public override object? VisitLinkageSection(Core.LinkageSectionContext ctx) => Section(ctx);
+        public override object? VisitCommunicationSection(Core.CommunicationSectionContext ctx) => Section(ctx);
         public override object? VisitReportSection(Core.ReportSectionContext ctx) => Section(ctx);
         public override object? VisitScreenSection(Core.ScreenSectionContext ctx) => Section(ctx);
         public override object? VisitSectionDefinition(Core.SectionDefinitionContext ctx) => Section(ctx);
@@ -177,6 +178,7 @@ internal static class AreaPlacementPass
         public override object? VisitFileDescriptionEntry(Core.FileDescriptionEntryContext ctx) => LevelIndicator(ctx);
         public override object? VisitSortMergeDescriptionEntry(Core.SortMergeDescriptionEntryContext ctx) => LevelIndicator(ctx);
         public override object? VisitReportDescriptionEntry(Core.ReportDescriptionEntryContext ctx) => LevelIndicator(ctx);
+        public override object? VisitCommunicationDescriptionEntry(Core.CommunicationDescriptionEntryContext ctx) => LevelIndicator(ctx);
 
         public override object? VisitDeclarativePart(Core.DeclarativePartContext ctx)
         {

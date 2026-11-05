@@ -162,6 +162,9 @@ public enum RedefinitionKind
     ImplicitFileRecord,
     /// <summary>The record of a later file of one record-area SAME clause (§12.4.6.4.4 GR2).</summary>
     SameRecordArea,
+    /// <summary>A record of one communication description entry, and the entry's implicit description: "Record description entries following
+    /// [a] CD entry implicitly redefine the record area" (ISO/IEC 1989:2002 A.1.2.2 SR5, SR9, SR14).</summary>
+    ImplicitCommunicationRecord,
 }
 
 /// <summary>

@@ -421,6 +421,12 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 $"'{name}': the REDEFINES clause shall not be specified in a level-1 entry in the file section "
                 + "(ISO §13.18.44.3 SR3)");
 
+        // The communication section's twin (ISO/IEC 1989:2002 13.16.42 SR4): a CD's records already share its area.
+        if (item.Parent is null && item.Level == 1 && item.Section == EntrySection.Communication)
+            binder.Edition.Error(DiagnosticCatalog.RedefinesEntryRule,
+                $"'{name}': the REDEFINES clause shall not be specified in a level-1 entry in the communication section "
+                + "(ISO/IEC 1989:2002 13.16.42 SR4)");
+
         // SR13 — a constant record cannot be redefined and then modified through the redefining name.
         if (target.IsConstantRecord)
             binder.Edition.Error(DiagnosticCatalog.RedefinesEntryRule,
