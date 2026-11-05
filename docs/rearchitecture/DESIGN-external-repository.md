@@ -1431,7 +1431,7 @@ IS the externalized name under `ExternalizedNames`' fold (DOC-A.1-68).
 2. GR10 b): a program PROTOTYPE definition in the group (prototypes precede all other units, §10.6.2 SR1).
 3. GR10 c): `MetadataRepositoryProvider.Program(externalizedName)` → the first entry of `P:name` in the search order,
    its signature decoded from that entry's host-entry `Call` method (§5.3).
-4. None → REPO-1; the prototype is not registered (a CALL through it is COBOL1760).
+4. None → REPO-1; the prototype is not registered (a CALL, CANCEL or CALL … AS through it is COBOL1760, whose sentence says the word is declared but unanswered — `CallBinder.ResolvePrototype` — not that it is undeclared).
 `ProgramPrototype.Signature` is non-nullable (every prototype is resolved with a signature, c) included). The CALL it
 binds is the existing one (§4.2), describing its operands when the callee is compiled elsewhere.
 

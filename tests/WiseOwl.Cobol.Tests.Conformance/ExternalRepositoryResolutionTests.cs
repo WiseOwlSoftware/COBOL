@@ -111,6 +111,52 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
+    /// <summary>kb/Work PB4633: a verb's COBOL1760 sentence says WHY the word is no program prototype. A word a PROGRAM
+    /// specifier DECLARES whose specifier no provider answered (REPO-1, §12.3.8.3 SR14) is declared, so the sentence
+    /// must not say it is "neither declared"; a word no specifier declares keeps that sentence.</summary>
+    private static string Refusal1760(CompilerDriver.Result r, string verbAndWord) =>
+        Assert.Single(r.Errors, e => e.Contains("COBOL1760", StringComparison.Ordinal)
+                                     && e.Contains(verbAndWord + ":", StringComparison.Ordinal));
+
+    [Fact]
+    public void ADeclaredSpecifierNoProviderAnswered_IsNotCalledUndeclaredByCallCancelOrCallAs()
+    {
+        WithDirectory("repo-1-declared", dir =>
+        {
+            const string source = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. R2103C.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    PROGRAM R2103P.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 A PIC 9(4) VALUE 42.
+                PROCEDURE DIVISION.
+                    CALL R2103P USING A
+                    CANCEL R2103P
+                    CALL "ZZ" AS R2103P USING A
+                    CANCEL NOSUCH
+                    GOBACK.
+                END PROGRAM R2103C.
+                """;
+            var r = Compile(dir, "R2103C", source);
+            Assert.False(r.Success);
+            Assert.Contains(r.Errors, e => e.Contains("COBOL5962", StringComparison.Ordinal));
+            foreach (string declared in new[] { "CALL R2103P", "CANCEL R2103P", "CALL AS R2103P" })
+            {
+                string text = Refusal1760(r, declared);
+                Assert.Contains("declared by a PROGRAM specifier in the REPOSITORY paragraph", text, StringComparison.Ordinal);
+                Assert.Contains("§12.3.8.3 SR14", text, StringComparison.Ordinal);
+                Assert.DoesNotContain("neither declared", text, StringComparison.Ordinal);
+            }
+            string undeclared = Refusal1760(r, "CANCEL NOSUCH");
+            Assert.Contains("neither declared by a PROGRAM specifier", undeclared, StringComparison.Ordinal);
+            Assert.DoesNotContain("§12.3.8.3 SR14", undeclared, StringComparison.Ordinal);
+        });
+    }
+
     [Fact]   // §9.3: a --repository directory is searched instead of the output directory, and a --reference file after it.
     public void TheNamedDirectoriesAndReferences_AreTheSearchSpace()
     {
