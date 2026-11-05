@@ -265,6 +265,29 @@ public sealed class CobolExactIntrinsicsTests
             CobolExact.DivToOdd(Sdidi("1", 6000), Fixed(3), Away));
     }
 
+    /// <summary>⛔ THE SUBSIDIARY QUOTIENT KEEPS EVERY INTEGER DIGIT OF AN EXACT QUOTIENT (kb/Work PB4640; ISO §14.9.12.4 6) c), 7)): the
+    /// exact quotient truncated TOWARD ZERO at identifier-3's scale, whatever the digits of the quotient — the final transfer's
+    /// quotient is held to 34 digits, and a 42-digit quotient lost eight. Expected values: <see cref="BigInteger"/> division, which
+    /// truncates toward zero, on the operands' integers (the quotient at scale s of x/10^p over y/10^q is x × 10^(q + s − p) / y).</summary>
+    [Fact]
+    public void SubsidiaryQuotient_IsTheExactQuotientTruncatedAtTheScale()
+    {
+        BigInteger a = BigInteger.Pow(10, 15) - 1;
+        BigInteger n = a * a * a + 4321;                                          // 45 digits
+        Assert.Equal(0, CobolExact.Compare(Wide(n / 1000), CobolExact.SubsidiaryQuotient(Wide(n), Fixed(1000), 0, Away)));
+        Assert.Equal(0, CobolExact.Compare(Wide(-(n / 1000)), CobolExact.SubsidiaryQuotient(Wide(-n), Fixed(1000), 0, Away)));
+        Assert.Equal(0, CobolExact.Compare(Wide(-(n / 1000)), CobolExact.SubsidiaryQuotient(Wide(n), Fixed(-1000), 0, Away)));
+        // A scale: N / 0.07 at one place is N × 1000 / 7 tenths (a 47-digit integer), and at two places on a scaled dividend.
+        Assert.Equal(0, CobolExact.Compare(Wide(n * 1000 / 7, 1), CobolExact.SubsidiaryQuotient(Wide(n), Fixed(7, 2), 1, Away)));
+        Assert.Equal(0, CobolExact.Compare(Wide(n * 10 / 7, 2), CobolExact.SubsidiaryQuotient(Wide(n, 1), Fixed(7), 2, Away)));
+        // A quotient finer than the scale is cut, never rounded: 4321 / 1000 at scale 0 is 4, 4.321 at scale 2 is 4.32.
+        Assert.Equal(0, CobolExact.Compare(Fixed(4), CobolExact.SubsidiaryQuotient(Fixed(4321), Fixed(1000), 0, Away)));
+        Assert.Equal(0, CobolExact.Compare(Fixed(432, 2), CobolExact.SubsidiaryQuotient(Fixed(4321), Fixed(1000), 2, Away)));
+        // An SDIDI divisor beside the wide dividend, and a zero divisor (§14.7.5 case 2).
+        Assert.Equal(0, CobolExact.Compare(Wide(n / 1000), CobolExact.SubsidiaryQuotient(Wide(n), Sdidi("1", 3), 0, Away)));
+        Assert.Throws<CobolSizeError>(() => CobolExact.SubsidiaryQuotient(Wide(n), Fixed(0), 0, Away));
+    }
+
     /// <summary>⛔ A DIVISOR OF ANY DIGITS THE WIDE FORM HOLDS (kb/Work PB4599 review finding R1-1): the dividend aligned to 36 digits
     /// beyond the divisor leaves the 256-bit form once the divisor passes 41 digits, and the quotient then draws its digits from the
     /// remainder. Expected values: Python integers and <c>fractions.Fraction</c> (round-to-odd of the exact quotient at 34 digits).</summary>
