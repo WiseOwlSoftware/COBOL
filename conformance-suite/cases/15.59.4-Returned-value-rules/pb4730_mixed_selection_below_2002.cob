@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB4730: the refused twin of pb4730_mixed_selection_keeps_a_float_items_content. FUNCTION MAX is a COBOL-2002
-      *> introduction in WiseOwl's catalog window and USAGE FLOAT-LONG is one too, so below 2002 the reference is refused and no
-      *> selection among a float item and a fixed-point item exists.
+      *> kb/Work PB4730: the refused twin of pb4730_mixed_selection_keeps_a_float_items_content. USAGE FLOAT-LONG and the
+      *> floating-point literal 2.5E+40 are COBOL-2002 introductions, so below 2002 the data description is refused and no
+      *> float item exists to select among beside a fixed-point item.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4730BLW.
        DATA DIVISION.
