@@ -59,6 +59,11 @@ public sealed class ManagedPointer<T> : ManagedPointer
 
     private readonly bool _omittedArgument;
 
+    /// <summary>What this view is a window of (<see cref="TextViews"/>; kb/Work PB4768), or null for a carrier that is
+    /// not a view the CALL ABI composes: the next adaptation reads it to build ITS view over the underlying storage
+    /// instead of over this view, so a formal passed on through N activations stays one indirection deep.</summary>
+    internal object? ViewTag { get; private init; }
+
     /// <summary>The store of a view over STORAGE that a store through the formal can grow (<see cref="OverStorage"/>),
     /// which takes the receiving references the activated element made; null for every other carrier.</summary>
     private readonly Action<T, ReceivingReferences?>? _overStorage;
@@ -108,6 +113,10 @@ public sealed class ManagedPointer<T> : ManagedPointer
     /// — the BY REFERENCE "same storage area" semantics (ISO §14.2.3 GR8) with zero indirection on the owner's
     /// own accesses.</summary>
     public static ManagedPointer<T> OverField(Func<T> get, Action<T> set) => new(get, set);
+
+    /// <summary>An <see cref="OverField"/> accessor that records <paramref name="tag"/>, the window it is
+    /// (<see cref="ViewTag"/>).</summary>
+    internal static ManagedPointer<T> OverView(Func<T> get, Action<T> set, object tag) => new(get, set) { ViewTag = tag };
 
     /// <summary>A standalone storage cell seeded with <paramref name="initial"/> — the BY CONTENT copy
     /// (ISO §14.2.3 GR9: "a record allocated by the activating element"). NOT the ALLOCATE backing — dynamic
