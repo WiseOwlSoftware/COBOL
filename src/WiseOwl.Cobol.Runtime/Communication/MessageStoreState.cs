@@ -170,10 +170,24 @@ internal sealed class MessageStoreState
                 o["deliverTo"]?.GetValue<string>(), o["source"]?.GetValue<string>());
             if (!state._destinations.TryAdd(name, destination)) throw new FormatException($"destination '{name}' is defined twice");
         }
+        RefuseSharedDeviceFiles(state);
         foreach (var destination in state._destinations.Values)
             if (destination.DeliverTo is { } target && !state.DeliveryTargetExists(target))
                 throw new FormatException($"destination '{destination.Name}' delivers to '{target}', which is not defined");
         return state;
+    }
+
+    /// <summary>A device is the file <c>&lt;name&gt;.out</c> of the MCS directory (<see cref="MessageStore"/>), and the file system, not the definition file, says
+    /// which names are one file: Windows and macOS fold case, so <c>D1</c> and <c>d1</c> would append to one file and each SEND would answer 00 for a device the other
+    /// feeds. The device-bearing endpoints, the destinations that deliver to no queue and the terminals, are therefore distinct without case, on every host, so a
+    /// definition file usable on one OS is usable on the other (as <see cref="NameOf"/> does for the characters of a name). The same name as a terminal and as a
+    /// destination is the same file and is refused by the same rule.</summary>
+    private static void RefuseSharedDeviceFiles(MessageStoreState state)
+    {
+        var devices = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: a host file name
+        foreach (var name in state._terminals.Keys.Concat(state._destinations.Values.Where(d => d.DeliverTo is null).Select(d => d.Name)))
+            if (!devices.TryAdd(name, name))
+                throw new FormatException($"'{devices[name]}' and '{name}' name one device file, which a host that ignores case cannot tell apart");
     }
 
     private static void AddQueue(JsonObject o, SortedDictionary<string, QueueNode> siblings, string[] parentPath, DateTimeOffset now)
