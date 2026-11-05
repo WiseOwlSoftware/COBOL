@@ -1,4 +1,4 @@
-## The entry-name slot names its entry, and a dangling level-number before a section header is a missing period again
+## Entry 3122 — 2026-11-04 17:50 PST — The entry-name slot names its entry, and a dangling level-number before a section header is a missing period again
 
 Two leads from the PB4604 landing, one root: how `CobolErrorStrategy` reads the first word after a data description entry's level-number.
 
@@ -9,3 +9,4 @@ Two leads from the PB4604 landing, one root: how `CobolErrorStrategy` reads the 
 Goldens: `pb4645-clause-word-after-an-entry-name` and `pb4646-dangling-level-number-before-section-header` under `13.16-Data-description`, each refused at all four editions; unit cases in `ClosedFormatReservedWordTests` (names W-A, FILLER and a level-05 entry; the dangling level-number at four editions; `LINKAGE PIC X.` and `LINKAGE.` as controls). Rows closed: none (both notes claim none).
 
 Found and not fixed: `01` then `PROCEDURE DIVISION.` reads PROCEDURE as the entry's name (the NC205A alternative) and refuses DIVISION as a clause "for 'PROCEDURE'", where a missing period is the likelier reading; it is a grammar alternative, not this strategy, and is filed as a lead in the report.
+
