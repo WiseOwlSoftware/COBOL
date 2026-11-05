@@ -235,6 +235,8 @@ public sealed class ExternalRepositoryResolutionTests
             Assert.Contains("AS literal-3 was refused (ISO §12.3.8.3 SR2)", set, StringComparison.Ordinal);
             Assert.DoesNotContain("not declared in the REPOSITORY", set, StringComparison.Ordinal);
             Assert.DoesNotContain("neither declared", set, StringComparison.Ordinal);
+            // The resolver is not asked about a declared word: no COBOL1639 "no declaration gives the name" beside it (R2-1).
+            Assert.DoesNotContain(r.Errors, e => e.Contains("COBOL1639", StringComparison.Ordinal));
             // Both CALLs: the outer one and the contained program's, which inherits the refused row.
             Assert.Equal(2, r.Errors.Count(e => e.Contains("COBOL1760", StringComparison.Ordinal)
                                                 && e.Contains("AS literal-3 was refused (ISO §12.3.8.3 SR2)", StringComparison.Ordinal)

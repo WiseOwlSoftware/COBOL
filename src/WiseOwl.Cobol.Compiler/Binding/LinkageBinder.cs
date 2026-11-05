@@ -129,7 +129,7 @@ public sealed record CalleeSignature(IReadOnlyList<LinkageFormal> Formals, DataI
 public sealed record ProgramSpecifier(string Name, string ExternalizedName, Antlr4.Runtime.ParserRuleContext At);
 
 /// <summary>Why a WRITTEN program-specifier registers no program prototype although it declares its word (kb/Work PB4708):
-/// the one fact <c>CallBinder.WhyNoPrototype</c> reads to name the right refusal. The third route — no provider answers it,
+/// the one fact <c>ConfigurationSlice.WhyNoPrototype</c> reads to name the right refusal. The third route — no provider answers it,
 /// REPO-1 at the specifier (§12.3.8.3 SR14) — has no member: it is the specifier having a row and no entry here.</summary>
 internal enum ProgramSpecifierRefusal
 {

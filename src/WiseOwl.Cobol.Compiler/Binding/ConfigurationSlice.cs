@@ -261,9 +261,9 @@ public sealed class ConfigurationSlice(Action<Antlr4.Runtime.RuleContext?, strin
     internal Dictionary<string, ProgramSpecifierRefusal> RefusedProgramSpecifiers { get; } = new(CobolNames.Comparer);
 
     /// <summary>Whether a PROGRAM specifier of the REPOSITORY paragraph in scope declares <paramref name="name"/> — the
-    /// written declaration, whatever became of its externalized name (kb/Work PB4708). The ONE question both readers of
-    /// "is this word a declared program-prototype-name" ask: the sentence of <c>CallBinder.ResolvePrototype</c> and the
-    /// USAGE PROGRAM-POINTER TO screen of the data binder.</summary>
+    /// written declaration, whatever became of its externalized name (kb/Work PB4708). The ONE question every reader of
+    /// "is this word a declared program-prototype-name" asks: the spelling-(b) arm of <c>CallBinder</c>, <see cref="WhyNoPrototype"/>,
+    /// the ADDRESS OF PROGRAM operand of <c>SetBinder</c> and the USAGE PROGRAM-POINTER TO screen of the data binder.</summary>
     internal bool DeclaresProgramSpecifier(string name) =>
         ProgramSpecifiers.ContainsKey(name) || RefusedProgramSpecifiers.ContainsKey(name);
 
