@@ -184,7 +184,7 @@ internal sealed class MessageStoreState
     /// destination is the same file and is refused by the same rule.</summary>
     private static void RefuseSharedDeviceFiles(MessageStoreState state)
     {
-        var devices = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var devices = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: a host file name
         foreach (var name in state._terminals.Keys.Concat(state._destinations.Values.Where(d => d.DeliverTo is null).Select(d => d.Name)))
             if (!devices.TryAdd(name, name))
                 throw new FormatException($"'{devices[name]}' and '{name}' name one device file, which a host that ignores case cannot tell apart");
