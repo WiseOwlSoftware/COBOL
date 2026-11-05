@@ -20,9 +20,10 @@ using Core = CobolParserCore;
 /// <list type="number">
 /// <item><b>Import before expand.</b> An expansion of its name and key that the search space already holds is the class: the group
 /// emits nothing for its own copy and names the existing types (the copy it bound is the same text over the same surfaces, which is
-/// what the key says) — provided it is compiled against the assemblies THIS compilation's classes live in, which the key does not say
-/// (it hashes a class's record, not its home). That holds when the existing assembly references this group's own previous build — a
-/// reference cycle the CLR and Roslyn accept — for a class written here, and the imported class's assembly for one imported (kb/Work PB4650).</item>
+/// what the key says) — provided it was made over the assemblies THIS compilation's classes live in, which the key does not say
+/// (it hashes a class's record, not its home): the <see cref="ExpansionIdentity.Homes"/> it recorded equal this compilation's. The home of
+/// a class written here is this group's own output — a reference cycle the CLR and Roslyn accept when a later build imports it — and of an
+/// imported class the assembly it came from (kb/Work PB4650).</item>
 /// <item><b>Otherwise (a) an assembly of its own</b> when its code names no class or interface of THIS group — every actual and every
 /// resolution lies outside it: the driver compiles the expansion's text under the skeleton's recorded state into
 /// <c>&lt;externalized name&gt;.dll</c> beside the output; <b>or (b) this group's assembly</b>, because an assembly of its own would need
@@ -126,8 +127,16 @@ internal static class ExpansionPlacementPass
             var actuals = actualEntries.Select(NamedBy).ToList();
             var (key, parts) = ExpansionKey.Of(origin.Skeleton.Identity, skeleton, resolutions, actuals);
             string externalized = symbol is OoClassSymbol c0 ? c0.ExternalizedName : ((OoInterfaceSymbol)symbol).ExternalizedName;
+            // The assemblies the classes it names live in (each resolution, then each actual), which its code is compiled against: the key
+            // hashes a class's record, not its home, so an existing expansion serves this compilation only if it was made over these very
+            // homes (ISO §9.3.12: the expansion is the class it would have been here; kb/Work PB4650).
+            var homes = new RecordList<string>([.. resolutionEntries.Concat(actualEntries).Select(entry =>
+            {
+                var (c, i) = table.ResolveSpecifier(entry);
+                return HomeOf(c, i, c is not null ? c : i) ?? "";
+            })]);
             var identity = new ExpansionIdentity(origin.Skeleton.Identity, new RecordList<string>([.. actuals.Select(a => a.Identity)]), key,
-                new RecordList<string>([.. parts]), OwnAssembly: false);
+                new RecordList<string>([.. parts]), homes, OwnAssembly: false);
             string mine = ExpansionKey.SurfaceText(RecordOf(symbol));
 
             // Import before expand; a stale copy is named and replaced; a same-name expansion of another definition or other actuals is
@@ -136,9 +145,6 @@ internal static class ExpansionPlacementPass
             ExpansionPlacement? placement = null;
             string target = Path.Combine(external.OutputDirectory, ExternalizedNames.Form(externalized) + ".dll");
             var referenced = new HashSet<string>(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: file paths
-            // The assemblies the classes it names live in: the expansion's code is compiled against them, so an existing one serves this
-            // compilation only if it is compiled against these very assemblies (ISO §9.3.12: the expansion is the class it would have been here).
-            var homes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: assembly simple names
             if (origin.Skeleton.From is { } definedIn) referenced.Add(definedIn.AssemblyFile);
             foreach (var entry in resolutionEntries.Concat(actualEntries))
             {
@@ -146,7 +152,6 @@ internal static class ExpansionPlacementPass
                 if ((c?.Imported ?? i?.Imported) is { } importedFrom) referenced.Add(importedFrom.AssemblyFile);
                 object? named = c is not null ? c : i;
                 if (named is not null && placements.GetValueOrDefault(named) is { HoldingFile: { } held }) referenced.Add(held);
-                if (HomeOf(c, i, named) is { } home) homes.Add(home);
             }
             bool OnTarget(MetadataRepositoryProvider.PublishedExpansion other) =>
                 string.Equals(Path.GetFullPath(other.From.AssemblyFile), Path.GetFullPath(target), StringComparison.OrdinalIgnoreCase);   // not a COBOL word: file paths
@@ -157,12 +162,12 @@ internal static class ExpansionPlacementPass
                 bool sameTriple = ExternalizedNames.Same(theirs.DefinitionIdentity, identity.DefinitionIdentity)
                     && theirs.ActualIdentities.SequenceEqual(identity.ActualIdentities, ExternalizedNames.Comparer);
                 bool sameClass = sameTriple && theirs.Key == key && ExpansionKey.SurfaceText(other.Record) == mine;
-                if (sameClass && external.IsCompiledAgainst(other, homes))
+                if (sameClass && theirs.Homes.SequenceEqual(homes, StringComparer.OrdinalIgnoreCase))   // not a COBOL word: assembly simple names
                     placement ??= new ExpansionPlacement(identity, ExpansionWhere.Imported, other.From.AssemblyFile, other.From.ClrNamespace,
                         other.Record.Class!.ClrName, other.Record.Class.FactoryType, LocalNameOf(symbol), LocalFactoryNameOf(symbol));
                 else if (sameClass)
-                    // The same class over the same published surfaces, but compiled against ANOTHER assembly's classes than the ones this
-                    // compilation names: importing it would type this compilation's callers with classes it does not hold (CS0012, or a type
+                    // The same class over the same published surfaces, but made over ANOTHER assembly's classes than the ones this
+                    // compilation names (or by a compiler that recorded no homes): importing it would type this compilation's callers with classes it does not hold (CS0012, or a type
                     // no argument of this compilation converts to). It is no stale copy and no other class, so nothing is reported; this
                     // compilation makes its own, and never over the file that holds that one (kb/Work PB4650).
                     targetHeldElsewhere |= OnTarget(other);

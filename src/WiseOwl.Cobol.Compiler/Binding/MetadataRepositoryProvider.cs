@@ -571,16 +571,6 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     /// assembly, <c>ICodeGenBackend</c>), or null for a compilation with no output path.</summary>
     internal string? OutputAssemblyName => _output is null ? null : Path.GetFileNameWithoutExtension(_output);
 
-    /// <summary>Whether <paramref name="expansion"/> is compiled against EVERY assembly named in <paramref name="homes"/>: its
-    /// <c>AssemblyRef</c> table names each one (nothing is loaded). An expansion's code names the classes its actuals and resolutions
-    /// are, so it was compiled against the assemblies those classes live in; it serves a compilation only when they are the
-    /// compilation's own (ISO §9.3.12; §10.5 "Import before expand").</summary>
-    internal bool IsCompiledAgainst(PublishedExpansion expansion, IEnumerable<string> homes)
-    {
-        Consult();
-        return homes.All(home => RepositoryLocator.ReferencesIn(expansion.From.AssemblyFile, home));
-    }
-
     /// <summary>The namespace the types of the module whose registrar type is <paramref name="registrar"/> live in (§4.5), or null.</summary>
     private static ModuleNamespace? ModuleOf(string? registrar)
     {

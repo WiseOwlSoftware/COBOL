@@ -100,6 +100,12 @@ public sealed class CobolUnitAttribute(RepositoryUnitKind kind, string name, str
     /// stale compares them with its own to name the first component that changed.</summary>
     public string[]? ExpansionParts { get; set; }
 
+    /// <summary>The simple name of the assembly each class or interface the expansion names lived in when it was made: the
+    /// definition's specifier resolutions in their order, then the actuals in USING order; empty for one the standard supplies. The
+    /// <see cref="ExpansionKey"/> hashes a class's record and not its home, so an expansion serves a compilation only when these are the
+    /// homes of the classes that compilation names.</summary>
+    public string[]? ExpansionHomes { get; set; }
+
     /// <summary>The expansion is the only unit of its own assembly (its code names no class or interface of the expanding
     /// group); otherwise it lives in the expanding group's assembly.</summary>
     public bool ExpansionOwnAssembly { get; set; }

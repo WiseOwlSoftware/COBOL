@@ -54,5 +54,8 @@ internal sealed record SkeletonRecord(RecordList<string> Formals, RecordList<boo
 /// actuals, all by externalized name, the <see cref="Key"/> that says what it MEANS, and whether it is the only unit of an
 /// assembly of its own (placement (a)) or lives in the expanding group's assembly (placement (b)). <see cref="Parts"/> are the labeled
 /// digests of the components the key is made of (<c>ExpansionKey.Of</c>), so a compilation that finds this expansion stale can say
-/// which component changed.</summary>
-internal sealed record ExpansionIdentity(string DefinitionIdentity, RecordList<string> ActualIdentities, string Key, RecordList<string> Parts, bool OwnAssembly);
+/// which component changed. <see cref="Homes"/> are the simple names of the assemblies the classes it names lived in when it was made (each
+/// resolution in turn, then each actual; empty for a class the standard supplies): the key hashes a class's record, not its home, so
+/// they say which classes the expansion's code was compiled against (kb/Work PB4650).</summary>
+internal sealed record ExpansionIdentity(string DefinitionIdentity, RecordList<string> ActualIdentities, string Key, RecordList<string> Parts,
+    RecordList<string> Homes, bool OwnAssembly);

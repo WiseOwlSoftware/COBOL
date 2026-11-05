@@ -273,7 +273,9 @@ public sealed class ExternalRepositoryExpansionTests
             // The group that writes BOX has the expansion in its own assembly; the other imported nothing it could not name.
             var inGroup = Assert.Single(Records(Path.Combine(dir, "CLIENT2.dll")), x => x.Kind is RepositoryUnitKind.Expansion);
             Assert.False(inGroup.Expansion!.OwnAssembly);
-            Assert.True(File.Exists(file));
+            // CLIENT2 first: CLIENT1 finds CLIENT2's BOX (CLIENT2.dll is searched too) and so imports the expansion CLIENT2.dll holds, which is
+            // the class over that very BOX; nothing is written. CLIENT1 first: its file is the only one.
+            Assert.Equal(firstWroteTheFile, File.Exists(file));
             if (firstWroteTheFile) Assert.Equal(written, File.GetLastWriteTimeUtc(file));   // the file CLIENT1 depends on is not written over
             var (exit, stdout, stderr) = Run(Path.Combine(dir, "CLIENT2.dll"), dir);
             Assert.True(exit == 0, stderr);
@@ -315,6 +317,137 @@ public sealed class ExternalRepositoryExpansionTests
             Assert.Equal(key, Records(file).Single().Expansion!.Key);
             var inGroup = Assert.Single(Records(Path.Combine(outs, "CLIENT4.dll")), x => x.Kind is RepositoryUnitKind.Expansion);
             Assert.False(inGroup.Expansion!.OwnAssembly);
+        });
+    }
+
+    private static string Counter(string helperEntry = "") => $"""
+        IDENTIFICATION DIVISION.
+        CLASS-ID. CNT INHERITS FROM BASE USING ELEM.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS BASE
+            CLASS ELEM{helperEntry}.
+        FACTORY.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 N PIC 9(3) VALUE 0.
+        PROCEDURE DIVISION.
+        METHOD-ID. BUMP.
+        PROCEDURE DIVISION.
+            ADD 1 TO N
+            DISPLAY "N=" N.
+        END METHOD BUMP.
+        END FACTORY.
+        END CLASS CNT.
+
+        """;
+
+    private const string Helper = """
+        IDENTIFICATION DIVISION.
+        CLASS-ID. HELPER INHERITS FROM BASE.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS BASE.
+        END CLASS HELPER.
+
+        """;
+
+    private static string CountingProgram(string id, bool callsSub) => $"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. {id}.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS BOX
+            CLASS CNT
+            CLASS CNT-BOX EXPANDS CNT USING BOX{(callsSub ? "\n    PROGRAM SUBP" : "")}.
+        PROCEDURE DIVISION.
+            INVOKE CNT-BOX "BUMP"
+            {(callsSub ? "CALL SUBP\n    INVOKE CNT-BOX \"BUMP\"\n    STOP RUN." : "GOBACK.")}
+        END PROGRAM {id}.
+        """;
+
+    [Theory]   // kb/Work PB4650, ISO §9.3.12: whether an expansion is the class this compilation names does not depend on what its code happens to reference.
+    [InlineData(false, 2014, 2014)]   // the formal is named by no member: the expansion's assembly has no reference to BOX's
+    [InlineData(true, 2014, 2014)]    // a skeleton REPOSITORY entry from another library that no member uses
+    [InlineData(false, 2014, 2023)]   // the skeleton's state is not the groups': the expansion is made apart, in an assembly of its own
+    public void AnExpansionOverTheSameClasses_IsImported_WhateverItsCodeReferences(bool unusedResolution, int libraryLevel, int clientLevel)
+    {
+        WithDirectory("expansion-same-homes", dir =>
+        {
+            if (unusedResolution) Assert.True(Compile(dir, "LIBY", Helper).Success);
+            string counter = Counter(unusedResolution ? "\n    CLASS HELPER" : "");
+            Assert.True(Compile(dir, "LIBX", Box + counter, level: libraryLevel).Success);
+            var sub = Compile(dir, "SUBP", CountingProgram("SUBP", callsSub: false), level: clientLevel);
+            Assert.True(sub.Success, Codes(sub));
+            var again = Compile(dir, "SUBP", CountingProgram("SUBP", callsSub: false), level: clientLevel);   // an unchanged recompile
+            Assert.True(again.Success, Codes(again));
+            var main = Compile(dir, "MAINP", CountingProgram("MAINP", callsSub: true), level: clientLevel);
+            Assert.True(main.Success, Codes(main));
+            Assert.DoesNotContain(Records(Path.Combine(dir, "MAINP.dll")), x => x.Kind is RepositoryUnitKind.Expansion);   // imported, not made again
+            var (exit, stdout, stderr) = Run(Path.Combine(dir, "MAINP.dll"), dir);
+            Assert.True(exit == 0, stderr);
+            Assert.Equal("N=001\nN=002\nN=003", stdout);   // one class, one factory count
+        });
+    }
+
+    [Fact]   // kb/Work PB4650: an expansion is made over the homes of ALL the classes it names, not any one of them (one assembly shared by two in only one of the compilations).
+    public void AnExpansionOverADifferentHomeOfOneNamedClass_IsNotImported_ThoughAnotherNamedClassSharesTheHome()
+    {
+        WithDirectory("expansion-homes-set", dir =>
+        {
+            string holds = Path.Combine(dir, "holds"), liba = Path.Combine(dir, "liba"), libb = Path.Combine(dir, "libb"), outs = Path.Combine(dir, "out");
+            CompilerDriver.Result Make(string at, string id, string source, params string[] searched)
+            {
+                Directory.CreateDirectory(at);
+                string src = Path.Combine(at, id + ".cob");
+                File.WriteAllText(src, source);
+                return CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(at, id + ".dll"), DialectLevel: 2014,
+                    SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [.. searched]));
+            }
+            // HOLD's code uses HELPER; BOX is in two libraries and HELPER in one of them: CLIENT1 holds {LIBB's BOX, LIBA's HELPER},
+            // CLIENT2 holds {LIBA's BOX, LIBA's HELPER}: the same assembly set is not the same two homes.
+            Assert.True(Make(liba, "LIBA", Box + Helper).Success);
+            Assert.True(Make(libb, "LIBB", Box).Success);
+            string hold = Hold().Replace("CLASS ELEM.", "CLASS ELEM\n    CLASS HELPER.").Replace("01 ITEM USAGE OBJECT REFERENCE ELEM.",
+                "01 ITEM USAGE OBJECT REFERENCE ELEM.\n01 H USAGE OBJECT REFERENCE HELPER.");
+            var libh = Make(holds, "LIBH", hold, liba);
+            Assert.True(libh.Success, Codes(libh));
+            string Program(string id) => Client(id, 7).Replace("CLASS BOX", "CLASS BOX\n    CLASS HELPER");
+            var first = Make(outs, "CLIENT1", Program("CLIENT1"), holds, libb, liba, outs);
+            Assert.True(first.Success, Codes(first));
+            var second = Make(outs, "CLIENT2", Program("CLIENT2"), holds, liba, outs);
+            Assert.True(second.Success, Codes(second));
+            Assert.DoesNotContain(second.Errors.Concat(second.Warnings), m => m.Contains("COBOL5969") || m.Contains("CS0012"));
+            Assert.Single(Records(Path.Combine(outs, "CLIENT2.dll")), x => x.Kind is RepositoryUnitKind.Expansion);   // made again, in the group
+        });
+    }
+
+    [Fact]   // kb/Work PB4650: the refusal states the reason that applies when the file (a) would write holds the same expansion made over other homes.
+    public void AnExpansionWhoseFileHoldsTheSameExpansionOverAnotherHome_IsRefusedWithThatReason_WhenItCannotLiveInTheGroup()
+    {
+        WithDirectory("expansion-file-held-foreign-state", dir =>
+        {
+            string holds = Path.Combine(dir, "holds"), boxes1 = Path.Combine(dir, "boxes1"), boxes2 = Path.Combine(dir, "boxes2"), outs = Path.Combine(dir, "out");
+            Assert.True(Compile(holds, "LIBH", Hold(), level: 2014).Success);
+            Assert.True(Compile(boxes1, "LIBB", Box).Success);
+            Assert.True(Compile(boxes2, "LIBB2", Box).Success);
+            CompilerDriver.Result Make(string id, string boxes, int level)
+            {
+                Directory.CreateDirectory(outs);
+                string src = Path.Combine(outs, id + ".cob");
+                File.WriteAllText(src, Client(id));
+                return CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(outs, id + ".dll"), DialectLevel: level,
+                    SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [holds, boxes, outs]));
+            }
+            Assert.True(Make("CLIENT1", boxes1, 2014).Success);
+            var r = Make("CLIENT4", boxes2, 2023);   // HOLD is of 2014: its expansion cannot be bound in this group, and the file it would go to is taken
+            Assert.False(r.Success);
+            string refusal = Assert.Single(r.Errors, m => m.Contains("COBOL2240"));
+            Assert.Contains("holds the same expansion compiled against other assemblies than this compilation's classes", refusal);
+            Assert.DoesNotContain("names a class or interface of this compilation group", refusal);
         });
     }
 
