@@ -1,4 +1,4 @@
-## PB4768 - a formal passed on BY REFERENCE is one view deep, not one more per activation
+## Entry 3166 — 2026-11-05 15:32 PST — PB4768 - a formal passed on BY REFERENCE is one view deep, not one more per activation
 
 **Mechanism.** `CobolArgAdapt.Text` (and `DynText`, the ANY LENGTH arm and the native-cell image arm) returned a new
 `OverField` over the previous activation's carrier. A formal passed on BY REFERENCE through d activations was a chain of
@@ -21,3 +21,4 @@ shaped groups) and the numeric-cell converting arms (they alias when scale and c
 refusal `call-by-reference-formal-passed-on-at-85` (COBOL0900, the `>>TURN` directive). Unit:
 `CallAbiViewDepthDriftTests` (100,000 levels stay one window; the composed window equals the chain it replaces for six
 width/storage shapes). Rows closed: none (the note claimed none).
+
