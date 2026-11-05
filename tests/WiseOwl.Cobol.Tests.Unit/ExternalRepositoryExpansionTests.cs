@@ -1129,6 +1129,23 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
+    [Fact]   // kb/Work PB4721, ISO §8.3.2.1: a word the CLIENT wrote into an expansion (its name) is one fault, reported where it is written, not again at the EXPANDS entry.
+    public void AnIllegalWordTheClientWroteIntoAnExpansion_IsReportedOnce_WhereItIsWritten()
+    {
+        WithDirectory("expansion-client-word", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + "\n" + Hold(), level: 2023).Success);
+            string source = Client("CLIENTV").Replace("HOLD-BOX", "HOLD-BOX_");
+            var r = Compile(dir, "CLIENTV", source, level: 2023);
+            Assert.False(r.Success);
+            string file = Path.Combine(dir, "CLIENTV.cob");
+            int line = source.Split('\n').ToList().FindIndex(l => l.Contains("EXPANDS HOLD", StringComparison.Ordinal)) + 1;
+            var reports = r.Errors.Where(e => e.Contains("COBOL2773", StringComparison.Ordinal)).ToArray();
+            Assert.StartsWith($"{file}({line},", Assert.Single(reports), StringComparison.Ordinal);
+            Assert.DoesNotContain(r.Errors, e => e.Contains("[in the expansion", StringComparison.Ordinal));
+        });
+    }
+
     [Fact]   // kb/Work PB4483: a skeleton written in the group is the user's own text, reported where it is written, wherever its expansion is placed.
     public void ASkeletonWrittenInTheGroup_IsReportedWhereItIsWritten_WhetherItsExpansionIsWrittenApartOrImported()
     {

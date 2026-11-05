@@ -85,6 +85,7 @@ public static class LiteralScreen
             var node = pending.Pop();
             if (node is ITerminalNode t)
             {
+                if (ExpansionToken.IsClientWritten(t.Symbol)) continue;   // the client's own literal, screened once in the written tree (kb/Work PB4721)
                 if (LiteralTokens.Types.Contains(t.Symbol.Type)) clean &= Screen(t, edition, sink, gateFormats);
                 else if (gateFormats && LiteralTokens.FloatingPointTypes.Contains(t.Symbol.Type))
                     GateFloatingPoint(t, edition, sink);
