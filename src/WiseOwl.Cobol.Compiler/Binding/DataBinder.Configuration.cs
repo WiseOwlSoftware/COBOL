@@ -46,9 +46,12 @@ public sealed partial class DataBinder
     private void BindProgramSpecifier(Core.RepositoryEntryContext re, string name)
     {
         // A rejected literal-3 registers NO prototype (the PB237 posture — a CALL through it then draws the
-        // undeclared-prototype diagnostic rather than silently activating the declared word).
+        // undeclared-prototype diagnostic rather than silently activating the declared word), but the word IS declared by
+        // the paragraph: it is remembered apart, so that diagnostic never calls it undeclared (kb/Work PB4708).
         if (BindSpecifierExternalizedName(re, "PROGRAM", name, "literal-3") is { } externalized)
             State.Configuration.ProgramSpecifiers.TryAdd(name, new ProgramSpecifier(name, externalized, re));
+        else
+            State.Configuration.RefusedProgramSpecifiers.TryAdd(name, ProgramSpecifierRefusal.Literal3);
     }
 
     /// <summary>⛔ THE ONE SCREEN OF A REPOSITORY SPECIFIER'S <c>[ AS literal-n ]</c> — class (literal-1), interface
