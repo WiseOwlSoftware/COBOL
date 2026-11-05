@@ -127,6 +127,7 @@ internal static class ConfigurationStep
         // program-prototype-name-1 "throughout the scope of the containing environment division".
         into.UserFunctionNames.UnionWith(from.UserFunctionNames);
         foreach (var (k, v) in from.ProgramSpecifiers) into.ProgramSpecifiers.TryAdd(k, v);
+        foreach (var (k, v) in from.RefusedProgramSpecifiers) into.RefusedProgramSpecifiers.TryAdd(k, v);
         into.RepositoryIntrinsics.UnionWith(from.RepositoryIntrinsics);
         if (from.RepositoryAllIntrinsic) into.RepositoryAllIntrinsic = true;
         foreach (var (k, v) in from.OoRepositoryProperties) into.OoRepositoryProperties.TryAdd(k, v);

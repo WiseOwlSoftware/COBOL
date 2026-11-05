@@ -128,6 +128,19 @@ public sealed record CalleeSignature(IReadOnlyList<LinkageFormal> Formals, DataI
 /// resolution (REPO-1 and the external repository's, DESIGN-external-repository §14) is reported.</summary>
 public sealed record ProgramSpecifier(string Name, string ExternalizedName, Antlr4.Runtime.ParserRuleContext At);
 
+/// <summary>Why a WRITTEN program-specifier registers no program prototype although it declares its word (kb/Work PB4708):
+/// the one fact <c>CallBinder.WhyNoPrototype</c> reads to name the right refusal. The third route — no provider answers it,
+/// REPO-1 at the specifier (§12.3.8.3 SR14) — has no member: it is the specifier having a row and no entry here.</summary>
+internal enum ProgramSpecifierRefusal
+{
+    /// <summary>Its <c>AS literal-3</c> was refused (§12.3.8.3 SR2), so it has no row of <c>ConfigurationSlice.ProgramSpecifiers</c>.</summary>
+    Literal3,
+
+    /// <summary>No provider answers it and the external repository's own finding refuses it, which suppresses REPO-1
+    /// (<c>RepositoryResolver.ReportUnanswered</c>).</summary>
+    RepositoryFinding,
+}
+
 /// <summary>One §12.3.8.2 user-defined-function-specifier as WRITTEN — <c>FUNCTION function-prototype-name-1 [AS
 /// literal-5]</c>. <paramref name="ExternalizedName"/> is literal-5 when the AS phrase is present and the name itself
 /// otherwise (§12.3.8.4 GR11 NOTE 2). <paramref name="At"/> is the REPOSITORY entry, where a diagnostic about its
