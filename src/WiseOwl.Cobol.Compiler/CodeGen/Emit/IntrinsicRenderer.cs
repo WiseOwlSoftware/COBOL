@@ -2043,6 +2043,16 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // non-admitting position still reaches Loud only through a --permissive coercion.
             : admitNumeric && n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Numeric }
                 ? OperandText.AsString(n, owner.Num)
+            // ⛔ THE --permissive COERCION OF A COMPOUND ARITHMETIC EXPRESSION AT A CHARACTER POSITION (kb/Work PB4710): `TRIM (I2 + 1)`
+            // is refused in every strict mode (an arithmetic expression is class numeric where TRIM requires a character class,
+            // COBOL1627), and --permissive demotes the refusal to a warning and coerces. An expression holds no characters, so its
+            // image is its VALUE's text, the one form a numeric function's returned value has at a character position
+            // (OperandText.AsString, DOC-A.1-92): TRIM (I2 + 1) of I2 = 2 is "3". It used to reach the loud arm below and die at run
+            // time with NotImplementedCobolFeatureException on legal-shaped, warned source (the wrong-stage family). A parenthesized
+            // item or literal is the enclosed operand's own image (above); the positions that read characters keep the error
+            // (IntrinsicArgumentRules.IsCoercible), so this arm never serves them.
+            : n.Expr is BoundBinary or BoundNegate or BoundPower
+                ? OperandText.AsString(n, owner.Num)
                 : Loud(n);
         public string Visit(BoundOperandError n) => EmitText.LoudValue("string", n.Feature);
         // An address-identifier (kb/Work PB1021) is class pointer: the binder admits it only as a relation operand, which

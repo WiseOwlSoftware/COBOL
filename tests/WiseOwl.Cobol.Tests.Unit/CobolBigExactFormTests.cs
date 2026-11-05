@@ -154,6 +154,11 @@ public sealed class CobolBigExactFormTests
         Assert.Equal(1, atTheBound.Sign);
         Assert.Throws<CobolSizeError>(() => CobolExact.Pow(ten, 6145));
         Assert.Throws<CobolSizeError>(() => CobolExact.Pow(CobolExact.From(2, 0), 100_000_000));
+        // a base below one raised past the working cap is too small to be contained, not too large
+        CobolSizeError tiny = Assert.Throws<CobolSizeError>(() => CobolExact.Pow(CobolExact.From(5, 1), 100_000_000));
+        Assert.Equal("EC-SIZE-UNDERFLOW", tiny.EcName);
+        CobolSizeError huge = Assert.Throws<CobolSizeError>(() => CobolExact.Pow(CobolExact.From(5, 0), 100_000_000));
+        Assert.Equal("EC-SIZE-OVERFLOW", huge.EcName);
         // a value on the wide form at a negative scale is checked where it is lowered: 10^6145 is past the decimal128 range
         Assert.Throws<CobolSizeError>(() => CobolExact.Mul(atTheBound, CobolExact.From(10, 0)).Image);
     }
@@ -172,5 +177,17 @@ public sealed class CobolBigExactFormTests
         Assert.Equal((Int128)(1000 - n % 1000), negMod.Sig);
         CobolDec negRem = CobolIntrinsics.RemExact(CobolRounding.Truncation, CobolExact.Negate(p2), CobolExact.From(1000, 0));
         Assert.Equal((Int128)(-(n % 1000)), negRem.Sig);
+    }
+    /// <summary>INTEGER, INTEGER-PART and FRACTION-PART of a value past the wide form keep every digit (kb/Work PB4592): a negative value
+    /// with a fraction floors one below its truncation, and its fraction part keeps the sign.</summary>
+    [Fact]
+    public void IntegerAndFractionParts_PastTheWideForm_AreExact()
+    {
+        CobolExact power = CobolExact.Pow(CobolExact.From(7, 0), 100);                       // 7^100, 85 digits
+        CobolExact value = CobolExact.Add(CobolExact.Negate(power), CobolExact.From(-5, 1));  // -(7^100 + 0.5)
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.TruncateExact(value), CobolExact.Negate(power)));
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.FloorExact(value), CobolExact.Sub(CobolExact.Negate(power), CobolExact.From(1, 0))));
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.FractionPartExact(CobolRounding.Truncation, value), CobolExact.From(-5, 1)));
+        Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.FloorExact(CobolExact.Negate(power)), CobolExact.Negate(power)));
     }
 }

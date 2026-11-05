@@ -48,6 +48,11 @@ internal readonly struct CobolBig
         + "(|value| >= 10^6145 or an integer past 2^22 bits; ISO §14.7.5 case 5 — the implementor-defined intermediate range is checked, "
         + "A.1 item 179: EC-SIZE-OVERFLOW)", "EC-SIZE-OVERFLOW");
 
+    /// <summary>A power of a base below one in magnitude whose integer would pass the working cap: far below the decimal128 range's
+    /// smallest magnitude, 10^-6176 (ISO §8.8.1.5.2 r2: a nonzero value too small to be contained is EC-SIZE-UNDERFLOW).</summary>
+    private static CobolSizeError Underflow() => new("a native power is too small to be contained "
+        + "(|value| below 10^-6176; ISO §8.8.1.5.2 r2, §14.7.5 case 5: EC-SIZE-UNDERFLOW)", "EC-SIZE-UNDERFLOW");
+
     /// <summary>The value <c>value × 10^-scale</c>, range-checked: EC-SIZE-OVERFLOW past <see cref="MaxIntegerDigits"/> integer digits or
     /// <see cref="MaxBits"/> bits.</summary>
     private static CobolBig Of(BigInteger value, long scale)
@@ -165,7 +170,8 @@ internal readonly struct CobolBig
         }
         if (value.IsOne || (-value).IsOne)
             return Of(value.Sign < 0 && (n & 1) != 0 ? BigInteger.MinusOne : BigInteger.One, scale * n);
-        if ((double)value.GetBitLength() * n > MaxBits) throw Overflow();
+        if ((double)value.GetBitLength() * n > MaxBits)
+            throw Digits(BigInteger.Abs(value)) - scale > 0 ? Overflow() : Underflow();   // |base| above one grows past the range, below one shrinks past it
         return Of(BigInteger.Pow(value, (int)n), scale * n);
     }
 
