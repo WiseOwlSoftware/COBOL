@@ -2221,7 +2221,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // §15.50.3 r1's "a data item of any class or category" admits it (§8.4.3.2.1). This arm used to cover only the
         // three string types and let every other result — integer, numeric, index — fall to the catch-all below, which
         // called it "a numeric literal".
-        BoundComputedOperand { Expr: BoundIntrinsicCall } or BoundNumericLiteral { FunctionValue: true } =>
+        // ⛔ ASKED OF THE BINDER'S STATEMENT, NEVER THE TREE'S SHAPE (kb/Work PB4712, PB3678): the expression binder drops grouping
+        // parentheses, so `(FUNCTION ABS(N))` - an arithmetic expression (§8.8.1.1), no data item - binds to the same call the sole
+        // function does, and the tree-shape arm admitted it (and the boolean `(FUNCTION BOOLEAN-OF-INTEGER(5 4))`, a boolean expression
+        // enclosed in parentheses, §8.8.2) where `(X9)` and `(FUNCTION TRIM(X9))` were refused. FunctionValue is set through
+        // OperandOf only for a function written unparenthesized (IsSoleFunctionIdentifier). The BoundBinary a variable-length group's
+        // LENGTH lowers to is a function-identifier too, but FunctionResultLength has no measure for it yet (a lead in PB4712's note).
+        BoundComputedOperand { FunctionValue: true, Expr: BoundIntrinsicCall } or BoundNumericLiteral { FunctionValue: true } =>
             FunctionResultLength(sig, args, bytes: false),
         // An ADDRESS-IDENTIFIER creates "a unique data item of class pointer" (§8.4.3.11.4 GR1 / §8.4.3.13.4 GR1), so
         // r1's "a data item of any class or category" admits it, and its length is the pointer item's r3 length —
@@ -2247,7 +2253,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // length is that of its implicit description (docs/CONFORMANCE.md, "the counter registers' declared
         // description"): d positions for LINAGE-COUNTER's PIC 9(d) USAGE DISPLAY item, the 4 bytes of a 32-bit
         // binary integer for LINE-/PAGE-COUNTER (kb/Work PB1746) — AlgebraicRanges.CounterRegisterByteLength.
-        BoundComputedOperand { Expr: var reg } when AlgebraicRanges.CounterRegisterByteLength(reg) is { } regBytes =>
+        BoundComputedOperand { CounterRegisterValue: true, Expr: var reg } when AlgebraicRanges.CounterRegisterByteLength(reg) is { } regBytes =>
             new BoundNumLiteral(regBytes.ToString(System.Globalization.CultureInfo.InvariantCulture)),
         // An argument that already failed to bind (a nested call the binder rejected) is already loud — no
         // second, misattributed report ("is a numeric literal") on top of it (kb/Work PB63).
@@ -2271,10 +2277,19 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <summary>What a LENGTH / BYTE-LENGTH argument that reached the catch-all WAS, in the words the diagnostic
     /// names it with — the catch-all used to say "a numeric literal" for everything it received, so an arithmetic
     /// expression (<c>FUNCTION LENGTH(A + B)</c>) drew a message about a literal nobody wrote (kb/Work PB1398).
-    /// Only these two shapes can get there: every data item, function-identifier, figurative, ALL literal, boolean
-    /// expression and string literal has an arm above.</summary>
-    private static string WrittenForm(BoundOperand arg) =>
-        arg is BoundNumericLiteral { FunctionValue: false } ? "a numeric literal" : "an arithmetic expression";
+    /// Only these shapes can get there: every data item, counter register, figurative, ALL literal, boolean expression and
+    /// string literal has an arm above, and so does every function-identifier the length folds measure. A parenthesized
+    /// function, <c>(FUNCTION ABS(N))</c>, or counter register, <c>(LINAGE-COUNTER)</c>, is the arithmetic expression it is written
+    /// as and, when the function returns a boolean, the boolean expression (§8.8.2) - never the function-identifier or the data item
+    /// (kb/Work PB4712). The one function-identifier with no arm is the <see cref="BoundBinary"/> of a variable-length group's own
+    /// LENGTH, which <see cref="FunctionResultLength"/> has no measure for yet; it reaches here and is misnamed an arithmetic
+    /// expression (the lead in PB4712's note).</summary>
+    private static string WrittenForm(BoundOperand arg) => arg switch
+    {
+        BoundNumericLiteral { FunctionValue: false } => "a numeric literal",
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Boolean } } => "a boolean expression",
+        _ => "an arithmetic expression",
+    };
 
     /// <summary>⛔ THE ONE ARM FOR A FUNCTION-IDENTIFIER ARGUMENT OF LENGTH AND BYTE-LENGTH (kb/Work PB1398). §8.4.3.2.1:
     /// "A function-identifier references the unique data item that results from the evaluation of a function", and
@@ -2702,7 +2717,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A FUNCTION-IDENTIFIER is a data item of its §15.2 type (§8.4.3.2.1), admitted by §15.14.3 r1's "a data item
         // of any class or category" — the LENGTH twin's arm, ONE builder for both (kb/Work PB1398). BYTE-LENGTH had
         // NO arm for it, so every function argument fell to the catch-all below and was called "a numeric literal".
-        BoundComputedOperand { Expr: BoundIntrinsicCall } or BoundNumericLiteral { FunctionValue: true } =>
+        BoundComputedOperand { FunctionValue: true, Expr: BoundIntrinsicCall } or BoundNumericLiteral { FunctionValue: true } =>
             FunctionResultLength(sig, args, bytes: true),
         // An ADDRESS-IDENTIFIER's unique pointer item (§8.4.3.11.4 GR1 / §8.4.3.13.4 GR1) — a data item of class
         // pointer, admitted by r1 — occupies the pointer carrier's bytes (the LENGTH twin's arm; kb/Work PB1060).
@@ -2710,7 +2725,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A COUNTER REGISTER is a data item (§8.4.3.14.4 GR1 / §8.4.3.15.4 GR1), admitted by §15.14.3 r1's
         // "a data item of any class or category"; its implicit description occupies the LENGTH twin's byte count
         // above (kb/Work PB1153, PB1746).
-        BoundComputedOperand { Expr: var reg } when AlgebraicRanges.CounterRegisterByteLength(reg) is { } regBytes =>
+        BoundComputedOperand { CounterRegisterValue: true, Expr: var reg } when AlgebraicRanges.CounterRegisterByteLength(reg) is { } regBytes =>
             new BoundNumLiteral(regBytes.ToString(System.Globalization.CultureInfo.InvariantCulture)),
         BoundOperandError e => BoundExprError.Carry(e.Feature, e.IsUnbuilt),   // already loud (kb/Work PB63)
         // ⛔ THE FIGURATIVE HALF OF THE ARM BELOW WAS FALSE, AND IT IS PB25's OWN DEFECT IN THE ADJACENT METHOD
@@ -2759,7 +2774,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // §15.43.3/§15.58.3/§15.83.3 r1 ADMITS them (kb/Work R26 — they used to draw the r1 rejection). Their
         // extremes are AlgebraicRanges.OfCounterRegister's — the ONE statement of the registers' capacity, which
         // the §8.8.4.4.4 class conditions read too (kb/Work PB1401).
-        if (args[0] is BoundComputedOperand { Expr: var register } && AlgebraicRanges.OfCounterRegister(register) is { } counter)
+        if (args[0] is BoundComputedOperand { CounterRegisterValue: true, Expr: var register } && AlgebraicRanges.OfCounterRegister(register) is { } counter)
             return CounterRegisterFold(sig, counter);
         if (args[0] is not BoundFieldOperand f || f.Place is RefModPlace || f.Place.Item.IsGroup
             || f.Place.Item.Pic is not { } pic)
@@ -3082,7 +3097,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 : enclosedOperand is BoundFieldOperand { Place: var item } ? new BoundBoolOperand(new BoundBoolRef(item))
                 : enclosedOperand;
         }
-        return OperandOf(bound, functionValue: IsSoleFunctionIdentifier(written, bound));
+        var operand = OperandOf(bound, functionValue: IsSoleFunctionIdentifier(written, bound));
+        // ⛔ A COUNTER REGISTER IS A DATA ITEM ONLY AS WRITTEN SOLE (kb/Work PB4712 review R1-1): `(LINAGE-COUNTER)` is an arithmetic expression
+        // (§8.8.1.1) and binds to the same BoundLinageCounterRef the bare register does, so the binder says which one was written, as
+        // IsSoleFunctionIdentifier does for a function. The data-item screens (IsDataItem, the LENGTH / BYTE-LENGTH / ALGEBRAIC folds) ask it.
+        return soleOperand && operand is BoundComputedOperand { Expr: var register } computed && AlgebraicRanges.IsCounterRegister(register)
+            ? computed with { CounterRegisterValue = true }
+            : operand;
     }
 
     /// <summary>Is this argument expression, as WRITTEN, a single unparenthesized operand - one primary, or one numeric literal with the sign

@@ -79,6 +79,40 @@ public sealed class MessageControlTests : IDisposable
     [InlineData("""{ "queues": [ { "name": "Q", "messages": [ { "segments": [ "A" ], "segments": [ "B" ] } ] } ] }""")]
     [InlineData("""{ "queues": [ { "name": "A/B" } ] }""")]
     [InlineData("""{ "destinations": [ { "name": "../EVIL" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "C:EVIL" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "D:" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "A:B" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "a<b" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "a>b" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "a|b" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "a?b" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "a*b" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "a\"b" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "a\u0001b" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "a\u001Fb" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "a\u0000b" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "CON" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "con" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "Prn" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "AUX" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "NUL" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "COM1" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "com9" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "COM0" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "LPT1" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "Lpt9" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "LPT0" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "COM¹" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "LPT³" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "CONIN$" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "CONOUT$" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "NUL.x" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "Con.Out" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "AUX " } ] }""")]
+    [InlineData("""{ "queues": [ { "name": "C:Q" } ] }""")]
+    [InlineData("""{ "queues": [ { "name": "A", "subQueues": [ { "name": "NUL" } ] } ] }""")]
+    [InlineData("""{ "sources": [ { "name": "S:1" } ] }""")]
+    [InlineData("""{ "terminals": [ { "name": "COM3" } ] }""")]
     public void UnusableDefinitionFile_IsStatus91_OnEveryStatement(string definitions)
     {
         var session = Session(definitions);
@@ -90,6 +124,24 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("91", InputStatus(receipt.Area));
         Assert.True(receipt.DataAvailable, "an MCS that cannot answer takes no action and does not run NO DATA");
         Assert.Equal("XY", receipt.Into);
+    }
+
+    /// <summary>A symbolic name is a file-name component on every host (a device file <c>&lt;name&gt;.out</c> is built from it), so the screen is the same on
+    /// Windows and Linux, and it refuses a name only by a character or by a whole device name: one that merely resembles a device name (CONSOLE, COM10, COMX, LPT,
+    /// NULL) is still a name.</summary>
+    [Theory]
+    [InlineData("CONSOLE")]
+    [InlineData("COM10")]
+    [InlineData("COMX")]
+    [InlineData("LPT")]
+    [InlineData("NULL")]
+    [InlineData("A.B")]
+    [InlineData("A B")]
+    [InlineData("A$")]
+    public void NameResemblingAReservedOne_IsDefined(string name)
+    {
+        var session = Session($$"""{ "queues": [ { "name": "{{name}}" } ] }""");
+        Assert.Equal("00", InputStatus(session.AcceptMessageCount(InputArea(name))));
     }
 
     [Fact]

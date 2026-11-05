@@ -1492,7 +1492,7 @@ internal static class IntrinsicArgumentRules
         // The BINDER'S statement (IntrinsicBinder.IsSoleFunctionIdentifier), never the tree's shape (kb/Work PB3678): the
         // expression binder drops grouping parentheses and lowers FUNCTION LENGTH of a variable-length group to a BoundBinary.
         BoundComputedOperand { FunctionValue: true } => true,
-        BoundComputedOperand { Expr: var register } => AlgebraicRanges.CounterRegisterByteLength(register) is not null,
+        BoundComputedOperand { CounterRegisterValue: true } => true,
         _ => false,
     };
 

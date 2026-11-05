@@ -410,7 +410,10 @@ for the value by `SendingValueTemp.IntermediatePic`, kb/Work PB3268; an index re
 LENGTH(FUNCTION LENGTH(X))`) is not a literal the source wrote: `BoundNumLiteral.FunctionValue` /
 `BoundNumericLiteral.FunctionValue` carry that origin from the ONE point every bound function result passes
 (`BindIntrinsicCore`) to every syntax rule that asks "is this operand a literal" (kb/Work PB1662). What the catch-all
-refuses is named for what was WRITTEN — `WrittenForm`: a numeric literal, or an arithmetic expression.
+refuses is named for what was WRITTEN — `WrittenForm`: a numeric literal, an arithmetic expression, or a boolean expression. The arm is keyed on
+the BINDER'S statement that the source wrote the function-identifier (`BoundComputedOperand.FunctionValue`), never on the tree's shape: a
+parenthesized function, `LENGTH((FUNCTION ABS(N)))`, binds to the same call, is "an arithmetic expression enclosed in parentheses" (§8.8.1.1; a
+boolean function, "a boolean expression enclosed in parentheses", §8.8.2) and no data item, so it takes the catch-all (kb/Work PB4712). The counter registers (LINAGE-/LINE-/PAGE-COUNTER) are data items by the same rule and the same statement: `BoundComputedOperand.CounterRegisterValue`, set by `BindArgOperandCore` for a register written bare, is what `IsDataItem`, the LENGTH / BYTE-LENGTH folds and the ALGEBRAIC folds ask, so `(LINAGE-COUNTER)` is the arithmetic expression it is written as.
 
 **`VariableLengthGroupSum` is one expression, in BYTES (positions for a bit or national GROUP), from ONE width walk corrected for what it cannot know:**
 `ByteWidth` counts an ODO table at its MAXIMUM, a dynamic-capacity table as ONE occurrence and a dynamic-length leaf
