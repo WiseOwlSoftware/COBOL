@@ -1146,6 +1146,74 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
+    /// <summary>The library of the skeleton, and a client that writes its own class LBOX in the group (so the expansion is placed in the group's
+    /// assembly, never apart) and expands HOLD with it, the expansion named <paramref name="name"/> and the specifier phrase after the name
+    /// <paramref name="asPhrase"/> (kb/Work PB4721).</summary>
+    private static string GroupClient(string name, string asPhrase = "")
+    {
+        string written = name.Replace("BOX", "LBOX", StringComparison.Ordinal);   // the class the client declares is LBOX, and so is each word that names it
+        return Box.Replace("BOX", "LBOX", StringComparison.Ordinal)
+            + Client("CLIENTG").Replace("HOLD-BOX", name, StringComparison.Ordinal).Replace("BOX", "LBOX", StringComparison.Ordinal)
+                .Replace($"CLASS {written} EXPANDS", $"CLASS {written}{asPhrase} EXPANDS", StringComparison.Ordinal);
+    }
+
+    [Fact]   // kb/Work PB4721 review R1-1, ISO §8.3.2.1: the word-length ceiling reads the client's expansion name once, in the group placement too.
+    public void AnOverlongNameTheClientWroteIntoAnExpansion_IsReportedOnce_InTheGroupPlacement()
+    {
+        WithDirectory("expansion-client-long-name", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + "\n" + Hold(), level: 2023).Success);
+            string name = new('H', 70);
+            var r = Compile(dir, "CLIENTG", GroupClient(name), level: 2023);
+            Assert.False(r.Success);
+            Assert.Contains("HHHHHHHHHH", Assert.Single(r.Errors, e => e.Contains("COBOL1567", StringComparison.Ordinal)), StringComparison.Ordinal);
+            Assert.DoesNotContain(r.Errors, e => e.Contains("[in the expansion", StringComparison.Ordinal));
+        });
+    }
+
+    [Fact]   // kb/Work PB4721 review R1-2, ISO §8.3.2.1 + Annex B.3: an expansion compiled in an assembly of its own does not report the client's word again.
+    public void ARemovedCharacterTheClientWroteIntoAnExpansion_IsReportedOnce_InTheOwnAssemblyPlacement()
+    {
+        WithDirectory("expansion-client-word-apart", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + "\n" + Hold(), level: 2023).Success);
+            var r = Compile(dir, "CLIENTA", Client("CLIENTA").Replace("HOLD-BOX", "HOLD-BOX・"), level: 2023, permissive: true);
+            Assert.True(r.Success, Codes(r));
+            Assert.True(File.Exists(Path.Combine(dir, "HOLD-BOX・.dll")), "the expansion is placed in an assembly of its own");
+            Assert.DoesNotContain(r.Warnings, w => w.Contains("[in the expansion", StringComparison.Ordinal));
+            Assert.Single(WithCode(r, "COBOL0902"));
+        });
+    }
+
+    [Theory]   // kb/Work PB4721 review R1-3: every way the client writes a token into an expansion is screened once, where it is written.
+    [InlineData(" AS X\"ABC\"", "HOLD-BOX", "COBOL1635")]   // the specifier's externalized-name literal, a literal screen
+    [InlineData("", "HOLD-BOX_", "COBOL2773")]             // the renamed header, a word screen
+    public void ATokenTheClientWroteIntoAnExpansion_IsScreenedOnce_InTheGroupPlacement(string asPhrase, string name, string code)
+    {
+        WithDirectory("expansion-client-token", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + "\n" + Hold(), level: 2023).Success);
+            var r = Compile(dir, "CLIENTG", GroupClient(name, asPhrase), level: 2023);
+            Assert.False(r.Success);
+            var reports = r.Errors.Where(e => e.Contains(code, StringComparison.Ordinal)).ToArray();
+            Assert.True(reports.Length == 1, Codes(r));
+            Assert.DoesNotContain(r.Errors, e => e.Contains("[in the expansion", StringComparison.Ordinal));
+        });
+    }
+
+    [Fact]   // kb/Work PB4721 review R1-3: an illegal ACTUAL the client wrote is reported where it is written, not again in each expansion that stands it where a formal stood.
+    public void AnIllegalActualTheClientWrote_IsReportedWhereItIsWritten_NotInTheExpansion()
+    {
+        WithDirectory("expansion-client-actual", dir =>
+        {
+            Assert.True(Compile(dir, "LIBX", Box + "\n" + Hold(), level: 2023).Success);
+            var r = Compile(dir, "CLIENTG", Box.Replace("BOX", "LBOX_") + Client("CLIENTG").Replace("BOX", "LBOX_"), level: 2023);
+            Assert.False(r.Success);
+            Assert.Contains(r.Errors, e => e.Contains("COBOL2773", StringComparison.Ordinal));
+            Assert.DoesNotContain(r.Errors, e => e.Contains("[in the expansion", StringComparison.Ordinal));
+        });
+    }
+
     [Fact]   // kb/Work PB4483: a skeleton written in the group is the user's own text, reported where it is written, wherever its expansion is placed.
     public void ASkeletonWrittenInTheGroup_IsReportedWhereItIsWritten_WhetherItsExpansionIsWrittenApartOrImported()
     {

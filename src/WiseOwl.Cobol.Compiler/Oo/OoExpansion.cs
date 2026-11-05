@@ -208,7 +208,7 @@ internal static class OoExpansion
                 {
                     outInterfaces.Add(ictx);
                     expandedNames.Add(x.Of.Name);
-                    origins[ictx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals, SkeletonText.OfTokens(tokens), region);
+                    origins[ictx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals, SkeletonText.OfTokens(tokens), region, ClientWrittenTexts(tokens));
                 }
                 else ReparseFailed(x);
             }
@@ -216,7 +216,7 @@ internal static class OoExpansion
             {
                 outClasses.Add(cctx);
                 expandedNames.Add(x.Of.Name);
-                origins[cctx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals, SkeletonText.OfTokens(tokens), region);
+                origins[cctx] = new ExpansionOrigin(x.Of.Source!, x.Entry, x.Actuals, SkeletonText.OfTokens(tokens), region, ClientWrittenTexts(tokens));
             }
             else ReparseFailed(x);
         }
@@ -530,6 +530,9 @@ internal static class OoExpansion
     /// specifier's object-class-name-1 (§12.3.8.4 GR5 "a class object-class-name-1 is created"); and (d) every
     /// user-defined-word occurrence of a formal replaced by its actual (§12.3.8.4 GR5/GR8, sound by §11.3.4 GR6 /
     /// §11.6.4 GR4 — see the type summary).</summary>
+    private static HashSet<string> ClientWrittenTexts(IEnumerable<IToken> tokens) =>
+        [.. tokens.OfType<ExpansionToken>().Where(t => t.ClientWritten).Select(t => t.Text)];
+
     private static List<IToken> SubstitutedTokens(Expansion x, DiagnosticRegion region)
     {
         var skel = x.Of;

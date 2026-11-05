@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Runtime;
 
@@ -88,6 +89,11 @@ public static class CompilerDriver
         /// the compilation of an expansion's own assembly (<see cref="ExpansionAssemblies"/>, DESIGN-external-repository §10.5), whose source
         /// is the expansion's text and so cannot state the specifier that asked for it. Null for every compilation a user asks for.</summary>
         internal Binding.Model.ExpansionIdentity? PublishAs { get; init; }
+
+        /// <summary>Which tokens of the source the CLIENT wrote, for the compilation of an expansion's own assembly (kb/Work PB4721): the
+        /// group that asked for the expansion screened them where it wrote them, so this compilation does not report one again at the
+        /// EXPANDS entry. Every other compilation reads its own source, all of it its own.</summary>
+        internal ClientWrittenTokens ClientWritten { get; init; } = ClientWrittenTokens.FlaggedOnly;
 
         // The three below are METHODS, not properties: they are derived from the options, never options themselves, and every
         // public property of this record is an input the compiled-program cache keys on and CompileStateDriftTests classifies.
@@ -231,6 +237,8 @@ public static class CompilerDriver
             // kb/Work PB4319: --repository-update rides the same per-compilation object to the binder, which writes each
             // published unit's record at the end of the bind. A check-only compile writes no module, so it publishes nothing.
             RepositoryUpdate = options.RepositoryUpdate && !options.CheckOnly,
+            // kb/Work PB4721: the screens of the bind skip a word or literal the client wrote into this expansion's text.
+            ClientWritten = options.ClientWritten,
         };
         // ⛔ The >>COBOL-WORDS directive's SR3/SR4 verdict (COBOL1623, ISO §7.3.10.3) is judged HERE, on the directive stage's map
         // and before the frontend gate: it needs no parse tree, so a program that also fails to parse reports it beside the parse

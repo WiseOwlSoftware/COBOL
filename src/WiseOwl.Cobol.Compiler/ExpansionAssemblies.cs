@@ -50,7 +50,7 @@ internal static class ExpansionAssemblies
         var files = new List<string>();
         var warnings = new List<string>();
         var references = new List<string>(options.ReferencePaths ?? []);
-        foreach (var (text, state, placement, requestedAt, region) in expansions.ToWrite)
+        foreach (var (text, state, placement, requestedAt, region, clientWritten) in expansions.ToWrite)
         {
             string source = state.CobolWordsMap + state.DirectiveFolds + state.CompilationVariables + FreeForm(text) + "\n";
             string temp = Path.Combine(Path.GetTempPath(), $"expansion-{Guid.NewGuid():N}.cob");
@@ -64,7 +64,7 @@ internal static class ExpansionAssemblies
                     CheckOnly: false, SignEncoding: state.SignEncoding, SourceFormat: Frontend.Preprocessor.InitialReferenceFormat.Free,
                     FlagExtensions: state.FlagExtensions, NumericDisplay: RepositoryVocabulary.FromPersisted(state.NumericDisplay),
                     RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryDirectories(),
-                    ReferencePaths: references, RepositoryCheck: false) { PublishAs = placement.Identity });
+                    ReferencePaths: references, RepositoryCheck: false) { PublishAs = placement.Identity, ClientWritten = ClientWrittenTokens.OfTexts(clientWritten) });
                 // Who answers for the text's warnings (DiagnosticRegion; kb/Work PB4469, PB4483): the text of a skeleton read from the
                 // repository is this compilation's, reported at the entry, and the group's bind of it withdraws what it raised; the text
                 // of a skeleton written in the group is the user's own, which the group has reported where the user wrote it, under the

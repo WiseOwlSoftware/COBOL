@@ -78,7 +78,7 @@ public static class WordCharacterScreen
     {
         if (!HasCandidate(tokens)) return;   // the ordinary program: no word holds a character beyond letters, digits and hyphen
         var (commentEntries, operators) = TreeFacts(tree);
-        var scanner = new WordScanner();
+        var scanner = new WordScanner(ClientWrittenTokens.FlaggedOnly);
         foreach (var token in tokens)
         {
             if (token.Channel != Lexer.DefaultTokenChannel || token.Type == TokenConstants.EOF
@@ -92,10 +92,11 @@ public static class WordCharacterScreen
 
     /// <summary>The frontend reported no error, so the binder runs on the complete tree: screen every word the tree holds,
     /// outside its comment-entries, its terminals read in source order. <paramref name="tree"/> is ONE text of the group (see the
-    /// class remarks): the written unit, or an expansion's text.</summary>
-    public static void RunOnTree(IParseTree tree, EditionInfo edition, IDiagnosticSink sink)
+    /// class remarks): the written unit, or an expansion's text, whose words the client wrote (<paramref name="clientWritten"/>) the
+    /// written tree's screen has.</summary>
+    public static void RunOnTree(IParseTree tree, EditionInfo edition, IDiagnosticSink sink, ClientWrittenTokens? clientWritten = null)
     {
-        var scanner = new WordScanner();
+        var scanner = new WordScanner(clientWritten ?? ClientWrittenTokens.FlaggedOnly);
         var pending = new Stack<IParseTree>();
         pending.Push(tree);
         while (pending.Count > 0)
@@ -128,7 +129,7 @@ public static class WordCharacterScreen
     /// another token is ONE word, unless it is an arithmetic operator's (§8.7.1 reports it) or a literal's sign.
     /// The only allocation on the ordinary path is the one reused chain list; a token's text is read only for the
     /// candidates and for the tokens of a chain that holds a MINUS.</summary>
-    private sealed class WordScanner
+    private sealed class WordScanner(ClientWrittenTokens clientWritten)
     {
         private readonly List<(IToken Token, bool Operator)> _chain = [];
         private List<ScreenedWord>? _words;
@@ -137,7 +138,7 @@ public static class WordCharacterScreen
         /// operator.</summary>
         public void Add(IToken token, bool isOperator)
         {
-            if (ExpansionToken.IsClientWritten(token))   // the client's own word, screened once in the written tree (kb/Work PB4721)
+            if (clientWritten.Contains(token))   // the client's own word, screened once in the written tree (kb/Work PB4721)
             {
                 Close();
                 return;

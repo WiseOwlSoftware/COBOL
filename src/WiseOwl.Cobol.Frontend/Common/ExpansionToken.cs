@@ -26,12 +26,9 @@ public sealed class ExpansionToken : CommonToken
     /// <summary>⭐ True when the CLIENT wrote this token, not the skeleton: the actual that stands where a formal stood, the name the
     /// header and the END header are renamed to, and the externalized-name phrase of the EXPANDS entry or of an actual's specifier
     /// (kb/Work PB4721). The client's text is a text of the group's own written tree, which the group's screens already walked, so
-    /// the screens of an expansion's text skip it (<see cref="IsClientWritten"/>): one fault of the client's is one report, at the
+    /// the screens of an expansion's text skip it (<see cref="ClientWrittenTokens"/>): one fault of the client's is one report, at the
     /// place the client wrote it, and never again at the EXPANDS entry.</summary>
     public bool ClientWritten { get; init; }
-
-    /// <summary>Whether <paramref name="token"/> is one the client wrote into an expansion's text (<see cref="ClientWritten"/>).</summary>
-    public static bool IsClientWritten(IToken token) => token is ExpansionToken { ClientWritten: true };
 
     /// <summary>⭐ THE CURSOR <paramref name="token"/> stands at: its line and column, and the <see cref="Region"/> of the expansion it
     /// belongs to when it is a token of one (kb/Work PB4469, PB4649). Unset for null. Every reporter that positions a sink at a token

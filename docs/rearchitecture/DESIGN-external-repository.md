@@ -1880,11 +1880,15 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
     once-per-word rule is per text, each member a walk of its own (`WordCharacterScreen.RunOnTree` builds its set per call). The literal
     screen's gates are introductions and its rules errors, which the published skeleton passed under the same state, so it reports nothing of
     such a text today and asks it so that the next warning-severity gate needs no site. `GroupTextScreenDriftTests` holds both calls to
-    `text` and every `sink.At` of a token to `CursorOf`. Both screens skip the tokens the client wrote into the text
+    `text` and every `sink.At` of a token to `CursorOf`. Every screen of the text skips the tokens the client wrote into it, asked
+    of ONE type, `ClientWrittenTokens.Contains` (the two frontend screens, and the word-length and reserved-word funnel of
+    `VersionConformancePass.ParseArm.VisitCobolWord`). A token of a text the group parsed carries the answer
     (`ExpansionToken.ClientWritten`, set by `OoExpansion.SubstitutedTokens` on each actual, the renamed header and END header, and the
-    externalized-name phrases of the entry and of an actual): those are the written tree's own words, which the walk of the written tree
-    screens at the place the client wrote them, so a fault of the client's is one report and the EXPANDS entry carries only the
-    skeleton's own words (kb/Work PB4721).
+    externalized-name phrases of the entry and of an actual). The text of an expansion compiled in an assembly of its own is lexed again from a
+    file, so its tokens carry none: `ExpansionOrigin.ClientWritten` records the texts of the client's tokens, `ExpansionToWrite` carries them,
+    and the compilation is handed them (`Options.ClientWritten`, read through `EditionContext.ClientWritten`). Those are the written tree's own
+    words, which the walk of the written tree screens at the place the client wrote them, so a fault of the client's is one report in every
+    placement and the EXPANDS entry carries only the skeleton's own words (kb/Work PB4721).
   *Representation:* `CompilerDriver.Result.Errors` and `Warnings` stay strings; the duplicate was two owners of one text, not the
   string form, so ownership is decided where the diagnostic is raised and the strings need no structure to be de-duplicated.
 - *Residual, stated:* an expansion of a skeleton published under another `CompileState` than this group's whose code also names a class of
