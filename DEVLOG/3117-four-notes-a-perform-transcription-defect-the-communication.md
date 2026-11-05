@@ -1,4 +1,4 @@
-## Four notes: a PERFORM transcription defect, the Communication facility at 85 and 2002, and two leads of wave 20261866
+## Entry 3117 — 2026-11-04 16:37 PST — Four notes: a PERFORM transcription defect, the Communication facility at 85 and 2002, and two leads of wave 20261866
 
 PB4676: `specs/ISO_COBOL.md` drew PERFORM Format 3 with imperative-statement-1 inside the repeated WHEN brace. Folio 682 (PDF
 page 712), rendered and read, prints it outside; `CobolControlFlow.g4` already followed the page. The figure is corrected to
@@ -13,3 +13,4 @@ numeric-edited TYPEDEF is refused only at each user of the type, and not at all 
 
 PB4679: `EntryConventionGateTests` carries a theory that repeats what construct row `options-entry-convention-2014` and two
 goldens pin. Lead R1-2.
+
