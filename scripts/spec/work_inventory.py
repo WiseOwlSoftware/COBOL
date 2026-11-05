@@ -159,11 +159,15 @@ def population_findings(notes: list[Note], rows: list[Row], defective: Collectio
     if sum(len(_list(n, "closes_rows")) for n in notes) <= MIN_CLOSES_CLAIMS:
         out.append("the register claims almost no closed rows — the `closes_rows` key this check reads is gone; "
                    "re-derive it with scripts/spec/backfill_closes_rows.py")
-    if not any(_list(n, "inventory_rows") for n in notes):
-        out.append("no work note carries an `inventory_rows` claim — the frontmatter key this check reads is gone")
-    if not any(r.get("verdict") in defective for r in rows):
-        out.append("no inventory row carries a defective verdict — the schema's `resolves` flags or the rows' `verdict` "
-                   "field are gone")
+    # The fields the coverage check reads, asked for themselves: an inventory at GAP 0 (the v1.0 goal) has no defective
+    # row, and may have no claim on one, so "some row is defective" and "some note claims a row" were never the
+    # observations (kb/Work A11, 2026-11-05).
+    if not any(isinstance(n.get("inventory_rows"), list) for n in notes):
+        out.append("no work note carries an `inventory_rows` key — the frontmatter key this check reads is gone")
+    if not defective:
+        out.append("the schema marks no verdict defective — its `resolves` flags are gone")
+    if not any(r.get("verdict") for r in rows):
+        out.append("no inventory row carries a verdict — the rows' `verdict` field is gone")
     if not any(r.get("state") == "OK" for r in rows):
         out.append("no inventory row is OK — the rows' computed `state` field is gone")
     return out
@@ -289,6 +293,10 @@ def self_test() -> int:
            population_findings(big_notes, big_rows, defective, terminal), [])
     expect("a register at population that agrees with its inventory has no finding at all",
            problems(big_notes, big_rows, defective, terminal), [])
+    expect("an inventory at GAP 0, with no defective row and no claim on one, raises no population finding",
+           population_findings(big_notes[:-1], big_rows[:-1], defective, terminal), [])
+    expect("a schema whose `resolves` flags are gone is a finding",
+           len(population_findings(big_notes, big_rows, frozenset(), terminal)), 1)
     expect("a defect that lands without re-verdicting its row is caught at population",
            len(problems(big_notes + [note("PB900001", "defect", "landed", ["GR-9.8-1"])], big_rows, defective, terminal)), 1)
 
