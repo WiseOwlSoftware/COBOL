@@ -1,4 +1,4 @@
-## PB4750 - VARIANCE, STANDARD-DEVIATION, PRESENT-VALUE and the function-value temporary stay exact past the wide form
+## Entry 3165 — 2026-11-05 15:31 PST — PB4750 - VARIANCE, STANDARD-DEVIATION, PRESENT-VALUE and the function-value temporary stay exact past the wide form
 
 **Re-probe.** On the base build `VARIANCE (Q, Q + 1)` of a 78-digit Q stored 0.0000 (the exact value is 0.25), PRESENT-VALUE over
 such amounts left the 34-digit residue of its terms, and `DISPLAY FUNCTION MAX (Q, 1)` / `ABS (Q)` / `MEDIAN (Q, 1)` showed the
@@ -28,3 +28,4 @@ R1-2: `BigParts` (a raw `BigInteger` crossing into `CobolNum`) is replaced by th
 outside `CobolBig.cs`. R1-3 (lead, `VarianceBig` range on arguments past 10^3000) is left for the clerk: not in a file this round changes.
 
 **Review round 2.** R2-1: `CobolExact.Compare` ordered a mixed SDIDI/wide pair by the SDIDI sign when its integer left the 256-bit range, but a wide value at a negative scale (`PA * PA * PA`, 1.88E+84) can be larger, so MAX, MIN and MEDIAN against 1.0E+80, the COMPUTE quotient and the IF comparison chose the wrong argument. That pair now goes to `CobolBig.Compare`; the golden gained CMAX, CMIN and CMED legs (the same arm served the COMPUTE and IF lanes, probed: 18816 and GT). R2-2: the golden header now derives PA as 1234567890123456789 * 10**10, the 29-digit VALUE.
+
