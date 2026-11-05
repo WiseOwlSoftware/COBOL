@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "(18,18): error COBOL0848: RAISE SUPER: NULL and SUPER shall not be specified"}

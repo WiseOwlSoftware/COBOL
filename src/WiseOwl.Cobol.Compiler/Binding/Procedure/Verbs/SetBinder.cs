@@ -459,6 +459,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         if (senderIsSelfSuper)
         {
+            using var atWord = ctx.Edition.At(sender?.Predefined);   // the refusal is about the SELF / SUPER word (kb/Work PB4652)
             // ⛔ NAME THE RECEIVERS AND THE WORD THE PROGRAM WROTE (kb/Work PB388's elision sweep). This read
             // `SET … TO SELF/SUPER`, and the diagnostic renderer transliterates U+2026 to ASCII, so the user
             // was shown `SET . TO SELF/SUPER` — neither the receivers they wrote nor the sender they wrote.
@@ -575,6 +576,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         if (senderIsSelfSuper)
         {
+            using var atWord = ctx.Edition.At(sender?.Predefined);   // the refusal is about the SELF / SUPER word (kb/Work PB4652)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
                 $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText ?? "SELF/SUPER"}: SELF and SUPER "
                 + "are object references, not program pointers "
@@ -727,6 +729,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         if (senderIsSelfSuper)
         {
+            using var atWord = ctx.Edition.At(sender?.Predefined);   // the refusal is about the SELF / SUPER word (kb/Work PB4652)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
                 $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText ?? "SELF/SUPER"}: SELF and SUPER "
                 + "are object references, not function pointers "

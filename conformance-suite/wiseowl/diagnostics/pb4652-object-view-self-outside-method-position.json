@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "(17,15): error COBOL6002: the object-view 'SELF AS UNIVERSAL'"}

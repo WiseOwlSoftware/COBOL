@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "(18,21): error COBOL0867: SET 'O' TO SUPER"}

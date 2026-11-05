@@ -3,7 +3,7 @@
 One tree of compiler-neutral tests, filed by ISO/IEC 1989:2023 clause, from which four suites are generated, one per
 edition of standard COBOL (85, 2002, 2014, 2023). The design is
 [`docs/rearchitecture/DESIGN-conformance-suite.md`](../docs/rearchitecture/DESIGN-conformance-suite.md) (kb/Work
-PB3160); this folder is built slice by slice from its §13.
+PB3160, PB4614); this folder is built slice by slice from its §13.
 
 ## The tree
 
