@@ -92,6 +92,20 @@ public static class FloatResultant
         return Admits(o, mode);
     }
 
+    /// <summary>⛔ The unchecked landing of an EXACT NATIVE VALUE (<see cref="CobolExact"/>, kb/Work PB4730, PB4592) - every digit of it, on
+    /// whichever form holds it: a float item's 41-digit binary expansion lands as the item (the SDIDI's 34-digit image of it, truncated,
+    /// sat one binary64 below), and a value past the 256-bit form lands from its arbitrary-precision integer. An engine's APPROXIMATION
+    /// that entered the exact lane (<see cref="CobolExact.FromApproximation"/>) lands as the binary64 it is.</summary>
+    public static double FromExact(CobolExact v, CobolRounding mode, bool single) =>
+        Unchecked(LandExactValue(v, mode, single, out Outcome o), o, mode);
+
+    /// <inheritdoc cref="TryFromReal"/>
+    public static bool TryFromExact(CobolExact v, CobolRounding mode, bool single, out double landed)
+    {
+        landed = LandExactValue(v, mode, single, out Outcome o);
+        return Admits(o, mode);
+    }
+
     // ── The RAISING forms: the third caller shape — an EXPRESSION with no SIZE ERROR phrase to offer and no
     //    arithmetic statement to hang a flag on, compiled when EC-SIZE-TRUNCATION checking is enabled at the
     //    activating statement (§14.7.5 case 3 + no-phrase rule 4; the float twin of CobolNum.StoreOrRaise). Its live
@@ -114,6 +128,10 @@ public static class FloatResultant
     /// <summary>The raising landing of an SDIDI.</summary>
     public static double FromDecOrRaise(CobolDec v, CobolRounding mode, bool single) =>
         TryFromDec(v, mode, single, out double landed) ? landed : throw CobolSizeError.FloatTruncation(single);
+
+    /// <summary>The raising landing of an exact native value.</summary>
+    public static double FromExactOrRaise(CobolExact v, CobolRounding mode, bool single) =>
+        TryFromExact(v, mode, single, out double landed) ? landed : throw CobolSizeError.FloatTruncation(single);
 
     // ── The rounding ─────────────────────────────────────────────────────────────────────────────────────────
 
@@ -167,8 +185,21 @@ public static class FloatResultant
     private static double LandExact(bool neg, UInt128 mag, int scale, CobolRounding mode, bool single, out Outcome outcome)
     {
         outcome = Outcome.Exact;
-        if (mag == 0) return 0.0;
-        var x = new ExactMagnitude(mag, scale);
+        return mag == 0 ? 0.0 : LandMagnitude(neg, new ExactMagnitude(mag, scale), mode, single, out outcome);
+    }
+
+    /// <summary>An exact native value (<see cref="CobolExact"/>): an approximation as its binary64 (identity into a binary64 resultant, the one
+    /// rounding into a binary32 one), any other value as the magnitude its arbitrary-precision form writes out.</summary>
+    private static double LandExactValue(CobolExact v, CobolRounding mode, bool single, out Outcome outcome)
+    {
+        if (v.TryApproximation(out double approximation)) return LandReal(approximation, mode, single, out outcome);
+        outcome = Outcome.Exact;
+        return v.Sign == 0 ? 0.0 : LandMagnitude(v.Sign < 0, v.BinaryMagnitude(), mode, single, out outcome);
+    }
+
+    private static double LandMagnitude<T>(bool neg, in T x, CobolRounding mode, bool single, out Outcome outcome)
+        where T : struct, IBinary64Magnitude
+    {
         double near = x.NearestBinary64();
         int sticky = double.IsInfinity(near) ? 1 : -x.SignAgainst(near);   // sign(|V| − near)
         Dir dir = DirOf(mode, neg);
@@ -236,7 +267,8 @@ public static class FloatResultant
     /// and which lies on the <paramref name="sticky"/> side of it. The two representable neighbors are
     /// <paramref name="near"/> and its successor/predecessor; the nearest-even choice is <paramref name="near"/>
     /// itself, and the other two nearest modes differ from it only on an exact tie (<see cref="ExactMagnitude.IsBinary64Tie"/>).</summary>
-    private static double LandBinary64(double near, int sticky, in ExactMagnitude x, Dir dir, out Outcome outcome)
+    private static double LandBinary64<T>(double near, int sticky, in T x, Dir dir, out Outcome outcome)
+        where T : struct, IBinary64Magnitude
     {
         if (double.IsInfinity(near))
         {
@@ -276,7 +308,7 @@ public static class FloatResultant
     /// <summary>The exact magnitude <c>Mag × 10^(−Scale)</c> and the three exact questions the rounding asks of it —
     /// all answered in integer arithmetic over the carrier (no arbitrary-precision type: CobolFloat.TryExactScaled's
     /// exact expansion is the ONE place a binary64's decimal value is written down, kb/Work PB623).</summary>
-    private readonly record struct ExactMagnitude(UInt128 Mag, int Scale)
+    private readonly record struct ExactMagnitude(UInt128 Mag, int Scale) : IBinary64Magnitude
     {
         /// <summary>The correctly rounded (ties-to-even) binary64 of the magnitude — <c>CobolFloat.ScaledToDouble</c>,
         /// the ONE scaled→double conversion, or its decimal-string twin past the signed carrier.</summary>
@@ -347,4 +379,24 @@ public static class FloatResultant
             return awayUp != towardUp ? 0 : awayUp ? 1 : -1;
         }
     }
+}
+
+/// <summary>
+/// ⛔ THE FOUR EXACT QUESTIONS <see cref="FloatResultant"/>'s binary64 rounding asks of a magnitude, whatever form writes it down: the
+/// 128-bit carrier's (<c>ExactMagnitude</c>) and the arbitrary-precision form's (<see cref="CobolBig.Binary64Magnitude"/>, kb/Work PB4730)
+/// - one rounding rule over two spellings of the value.
+/// </summary>
+internal interface IBinary64Magnitude
+{
+    /// <summary>The correctly rounded (ties-to-even) binary64 of the magnitude, +infinity past the range.</summary>
+    double NearestBinary64();
+
+    /// <summary>sign(c - magnitude) for a finite binary64 <c>c</c> of at least 0.</summary>
+    int SignAgainst(double c);
+
+    /// <summary>|V| is at least 2^1024.</summary>
+    bool AtLeastTwoTo1024();
+
+    /// <summary>True when the magnitude is EXACTLY the midpoint of two adjacent binary64 values (MaxValue and the virtual 2^1024 included).</summary>
+    bool IsBinary64Tie();
 }

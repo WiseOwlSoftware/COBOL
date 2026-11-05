@@ -88,4 +88,38 @@ public sealed class ParenthesizedIntrinsicArgumentPermissiveTests : WiseOwlCobol
         Assert.False(compiled.Success, $"{call} compiled under --permissive");
         Assert.Contains("COBOL1627", string.Join("\n", compiled.Errors));
     }
+    /// <summary>
+    /// ⛔ A COMPOUND ARITHMETIC EXPRESSION AT A CHARACTER POSITION RUNS UNDER <c>--permissive</c> AS ITS VALUE'S TEXT (kb/Work PB4710).
+    /// <c>FUNCTION TRIM (I2 + 1)</c> is refused in every strict mode (class numeric where §15.96.3 r1 requires a character class,
+    /// COBOL1627); <c>--permissive</c> demotes the refusal and coerces. An expression has no characters, so its image is the value's
+    /// text, the form a numeric function's returned value has at a character position (DOC-A.1-92): "3" for I2 = 2. It reached the
+    /// string-argument visitor's loud arm and died at run time with <c>NotImplementedCobolFeatureException</c>. The negation and the
+    /// power are the same shape; the expected text is the value's, computed by hand.
+    /// </summary>
+    [Fact]
+    public void ACompoundArithmeticExpressionAtACharacterPosition_RendersItsValueText()
+    {
+        const string source = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB4710PERM.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 I2 PIC 9 VALUE 2.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "SUM=" FUNCTION TRIM(I2 + 1) "|" FUNCTION UPPER-CASE(I2 * 5) "|"
+                DISPLAY "NEG=" FUNCTION TRIM(- I2) "|" FUNCTION TRIM(I2 ** 3) "|"
+                STOP RUN.
+            """;
+        string srcPath = Path.Combine(TempDir, "pb4710perm.cob");
+        string dllPath = Path.Combine(TempDir, "pb4710perm.dll");
+        File.WriteAllText(srcPath, source);
+        var compiled = CompilerDriver.Compile(new CompilerDriver.Options(
+            srcPath, dllPath, DialectLevel: 2023, Permissive: true, SourceFormat: InitialReferenceFormat.Free));
+        Assert.True(compiled.Success, $"({compiled.Status}):\n  {string.Join("\n  ", compiled.Errors)}");
+
+        var (ran, stdout, detail) = RunAssembly(dllPath);
+        Assert.True(ran, detail);
+        Assert.Equal(["SUM=3|10|", "NEG=-2|8|"], stdout.Replace("\r\n", "\n").TrimEnd((char)10).Split((char)10));
+    }
 }

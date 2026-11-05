@@ -37,7 +37,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <summary>Does the render take the CHECKED LANDING — the form that refuses a value its receiver cannot hold
     /// (EC-SIZE-TRUNCATION, §14.7.5 no-phrase rule 4) instead of storing its low-order digits? (<see cref="Taken"/>
     /// has <see cref="SizeChecks.Truncation"/>.)</summary>
-    private bool CheckedLanding => LandingTaken(_rcv);
+    internal bool CheckedLanding => LandingTaken(_rcv);
 
     private bool LandingTaken(in ReceiverContext rcv) => (TakenFor(rcv) & SizeChecks.Truncation) != 0;
 
@@ -151,7 +151,11 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         neither receiver-less nor floating-point) — the exact value is rounded ONCE, at that resultant's scale and
     ///         with its mode (<c>CobolWide.ToUnscaled</c>, the kernel <c>CobolDec.MulAtScale</c> shares): §14.7.7 rule 3 NOTE 1 gives
     ///         ROUNDED to the final transfer only, and the receiver's own rounding must see every digit.</item>
-    ///   <item><b>Anything else</b> (a receiver-less render, a float receiver, an intermediate with no transfer) — it is
+    ///   <item><b>The final transfer to a FLOAT receiver</b> (<paramref name="outermost"/>, <see cref="ReceiverContext.LandsAsBinary64"/>,
+    ///         kb/Work PB4730) - the exact value is rounded ONCE into the binary64 or binary32 item by the receiver's mode, from ALL
+    ///         its digits (<c>FloatResultant.FromExact</c>): a float item's content selected by MAX keeps its 41-digit expansion to
+    ///         the item, where the SDIDI's 34 digits (truncated) sat one binary64 below it.</item>
+    ///   <item><b>Anything else</b> (a receiver-less render, a float-edited receiver, an intermediate with no transfer) - it is
     ///         lowered to the SDIDI by ROUND-TO-ODD (<see cref="LowerWide"/>), exactly the intermediate a nested product
     ///         was before the wide form existed, so whatever consumes it next rounds it in any mode as the exact value.</item>
     /// </list>
@@ -163,6 +167,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     public NumX Settle(NumX x, in ReceiverContext rcv, bool outermost) =>
         !x.Wide && !x.Exact ? x
         : outermost && rcv.RoundsAtItsScale ? TransferWide(x, rcv.Scale, rcv.Rounding, LandingTaken(rcv))
+        : outermost && rcv.LandsAsBinary64
+            ? new NumX(RuntimeApi.ExactToBinary64(ExactOperand(x), rcv.Rounding, rcv.Single, LandingTaken(rcv)), 0, Real: true)
         : LowerWide(x);
 
     /// <summary>⛔ THE TRANSFER OF AN EXACT WIDE VALUE INTO ONE FIXED-POINT RECEIVER (kb/Work PB1900, PB3953): the value moved to the
@@ -194,16 +200,18 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
 
     /// <summary>⛔ AN OPERAND'S EXACT VALUE, WHATEVER CARRIES IT (<c>CobolExact</c>, kb/Work PB4111, PB4568): the intake of the native
     /// SDIDI lane's <c>…Exact</c> intrinsic bodies. A scaled, unsigned-wide or exact wide value enters with every digit; an SDIDI
-    /// value at its own exponent; a binary64 through its one SDIDI conversion (<see cref="DecOperand"/>: §8.8.1.5.1 for a float
-    /// item, the shortest round-trip decimal for an engine's approximation), which is the value the SDIDI lane already gives it.</summary>
+    /// value at its own exponent; a float ITEM's binary64 through its exact expansion (<c>CobolExact.FromBinary64</c>, kb/Work PB4730:
+    /// 2.5E+40 is its 41 digits), an engine's approximation by its shortest round-trip decimal remembering the binary64
+    /// (<c>CobolExact.FromApproximation</c>, D16).</summary>
     /// <remarks>INTAKE(EXACT) — the operand's value unrounded on every exact carrier, with the fraction digits its operands carry
-    /// (a run-time one through its <c>CobolDecWithPrecision</c> spelling); a binary64's value is its SDIDI conversion; a
+    /// (a run-time one through its <c>CobolDecWithPrecision</c> spelling); a float item's value is its exact expansion; a
     /// run-time-scaled exact value (<see cref="NumX.Exact"/>) is itself.</remarks>
     internal string ExactOperand(NumX x) =>
         x.Exact ? x.Expr
         : x.Wide ? RuntimeApi.ExactFromWide(x.Expr, x.Scale, x.FractionPrecision)
         : x.U ? RuntimeApi.ExactFromUnsigned(x.Expr, x.Scale)
-        : x.Real ? RuntimeApi.ExactFromDec(DecOperand(x))
+        : x is { Real: true, Approximate: false } ? RuntimeApi.ExactFromBinary64(x.Expr)   // a float ITEM's content, every digit (PB4730)
+        : x.Real ? RuntimeApi.ExactFromApproximation(x.Expr)                              // an engine's approximation: its shortest decimal, remembering the binary64
         : x.Dec ? x.WithPrecision is { } withPrecision
             ? RuntimeApi.ExactFromDecWithPrecision(withPrecision)
             : RuntimeApi.ExactFromDec(x.Expr, x.Precision)
@@ -736,8 +744,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // ⛔ AND A NATIVE OPERATION WITH AN SDIDI-CARRIED OPERAND EVALUATES ON THE SDIDI TOO (kb/Work PB69). The
         // Dec producers under NATIVE arithmetic are THREE, not one (kb/Work PB273 — this sentence named only the
         // first for two waves, and D-B made the third the common case):
-        //   · a power with an exact base (CobolExact.Pow, or PowNativeDec on the SDIDI for a scaled base — exact while it fits
-        //     the wide form, the round-to-odd chain past it, the reciprocal for a negative exponent);
+        //   · a power with an exact base (CobolExact.Pow for every base shape — exact while it fits the wide form, exact on the
+        //     arbitrary-precision form past it and reduced once where lowered, the reciprocal for a negative exponent);
         //   · a floating-point numeric-EDITED sender, lifted onto the Dec lane by FieldNum in every mode;
         //   · a FLOATING-POINT LITERAL operand (LiteralNum — since PB99 for an operand, and since owner decision
         //     D-B for every position), which is now much the most common of the three.
@@ -781,7 +789,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         if (!a.Real && !b.Real && !_rcv.Real && (a.Exact || b.Exact || (a.Wide || b.Wide) && (a.Dec || b.Dec)))
         {
             if (op is "+" or "-" or "*") return ExactBinary(op, a, b);
-            if (op == "/") return NestedQuotient ? ExactQuotient(a, b) : ExactFinalQuotient(a, b, IntermediateMode);
+            if (op == "/") return NestedQuotient ? ExactQuotient(a, b) : ExactFinalQuotient(a, b, ctx.CurrentOptions.IntermediateRounding);
         }
         if (a.Exact) a = LowerWide(a);
         if (b.Exact) b = LowerWide(b);
@@ -840,14 +848,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// precision rule (the larger for a sum or difference, the sum for a product) at compile time when both operands' are known,
     /// and in the value itself otherwise, so a nested quotient above it takes the same working scale as on every other lane.</summary>
     private NumX ExactBinary(string op, NumX a, NumX b) =>
-        new(RuntimeApi.ExactOperation(op[0], ExactOperand(a), ExactOperand(b), IntermediateMode), 0, Exact: true,
+        new(RuntimeApi.ExactOperation(op[0], ExactOperand(a), ExactOperand(b)), 0, Exact: true,
             Precision: KnownPrecision(a) is { } pa && KnownPrecision(b) is { } pb ? (op == "*" ? pa + pb : Math.Max(pa, pb)) : null);
 
     /// <summary>A NESTED native quotient on the run-time-scaled exact carrier (kb/Work PB3538, PB4575): truncated at the working
     /// scale <c>CobolNum.NestedQuotientScale</c> derives at run time from the receiver's scale and the precision the values carry
     /// (<c>CobolExact.DivTruncated</c>), exactly the value <see cref="Divide"/> forms on the other lanes; the larger precision.</summary>
     private NumX ExactQuotient(NumX a, NumX b) =>
-        new(RuntimeApi.ExactDivTruncated(ExactOperand(a), ExactOperand(b), _rcv.Scale, IntermediateMode), 0, Exact: true,
+        new(RuntimeApi.ExactDivTruncated(ExactOperand(a), ExactOperand(b), _rcv.Scale), 0, Exact: true,
             Precision: KnownPrecision(a) is { } pa && KnownPrecision(b) is { } pb ? Math.Max(pa, pb) : null);
 
     /// <summary>The fraction digits an operand's operands carry when the compiler knows them; <c>null</c> for an SDIDI or exact value
@@ -1028,10 +1036,11 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         stay exact on the same form (<see cref="CombineAdditive"/>, <see cref="Negate"/>), and the value is SETTLED once, at
     ///         the public entry (<see cref="Settle"/>): into the receiver's scale and mode at the final transfer — §14.7.7 rule 3
     ///         NOTE 1, ROUNDED sees every digit, for a 16-byte COMP-5 receiver as for a PICTURE-limited one — else into the SDIDI.
-    ///         A product whose bound passes 77 digits (two intrinsic values, 39 + 39) is formed on the SDIDI as before
-    ///         (<c>CobolDec.MulToOdd</c>: the exact product reduced to 34 significant digits by ROUND-TO-ODD, which keeps an odd
-    ///         last digit whenever digits were dropped, so a receiver of at most 32 digit positions — every PICTURE-limited one,
-    ///         §13.18.40.3 SR14 caps them at 31 — rounds that value, in every mode, exactly as it would round the exact product),
+    ///         A product whose BOUND passes 77 digits (two intrinsic values, 39 + 39) takes the run-time-scaled exact carrier
+    ///         (<see cref="ExactBinary"/>, kb/Work PB4592, PB4729): <c>CobolExact.Mul</c> tries the VALUE on the 256-bit form and leaves it
+    ///         only when the value does, onto the arbitrary-precision form, so the product is exact at any size and reduced to the SDIDI's
+    ///         34 digits by ROUND-TO-ODD only where a consumer lowers it (a receiver of at most 32 digit positions — every PICTURE-limited
+    ///         one, §13.18.40.3 SR14 caps them at 31 — rounds that value, in every mode, exactly as it would round the exact product),
     ///         carrying the product's <see cref="NumX.FractionPrecision"/> as the exact lanes do.
     ///         A NESTED quotient above it is the truncated quotient at the working scale on every lane (<see cref="Divide"/>); a final
     ///         transfer's is the EXACT quotient of the exact operands reduced to the SDIDI's 34 digits by round-to-odd
@@ -1063,8 +1072,12 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             if (digits <= RuntimeApi.WideMaxDigits)
                 return new NumX(RuntimeApi.WideMul(WideOperand(a), WideOperand(b)), a.Scale + b.Scale, Digits: digits, Wide: true,
                     Precision: Carried(a, b, a.FractionPrecision + b.FractionPrecision));
-            return new NumX(RuntimeApi.DecMulToOdd(DecOperandExact(a), DecOperandExact(b)), 0, Dec: true,
-                Precision: a.FractionPrecision + b.FractionPrecision);
+            // ⛔ A BOUND PAST 77 DIGITS IS NOT A VALUE PAST 77 DIGITS (kb/Work PB4729). The bound is a property of the operands'
+            // PICTUREs, and a product of two 39-digit bounds is 78 of them although the values of A * A * A * A with A = 10^19 + 1 fit
+            // 77: the old arm lowered both operands to their round-to-odd images and `A*A*A*A + 1 - A*A*A*A` stored 0 for 1.
+            // The run-time-scaled exact carrier tries the VALUE on the 256-bit form and leaves it only when the value does
+            // (CobolExact.Mul), so there is ONE fallback point, CobolExact, for a bound that cannot prove the form.
+            return ExactBinary("*", a, b);
         }
         return new NumX($"((Int128)({a.Expr}) * ({b.Expr}))", a.Scale + b.Scale, Digits: digits,
             Precision: Carried(a, b, a.FractionPrecision + b.FractionPrecision));
@@ -1125,9 +1138,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         R2-1: the SDIDI's own quotients made `FUNCTION INTEGER(X) * FUNCTION INTEGER(Y) / 7 * 7` 2.000000).</item>
     ///   <item><b>Every other quotient</b> — a final transfer over an exact wide operand (or over an exact run-time-scaled
     ///         one, <see cref="CombineCore"/>), a floating-point edited resultant: the EXACT quotient of the operands' exact
-    ///         values (<see cref="ExactFinalQuotient"/>, kb/Work PB4599 — never of a dividend lowered to its 34-digit image)
-    ///         formed on the SDIDI, whose exponent floats with the VALUE, and reduced to its 34 significant
-    ///         digits by ROUND-TO-ODD (<c>CobolExact.DivToOdd</c>), so the one rounding at the final transfer into a
+    ///         values (<see cref="ExactFinalQuotient"/>, kb/Work PB4599 — never of a dividend lowered to its 34-digit image).
+    ///         Into a fixed-point resultant it is rounded ONCE at the receiver's scale and mode from the true remainder and landed as
+    ///         any exact value lands (<c>CobolExact.QuotientAtScale</c>, kb/Work PB4701); elsewhere it is reduced to its 34
+    ///         significant digits by ROUND-TO-ODD (<c>CobolExact.DivToOdd</c>), so the one rounding at the final transfer into a
     ///         receiver of at most 32 digit positions equals rounding the exact quotient. Its size error is the one
     ///         §14.7.5 case 5 licenses: the VALUE outside the documented range at its landing (CONFORMANCE.md
     ///         DOC-A.1-123 / DOC-A.1-179).</item>
@@ -1175,14 +1189,18 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
                     return new NumX(RuntimeApi.WideDivTruncated(WideOperand(a), a.Scale, WideOperand(b), b.Scale, w), w,
                         Digits: digits, Wide: true, Precision: precision);
             }
-            // ⛔ AND THE SAME VALUE ON THE SDIDI (kb/Work PB3538 review finding R2-1): past 77 digits, or beside an
+            // ⛔ A BOUND PAST 77 DIGITS IS NOT A VALUE PAST 77 DIGITS (kb/Work PB4729): exact operands whose digit bound passes the wide
+            // form take the run-time-scaled exact carrier, which tries the VALUE on the form and leaves it only when the value does
+            // (CobolExact.DivTruncated): the same truncated quotient at w, exact at any size the third form holds.
+            if (exact) return ExactQuotient(a, b);
+            // ⛔ AND THE SAME VALUE ON THE SDIDI (kb/Work PB3538 review finding R2-1): beside an
             // SDIDI-carried operand, the quotient is still the one truncated at w, held to 34 digits by round-to-odd —
             // never the SDIDI's own quotient of the exact value, whose 34th digit the product above it rounded back up:
             // `FUNCTION INTEGER(X) * Y20 / 7 * 7` stored 2.000000 where `X * Y20 / 7 * 7` stores 1.999999.
             return new NumX(RuntimeApi.DecDivTruncatedToOdd(DecQuotientOperand(a), DecQuotientOperand(b), w), 0, Dec: true,
                 Precision: precision);
         }
-        return ExactFinalQuotient(a, b, "CobolRounding.Truncation");
+        return ExactFinalQuotient(a, b, CobolRounding.Truncation);
     }
 
     /// <summary>⛔ A FINAL-TRANSFER NATIVE QUOTIENT OF EXACT OPERANDS (kb/Work PB4599; DOC-A.1-123): the exact quotient of the two
@@ -1190,14 +1208,24 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// the SDIDI's 34 digits ONCE by ROUND-TO-ODD (<c>CobolExact.DivToOdd</c>), so the receiver's one rounding equals rounding the
     /// exact quotient. Lowering the dividend first made `COMPUTE R = A * A * A / (A * A)` of A = 999999999999999 store
     /// 999999999999998, where GnuCOBOL's <c>cob_decimal_div</c> shifts the EXACT dividend and its truncating <c>mpz_tdiv_q</c>
-    /// answers 999999999999999 (CLAUDE.md rule 1 for §8.8.1.3's latitude). The quotient of two operands the compiler cannot hold
-    /// exactly (past 77 digits) is the quotient of their images, DOC-A.1-123's determination.
+    /// answers 999999999999999 (CLAUDE.md rule 1 for §8.8.1.3's latitude). Operands past 77 digits are divided exactly too: the
+    /// third form of <c>CobolExact</c> holds them (kb/Work PB4592, DOC-A.1-123's determination of 2026-11-04).
     /// <para><paramref name="intermediate"/> is the INTERMEDIATE ROUNDING mode of the statements that carry an SDIDI operand beside the
     /// exact one (<see cref="CombineCore"/>): PROHIBITED screens their quotient as every SDIDI intermediate is (ISO §11.9.11.2 r3d, the
     /// lane determination of DOC-A.1-82 — before PB4599 that arm was <see cref="DecBinary"/>, which screened it), and the plain quotient
     /// of <see cref="Divide"/> passes TRUNCATION: it has no SDIDI intermediate.</para></summary>
-    private NumX ExactFinalQuotient(NumX a, NumX b, string intermediate) =>
-        new(RuntimeApi.ExactDivToOdd(ExactOperand(a), ExactOperand(b), intermediate), 0, Dec: true);
+    private NumX ExactFinalQuotient(NumX a, NumX b, CobolRounding intermediate)
+    {
+        // ⛔ THE FINAL TRANSFER INTO A FIXED-POINT RESULTANT LANDS FROM THE EXACT QUOTIENT (kb/Work PB4701): rounded once at the
+        // resultant's scale in its mode from the true remainder and landed as any exact value lands (CobolExact.QuotientAtScale). The
+        // 34-digit round-to-odd image below equals that for every quotient the receiver can hold, but a quotient it cannot (a size
+        // error, no phrase, checking off) kept the image's low-order digits (REMD stored 000003000100000000 for 000003000000000000,
+        // GnuCOBOL's cob_decimal_div then cob_decimal_get_field). A statement that carries an SDIDI intermediate under
+        // INTERMEDIATE ROUNDING IS PROHIBITED screens the 34-digit quotient (below), so it keeps that lane.
+        if (_outermost && _rcv.RoundsAtItsScale && intermediate != CobolRounding.Prohibited)
+            return new NumX(RuntimeApi.ExactQuotientAtScale(ExactOperand(a), ExactOperand(b), _rcv.Scale, _rcv.Rounding, CheckedLanding), _rcv.Scale);
+        return new(RuntimeApi.ExactDivToOdd(ExactOperand(a), ExactOperand(b), RuntimeApi.RoundingText(intermediate)), 0, Dec: true);
+    }
 
     /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF A NATIVE <c>DIVIDE ... REMAINDER</c> OVER EXACT OPERANDS (ISO §14.9.12.4 6) c), kb/Work
     /// PB4640): the quotient of the two operands' EXACT values truncated at identifier-3's <paramref name="scale"/> with every integer
@@ -1205,7 +1233,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// subtraction of GR7 keep exact. It is NOT the final transfer's quotient (<see cref="ExactFinalQuotient"/>) truncated: that
     /// quotient is held to the SDIDI's 34 digits, and a quotient of 42 digits lost its low-order eight.</summary>
     internal NumX ExactSubsidiaryQuotient(NumX dividend, NumX divisor, int scale) =>
-        new(RuntimeApi.ExactSubsidiaryQuotient(ExactOperand(dividend), ExactOperand(divisor), scale, IntermediateMode), 0, Exact: true, Precision: scale);
+        new(RuntimeApi.ExactSubsidiaryQuotient(ExactOperand(dividend), ExactOperand(divisor), scale), 0, Exact: true, Precision: scale);
 
     /// <summary>Is the quotient being rendered NESTED — neither the final transfer to a resultant that rounds at its own
     /// scale nor a floating-point edited resultant's — so that it is the truncated quotient at the working scale on
@@ -1244,8 +1272,20 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             return wideDigits <= RuntimeApi.WideMaxDigits
                 ? new NumX(RuntimeApi.WideAdditive(WideAligned(a, s), op == "-", WideAligned(b, s)), s, Digits: wideDigits, Wide: true,
                     Precision: precision)
-                : DecBinary(op, a, b);
+                : ExactBinary(op, a, b);   // a BOUND past the form is not a VALUE past it: CobolExact tries the value (kb/Work PB4729)
         }
+        // ⛔ A SUM OR DIFFERENCE WHOSE KNOWN BOUND PASSES THE CARRIER IS EXACT TOO (kb/Work PB4729, review R1-7). Both bounds are known and
+        // their alignment to the common scale leaves the 38 digits of the Int128 lane (D PIC 9(19) beside F PIC 9V9(30): 49 digits),
+        // so the bare operator would ALIGN a value past the lane and end the run unit with EC-SIZE-OVERFLOW (CobolNum.Rescale) for a
+        // sum the declared pictures hold and GnuCOBOL's cob_decimal_add (exact, CLAUDE.md rule 1 for §8.8.1.3) gives: COMPUTE R = D + F
+        // of 1000000000000000001 and 1.01 is 1000000000000000002. The run-time-scaled exact carrier tries the VALUE on the 256-bit form
+        // and leaves it only when the value does (CobolExact.Add), the carrier every sibling arm above hands such a pair.
+        // ONLY WHEN THE ALIGNMENT, NOT THE OPERANDS, LEAVES THE LANE: each operand's own bound is within the 38 digits. An operand that is
+        // itself a 16-byte container (bound 39) leaves the lane at its top, and that sum's size error is the documented one (DOC-A.1-179 (1),
+        // golden pb91_native_overflow_outside_arithmetic: HIGHEST-ALGEBRAIC + 1).
+        if (digits > ReceiverContext.IntermediateDigits && a.Digits <= ReceiverContext.IntermediateDigits
+            && b.Digits <= ReceiverContext.IntermediateDigits && !_rcv.Real)
+            return ExactBinary(op, a, b);
         if (digits > ReceiverContext.IntermediateDigits) digits = 0;
         // Under an ON SIZE ERROR phrase the sum/difference is overflow-checked at the Int128 ENGINE boundary
         // (AddChecked/SubChecked → OverflowException → the size error condition, §14.7.5 case 5). Reachable: HIGHEST-ALGEBRAIC of PIC S9(19) COMP-5 is Int128.MaxValue itself
@@ -1425,8 +1465,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             : AsNum(v, ReceiverContext.None);
 
     /// <summary>Exponentiation (ISO §8.8.1.2). ⛔ TWO ARMS, DECIDED BY THE OPERANDS' CARRIERS: an INTEGER EXPONENT over an
-    /// integer, scaled or SDIDI base (the exact wide lane, <c>CobolExact.Pow</c> or <c>PowNativeDec</c>, kb/Work PB2617,
-    /// PB4569) is EXACT — binary64 is never the method for a power that has an exact decimal value — and the rest
+    /// integer, scaled or SDIDI base (<c>CobolExact.Pow</c>: the exact wide lane, then the arbitrary-precision form, kb/Work PB2617,
+    /// PB4569, PB4587) is EXACT — binary64 is never the method for a power that has an exact decimal value — and the rest
     /// is the arm below. A native-arithmetic exponentiation whose result has no exact
     /// representation is an IMPLEMENTOR-DEFINED approximation, computed in double and quantized through the ONE
     /// <c>CobolIntrinsics.FromDouble</c> at the landing <see cref="ReceiverContext.FloatLanding"/> chooses — the
@@ -1476,9 +1516,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         //     fit, as `2 ** 130`) cannot land at a compile-time scale: §8.8.1.2's reciprocal for a negative exponent is not an
         //     integer (`2 ** -2` at scale 0 would be 0, not 0.25) and a data item's sign is a run-time fact. The carrier that owns
         //     its scale AT RUN TIME takes it. An integer or exact base is CobolExact.Pow (exact on the wide form while the VALUE
-        //     fits 77 digits; past it CobolIntrinsics.PowNativeDec), a scaled / SDIDI base is PowNativeDec on the SDIDI: the same
-        //     exact power (the wide lane at run time, then the round-to-odd chain), the §8.8.1.5.4 r3 reciprocal for a negative
-        //     exponent and the §8.8.1.2 rule-6 screen, written once.
+        //     fits 77 digits; past it the arbitrary-precision form, kb/Work PB4587), and so is a scaled / SDIDI base: the same
+        //     exact power at run time, reduced once to 34 digits by round-to-odd where lowered, the §8.8.1.5.4 r3 reciprocal for a
+        //     negative exponent and the §8.8.1.2 rule-6 screen, written once.
         // The power's precision (the base's times a non-negative exponent, a reciprocal's own places) is carried by the value.
         if (!b.Real && IsIntegerCarrier(e))
         {
@@ -1488,9 +1528,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
                     ? b
                     : new NumX(RuntimeApi.WidePow(WideOperand(b), (int)n), b.Scale * (int)n, Digits: b.Digits * (int)n, Wide: true,
                         Precision: b.Precision is null ? null : b.FractionPrecision * (int)n);
-            if (b.Wide || b.Exact || IsIntegerCarrier(b))
-                return new NumX(RuntimeApi.ExactPow(ExactOperand(b), e.Expr, IntermediateMode), 0, Exact: true);
-            return new NumX(RuntimeApi.Intrinsic("PowNativeDec", $"{DecOperand(b)}, {e.Expr}"), 0, Dec: true);
+            return new NumX(RuntimeApi.ExactPow(ExactOperand(b), e.Expr), 0, Exact: true);
         }
         // D16 (NATIVE): a float base/exponent OR a float receiver keeps the result FLOATING (native double) — skip
         // the FromDouble quantize-back that a pure fixed-point power needs, so a float ** stays in the float pipeline.

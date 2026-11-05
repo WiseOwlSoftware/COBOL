@@ -60,11 +60,11 @@
            DISPLAY "CMP-NVF-X5=" X5
            COMPUTE X5 = D40
            DISPLAY "CMP-D40-X5=" X5
-      *> FUNCTION ABS of a COMP-2 item is a function's returned value, an implementor-defined approximation of the
-      *> item's magnitude (kb/Work PB4516; docs/CONFORMANCE.md "An implementor-defined APPROXIMATION is not a data
-      *> item"), so it lands by its shortest round-trip decimal, 2.5E+40 = 25 followed by 39 zeros, whose low five
-      *> digits are 00000 - the same value FUNCTION ABS(DN) + 0 has always stored - and not by the item's binary
-      *> expansion (73792, which the MOVE of DN itself, DN-S5 above, still lands).
+      *> FUNCTION ABS of a COMP-2 item returns that item's own binary64 value, negated (15.7.4 1) b)), so it lands as the
+      *> item does (kb/Work PB4622; docs/CONFORMANCE.md, a value a function derives from a float ITEM's content): by the
+      *> item's binary expansion, 25000000000000000155002161260194579873792, whose low five digits are 73792 - what the
+      *> MOVE of DN itself (DN-S5 above) lands. Its 17-digit shortest decimal (00000) is an engine approximation's
+      *> landing, which a function of a float ITEM is not.
            COMPUTE X5 = FUNCTION ABS(DN)
            DISPLAY "CMP-ABS-X5=" X5
            COMPUTE ED = D40

@@ -57,7 +57,17 @@ public static partial class CobolIntrinsics
         v.Scale <= 0 ? v.WithPrecision(0)
         : v.TryWide(out CobolWide wide, out int scale)
             ? CobolExact.FromWide(IntegerArgWide(wide, scale), 0)
+            : v.IsBig ? BigIntegerArg(v)
             : CobolExact.FromDec(IntegerArgUnboundedDec(v.Image), 0);
+
+    /// <summary>§15.3 type 6 on a value past the wide form (kb/Work PB4592): its integer on the arbitrary-precision form behind the same
+    /// integrality test, so <c>MOD (P * P + 1, 1000)</c> of a 39-digit P sees all 78 digits of its dividend.</summary>
+    private static CobolExact BigIntegerArg(CobolExact v)
+    {
+        CobolExact integer = v.IntegerPartBig(floor: false, out bool fraction);
+        RequireIntegral(fraction, () => v.ToDouble().ToString("R", System.Globalization.CultureInfo.InvariantCulture));
+        return integer;
+    }
 
     // ⛔ THE UNARY EXACT FAMILY ON THE RUN-TIME-SCALED EXACT VALUE (kb/Work PB4575 review finding R1-2): ABS, SIGN, INTEGER,
     // INTEGER-PART and FRACTION-PART of an argument expression in which a wide value met an SDIDI operand (CobolExact). Their value is
@@ -82,12 +92,14 @@ public static partial class CobolIntrinsics
     public static CobolExact FractionPartExact(CobolRounding mode, CobolExact v) =>
         v.Scale <= 0 ? CobolExact.From(0, 0)
         : v.TryWide(out CobolWide wide, out int scale) ? CobolExact.FromWide(FractionPartWide(wide, scale), scale)
+        : v.IsBig ? v.FractionPartBig()
         : CobolExact.FromDec(FractionPartDec(mode, v.Image));
 
     private static CobolExact IntegerOfExact(CobolExact v, bool floor) =>
         v.Scale <= 0 ? v.WithPrecision(0)
         : v.TryWide(out CobolWide wide, out int scale)
             ? CobolExact.FromWide(floor ? FloorWide(wide, scale) : TruncateWide(wide, scale), 0)
+            : v.IsBig ? v.IntegerPartBig(floor, out _)
             : CobolExact.FromDec(floor ? FloorDec(v.Image) : TruncDec(v.Image), 0);
 
     /// <summary>ABS (§15.7.4): the magnitude, at the argument's own scale. Unlike the <see cref="Int128"/> body there is no

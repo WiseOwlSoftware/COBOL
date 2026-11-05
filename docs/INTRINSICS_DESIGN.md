@@ -581,7 +581,11 @@ modular store), `MAX(D9 F1)` corrupted the last digit of a 9(9)V9(9), `MEDIAN(F1
 now:** a mixed selection list evaluates on the SDIDI carrier under NATIVE arithmetic too (`RenderNum` routes it to
 the `RenderDec` bodies `MaxDec` / `MinDec` / `OrdMaxDec` / `OrdMinDec` / `MedianDec`) — a 38-digit fixed argument
 is carried exactly, a float through the §8.8.1.5.1 conversion, the compare is exact, and the result lands ONCE at
-the receiver. An ALL-float list keeps the float lane (each argument's content IS its double); an all-fixed list
+the receiver. An ALL-float list of ONE kind of binary64 keeps the float lane (each argument's content IS its double); a list holding a
+float ITEM beside an engine APPROXIMATION (`MAX (ZF FUNCTION EXP10 (-6))`) rides the exact lane too
+(`IntrinsicCarrierRules.SelectionNeedsExactLane`, kb/Work PB4622): which argument is selected is a run-time fact, and the item lands by its
+exact binary value (`CobolExact.FromBinary64`) where the approximation lands by its shortest decimal (`CobolExact.FromApproximation`, which
+remembers its binary64 so a float receiver lands that double); an all-fixed list
 keeps the exact Int128 selection (`MaxAt` / `MinAt`, PB65's D1). The arithmetic statistical family (SUM / MEAN /
 RANGE / MIDRANGE — genuine equivalent arithmetic expressions) keeps the D16 native float lane a float operand
 selects. Golden `pb65_selection_mixed_carriers`.
@@ -994,7 +998,10 @@ for that latitude CLAUDE.md rule 1 makes GnuCOBOL the answer, and its argument t
   the Dec bodies stay (§8.8.1.5.2 r1). The SDIDI is the returned-value carrier of such a call, so a value of more than 34 digits
   (`SUM (P, 1, 2.0E0)`) is rounded there once, where GnuCOBOL keeps every digit (kb/Work PB4570's carrier question).
 - **What still takes the image.** `Exp`, `Exp10`, `Sqrt` (a condition number of at most 709 cannot carry a 10^−34 relative error to
-  binary64's last bit), the bounded integer positions, and every STANDARD-DECIMAL body. Under `ARITHMETIC IS STANDARD-DECIMAL` the
+  binary64's last bit), the bounded integer positions, VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE where their work leaves the wide
+  form, and every STANDARD-DECIMAL body. SUM, RANGE, MEAN, MEDIAN, MIDRANGE, MOD and REM past the wide form are exact on the
+  arbitrary-precision form (`CobolBig`, kb/Work PB4592), and MAX, MIN and an odd MEDIAN return the selected argument's content
+  whole (`CobolExact`, kb/Work PB4730), a float item's content as its exact binary expansion. Under `ARITHMETIC IS STANDARD-DECIMAL` the
   SDIDI is the value and nothing here applies.
 
 Pinned by `conformance:cases/15.4.1-Numeric-and-integer-functions/pb3953_function_argument_int128_window` (the 38-digit window

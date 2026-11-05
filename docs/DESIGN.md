@@ -142,7 +142,12 @@ other, not just against the committed goldens.
    point is compile-time scale metadata). ≤18 digits → `long`; 19–38 digits → `Int128`; `COMP-1`/`COMP-2` →
    `float`/`double`; `COMP-5` → native int by width (binary-wrap), and since the item owns its FULL container
    range the carrier is unsigned where a signed one cannot hold it: unsigned 8-byte container → `ulong`,
-   unsigned 16-byte → `UInt128` (kb/Work R10; CONFORMANCE.md item 208). **No `decimal`, no `BigInteger`.**
+   unsigned 16-byte → `UInt128` (kb/Work R10; CONFORMANCE.md item 208). **No `decimal`, no `BigInteger`** — with ONE owner-decided
+   exception (2026-11-04, kb/Work PB4592, "Exact, lift the ban"): the exact native intermediate that leaves the 256-bit form
+   (`CobolWide`, 77 digits) is an arbitrary-precision integer at a scale, `CobolBig`, reached only through `CobolExact` and only where
+   the first two forms fail (GnuCOBOL's `cob_decimal` is exact at every size, CLAUDE.md rule 1). It lives in the ONE file
+   `src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolBig.cs`, which `scripts/semgrep/invariants.yml` exempts from
+   `wiseowl-cobol-no-biginteger`; its published bound is the SDIDI's range, `|value| < 10^6145` (EC-SIZE-OVERFLOW, ISO §14.7.5 5)).
 3. **Control flow is a single program-counter dispatcher.** Paragraphs/sections are LABELS (PC cases) in one flow,
    NOT separate methods. `GO TO` sets the PC; fall-through is PC++; a `PERFORM` range is a recursive bounded
    dispatch.
@@ -2254,7 +2259,8 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
 18. **OO multiple inheritance.** Single inheritance in v1 (covers the whole current corpus); a multi-base program
     triggers an owner decision then (linearize one C# base + `IMPLEMENTS` interfaces with forwarding).
 19. **Intrinsic internals.** Never `decimal` — exact via unscaled `long`/`Int128`, float via `double` (extends the
-    owner's decimal/BigInteger ban into intrinsic internals).
+    owner's decimal ban into intrinsic internals; the `BigInteger` ban has the one exception of invariant 2, the exact
+    intermediate past the 256-bit form, `CobolBig`).
 20. **RETURN-CODE / termination status.** The run-unit exit code is ONE canonical field — `RunUnit.ExitStatus`
     (long), the run unit's own state (so a separately-compiled CALLed module's STOP RUN … WITH STATUS crosses the assembly
     boundary: every module writes the one shared field) that the process-entry boundary `ProgramTable.RunModule`

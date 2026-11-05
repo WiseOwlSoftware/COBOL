@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A PRODUCT OR QUOTIENT REDUCED TO 34 DIGITS KEEPS THE FACT THAT IT WAS INEXACT (kb/Work PB1143).
 /// <para>When the native lane forms a product past 38 scaled digits on the SDIDI (<c>NumericRenderer.Multiply</c>) the
 /// receiver's ROUNDED mode rounds it ONCE — and has to see whether anything lay beyond the 34th digit.
-/// <c>CobolDec.MulToOdd</c> / <c>DivToOdd</c> reduce by ROUND-TO-ODD: an inexact result keeps an odd last digit, so
+/// <c>CobolWide.ToDec</c> (a product) / <c>CobolDec.DivToOdd</c> reduce by ROUND-TO-ODD: an inexact result keeps an odd last digit, so
 /// rounding it to a coarser precision (a receiver holds ≤ 31 digit positions) in ANY mode equals rounding the exact
 /// value. The rows below are products whose exact value has digits beyond the 34th, rounded at scale 30 by every mode
 /// the §14.7.4.3 ROUNDED phrase offers; each expected value is the exact product rounded once, by Python
@@ -19,6 +19,11 @@ public sealed class CobolDecRoundToOddTests
 {
     // A = B = 1.000000000000000000000000000001 (a PIC 9V9(30) value: 31 digits, scaled 10^30).
     private static readonly CobolDec One1 = new(Int128.Parse("1000000000000000000000000000001"), -30);
+
+    /// <summary>The exact product of two SDIDI values reduced to 34 digits by round-to-odd: the 256-bit product of their significands,
+    /// <see cref="CobolWide.ToDec"/> at the sum of their scales.</summary>
+    private static CobolDec Product(CobolDec a, CobolDec b) =>
+        CobolWide.Mul(CobolWide.From(a.Sig), CobolWide.From(b.Sig)).ToDec(-(a.Exp + b.Exp));
 
     // The exact A × B = 1 + 2e-30 + 1e-60 = 1.000000000000000000000000000002000000000000000000000000000001
     // (61 digits).  Rounded once at scale 30 the integer significands (×10^30) are:
@@ -33,7 +38,7 @@ public sealed class CobolDecRoundToOddTests
     [InlineData(CobolRounding.TowardGreater, "1000000000000000000000000000003")]
     [InlineData(CobolRounding.TowardLesser, "1000000000000000000000000000002")]
     public void AProductWithATailPastTheThirtyFourthDigit_RoundsAsTheExactProductWould(CobolRounding mode, string expected) =>
-        Assert.Equal(Int128.Parse(expected), CobolDec.MulToOdd(One1, One1).ToUnscaled(30, mode));
+        Assert.Equal(Int128.Parse(expected), Product(One1, One1).ToUnscaled(30, mode));
 
     [Fact]
     public void ThePlainTruncatingProduct_LostTheTail_WhichIsWhyTheOddFormExists()
@@ -48,14 +53,14 @@ public sealed class CobolDecRoundToOddTests
     {
         var two = new CobolDec(2, 0);
         var half = new CobolDec(5, -1);
-        Assert.Equal(0, CobolDec.Compare(new CobolDec(1, 0), CobolDec.MulToOdd(two, half)));            // exactly 1, no jam
+        Assert.Equal(0, CobolDec.Compare(new CobolDec(1, 0), Product(two, half)));            // exactly 1, no jam
         // 1 + 2e-30 + 1e-60 is not representable at scale 30: PROHIBITED (§14.7.4.3 r7) must see that.
-        var ex = Assert.Throws<CobolSizeError>(() => CobolDec.MulToOdd(One1, One1).ToUnscaled(30, CobolRounding.Prohibited));
+        var ex = Assert.Throws<CobolSizeError>(() => Product(One1, One1).ToUnscaled(30, CobolRounding.Prohibited));
         Assert.Equal("EC-SIZE-TRUNCATION", ex.EcName);
         // …while the exactly-representable product 1.5 × 2.25 = 3.375 is accepted at scale 30 under PROHIBITED.
         var a = new CobolDec(15, -1);
         var b = new CobolDec(225, -2);
-        Assert.Equal(Int128.Parse("3375000000000000000000000000000"), CobolDec.MulToOdd(a, b).ToUnscaled(30, CobolRounding.Prohibited));
+        Assert.Equal(Int128.Parse("3375000000000000000000000000000"), Product(a, b).ToUnscaled(30, CobolRounding.Prohibited));
     }
 
     [Theory]

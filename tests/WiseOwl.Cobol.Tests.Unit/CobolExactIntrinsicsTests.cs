@@ -75,17 +75,15 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Equal(2, CobolIntrinsics.OrdMinExact(Wide(P), Wide(P - 1), Sdidi("1", 50)));
         Assert.Equal(1, CobolIntrinsics.OrdMaxExact(Fixed(2), Sdidi("20", -1)));
         Assert.Equal(2, CobolIntrinsics.OrdMinExact(Fixed(3), Sdidi("-1", 6000), Sdidi("1", -6000)));
-        // MAX's content: an SDIDI as itself; a wide value of 39 digits rounded once to 34 in the mode.
-        Assert.Equal(new CobolDec(Int128.Parse("1", CultureInfo.InvariantCulture), 50), CobolIntrinsics.MaxExact(Away, Wide(P), Sdidi("1", 50)));
-        Assert.Equal(D("9989999999999999980020000000000000") with { Exp = 5 }, CobolIntrinsics.MaxExact(Away, Wide(P), Sdidi("20", -1)));
-        Assert.Equal(D("9989999999999999980020000000000000") with { Exp = 5 },        // P + 98999 ends …0000|99998
-            CobolIntrinsics.MaxExact(CobolRounding.Truncation, Wide(P + 98999), Fixed(1)));
-        Assert.Equal(D("9989999999999999980020000000000001") with { Exp = 5 },
-            CobolIntrinsics.MaxExact(Away, Wide(P + 98999), Fixed(1)));
+        // MAX's content (§15.59.4 1)) is the selected argument ITSELF, every digit of it (kb/Work PB4730): an SDIDI as itself, a wide
+        // value of 39 digits whole - its 34-digit rounding is a consumer's lowering (Image), never the selection's value.
+        Assert.Equal(0, CobolExact.Compare(Sdidi("1", 50), CobolIntrinsics.MaxExact(Wide(P), Sdidi("1", 50))));
+        Assert.Equal(0, CobolExact.Compare(Wide(P), CobolIntrinsics.MaxExact(Wide(P), Sdidi("20", -1))));
+        Assert.Equal(0, CobolExact.Compare(Wide(P + 98999), CobolIntrinsics.MaxExact(Wide(P + 98999), Fixed(1))));      // P + 98999 ends …0000|99998
+        Assert.Equal(D("9989999999999999980020000000000001") with { Exp = 5 }, CobolIntrinsics.MaxExact(Wide(P + 98999), Fixed(1)).Image);
         // A 38-digit wide value is the native Dec lane's exact operand, unrounded.
         BigInteger d38 = BigInteger.Pow(10, 38) - 1;
-        Assert.Equal(new CobolDec(Int128.Parse(d38.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture), 0),
-            CobolIntrinsics.MinExact(Away, Wide(d38), Sdidi("1", 50)));
+        Assert.Equal(0, CobolExact.Compare(Wide(d38), CobolIntrinsics.MinExact(Wide(d38), Sdidi("1", 50))));
     }
 
     [Fact]
@@ -96,10 +94,10 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Equal(D("2000"), CobolIntrinsics.RangeExact(Away, Wide(P), Wide(P - 2000), Sdidi("998999999999999998002", 18)));
         Assert.Equal(D("499.5"), CobolIntrinsics.MeanExact(Away, Wide(P), negQ));
         Assert.Equal(D("499.5"), CobolIntrinsics.MidrangeExact(Away, Wide(P), negQ));
-        Assert.Equal(D("499.5"), CobolIntrinsics.MedianExact(Away, Wide(P), negQ));
+        Assert.Equal(D("499.5"), CobolIntrinsics.MedianExact(Away, Wide(P), negQ).Image);
         // An odd count's MEDIAN is the middle argument's content: here the SDIDI P − 999 itself.
         Assert.Equal(new CobolDec(Int128.Parse("998999999999999998002", CultureInfo.InvariantCulture), 18),
-            CobolIntrinsics.MedianExact(Away, Wide(P), Wide(P - 2000), Sdidi("998999999999999998002", 18)));
+            CobolIntrinsics.MedianExact(Away, Wide(P), Wide(P - 2000), Sdidi("998999999999999998002", 18)).Image);
         // MEAN of the 39-digit sum (P + 1) / 2: one rounding of 499499999999999999001000000000000000500 at 34 digits.
         Assert.Equal(D("4994999999999999990010000000000000") with { Exp = 5 }, CobolIntrinsics.MeanExact(Away, Wide(P), Fixed(1)));
     }
@@ -126,7 +124,7 @@ public sealed class CobolExactIntrinsicsTests
         CobolExact plus40 = Sdidi("10", 39), minus40 = Sdidi("-10", 39);              // 1.0E40 and -1.0E40, as the literals carry them
         Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.SumExact(Away, plus40, Sdidi("10", 4), minus40)));
         Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.MeanExact(Away, plus40, Sdidi("30", 4), minus40)));
-        Assert.Equal(0, CobolDec.Compare(D("150000"), CobolIntrinsics.MedianExact(Away, plus40, Sdidi("10", 4), Sdidi("20", 4), minus40)));
+        Assert.Equal(0, CobolDec.Compare(D("150000"), CobolIntrinsics.MedianExact(Away, plus40, Sdidi("10", 4), Sdidi("20", 4), minus40).Image));
         // §15.64.4 1) floored, §15.77.4 1) truncated: 10^40 mod 300000.
         int mod = (int)BigInteger.Remainder(e40, 300000);
         Assert.Equal(100000, mod);
@@ -201,11 +199,11 @@ public sealed class CobolExactIntrinsicsTests
     [Fact]
     public void SumBesideAnSdidiValue_IsExact()
     {
-        CobolExact sum = CobolExact.Add(Wide(P), Sdidi("20", -1), Away);
-        Assert.Equal(2, Whole(CobolExact.Sub(sum, Wide(P), Away)));
+        CobolExact sum = CobolExact.Add(Wide(P), Sdidi("20", -1));
+        Assert.Equal(2, Whole(CobolExact.Sub(sum, Wide(P))));
         Assert.Equal(-1, CobolExact.Compare(Wide(P - 1), sum));
-        Assert.Equal(-3, Whole(CobolExact.Add(CobolExact.Negate(CobolExact.Add(Wide(P), Sdidi("3"), Away)), Wide(P), Away)));
-        Assert.Equal(2500, CobolExact.Sub(CobolExact.Add(Wide(P), Sdidi("25", -2), Away), Wide(P), Away)
+        Assert.Equal(-3, Whole(CobolExact.Add(CobolExact.Negate(CobolExact.Add(Wide(P), Sdidi("3"))), Wide(P))));
+        Assert.Equal(2500, CobolExact.Sub(CobolExact.Add(Wide(P), Sdidi("25", -2)), Wide(P))
             .ToUnscaled(4, CobolRounding.Truncation, checkedTransfer: false));
     }
 
@@ -214,9 +212,9 @@ public sealed class CobolExactIntrinsicsTests
     [Fact]
     public void ProductAtANegativeScale_AndItsNestedQuotient_AreExact()
     {
-        CobolExact product = CobolExact.Mul(Wide(P), Sdidi("10", 39), Away);
-        Assert.Equal(0, CobolExact.Compare(CobolExact.DivTruncated(product, Sdidi("10", 39), 0, Away), Wide(P)));
-        Assert.Equal(0, Whole(CobolExact.Sub(CobolExact.Mul(Wide(P), Sdidi("20", -1), Away), Wide(P * 2), Away)));
+        CobolExact product = CobolExact.Mul(Wide(P), Sdidi("10", 39));
+        Assert.Equal(0, CobolExact.Compare(CobolExact.DivTruncated(product, Sdidi("10", 39), 0), Wide(P)));
+        Assert.Equal(0, Whole(CobolExact.Sub(CobolExact.Mul(Wide(P), Sdidi("20", -1)), Wide(P * 2))));
     }
 
     /// <summary>⛔ The nested quotient is truncated at the working scale of the PRECISION the values carry (DOC-A.1-123): 2.50 has
@@ -225,14 +223,14 @@ public sealed class CobolExactIntrinsicsTests
     [Fact]
     public void NestedQuotient_TakesTheCarriedPrecision()
     {
-        CobolExact twoFifty = CobolExact.Sub(CobolExact.Add(Wide(P), CobolExact.FromDec(D("2.50")), Away), Wide(P), Away);
-        CobolExact third = CobolExact.DivTruncated(twoFifty, Fixed(3), 0, Away);
+        CobolExact twoFifty = CobolExact.Sub(CobolExact.Add(Wide(P), CobolExact.FromDec(D("2.50"))), Wide(P));
+        CobolExact third = CobolExact.DivTruncated(twoFifty, Fixed(3), 0);
         Assert.Equal(8333333333333333, third.ToUnscaled(16, CobolRounding.Truncation, checkedTransfer: false));
         Assert.Equal(16, third.ImageWithPrecision.Value.Exp * -1);
         Assert.Equal(2, third.ImageWithPrecision.Precision);
-        CobolExact guarded = CobolExact.Add(CobolExact.FromWide(W(P), 14, precision: 0), CobolExact.FromDec(D("2.5")), Away);
+        CobolExact guarded = CobolExact.Add(CobolExact.FromWide(W(P), 14, precision: 0), CobolExact.FromDec(D("2.5")));
         Assert.Equal(1, guarded.ImageWithPrecision.Precision);
-        Assert.Throws<CobolSizeError>(() => CobolExact.DivTruncated(Wide(P), Sdidi("0"), 0, Away));
+        Assert.Throws<CobolSizeError>(() => CobolExact.DivTruncated(Wide(P), Sdidi("0"), 0));
     }
 
     /// <summary>⛔ THE FINAL-TRANSFER QUOTIENT DIVIDES THE EXACT OPERANDS (kb/Work PB4599; DOC-A.1-123): A³ / A² of A = 10^15 − 1 is
@@ -274,18 +272,18 @@ public sealed class CobolExactIntrinsicsTests
     {
         BigInteger a = BigInteger.Pow(10, 15) - 1;
         BigInteger n = a * a * a + 4321;                                          // 45 digits
-        Assert.Equal(0, CobolExact.Compare(Wide(n / 1000), CobolExact.SubsidiaryQuotient(Wide(n), Fixed(1000), 0, Away)));
-        Assert.Equal(0, CobolExact.Compare(Wide(-(n / 1000)), CobolExact.SubsidiaryQuotient(Wide(-n), Fixed(1000), 0, Away)));
-        Assert.Equal(0, CobolExact.Compare(Wide(-(n / 1000)), CobolExact.SubsidiaryQuotient(Wide(n), Fixed(-1000), 0, Away)));
+        Assert.Equal(0, CobolExact.Compare(Wide(n / 1000), CobolExact.SubsidiaryQuotient(Wide(n), Fixed(1000), 0)));
+        Assert.Equal(0, CobolExact.Compare(Wide(-(n / 1000)), CobolExact.SubsidiaryQuotient(Wide(-n), Fixed(1000), 0)));
+        Assert.Equal(0, CobolExact.Compare(Wide(-(n / 1000)), CobolExact.SubsidiaryQuotient(Wide(n), Fixed(-1000), 0)));
         // A scale: N / 0.07 at one place is N × 1000 / 7 tenths (a 47-digit integer), and at two places on a scaled dividend.
-        Assert.Equal(0, CobolExact.Compare(Wide(n * 1000 / 7, 1), CobolExact.SubsidiaryQuotient(Wide(n), Fixed(7, 2), 1, Away)));
-        Assert.Equal(0, CobolExact.Compare(Wide(n * 10 / 7, 2), CobolExact.SubsidiaryQuotient(Wide(n, 1), Fixed(7), 2, Away)));
+        Assert.Equal(0, CobolExact.Compare(Wide(n * 1000 / 7, 1), CobolExact.SubsidiaryQuotient(Wide(n), Fixed(7, 2), 1)));
+        Assert.Equal(0, CobolExact.Compare(Wide(n * 10 / 7, 2), CobolExact.SubsidiaryQuotient(Wide(n, 1), Fixed(7), 2)));
         // A quotient finer than the scale is cut, never rounded: 4321 / 1000 at scale 0 is 4, 4.321 at scale 2 is 4.32.
-        Assert.Equal(0, CobolExact.Compare(Fixed(4), CobolExact.SubsidiaryQuotient(Fixed(4321), Fixed(1000), 0, Away)));
-        Assert.Equal(0, CobolExact.Compare(Fixed(432, 2), CobolExact.SubsidiaryQuotient(Fixed(4321), Fixed(1000), 2, Away)));
+        Assert.Equal(0, CobolExact.Compare(Fixed(4), CobolExact.SubsidiaryQuotient(Fixed(4321), Fixed(1000), 0)));
+        Assert.Equal(0, CobolExact.Compare(Fixed(432, 2), CobolExact.SubsidiaryQuotient(Fixed(4321), Fixed(1000), 2)));
         // An SDIDI divisor beside the wide dividend, and a zero divisor (§14.7.5 case 2).
-        Assert.Equal(0, CobolExact.Compare(Wide(n / 1000), CobolExact.SubsidiaryQuotient(Wide(n), Sdidi("1", 3), 0, Away)));
-        Assert.Throws<CobolSizeError>(() => CobolExact.SubsidiaryQuotient(Wide(n), Fixed(0), 0, Away));
+        Assert.Equal(0, CobolExact.Compare(Wide(n / 1000), CobolExact.SubsidiaryQuotient(Wide(n), Sdidi("1", 3), 0)));
+        Assert.Throws<CobolSizeError>(() => CobolExact.SubsidiaryQuotient(Wide(n), Fixed(0), 0));
     }
 
     /// <summary>⛔ A DIVISOR OF ANY DIGITS THE WIDE FORM HOLDS (kb/Work PB4599 review finding R1-1): the dividend aligned to 36 digits
@@ -323,13 +321,14 @@ public sealed class CobolExactIntrinsicsTests
             CobolRounding.Prohibited));
     }
 
-    /// <summary>Past the 256-bit form a sum is the SDIDI sum of the operands lifted as an SDIDI operation lifts them: P + 1.0E-50
-    /// needs 89 digits, so it is P rounded once to 34 digits (DOC-A.1-123's determination past 77 digits).</summary>
+    /// <summary>Past the 256-bit form a sum is EXACT, on the arbitrary-precision form (kb/Work PB4592; DOC-A.1-123): P + 1.0E-50 needs
+    /// 89 digits, and the difference of it and P is the 10^-50 the 34-digit rounding of the sum lost.</summary>
     [Fact]
-    public void SumPastTheWideForm_IsTheSdidiSum()
+    public void SumPastTheWideForm_IsExact()
     {
-        CobolExact sum = CobolExact.Add(Wide(P), Sdidi("1", -50), Away);
-        Assert.Equal(0, CobolExact.Compare(sum, Sdidi("9989999999999999980020000000000000", 5)));
+        CobolExact sum = CobolExact.Add(Wide(P), Sdidi("1", -50));
+        Assert.Equal(1, CobolExact.Compare(sum, Wide(P)));
+        Assert.Equal(0, CobolExact.Compare(CobolExact.Sub(sum, Wide(P)), Sdidi("1", -50)));
     }
 
     /// <summary>The §15.3 type-6 intake of an exact value keeps every digit on either carrier: P × 10 at scale 1 is the integer P on
@@ -339,7 +338,7 @@ public sealed class CobolExactIntrinsicsTests
     {
         Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.IntegerArgExact(Wide(P * 10, 1)), Wide(P)));
         Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.IntegerArgExact(Sdidi("1", 40)), Sdidi("1", 40)));
-        CobolExact product = CobolExact.Mul(Wide(P), Sdidi("1", 5), Away);
+        CobolExact product = CobolExact.Mul(Wide(P), Sdidi("1", 5));
         Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.IntegerArgExact(product), Wide(P * 100000)));
     }
 
@@ -351,15 +350,16 @@ public sealed class CobolExactIntrinsicsTests
     [Fact]
     public void Pow_OfAnExactBase_IsExact_OnTheWideForm()
     {
-        Assert.Equal(0, CobolExact.Compare(CobolExact.Pow(Wide(P), 1, Away), Wide(P)));
-        Assert.Equal(2, Whole(CobolExact.Sub(CobolExact.Pow(CobolExact.Add(Wide(P), Sdidi("20", -1), Away), 1, Away), Wide(P), Away)));
-        CobolExact cube = CobolExact.Pow(Fixed(25, 1), 3, Away);
+        Assert.Equal(0, CobolExact.Compare(CobolExact.Pow(Wide(P), 1), Wide(P)));
+        Assert.Equal(2, Whole(CobolExact.Sub(CobolExact.Pow(CobolExact.Add(Wide(P), Sdidi("20", -1)), 1), Wide(P))));
+        CobolExact cube = CobolExact.Pow(Fixed(25, 1), 3);
         Assert.Equal(0, CobolExact.Compare(cube, Sdidi("15625", -3)));
         Assert.Equal(3, cube.ImageWithPrecision.Precision);
-        Assert.Equal(0, CobolExact.Compare(CobolExact.Pow(Wide(P), 0, Away), Fixed(1)));
-        Assert.Equal(0, CobolExact.Compare(CobolExact.Pow(Wide(P), 2, Away), Sdidi("9980009999999999960079960000000001", 44)));
-        Assert.Throws<CobolSizeError>(() => CobolExact.Pow(Wide(0), 0, Away));
-        Assert.Throws<CobolSizeError>(() => CobolExact.Pow(Wide(0), -1, Away));
+        Assert.Equal(0, CobolExact.Compare(CobolExact.Pow(Wide(P), 0), Fixed(1)));
+        Assert.Equal(Sdidi("9980009999999999960079960000000001", 44).Image, CobolExact.Pow(Wide(P), 2).Image);   // P^2 reduced ONCE by round-to-odd
+        Assert.Equal(0, CobolExact.Compare(CobolExact.Pow(Wide(P), 2), CobolExact.Mul(Wide(P), Wide(P))));   // (A * B) ** 2 is (A * B) * (A * B), kb/Work PB4587
+        Assert.Throws<CobolSizeError>(() => CobolExact.Pow(Wide(0), 0));
+        Assert.Throws<CobolSizeError>(() => CobolExact.Pow(Wide(0), -1));
     }
 
     /// <summary>⛔ ABS, SIGN, INTEGER, INTEGER-PART and FRACTION-PART of an exact value keep every digit (kb/Work PB4575 review
@@ -370,25 +370,25 @@ public sealed class CobolExactIntrinsicsTests
     [Fact]
     public void UnaryExactBodies_KeepEveryDigit()
     {
-        CobolExact negSum = CobolExact.Negate(CobolExact.Add(Wide(P), Sdidi("2"), Away));
+        CobolExact negSum = CobolExact.Negate(CobolExact.Add(Wide(P), Sdidi("2")));
         Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.AbsExact(negSum), Wide(P + 2)));
-        Assert.Equal(-1, CobolIntrinsics.SignExact(CobolExact.Sub(Wide(P), CobolExact.Add(Wide(P), Sdidi("1", -30), Away), Away)));
-        CobolExact negHalf = CobolExact.Add(CobolExact.Negate(Wide(P)), Sdidi("-25", -1), Away);
+        Assert.Equal(-1, CobolIntrinsics.SignExact(CobolExact.Sub(Wide(P), CobolExact.Add(Wide(P), Sdidi("1", -30)))));
+        CobolExact negHalf = CobolExact.Add(CobolExact.Negate(Wide(P)), Sdidi("-25", -1));
         Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.FloorExact(negHalf), Wide(-P - 3)));
         Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.TruncateExact(negHalf), Wide(-P - 2)));
         Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.FractionPartExact(Away, negHalf), Sdidi("-5", -1)));
         Assert.Equal(0, CobolIntrinsics.FloorExact(negHalf).ImageWithPrecision.Precision);
         Assert.Equal(0, CobolExact.Compare(
-            CobolIntrinsics.FractionPartExact(Away, CobolExact.Add(Wide(P), Sdidi("25", -1), Away)), Sdidi("5", -1)));
+            CobolIntrinsics.FractionPartExact(Away, CobolExact.Add(Wide(P), Sdidi("25", -1))), Sdidi("5", -1)));
         Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.FloorExact(Sdidi("15", 39)), Sdidi("15", 39)));
         Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.FloorExact(Sdidi("-15", -1)), Fixed(-2)));
-        CobolExact past = CobolExact.Mul(Wide(P), Sdidi("1", 40), Away);
+        CobolExact past = CobolExact.Mul(Wide(P), Sdidi("1", 40));
         Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.TruncateExact(past), past));
         Assert.Equal(0, CobolIntrinsics.TruncateExact(past).ImageWithPrecision.Precision);
         Assert.Equal(0, CobolExact.Compare(CobolIntrinsics.IntegerArgExact(past), past));
         Assert.Equal(0, CobolIntrinsics.FractionPartExact(Away, past).Sign);
         Assert.Equal(CobolNum.FormatWideFunctionText(W((P + 2) * 10 + 5), 1),
-            CobolNum.FormatExactFunctionText(CobolExact.Add(Wide(P), Sdidi("25", -1), Away)));
+            CobolNum.FormatExactFunctionText(CobolExact.Add(Wide(P), Sdidi("25", -1))));
     }
 
     /// <summary>⛔ The final transfer rounds the exact value ONCE, in the receiver's mode, on either carrier; checked, a value past
@@ -396,10 +396,10 @@ public sealed class CobolExactIntrinsicsTests
     [Fact]
     public void FinalTransfer_RoundsOnce_AndRaisesPastTheCarrier()
     {
-        CobolExact half = CobolExact.Sub(CobolExact.Add(Wide(P), Sdidi("5", -1), Away), Wide(P), Away);
+        CobolExact half = CobolExact.Sub(CobolExact.Add(Wide(P), Sdidi("5", -1)), Wide(P));
         Assert.Equal(0, half.ToUnscaled(0, CobolRounding.Truncation, checkedTransfer: true));
         Assert.Equal(1, half.ToUnscaled(0, Away, checkedTransfer: true));
         Assert.Equal(1000, Sdidi("1", 3).ToUnscaled(0, Away, checkedTransfer: true));
-        Assert.Throws<CobolSizeError>(() => CobolExact.Add(Wide(P), Sdidi("2"), Away).ToUnscaled(0, Away, checkedTransfer: true));
+        Assert.Throws<CobolSizeError>(() => CobolExact.Add(Wide(P), Sdidi("2")).ToUnscaled(0, Away, checkedTransfer: true));
     }
 }

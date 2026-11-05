@@ -40,8 +40,8 @@ public sealed class CobolDecDivisionTests
     {
         // The PB69 shape: A³ past the Int128 window (its 34-digit round-to-odd image, kb/Work PB4569) over the exact
         // 30-digit A² — the quotient is ≈ 999999999999999, not the 999.99 the capped pre-scale produced.
-        var a3 = CobolIntrinsics.PowNativeDec(CobolDec.From(999999999999999, 0), 3);
-        var a2 = CobolIntrinsics.PowNativeDec(CobolDec.From(999999999999999, 0), 2);
+        var a3 = CobolExact.Pow(CobolExact.FromDec(CobolDec.From(999999999999999, 0)), 3).Image;
+        var a2 = CobolExact.Pow(CobolExact.FromDec(CobolDec.From(999999999999999, 0)), 2).Image;
         var q = CobolDec.Div(a3, a2, CobolRounding.NearestAwayFromZero);
         double approx = q.ToDouble();
         Assert.InRange(approx, 999999999999998.0, 999999999999999.5);
@@ -52,7 +52,7 @@ public sealed class CobolDecDivisionTests
     {
         // MOD/REM over two exact integers that fit Int128 take the exact remainder (kb/Work PB69) — a 30-digit
         // native power reaches ModDec as an exact SDIDI, and the SDIDI EAE would round the 30-digit product.
-        var a2 = CobolIntrinsics.PowNativeDec(CobolDec.From(999999999999999, 0), 2);   // 999999999999998000000000000001
+        var a2 = CobolExact.Pow(CobolExact.FromDec(CobolDec.From(999999999999999, 0)), 2).Image;   // 999999999999998000000000000001
         var m = CobolIntrinsics.ModDec(CobolRounding.NearestAwayFromZero, a2, CobolDec.From(1000000007, 0));
         Assert.Equal("13657001E0", $"{m.Sig}E{m.Exp}");
         var r = CobolIntrinsics.RemDec(CobolRounding.NearestAwayFromZero, new CobolDec(-11, 0), CobolDec.From(5, 0));
@@ -137,8 +137,8 @@ public sealed class CobolDecDivisionTests
         // round-to-odd image 9999999999999970000000000000029999E11 (the 34th digit is odd already; kb/Work PB4569), and two
         // different powers compare as their magnitudes — the saturated Int128.MaxValue sentinel that made
         // `A ** 4 > A ** 3` FALSE and `A ** 3 = A ** 4` TRUE is gone (kb/Work PB69).
-        var a3 = CobolIntrinsics.PowNativeDec(CobolDec.From(999999999999999, 0), 3);
-        var a4 = CobolIntrinsics.PowNativeDec(CobolDec.From(999999999999999, 0), 4);
+        var a3 = CobolExact.Pow(CobolExact.FromDec(CobolDec.From(999999999999999, 0)), 3).Image;
+        var a4 = CobolExact.Pow(CobolExact.FromDec(CobolDec.From(999999999999999, 0)), 4).Image;
         Assert.True(CobolDec.Compare(a4, a3) > 0);
         Assert.NotEqual(0, CobolDec.Compare(a3, a4));
         Assert.Equal("9999999999999970000000000000029999E11", $"{a3.Sig}E{a3.Exp}");

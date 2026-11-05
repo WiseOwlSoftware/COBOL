@@ -110,6 +110,41 @@ internal static class IntrinsicCarrierRules
     /// </remarks>
     internal static bool ReturnsExactParse(string functionName) => ExactParseFunctions.Contains(functionName);
 
+    /// <summary>
+    /// ⛔ IS A FUNCTION'S BINARY64 RETURNED VALUE AN ENGINE APPROXIMATION, OR A FLOAT ITEM'S CONTENT (kb/Work PB4622)? Asked
+    /// by <c>FunctionValueLane.Of</c> (bind time) and <c>IntrinsicRenderer.RenderFloat</c> (the renderer) alike, so the two
+    /// cannot disagree. It is an APPROXIMATION exactly when the function is in the §15.4.1 floating-math family
+    /// (<paramref name="floatFamily"/>: SIN, SQRT, EXP, LOG, ...: no finite decimal spells its value, the implementor's
+    /// approximation is the whole of §15.4.1's native latitude), or when no binary64 argument is a float ITEM's content
+    /// (<paramref name="anyFloatItemArgument"/>: every binary64 argument is itself an approximation, so the value of a
+    /// value-preserving function of it is one too: ABS (FUNCTION EXP10 (-6)) stays 0.000001). Otherwise the value is
+    /// derived from a float ITEM's exact binary64 by the function's own definition: MAX, MIN and an odd MEDIAN return "the
+    /// content of the argument" (§15.59.4 1), §15.63.4 1), §15.61.1), INTEGER the greatest integer not above it (§15.44.4
+    /// 1)), and ABS, INTEGER-PART, FRACTION-PART, SIGN, REM, SUM, MEAN, RANGE and MIDRANGE have an equivalent arithmetic
+    /// expression (§15.4.1) that a float item's binary64 evaluates exactly or as the written-out expression itself does
+    /// (D16). It lands by its exact binary value, as <c>COMPUTE R = F</c> and <c>MOVE F</c> land the item.
+    /// </summary>
+    internal static bool Binary64ResultIsApproximation(bool floatFamily, bool anyFloatItemArgument) =>
+        floatFamily || !anyFloatItemArgument;
+
+    /// <summary>
+    /// ⛔ DOES A SELECTION LIST (MAX, MIN, ORD-MAX, ORD-MIN, an odd MEDIAN) NEED THE EXACT LANE TO DELIVER THE SELECTED ARGUMENT FROM ITS OWN
+    /// CARRIER (kb/Work PB65 RV-15.59.4-1 D2, PB4622)? Asked by <c>IntrinsicRenderer.RenderNum</c> and <c>FunctionValueLane.Of</c> alike.
+    /// §15.59.4 1), §15.63.4 1) and §15.61.1 return "the content of the argument" selected, so the value is the selected argument's own:
+    /// <list type="bullet">
+    ///   <item>a list that mixes a binary64 with a fixed-point item (<paramref name="allBinary64"/> false), as the PB65 finding found;</item>
+    ///   <item>a list whose binary64 arguments are of TWO KINDS (<paramref name="anyFloatItem"/> and <paramref name="anyApproximation"/>):
+    ///         a float ITEM's content lands by its exact binary value, an engine's APPROXIMATION by its shortest decimal (D16), and
+    ///         which argument is selected is a run-time fact, so the double the float lane would return cannot say which landing it is
+    ///         owed (<c>MAX (ZF FUNCTION EXP10 (-6))</c> into <c>PIC 9V9(6)</c> stored 0.000000, the exact binary expansion of the
+    ///         approximation, where its decimal is 0.000001). On the exact lane each argument enters as its own kind
+    ///         (<c>CobolExact.FromBinary64</c>, <c>CobolExact.FromApproximation</c>) and the selected one lands as that kind.</item>
+    /// </list>
+    /// A list of one kind of binary64 stays on the float lane: its content IS the double.
+    /// </summary>
+    internal static bool SelectionNeedsExactLane(bool anyBinary64, bool allBinary64, bool anyFloatItem, bool anyApproximation) =>
+        anyBinary64 && (!allBinary64 || (anyFloatItem && anyApproximation));
+
     /// <summary>The functions <see cref="ReturnsExactParse"/> answers true for, as a set so that
     /// <c>ReceiverShapeReaderDriftTests</c> can hold each member's runtime body against the renderer (no <c>RenderNum</c>
     /// arm of its own, an SDIDI arm in <c>RenderDec</c>) instead of restating the list.</summary>
