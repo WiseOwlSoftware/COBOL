@@ -1677,6 +1677,17 @@ public static class CobolArgAdapt
         Undeliverable(c, "the function-pointer result");
     }
 
+    /// <summary>Message-tag RETURNING delivery (kb/Work PB4740 review R1-1; §14.2.2 SR5 admits a level-01 or -77 linkage item of
+    /// any usage as the RETURNING item, §14.2.3 GR7 delivers it). A <see cref="MessageTag"/> is a readonly identity struct that
+    /// crosses by value like the program-pointer twin above; without this overload the generated <c>StoreReturn(__ret, L_RES)</c>
+    /// bound only to the object-reference generic and drew CS0315.</summary>
+    public static void StoreReturn(CobolArg? ret, MessageTag value)
+    {
+        if (ret is not { Carrier: var c }) return;
+        if (c is ManagedPointer<MessageTag> mp) { mp.Value = value; return; }
+        Undeliverable(c, "the message-tag result");
+    }
+
     /// <summary>Object-reference RETURNING delivery (kb/Work PB133 wave B). The CobolObject constraint keeps
     /// this overload away from every numeric/string carrier (a value type or string never derives it), so the
     /// specific lanes above stay untouched. An IDENTICALLY-described returning pair (the §14.8.3 conforming

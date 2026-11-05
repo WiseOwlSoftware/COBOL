@@ -1525,7 +1525,7 @@ public sealed class DataItem
                 Usage.FloatBinary128 or Usage.FloatDecimal34 => 16,   // binary128 / decimal128 = 16 bytes
                 Usage.FloatDecimal16 => 8,                            // decimal64 = 8 bytes
                 Usage.Pointer or Usage.ProgramPointer or Usage.FunctionPointer
-                    or Usage.ObjectReference => PointerByteWidth,
+                    or Usage.ObjectReference or Usage.MessageTag => PointerByteWidth,   // DOC-A.1-212: the slot rule, 8
                 Usage.National => pic.BytesPerPosition * ElementaryImageWidth,   // UTF-16, D-N1/D-N3 — the ONE unit reader
                 _ => ElementaryImageWidth,                       // DISPLAY / BIT: 1 byte per character/boolean position
             };

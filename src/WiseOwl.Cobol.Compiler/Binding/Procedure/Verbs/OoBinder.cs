@@ -616,14 +616,14 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>§14.9.23.3 SR15 — a BY VALUE identifier-5 "shall be of class message-tag, numeric, object or pointer"
-    /// (message-tag is the MCS module, not modeled) — asked of the operand's CLASS, the answer CALL's SR22 screen reads
+    /// — asked of the operand's CLASS, the answer CALL's SR22 screen reads
     /// (<see cref="IntrinsicArgumentRules.ClassOf"/>), and named through <c>IntrinsicArgumentRules.ClassNameOf</c>, so
     /// a strongly-typed group is named by its type-name (kb/Work PB3192 review R1-1). Shared by the typed lane and the
     /// NULL receiver's screen. False having reported.</summary>
     private bool ByValueClassAdmitted(BoundOperand operand, string written, string subject)
     {
         if (IntrinsicArgumentRules.ClassOf(operand) is not { } valueClass
-            || valueClass is CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer)
+            || valueClass is CobolClass.MessageTag or CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer)
             return true;
         ctx.Edition.Error(DiagnosticCatalog.InvokeByValueOperandClass,
             $"{subject}: BY VALUE operand '{written}' is of class "

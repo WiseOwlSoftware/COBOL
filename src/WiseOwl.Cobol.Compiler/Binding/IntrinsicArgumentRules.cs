@@ -74,16 +74,14 @@ internal enum CobolClass
     /// and INDEXED BY index-names both present it). No §15 argument rule admits it, so classifying it is what
     /// REJECTS an index argument (kb/Work R27 — the lattice previously could not express it: an index DATA
     /// item's <see cref="PicInfo.IndexItem"/> carries category Numeric for storage, so it passed every 'n'
-    /// screen, and an index-NAME fell into the computed-operand-is-numeric arm). USAGE MESSAGE-TAG (Table 2's
-    /// other class this lattice does not express) HAS a <see cref="Usage"/> member (<c>Usage.MessageTag</c>, kb/Work
-    /// PB487) and gets no <see cref="CobolClass"/> member DELIBERATELY: the facility is declined non-support (Annex A.3
-    /// item 4; COBOL1943), so an entry that writes the usage binds <c>PicInfo.MessageTagRecovery()</c>, a recovery
-    /// profile whose <c>AnalyzedCategory</c> is null, and <see cref="ClassOfPic"/> answers "not statically decidable"
-    /// for it — every screen over this table fails OPEN, and the entry's own refusal is the diagnostic (kb/Work
-    /// PB960). The decision is recorded where it is enforced, in
-    /// <c>IntrinsicArgumentClassDriftTests.EveryUsageMember_HasATable2ClassDisposition</c>; implementing the
-    /// facility changes it together with this member (§13.18.60.4 GR9 then requires a class of its own).</summary>
+    /// screen, and an index-NAME fell into the computed-operand-is-numeric arm).</summary>
     Index,
+
+    /// <summary>Class MESSAGE-TAG (§8.5.2.1 Table 2; §13.18.60.4 GR9 — "The class and category of a message-tag data item
+    /// are message-tag"; kb/Work PB4740). No §15 argument rule admits it, so classifying it is what REJECTS a message-tag
+    /// argument where the lattice used to fail open. The disposition is recorded in
+    /// <c>IntrinsicArgumentClassDriftTests.EveryUsageMember_HasATable2ClassDisposition</c>.</summary>
+    MessageTag,
 }
 
 /// <summary>One argument POSITION's requirement — the §15.x.3 rule for that ordinal, with the clause it was read
@@ -383,7 +381,7 @@ internal static class IntrinsicArgumentRules
     /// item of class object or class pointer (§8.5.2.1 Table 2) holds a REFERENCE, not characters, so there is
     /// nothing to decode and the extension cannot reach it: `COMPUTE N = SELF` or `= O` with O an object reference
     /// went on to a C# conversion error in the generated program (kb/Work PB1425's sweep).</summary>
-    public static bool IsDigitDecodable(BoundOperand op) => ClassOf(op) is not (CobolClass.Object or CobolClass.Pointer);
+    public static bool IsDigitDecodable(BoundOperand op) => ClassOf(op) is not (CobolClass.MessageTag or CobolClass.Object or CobolClass.Pointer);
 
     /// <summary>The §8.8.1.1 answer for a resolved data item — the <see cref="ClassOfItem"/> lane, for the
     /// <c>ReferenceResolver</c> fast path that never builds a <see cref="Place"/> (kb/Work PB170).</summary>
@@ -646,7 +644,8 @@ internal static class IntrinsicArgumentRules
         // clause — A.3 does not contain function-pointer, A.4's entire SET inventory is three items and
         // contains neither format 8 nor format 15, and docs/CONFORMANCE.md §4 carries no such item.
         PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer => CobolClass.Pointer,
-        _ => null,                                          // Group is handled by the caller
+        PicCategory.MessageTag => CobolClass.MessageTag,    // Table 2's class message-tag (§13.18.60.4 GR9)
+        _ => null,                                         // Group is handled by the caller
     };
 
     /// <summary>
@@ -1387,7 +1386,7 @@ internal static class IntrinsicArgumentRules
     /// <summary>The classes §15.59.3 / §15.63.3 / §15.71.3 r1 / §15.72.3 r1 EXCLUDE from a polymorphic
     /// (MAX/MIN/ORD-MAX/ORD-MIN) argument: "shall not be of class boolean, message-tag, object, or pointer".</summary>
     public static readonly CobolClass[] PolymorphicExcluded =
-        [CobolClass.Boolean, CobolClass.Object, CobolClass.Pointer];
+        [CobolClass.Boolean, CobolClass.MessageTag, CobolClass.Object, CobolClass.Pointer];
 
     /// <summary>Why this operand is inadmissible for an argument declaring <paramref name="kind"/>, or
     /// <see langword="null"/> when it is admissible or not statically decidable.</summary>
@@ -2140,6 +2139,7 @@ internal static class IntrinsicArgumentRules
         CobolClass.National => "national",
         CobolClass.NumericEditedNational => "national (numeric-edited)",
         CobolClass.Numeric => "numeric",
+        CobolClass.MessageTag => "message-tag",
         CobolClass.Object => "object",
         CobolClass.Pointer => "pointer",
         CobolClass.Index => "index",

@@ -80,6 +80,8 @@ public enum RepositoryCategory
     ProgramPointer = 8,
     /// <summary>Function pointer.</summary>
     FunctionPointer = 9,
+    /// <summary>Message tag (USAGE MESSAGE-TAG, kb/Work PB4740).</summary>
+    MessageTag = 10,
 }
 
 /// <summary>The USAGE of a described item (ISO §13.18.60), as persisted: the compiler's <c>Usage</c>, in its own numbering.</summary>
@@ -112,7 +114,7 @@ public enum RepositoryUsage
     ProgramPointer = 11,
     /// <summary>FUNCTION-POINTER.</summary>
     FunctionPointer = 12,
-    /// <summary>MESSAGE-TAG (declined non-support; the member exists so the recovery description round-trips).</summary>
+    /// <summary>MESSAGE-TAG.</summary>
     MessageTag = 13,
     /// <summary>FLOAT-SHORT.</summary>
     FloatShort = 14,

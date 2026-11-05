@@ -333,9 +333,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// collapses alphabetic onto alphanumeric and numeric-against-alphanumeric onto alphanumeric. A null class is
     /// a figurative constant (§8.3.3.6.4 GR1 gives it its context's category, so the lattice answers a SET and
     /// not a class) or an already-reported error node, and abstains — the direction that cannot reject legal
-    /// source. ⚠ Class MESSAGE-TAG, SR4's fourth exclusion, has no lattice member: USAGE MESSAGE-TAG is declined
-    /// non-support (COBOL1943) and refused by name at every edition, so no such operand reaches here; the day
-    /// it lands, the lattice gains the member and this screen sees it with no change.</para>
+    /// source. Class MESSAGE-TAG, SR4's fourth exclusion, is a lattice member since kb/Work PB4740.</para>
     /// <para>The pointer case is the sharpest, and it is why SR4 cannot be left to the relation checkpoint: a
     /// range lowers to `subject &gt;= low AND subject &lt;= high` (§14.9.13.4 GR4 a) 5.), and where that pair is
     /// NOT what gets emitted — an inverted or IN-alphabet range builds a <c>BoundRangeMembership</c> instead —
@@ -352,7 +350,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         for (int end = 0; end < 2; end++)
         {
             if ((end == 0 ? loClass : hiClass) is not { } c) continue;
-            if (c is not (CobolClass.Boolean or CobolClass.Object or CobolClass.Pointer)) continue;
+            if (c is not (CobolClass.Boolean or CobolClass.MessageTag or CobolClass.Object or CobolClass.Pointer)) continue;
             excluded = true;
             ok = false;
             ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,

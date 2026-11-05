@@ -156,11 +156,8 @@ public sealed record InitializeErrorAction(string Feature) : InitializeAction;
 /// national SPACES" as NATIONAL: GR5c matches a REPLACING/TO VALUE category-name against the receiving operand's
 /// §8.5.2 category, and those are two different categories (§8.5.2.10 vs §8.5.2.11), so folding them would make
 /// `REPLACING NATIONAL DATA BY …` reach a national-edited item the rule does not name (kb/Work PB492).</para>
-/// <para><see cref="MessageTag"/> is spellable as a category-name (§8.9 reserves MESSAGE-TAG from 2023) and can
-/// never CLASSIFY a receiver: no <see cref="PicCategory"/> carries message-tag, because the A.4 message-control
-/// facility is owner-declined (docs/CONFORMANCE.md §4) and the DATA DIVISION refuses such an item loudly. Naming
-/// it in REPLACING is therefore conforming source that matches no receiving-operand — which is the rule's own
-/// answer, not a gap.</para>
+/// <para><see cref="MessageTag"/> is spellable as a category-name (§8.9 reserves MESSAGE-TAG from 2023) and classifies a
+/// USAGE MESSAGE-TAG receiver (<see cref="PicCategory.MessageTag"/>, kb/Work PB4740).</para>
 /// <para>⛔ ORDINALS ARE LOAD-BEARING: <see cref="InitializeCategorySet"/> is a bitmask over them, so the member
 /// count must stay under 32. <c>InitializeLaneDriftTests</c> pins that, and pins that every member is reachable
 /// from a grammar category-name.</para></summary>

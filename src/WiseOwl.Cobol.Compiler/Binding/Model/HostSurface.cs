@@ -26,6 +26,8 @@ public enum HostTypeKind
     /// <summary>A data, program or function pointer: the runtime's carrier (<see cref="ManagedPointer"/>,
     /// <see cref="ProgramPointer"/>, <see cref="FunctionPointer"/>).</summary>
     Pointer,
+    /// <summary>A message tag (USAGE MESSAGE-TAG, kb/Work PB4740): the runtime's carrier, <see cref="MessageTag"/>.</summary>
+    MessageTag,
     /// <summary>An object reference: the referenced class's or interface's public CLR type, <see cref="CobolObject"/>
     /// when universal.</summary>
     ObjectReference,
@@ -79,6 +81,7 @@ public static class HostSurface
             PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer
                 => new HostType(HostTypeKind.Pointer, pic.ClrType),
             PicCategory.ObjectReference => new HostType(HostTypeKind.ObjectReference, pic.ClrType),
+            PicCategory.MessageTag => new HostType(HostTypeKind.MessageTag, pic.ClrType),
             _ => throw new InvalidOperationException(
                 $"HostSurface.TypeOf: '{description.CobolName}' is of category {pic.Category}, which has no host type"),
         };

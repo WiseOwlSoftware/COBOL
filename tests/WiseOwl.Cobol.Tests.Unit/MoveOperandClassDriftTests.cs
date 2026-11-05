@@ -41,16 +41,14 @@ public sealed class MoveOperandClassDriftTests
     private static DataItem ItemOf(Usage u)
     {
         var item = new DataItem { Level = 1, CobolName = "OP", ClrName = "OP", OwnUsage = u };
-        // The resolved PicInfo each usage carries once PictureAnalyzer has run. MESSAGE-TAG and, before
-        // kb/Work PB452/PB817, FUNCTION-POINTER never gain one — the WRITTEN clause is all there is — so those
-        // are modelled as OwnUsage alone, which is exactly the asymmetry ItemCategory.IsIndexMessageTagObjectOrPointer
-        // exists to read.
+        // The resolved PicInfo each usage carries once PictureAnalyzer has run.
         PicCategory? cat = u switch
         {
             Usage.Pointer => PicCategory.Pointer,
             Usage.ProgramPointer => PicCategory.ProgramPointer,
             Usage.FunctionPointer => PicCategory.FunctionPointer,
             Usage.ObjectReference => PicCategory.ObjectReference,
+            Usage.MessageTag => PicCategory.MessageTag,
             Usage.Index => PicCategory.Numeric,
             _ => null,
         };
@@ -74,15 +72,6 @@ public sealed class MoveOperandClassDriftTests
         var place = new MemberPlace(new AccessPath([]), item);
         string? receiving = MoveTable16.ReceiverClassRefusal(place);
         string? sending = MoveTable16.SenderClassRefusal(new BoundFieldOperand(place));
-        // A usage with no bound PicInfo (MESSAGE-TAG) cannot produce an operand at all — PictureAnalyzer refuses
-        // the clause by name (COBOL1943) — so the class reader answers null and the screen fails OPEN, which
-        // is the posture every class screen here takes. Say so rather than asserting a refusal that cannot exist.
-        if (item.Pic is null)
-        {
-            Assert.Null(receiving);
-            Assert.Null(sending);
-            return;
-        }
         Assert.NotNull(receiving);
         Assert.NotNull(sending);
         Assert.Equal(receiving, sending);

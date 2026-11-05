@@ -133,7 +133,7 @@ internal static class RelationComparability
             or CobolClass.Alphabetic or CobolClass.National);
 
     /// <summary>A class another band of the relation checkpoint owns, in EVERY reading: boolean (§8.8.4.2.2 Format
-    /// 2, COBOL0844), object and pointer (Format 3, COBOL0868/0869 — NULL's only class here).</summary>
+    /// 2, COBOL0844), message-tag, object and pointer (Format 3, COBOL0868/0869 — NULL's only class here).</summary>
     private static bool OwnedByAnotherBand(CobolClass[] set) =>
-        Array.TrueForAll(set, c => c is CobolClass.Boolean or CobolClass.Object or CobolClass.Pointer);
+        Array.TrueForAll(set, c => c is CobolClass.Boolean or CobolClass.MessageTag or CobolClass.Object or CobolClass.Pointer);
 }

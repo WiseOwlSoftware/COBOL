@@ -71,8 +71,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
 
         // §14.9.1.3 SR1 (identifier-1) / SR3 (identifier-2): the excluded receiver CLASSES both formats share.
         // SR1 — "neither a strongly-typed group item nor a data item of class index, message-tag, object, or
-        // pointer"; SR3 repeats the same class rows for the temporal receiver (message-tag has no declarable
-        // shape in this data model). SR3's class-alphabetic/boolean exclusions are NOT listed here — they fall
+        // pointer"; SR3 repeats the same class rows for the temporal receiver. SR3's class-alphabetic/boolean exclusions are NOT listed here — they fall
         // out of the MOVE-validity ask below (MoveTable16.Validity, asked with the GR7–GR12 conceptual item). A strongly-typed group temporal receiver fails GR6's MOVE-rules store
         // identically (§14.9.25.3 SR2 — the sender must be a group of the SAME type, and the conceptual
         // temporal sender is an untyped integer), so both formats screen it.
@@ -80,6 +79,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         string? excluded =
             rItem.Pic is { Usage: Usage.Index } ? "an index data item (class index)"
             : rItem.Pic?.Category is PicCategory.ObjectReference ? "a data item of class object"
+            : rItem.Pic?.Category is PicCategory.MessageTag ? "a data item of class message-tag"
             : rItem.Pic?.Category is PicCategory.Pointer or PicCategory.ProgramPointer
                                      or PicCategory.FunctionPointer ? "a data item of class pointer"
             : StrongTypeModel.IsStrongGroup(rItem) ? "a strongly-typed group item"
@@ -186,16 +186,16 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     }
 
     /// <summary>The classes a DISPLAY operand shall not present (kb/Work PB148): §14.9.11.3 SR1 excludes
-    /// class message-tag (undeclarable here), object and pointer — the old fall-through printed a pointer's
+    /// class message-tag, object and pointer — the old fall-through printed a pointer's
     /// ManagedPointer.ToString() and an object's CLR text; §13.18.60.3 SR10's closed list keeps an index DATA
     /// item out of DISPLAY — the old numeric arm printed a zero-digit EMPTY image for it; and the
     /// grammar-carried NULL word (class pointer — NOT a §8.3.3.6.2 figurative) rejects through the same
     /// gate, where it previously printed U+0000.</summary>
     private static readonly CobolClass[] DisplayExcludedClasses =
-        [CobolClass.Pointer, CobolClass.Object, CobolClass.Index];
+        [CobolClass.Pointer, CobolClass.MessageTag, CobolClass.Object, CobolClass.Index];
 
     private const string DisplayClassCite =
-        "ISO §14.9.11.3 SR1 (class object/pointer); §13.18.60.3 SR10 (an index data item may be referenced "
+        "ISO §14.9.11.3 SR1 (class message-tag/object/pointer); §13.18.60.3 SR10 (an index data item may be referenced "
         + "only in SEARCH/SET, a relation condition, an intrinsic/method argument, or a USING phrase)";
 
     /// <summary>Is this ACCEPT / DISPLAY the SCREEN format (ISO §14.9.1.2 format 3 / §14.9.11.2 format 2 —

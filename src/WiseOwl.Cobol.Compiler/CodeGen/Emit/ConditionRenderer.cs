@@ -245,6 +245,18 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             string core = $"FunctionPointer.SameTarget({FpRead(r.Left)}, {FpRead(r.Right)})";
             return r.Op == "==" ? core : $"!({core})";
         }
+        // Message-tag relations (§8.8.4.2.14: "The operands are equal if they reference the same message requestor or
+        // message server of the same name or one is NULL and the other is NULL" — MessageTag.SameParty; the NULL
+        // figurative renders as the null content, a struct, never C# null). kb/Work PB4740.
+        static bool IsMt(BoundOperand o) =>
+            o is BoundFieldOperand f && f.Place.Item.OperandPic?.Category == PicCategory.MessageTag;
+        if (IsMt(r.Left) || IsMt(r.Right))
+        {
+            static string MtRead(BoundOperand o) =>
+                o is BoundFieldOperand f ? PlaceRenderer.Read(f.Place) : "MessageTag.Null";
+            string core = $"MessageTag.SameParty({MtRead(r.Left)}, {MtRead(r.Right)})";
+            return r.Op == "==" ? core : $"!({core})";
+        }
         // Boolean-EXPRESSION relations (ISO §8.8.4.2.2 Format 2): when either side is a boolean expression
         // (a B-op tier, BoundBoolOperand), render BOTH sides as '0'/'1' strings and compare by VALUE with
         // right-zero-extension (§8.8.4.2.8) via CobolBool.Equal. A bare boolean item/literal mixed with an

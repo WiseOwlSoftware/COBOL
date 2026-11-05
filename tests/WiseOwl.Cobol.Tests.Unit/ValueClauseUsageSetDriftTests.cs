@@ -54,8 +54,8 @@ public sealed class ValueClauseUsageSetDriftTests
 
     /// <summary>Every usage SR9 names, that this compiler has a <see cref="Usage"/> member for, is in the set.
     /// A name with no member is a FORWARD OBLIGATION the test holds open by naming it, never a silent pass — and
-    /// the list is empty today, because message-tag acquired its member with kb/Work PB487 and its arm reports
-    /// beside the facility decline rather than instead of it (COBOL1943 + COBOL2168, measured).</summary>
+    /// the list is empty today, because message-tag acquired its member with kb/Work PB487 and its VALUE refusal
+    /// is the ordinary SR9 screen since the usage binds (kb/Work PB4740).</summary>
     [Fact]
     public void EverySr9NamedUsage_WithAMember_AdmitsNoValueLiteral()
     {

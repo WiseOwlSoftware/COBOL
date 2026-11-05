@@ -87,13 +87,10 @@ public sealed class UsageDeclarationPlacementDriftTests
         ["BinaryLong"] = null,
         ["BinaryDouble"] = null,
         // The member landed with kb/Work PB487 and this row is the verdict the missing one was holding open.
-        // SR14 names MESSAGE-TAG FIRST in its five-phrase list, so the phrase arm carries it — the
-        // FUNCTION-POINTER situation exactly: the usage is DECLINED non-support (Annex A.3 item 4), refused by
-        // name at ParseUsage with COBOL1943, so its bound PicInfo is a recovery shape and the CLASS arm
-        // never sees it, but the WRITTEN clause is visible to the screen and the rule governs it.
+        // SR14 names MESSAGE-TAG FIRST in its five-phrase list, so the phrase arm carries it. The usage binds
+        // since kb/Work PB4740 (its PicInfo is the MessageTag category), so the class arm sees it as well, and
         // SR21 ("If the MESSAGE-TAG phrase is specified, no other usage phrase shall be specified in the same
-        // data description entry") stays unreachable rather than unimplementable: no message-tag item can ever
-        // BIND, so it is still deliberately NOT written as dead code.
+        // data description entry") is enforced as COBOL2158 (MessageTagUsageExclusive).
         ["MessageTag"] = "MESSAGE-TAG",
     };
 
@@ -137,12 +134,10 @@ public sealed class UsageDeclarationPlacementDriftTests
     /// <summary>⛔ SR14's SUBJECT IS A USAGE PHRASE, READ FROM THE WRITTEN CLAUSE OR THE RESOLVED PROFILE'S USAGE
     /// (kb/Work PB819) — never the resolved CATEGORY. The REDEFINES screen of §13.18.44.3 SR12/SR14 (PB179) names
     /// CLASSES ("class object, message-tag, or pointer") and asks <c>PointerObjectClass</c>; the placement screen
-    /// names the five PHRASES that produce those classes and asks <c>Sr14PhraseOf</c>. On every profile that HAS a
-    /// class the two agree; they differ on exactly one population, the usage the compiler refuses by name, whose
-    /// profile is a recovery shape with no class — which is the cell PB819 closed (arm B was keyed on the class and
-    /// never saw it). A written clause on an item with no profile at all is seen by the phrase reader alone.</summary>
+    /// names the five PHRASES that produce those classes and asks <c>Sr14PhraseOf</c>. On every profile the two agree (message-tag included since kb/Work PB4740, when the usage gained a class).
+    /// A written clause on an item with no profile at all is seen by the phrase reader alone.</summary>
     [Fact]
-    public void Sr14PhraseReaderAgreesWithTheClassPredicate_ExceptWhereTheUsageIsRefused()
+    public void Sr14PhraseReaderAgreesWithTheClassPredicate()
     {
         (PicInfo Pic, bool ClassPredicate, string? Phrase)[] profiles =
         [
@@ -150,8 +145,7 @@ public sealed class UsageDeclarationPlacementDriftTests
             (PicInfo.ProgramPointerItem(), true, "PROGRAM-POINTER"),
             (PicInfo.FunctionPointerItem("P"), true, "FUNCTION-POINTER"),
             (PicInfo.ObjectReferenceItem(ObjectRefDescriptor.Universal), true, "OBJECT REFERENCE"),
-            // The refused usage: a recovery profile that carries the WRITTEN usage and no class.
-            (PicInfo.MessageTagRecovery(), false, "MESSAGE-TAG"),
+            (PicInfo.MessageTagItem(), true, "MESSAGE-TAG"),
             (PicInfo.IndexItem, false, null),
             (new PicInfo(PicCategory.Numeric, Usage.Display, Length: 1, Digits: 1, Scale: 0, Signed: false), false, null),
             (new PicInfo(PicCategory.Alphanumeric, Usage.Display, Length: 1, Digits: 0, Scale: 0, Signed: false), false, null),
