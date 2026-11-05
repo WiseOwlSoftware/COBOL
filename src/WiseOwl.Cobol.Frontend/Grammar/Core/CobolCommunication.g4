@@ -28,8 +28,8 @@ communicationDescriptionEntry
     : CD cdName FOR? cdMode (cdClause+ | cdSeriesName+)? DOT dataDescriptionEntry*
     ;
 
-// cd-name-1 is a user-defined word (ISO/IEC 1989:2002 8.3.1.1.1, A.1.2.1), so it does not ride dataName, whose FILLER and PROCEDURE
-// are reserved words: the fileControlClauseGroup shape, whose reservedGatedWord and the funnel's position for cobolWord
+// cd-name-1 is a user-defined word (ISO/IEC 1989:2002 8.3.1.1.1, A.1.2.1), so it does not ride dataName, whose FILLER is a reserved
+// word: the fileControlClauseGroup shape, whose reservedGatedWord and the funnel's position for cobolWord
 // (IsProvableUserWordPosition) make a word §8.9 reserves draw COBOL0901. The actions record the name for keywordContinuesHere, and for
 // communicationNameFollows: a SEND of the COBOL-85 format 1 and of the 2023 format are the same tokens.
 cdName

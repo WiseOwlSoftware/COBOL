@@ -32,6 +32,19 @@ public sealed class ReadingParsesFollowDriftTests
         Assert.Equal([CobolParserCore.DOT], follow.ToList());
     }
 
+    /// <summary>The fact <c>noHeaderWrittenHere</c> rests on (kb/Work PB4706): no format follows a data-name with SECTION or
+    /// DIVISION, so refusing the gated word before either loses no reading. And PROCEDURE is out of the rule: §8.9 reserves it
+    /// at every edition, so a data-name that begins with it is §8.3.2.1 1)'s violation.</summary>
+    [Fact]
+    public void ADataName_IsNeverFollowedByAHeadersClosingWord_AndNeverIsProcedure()
+    {
+        var follow = CobolParserCoreBase.FollowSet(CobolParserCore._ATN, CobolParserCore.RULE_dataName);
+        Assert.False(follow.Contains(CobolParserCore.SECTION), "SECTION must not follow a data-name");
+        Assert.False(follow.Contains(CobolParserCore.DIVISION), "DIVISION must not follow a data-name");
+        var first = CobolParserCore._ATN.NextTokens(CobolParserCore._ATN.ruleToStartState[CobolParserCore.RULE_dataName]);
+        Assert.False(first.Contains(CobolParserCore.PROCEDURE), "PROCEDURE must not begin a data-name");
+    }
+
     [Fact]
     public void AStatement_EndsAtTheNextStatementOrATerminator_NeverAtAnOperandsContinuation()
     {
