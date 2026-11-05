@@ -999,11 +999,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // item's characters. ⛔ ASKED OF THE BINDER'S STATEMENT, NEVER THE TREE'S SHAPE (kb/Work PB4763, PB4712): the
         // expression binder drops grouping parentheses, so the tree of `(FUNCTION ABS(N))` is the function-identifier's
         // own. A function-identifier and a counter register written SOLE are identifiers whose value is computed
-        // (§8.5.2.12 items 3-7; kb/Work PB1401) and stay admitted.
-        if (op is BoundComputedOperand { ArithmeticExpression: true })
+        // (§8.5.2.12 items 3-7; kb/Work PB1401) and stay admitted. A literal or figurative constant is no identifier either
+        // (review R1-2: `IF 5 IS NUMERIC` compiled and aborted at run time), and a boolean operand enclosed in parentheses is
+        // an expression too (§8.8.2; EnclosedBooleanOperand).
+        if (op is { ExpressionAsWritten: true } or BoundStringLiteral or BoundNumericLiteral or BoundFigurative or BoundAllLiteral)
         {
             ctx.Edition.Error(DiagnosticCatalog.ClassConditionSubjectNotIdentifier,
-                "a class condition's subject shall be identifier-1, not an arithmetic expression (ISO §8.8.4.4.2)");
+                "a class condition's subject shall be identifier-1, not an expression or a literal (ISO §8.8.4.4.2)");
             return;
         }
         if (ClassConditionModel.Sr1Refusal(op) is { } why)
@@ -1778,8 +1780,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (vo?.arithmeticExpression() is not { } whole || ConditionOperandExpression(vo) is not { } enclosed
             || ReferenceEquals(whole, enclosed) || !IsBooleanValueOperand(vo))
             return null;
-        return SoleDataRef(enclosed) is { } enclosedRef ? host.Expr.FieldOperand(enclosedRef)
-            : new BoundBoolOperand(BindBoolOperandValue(vo));
+        // ExpressionAsWritten: the enclosed item's own operand carries no trace of the parentheses (kb/Work PB4763).
+        return SoleDataRef(enclosed) is { } enclosedRef ? host.Expr.FieldOperand(enclosedRef) with { ExpressionAsWritten = true }
+            : new BoundBoolOperand(BindBoolOperandValue(vo)) { ExpressionAsWritten = true };
     }
 
     /// <summary>Bind a <c>valueOperand</c> as a comparison operand: the ONE body of <see cref="ComparisonOperand"/>,
@@ -1850,7 +1853,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         host.Expr.BindExpr(expr) switch
         {
             BoundExprError err => BoundOperandError.Carry(err.Feature, err.IsUnbuilt),
-            var e => new BoundComputedOperand(e) { ArithmeticExpression = true },
+            var e => new BoundComputedOperand(e) { ExpressionAsWritten = true },
         };
 
     /// <summary>The condition-name references already reported as ambiguous — one report per source reference.</summary>
