@@ -2945,11 +2945,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Bind one function argument to a typed operand (the §8.4.3.2 SR8 shapes): a non-numeric literal
     /// stays a categorized literal operand; a sole data reference stays a field operand through the ONE
     /// <c>BindExpr</c>→<c>RefExpr</c> mapping (its category decides string-vs-numeric rendering; a bare
-    /// index-name reads its occurrence number, §13.18.38); anything arithmetic binds through <c>BindExpr</c>
-    /// and wraps as a computed operand (<see cref="OperandOf"/>). OMITTED is barred for an intrinsic argument
+    /// index-name reads its occurrence number, §13.18.38); anything that is not a sole operand (an operator, a unary
+    /// sign on an item, enclosing parentheses) is an arithmetic expression: it binds through the §8.8.1.1-screened
+    /// <c>BindExpr</c> and is a computed operand, a parenthesized item or literal included (kb/Work PB4635). OMITTED is barred for an intrinsic argument
     /// (§8.4.3.2 SR7); an unconsumed phrase word is a loud named operand — never a silent skip (§1.4).
     /// <para><paramref name="activationArgument"/> is true ONLY for a function-prototype activation (UdfBinder), the one
-    /// position where the argument crosses to a formal parameter, and it decides two things an intrinsic argument does not:
+    /// position where the argument crosses to a formal parameter, and it decides two things an intrinsic argument does not
+    /// (both kinds of argument are asked their WRITTEN shape, a parenthesized item or literal being an arithmetic
+    /// expression to each):
     /// <list type="bullet">
     /// <item>§8.4.3.10.3 SR1 a) admits the predefined NULL "as an argument in … a function-prototype format function
     /// activation", and an intrinsic-function argument is no such context (§8.4.3.2.2 distinguishes intrinsic-function-name-1
@@ -2959,7 +2962,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <c>BoundCallArg</c>): a sole numeric literal, its sign included, is the literal operand, and an expression that is
     /// not a sole unparenthesized primary is the computed operand it is (<c>ConditionBinder.CompoundOperand</c>, kb/Work
     /// PB3678's CALL door). Mapped through <see cref="OperandOf"/>, <c>(3)</c> came back as the literal 3 and <c>(N)</c> as
-    /// the item N, because the expression binder drops grouping parentheses.</item>
+    /// the item N, because the expression binder drops grouping parentheses; the intrinsic arm wraps them as well (the tail
+    /// of <c>BindArgOperandCore</c>), but only an activation argument's sole numeric literal is read from the parse tree.</item>
     /// </list></para></summary>
     internal BoundOperand BindArgOperand(Core.FunctionArgumentContext a, bool activationArgument = false)
     {
@@ -3035,7 +3039,26 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 return host.Cond.CompoundOperand(ax);
         }
         var written = a.arithmeticExpression();
-        var bound = host.Expr.BindFunctionArgumentExpr(written);
+        // ⛔ AN ARGUMENT THAT IS NOT A SOLE OPERAND IS AN ARITHMETIC EXPRESSION, AND §8.8.1.1 SCREENS ITS OPERANDS (kb/Work PB4635 review
+        // R1-1). The function-argument context suspends the numeric-class screen because a SOLE argument's legality is its function's
+        // own §15.x rule (TRIM over a PIC X item). An operator, a unary sign on an item or enclosing parentheses make the argument "an
+        // arithmetic expression" (§8.4.3.2.3 SR8), whose identifiers must reference numeric data items (§8.8.1.1): `ABS(X9 + 1)` digit-decoded
+        // an alphanumeric X9 under STRICT, and `ABS((X9))` would have, once the parentheses stopped being dropped to the field operand the
+        // per-function class rule screens. A sole operand is asked of the written shape (SoleOperand), as the activation arm above asks it.
+        // GROUPING-PAREN-ONLY: the primary a parenthesized expression reduces to carries its own LPAREN (a function's argument list
+        // is FNARG_LPAREN inside functionCall, a subscript REF_LPAREN inside dataReference).
+        bool soleOperand = WiseOwl.Cobol.Frontend.Expressions.SoleOperand.Primary(written) is { } sole && sole.LPAREN() is null
+            || WiseOwl.Cobol.Frontend.Expressions.SoleOperand.NumericLiteral(written) is not null;
+        var bound = soleOperand ? host.Expr.BindFunctionArgumentExpr(written) : host.Expr.BindExpr(written);
+        // ⛔ A PARENTHESIZED ARGUMENT IS AN ARITHMETIC EXPRESSION, NEVER THE ITEM OR LITERAL IT ENCLOSES (kb/Work PB4635; §8.8.1.2 1)
+        // "the result is treated" as one operand, §8.4.3.2.3 SR8 "an identifier, a literal ... or an arithmetic expression"; the CALL and
+        // activation doors' PB1935 / PB3760). The expression
+        // binder drops grouping parentheses, so (I2) binds to I2's BoundNumRef and (3) to the literal 3; OperandOf then handed back a
+        // field or literal operand, and a "data item or literal" position (FIND-STRING argument-3, §15.37.3 3); BASECONVERT
+        // arguments 2 and 3, §15.12.3 1)) admitted it as if the bare item had been written. Asked of the written shape, as
+        // IsSoleFunctionIdentifier is; every other bound shape is already the computed operand OperandOf makes of it.
+        if (!soleOperand && bound is BoundNumRef or BoundNumLiteral)
+            return new BoundComputedOperand(bound);
         return OperandOf(bound, functionValue: IsSoleFunctionIdentifier(written, bound));
     }
 
