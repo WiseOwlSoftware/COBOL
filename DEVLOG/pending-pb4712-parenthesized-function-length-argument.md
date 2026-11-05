@@ -26,3 +26,5 @@ and AR-15.14.3-1 already read CONFORMS).
 **Self-review.** Architecture: the rule stays in the binder, asked of the one flag the binder sets; no C# text in a bound node. Full
 code: the arms implement 15.50.3 r1 and 15.14.3 r1 as cited (checked with `cite.py`); LENGTH and BYTE-LENGTH agree. Performance: no
 allocation added. Duplication: the two arms keep the one shared pattern; the comment in the LENGTH arm explains it for the twin.
+
+**Gate.** === BUILD-LOCAL GATE: GREEN — Conformance 21,891/21,891 · Unit 39,974/39,974 · Characterization 37/37 (run 000001-20261105T064224Z, head f7bfaf20f). The four new cases ran and Passed in Conformance.trx.
