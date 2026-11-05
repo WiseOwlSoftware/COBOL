@@ -21,8 +21,8 @@ namespace WiseOwl.Cobol.Runtime;
 /// the native intermediate rounding mode; a selection returns the content of the selected argument itself, every digit of it
 /// (§15.59.4 1), §15.63.4 1), §15.61.1: a float item's 41-digit expansion included, kb/Work PB4730); an ordinal is exact. The SUM,
 /// RANGE, MEAN, MIDRANGE, MEDIAN, MOD and REM bodies are exact at any size the arbitrary-precision form holds (|value| &lt; 10^6145);
-/// VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE evaluate the SDIDI images with the SDIDI body where their work leaves the wide form
-/// (INTRINSICS_DESIGN "What still takes the image").</para>
+/// VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE take the wide form first and, where their work leaves it, the same identity on the
+/// arbitrary-precision form (kb/Work PB4750); none of them evaluates an SDIDI image.</para>
 /// </summary>
 public static partial class CobolIntrinsics
 {
@@ -40,9 +40,6 @@ public static partial class CobolIntrinsics
         }
         return at;
     }
-
-    /// <summary>The SDIDI images of <paramref name="xs"/>, for the SDIDI body a body takes past the wide form.</summary>
-    private static CobolDec[] Images(CobolExact[] xs) => Array.ConvertAll(xs, x => x.Image);
 
     /// <summary>ORD-MAX (§15.71.4): the ordinal position of the argument having the greatest value.</summary>
     public static long OrdMaxExact(params CobolExact[] xs) => SelectExact(xs, greatest: true, "ORD-MAX") + 1;
@@ -134,11 +131,29 @@ public static partial class CobolIntrinsics
     /// divided once (<see cref="CobolWide.QuotientDec(int, CobolWide, int, CobolRounding, bool)"/>). The 34-digit mean of <see cref="VarianceDec"/> is no approximation of it
     /// under native arithmetic: a mean off by δ adds exactly δ² (the cross term Σ(xᵢ − m) is 0), so VARIANCE (P, P − 1) of a 39-digit
     /// P answered 10^10 for 0.25, and VARIANCE of 10^30, 10^30 + 1, 10^30 + 1 answered 0.2222223333 for 2/9. Deviations whose squares
-    /// leave the 77 digits are the SDIDI body's (their spread then dwarfs the 34-digit mean's error).</summary>
+    /// leave the 77 digits take the same identity on the arbitrary-precision form (<see cref="VarianceBig"/>).</summary>
     public static CobolDec VarianceExact(CobolRounding mode, params CobolExact[] xs)
     {
         RequireArguments(xs.Length, "VARIANCE");            // §15.3 — at least one argument (kb/Work PB257)
-        return TryVariance(xs, mode, out CobolDec variance) ? variance : VarianceDec(mode, Images(xs));
+        return TryVariance(xs, mode, out CobolDec variance) ? variance : VarianceBig(xs, mode);
+    }
+
+    /// <summary>The identity of <see cref="VarianceExact"/> where a step leaves the wide form: the same numerator
+    /// <c>n·Σdᵢ² − (Σdᵢ)²</c> and denominator <c>n²</c> formed by <see cref="CobolExact"/>'s operations (the wide form, then the
+    /// arbitrary-precision one, kb/Work PB4592), divided once, so a variance of arguments past 77 digits is the exact variance
+    /// rounded once and never the SDIDI body's (kb/Work PB4750).</summary>
+    private static CobolDec VarianceBig(CobolExact[] xs, CobolRounding mode)
+    {
+        CobolExact sum = CobolExact.From(0, 0), squares = sum;
+        foreach (CobolExact x in xs)
+        {
+            CobolExact d = CobolExact.Sub(x, xs[0]);
+            sum = CobolExact.Add(sum, d);
+            squares = CobolExact.Add(squares, CobolExact.Mul(d, d));
+        }
+        CobolExact n = CobolExact.From(xs.Length, 0);
+        CobolExact numerator = CobolExact.Sub(CobolExact.Mul(n, squares), CobolExact.Mul(sum, sum));
+        return CobolExact.Quotient(numerator, CobolExact.Mul(n, n), mode, jam: false);
     }
 
     private static bool TryVariance(CobolExact[] xs, CobolRounding mode, out CobolDec variance)
@@ -175,13 +190,24 @@ public static partial class CobolIntrinsics
     /// denominator on the wide form, rounded once. §15.74.3 r2 (rate &gt; −1, so p &gt; 0) is screened on the exact rate through the ONE
     /// raise site (<see cref="PresentValueDomain"/>). The 34-digit term quotients of <see cref="PresentValueDec"/> answered
     /// PRESENT-VALUE (0, P, 1 − P) = 0 for 1 and PRESENT-VALUE (3, 10^33 + 1, −4·10^33) = 0.3 for 0.25. A discount whose powers leave
-    /// the wide form (many periods at a rate of many places) is the SDIDI body's, which screens the same rule on the same rate.</summary>
+    /// the wide form (many periods at a rate of many places) takes the same identity on the arbitrary-precision form (<see cref="PresentValueBig"/>).</summary>
     public static CobolDec PresentValueExact(CobolRounding mode, CobolExact rate, params CobolExact[] amounts)
     {
         RequireArguments(amounts.Length, "PRESENT-VALUE");
-        return TryPresentValue(rate, amounts, mode, out CobolDec value)
-            ? value
-            : PresentValueDec(mode, rate.Image, Images(amounts));
+        CobolExact discount = CobolExact.Add(CobolExact.From(1, 0), rate);   // 1 + rate, exact
+        if (discount.Sign <= 0) return CobolDec.From(PresentValueDomain(rate.Image.ToDouble()), 0);   // §15.74.3 r2
+        return TryPresentValue(rate, amounts, mode, out CobolDec value) ? value : PresentValueBig(discount, amounts, mode);
+    }
+
+    /// <summary>The identity of <see cref="PresentValueExact"/> where a step leaves the wide form (many periods at a rate of many
+    /// places): <c>Σ aₖ·d^(n−k) / d^n</c> for the discount base d = 1 + rate, the numerator by Horner's rule
+    /// (<c>Nₖ = Nₖ₋₁·d + aₖ</c>), formed by <see cref="CobolExact"/>'s operations (the arbitrary-precision form past the wide one,
+    /// kb/Work PB4592) and divided once (kb/Work PB4750).</summary>
+    private static CobolDec PresentValueBig(CobolExact discount, CobolExact[] amounts, CobolRounding mode)
+    {
+        CobolExact numerator = CobolExact.From(0, 0);
+        foreach (CobolExact amount in amounts) numerator = CobolExact.Add(CobolExact.Mul(numerator, discount), amount);
+        return CobolExact.Quotient(numerator, CobolExact.Pow(discount, amounts.Length), mode, jam: false);
     }
 
     private static bool TryPresentValue(CobolExact rate, CobolExact[] amounts, CobolRounding mode, out CobolDec value)
@@ -191,11 +217,6 @@ public static partial class CobolIntrinsics
         if (a > CobolWide.MaxDigits - 1 || !rate.TryAt(a, out CobolWide r)) return false;
         CobolWide q = CobolWide.PowerOfTen(a);
         if (!CobolWide.TryAdd(q, r, out CobolWide p)) return false;
-        if (p.Sign <= 0)
-        {
-            value = CobolDec.From(PresentValueDomain(rate.Image.ToDouble()), 0);
-            return true;
-        }
         CobolWide common = CobolWide.Gcd(p, q);
         p = CobolWide.DivRem(p, common, out _);
         q = CobolWide.DivRem(q, common, out _);

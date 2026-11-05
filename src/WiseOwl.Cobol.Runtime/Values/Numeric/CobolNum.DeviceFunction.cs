@@ -48,6 +48,24 @@ public static partial class CobolNum
         return Compose(value.Sign < 0, digits, temporary, commaMode);
     }
 
+    /// <summary>The text of a temporary holding an EXACT value of the wide form or past it (<paramref name="signedItem"/> as for
+    /// <see cref="DeviceFunctionText(CobolDec, bool, bool)"/>; kb/Work PB4750): every digit of an arbitrary-precision value, as of a wide one.</summary>
+    internal static string DeviceFunctionText(CobolExact value, bool signedItem, bool commaMode)
+    {
+        NumProfile temporary = ReturnedValueProfile(value, out string digits, out _) with { Signed = signedItem };
+        return Compose(value.Sign < 0, digits, temporary, commaMode);
+    }
+
+    /// <summary>The description of the temporary an EXACT value describes (kb/Work PB4750): the wide value's own digits
+    /// under the same rule, on whichever form holds it.</summary>
+    internal static NumProfile ReturnedValueProfile(CobolExact value, out string digits, out int storageBytes)
+    {
+        int sign = value.Sign, scale = value.Scale;
+        string magnitude = value.MagnitudeDigits();
+        if (sign != 0 && scale < 0) magnitude += new string('0', -scale);   // trailing P positions are integer digits
+        return ReturnedValueProfile(sign < 0, magnitude, sign != 0 && scale > 0 ? scale : 0, out digits, out storageBytes);
+    }
+
     /// <summary>
     /// ⛔ THE DESCRIPTION OF THE TEMPORARY A VALUE DESCRIBES, GnuCOBOL 3.2.0's <c>cob_alloc_field</c>:
     /// <list type="number">

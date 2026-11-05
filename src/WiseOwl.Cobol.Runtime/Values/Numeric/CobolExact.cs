@@ -393,8 +393,8 @@ public readonly struct CobolExact
     /// <summary>⛔ THE ALGEBRAIC COMPARISON OF TWO EXACT VALUES (−1/0/+1; ISO §8.8.4.2.4: "a comparison is made with respect to the
     /// algebraic value of the operands"), never of an image, and exact for every pair: two SDIDI values by their own compare, two wide
     /// values on the wide form at their own scales (<see cref="CobolWide.Compare"/>, which never aligns past the range), a mixed
-    /// pair with the SDIDI value written on the wide form at its own exponent — or, when its integer is past the 256-bit range, by its
-    /// sign alone, because it is then larger in magnitude than every wide value — and any pair with an arbitrary-precision value on that
+    /// pair with the SDIDI value written on the wide form at its own exponent — or, when its integer is past the 256-bit range, on the
+    /// arbitrary-precision form (a wide value at a negative scale can be larger still) — and any pair with an arbitrary-precision value on that
     /// form (<see cref="CobolBig.Compare"/>). The ordering every selection over mixed carriers
     /// takes (<c>CobolIntrinsics.OrdMaxExact</c> and its siblings, and <see cref="FunctionValueField"/>'s temporaries).</summary>
     public static int Compare(CobolExact a, CobolExact b)
@@ -402,11 +402,13 @@ public readonly struct CobolExact
         if (a._isBig || b._isBig) return CobolBig.Compare(a.AsBig(), b.AsBig());
         if (a._sdidi && b._sdidi) return CobolDec.Compare(a._dec, b._dec);
         if (!a._sdidi && !b._sdidi) return CobolWide.Compare(a._wide, a._scale, b._wide, b._scale);
+        // A mixed pair: the SDIDI value written on the wide form at its own exponent. When that leaves the 256-bit range the pair
+        // is NOT ordered by its sign (a wide value at a NEGATIVE scale, PIC 9(20)P(10) cubed, can be larger still): it goes to the
+        // arbitrary-precision form (review finding R2-1 of kb/Work PB4750).
         bool aWide = !a._sdidi;
         CobolExact dec = aWide ? b : a, wide = aWide ? a : b;
-        int order = CobolWide.TryFrom(dec._dec, out CobolWide w, out int s)
-            ? CobolWide.Compare(wide._wide, wide._scale, w, s)
-            : -Int128.Sign(dec._dec.Sig);   // the SDIDI value is past every wide value: its sign orders the pair
+        if (!CobolWide.TryFrom(dec._dec, out CobolWide w, out int s)) return CobolBig.Compare(a.AsBig(), b.AsBig());
+        int order = CobolWide.Compare(wide._wide, wide._scale, w, s);
         return aWide ? order : -order;
     }
 
@@ -427,6 +429,15 @@ public readonly struct CobolExact
 
     /// <summary>FRACTION-PART of an arbitrary-precision value: <c>argument − INTEGER-PART (argument)</c>, at its own scale.</summary>
     internal CobolExact FractionPartBig() => Of(AsBig().FractionPart(), _precision);
+
+    /// <summary>The digits of the unscaled magnitude, whichever form holds the value (no sign, no scale): what a temporary that shows every
+    /// digit of an exact value writes out (<c>CobolNum.ReturnedValueProfile</c>, kb/Work PB4750). Text, so the raw arbitrary-precision type
+    /// stays inside <see cref="CobolBig"/>.</summary>
+    internal string MagnitudeDigits() =>
+        _isBig ? _big.MagnitudeDigits() : _sdidi ? CobolDec.UAbs(_dec.Sig).ToString(System.Globalization.CultureInfo.InvariantCulture) : _wide.MagnitudeDigits();
+
+    /// <summary>Is this an SDIDI (<see cref="Image"/> is the value itself)?</summary>
+    internal bool IsDec => _sdidi;
 
     /// <summary>Is this the arbitrary-precision form? The consumers with a wide arm and an SDIDI arm ask before they choose.</summary>
     internal bool IsBig => _isBig;

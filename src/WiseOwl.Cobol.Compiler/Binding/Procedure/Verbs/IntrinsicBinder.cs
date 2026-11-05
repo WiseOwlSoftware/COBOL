@@ -2080,15 +2080,32 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 continue;
             }
             // r3 first: a numeric argument's own usage/sign/scale conditions.
-            if (a is BoundFieldOperand { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } np } })
+            // A COUNTER REGISTER is a numeric item too, unsigned and integral, of the usage its description gives
+            // (AlgebraicRanges.CounterRegisterUsage; kb/Work PB4766 review R1-1): LINAGE-COUNTER display, LINE-/PAGE-COUNTER binary.
+            (Usage Usage, bool Signed, int Scale)? numeric = a switch
             {
-                if (np.Usage is not (Usage.Display or Usage.National))
-                    report($"FUNCTION CONCAT argument-{i + 1} is a numeric item of usage {np.Usage}; ISO §15.18.3 r3 "
+                BoundFieldOperand { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } np } }
+                    => (np.Usage, np.Signed, np.Scale),
+                BoundComputedOperand { Expr: var register } when AlgebraicRanges.CounterRegisterUsage(register) is { } registerUsage
+                    => (registerUsage, false, 0),
+                _ => null,
+            };
+            if (numeric is { Usage: var nUsage, Signed: var nSigned, Scale: var nScale })
+            {
+                if (nUsage is not (Usage.Display or Usage.National))
+                {
+                    report($"FUNCTION CONCAT argument-{i + 1} is a numeric item of usage {nUsage}; ISO §15.18.3 r3 "
                         + "requires a numeric argument to be usage display or national", a);
-                else if (np.Signed || np.Scale != 0)
-                    report($"FUNCTION CONCAT argument-{i + 1} is a {(np.Signed ? "signed" : "non-integer")} numeric item; "
+                    continue;
+                }
+                if (nSigned || nScale != 0)
+                {
+                    report($"FUNCTION CONCAT argument-{i + 1} is a {(nSigned ? "signed" : "non-integer")} numeric item; "
                         + "ISO §15.18.3 r3 requires a numeric argument to be an unsigned integer", a);
-                continue;   // a numeric DISPLAY item is display-usage for r2 below by construction
+                    continue;
+                }
+                // A numeric DISPLAY or NATIONAL item satisfies r3 and goes on to r2's usage family below, like any other argument
+                // (kb/Work PB4766 review R1-3: it used to `continue` here and so was never refused beside a national argument).
             }
             if (a is BoundNumericLiteral nl)
             {

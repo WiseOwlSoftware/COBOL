@@ -1980,7 +1980,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// need not be valid for it — the storage BITS, never the display image; PB59 family 5b). A FIELD renders
     /// through the ONE storage channel (<see cref="OperandText.AsStorageImage"/>); a literal renders its
     /// declared storage (an N"…" literal its UTF-16BE bytes, a B"…" literal its packed bits, an alphanumeric
-    /// literal its characters under the item-209 1-byte serialization). Every other shape (computed values,
+    /// literal its characters under the item-209 1-byte serialization); a counter register the bytes of its description
+    /// (<see cref="OperandText.CounterRegisterStorageImage"/>). Every other shape (computed values,
     /// figuratives, ALL literals) HAS no storage — those keep the display-image channel they always rode, which
     /// for a numeric shape stays the deliberately-loud <see cref="Str"/> default.</summary>
     private string StorageArg(BoundOperand op) => op switch
@@ -1997,6 +1998,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         BoundStringLiteral { Category: PicCategory.National } sl => RuntimeApi.NatBytes(EmitText.CsLiteral(sl.Value)),
         BoundStringLiteral { Category: PicCategory.Boolean } sl =>
             RuntimeApi.BitsPack(EmitText.CsLiteral(sl.Value), sl.Value.Length.ToString()),
+        // A COUNTER REGISTER is a data item with a description (§8.4.3.14.4 GR1, §8.4.3.15.4 GR1), so its storage is that
+        // description's bytes, not the display image Str gives a character argument (kb/Work PB4766 review R1-2).
+        BoundComputedOperand c when OperandText.IsCounterRegister(c) => OperandText.CounterRegisterStorageImage(c, Num),
         _ => Str(op),
     };
 
@@ -2050,6 +2054,17 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // argument renders beside it. The binder bars every other numeric/integer function here (SR11/SR12), so a
             // non-admitting position still reaches Loud only through a --permissive coercion.
             : admitNumeric && n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Numeric }
+                ? OperandText.AsString(n, owner.Num)
+            // ⛔ A COUNTER REGISTER AS A CHARACTER ARGUMENT (kb/Work PB4766). LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER each a
+            // "temporary unsigned integer data item" of class and category numeric (§8.4.3.14.4 GR1, §8.4.3.15.4 GR1), a DATA ITEM
+            // like the numeric field the field arm above images without asking which position it is at, so CONCAT (§15.18.3 r1) and
+            // BASECONVERT argument-1 (§15.12.3 r1) admit it bare and it compiled clean and died on the loud arm below (the
+            // wrong-stage family). Its image is the unsigned integer item's, the ONE form OperandText.AsString gives a register in a
+            // string context (its digits zero-filled to the register's implicit digit count, AlgebraicRanges.CounterRegisterDigits).
+            // The usage screens see the register through IntrinsicArgumentRules.StaticUsageOf (its description's usage), so CONCAT
+            // r2/r3 and BASECONVERT r1 refuse LINE-/PAGE-COUNTER (binary) as they refuse a declared BINARY item, and only
+            // LINAGE-COUNTER (a DISPLAY item) reaches this arm; it renders.
+            : OperandText.IsCounterRegister(n)
                 ? OperandText.AsString(n, owner.Num)
             // ⛔ THE --permissive COERCION OF A COMPOUND ARITHMETIC EXPRESSION AT A CHARACTER POSITION (kb/Work PB4710): `TRIM (I2 + 1)`
             // is refused in every strict mode (an arithmetic expression is class numeric where TRIM requires a character class,
