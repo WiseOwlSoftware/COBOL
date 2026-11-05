@@ -2218,7 +2218,7 @@ check("the fix lane reads the open notes that wait on nothing: a landed blocker 
 # harmed dependent stays hidden, and the register's own file is untouched
 PQ = TMP / "prereq-register"
 PQ.mkdir()
-for nid, extra in (("PB811", "process_only: true"), ("PB812", f"process_only: false{NL}wrong_answer: true{NL}blocked_by: [PB813]"),
+for nid, extra in (("PB811", f"process_only: true{NL}process_only: true"), ("PB812", f"process_only: false{NL}wrong_answer: true{NL}blocked_by: [PB813]"),
                    ("PB813", f"process_only: true{NL}blocked_by: [PB811]"), ("PB814", "process_only: true")):
     (PQ / f"{nid}.md").write_text(f"---{NL}id: {nid}{NL}kind: defect{NL}status: open{NL}area: x{NL}{extra}{NL}---{NL}b{NL}",
                                   encoding="utf-8", newline="")

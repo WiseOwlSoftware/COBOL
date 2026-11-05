@@ -199,9 +199,9 @@ def owing(note: pathlib.Path, flags: list[str]) -> str:
     lines = head.split("\n")
     for key, value in [*((f, "true") for f in flags), ("process_only", "false")]:
         hit = [n for n, ln in enumerate(lines) if ln.startswith(f"{key}:")]
-        if hit:
-            lines[hit[0]] = f"{key}: {value}"
-        else:
+        for n in hit:  # every line of a repeated key: the frontmatter reader keeps the last (review R1-2)
+            lines[n] = f"{key}: {value}"
+        if not hit:
             lines.append(f"{key}: {value}")
     return "\n".join(lines) + sep + body
 

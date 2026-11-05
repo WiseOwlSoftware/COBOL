@@ -795,10 +795,12 @@ def inherited_harm(items: list[dict]) -> dict[str, list[str]]:
     """The harm flags each open note owes to the open harmed notes that wait on it, directly or through a chain of
     `blocked_by` (open_blockers), in HARM_FLAGS' order (kb/Work PB4769). A prerequisite does to a user's program what
     the defect it unblocks does: PB4734 and PB4739 are `process_only` with no harm of their own, yet PB4736 (a wrong
-    answer) and PB4741 to PB4744 (rejected legal source) wait on them, so a register that ranked only stored flags
-    listed neither in `next` and the fix lane planned neither, and the harmed notes waited for ever. Derived, never
-    stored: the ONE reading `actionable`, `view_notes` and the planner's ready view (clusters.ready_notes_view) share.
-    Another project's record (kind upstream) inherits nothing."""
+    answer) waits on PB4734 and PB4735, and PB4744 (rejected legal source) and the PB4700 umbrella wait, through
+    PB4741 and PB4742, on PB4739, so a register that ranked only stored flags listed neither in `next` and the fix lane
+    planned neither, and the harmed notes waited for ever. Derived, never stored: the ONE reading `actionable`,
+    `view_notes`, the planner's ready view (clusters.ready_notes_view), the ledger (ledger_plan) and the landing
+    order (prune_worktrees.note_rank) share. Another project's record (kind upstream) inherits nothing, and a link held
+    `owner` ends the walk: the owner has not decided that work, so nothing below it is owed (review R1-3)."""
     by_id = {i.get("id"): i for i in items}
     owed: dict[str, set[str]] = {}
     for h in items:
@@ -808,7 +810,8 @@ def inherited_harm(items: list[dict]) -> dict[str, list[str]]:
         stack, seen = list(open_blockers(h, by_id)), set()
         while stack:
             b = stack.pop()
-            if b in seen or b not in by_id or by_id[b].get("kind") == "upstream":
+            if (b in seen or b not in by_id or by_id[b].get("kind") == "upstream"
+                    or by_id[b].get("status") not in INHERITING_STATUSES):
                 continue
             seen.add(b)
             owed.setdefault(b, set()).update(flags)
@@ -2071,6 +2074,10 @@ def view_findings() -> list[str]:
         "PB9013": {"process_only": "true"},
         "PB9014": {"status": "owner", "wrong_answer": "true", "blocked_by": "[PB9015]"},
         "PB9015": {"process_only": "true"},
+        # an owner-held link in a chain ends the walk: PB9017 is below undecided work (review R1-3)
+        "PB9016": {"wrong_answer": "true", "blocked_by": "[PB9018]"},
+        "PB9018": {"status": "owner", "process_only": "true", "blocked_by": "[PB9017]"},
+        "PB9017": {"process_only": "true"},
     }
     # one open note per harm flag the register ranks, each of which `next` must list and `unharmed` must not
     notes.update({f"PB92{n:02d}": {flag: "true"} for n, flag in enumerate(HARM_FLAGS)})
@@ -2078,8 +2085,8 @@ def view_findings() -> list[str]:
     want = {
         # PB9002 is process_only with no harm of its own, but PB9003 (a crash) waits on it: it owes that harm (PB4769)
         "next": sorted(["PB9001", "PB9002", "PB9010", "PB9013", *harmed]),
-        "blocked": ["PB9003", "PB9004", "PB9012", "PB9014"],
-        "unharmed": ["PB9007", "PB9011", "PB9015"],
+        "blocked": ["PB9003", "PB9004", "PB9012", "PB9014", "PB9016", "PB9018"],
+        "unharmed": ["PB9007", "PB9011", "PB9015", "PB9017", "PB9018"],
         "analyses": ["PB9007", "PB9008"],
         "landed": ["PB9005", "PB9006"],
         "upstream": ["PB9009"],
