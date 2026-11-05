@@ -62,7 +62,11 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// compiler's channel beside the binder's own diagnostics instead of stopping the compile before it (a source whose only
 /// fault is a word character still draws every bind-time error). Both feed one <see cref="WordScanner"/> and run
 /// <see cref="Check"/>.</para>
-/// <para>One report per DISTINCT word per compilation (the Annex C fold), the posture the length ceiling has.</para>
+/// <para>One report per DISTINCT word per TEXT (the Annex C fold), the posture the length ceiling has. A text is one walk: the
+/// written tree, or the tree of an expansion of a skeleton read from the repository (<c>GroupBindContext.Texts</c>, which the
+/// binder driver walks one <see cref="RunOnTree"/> each, kb/Work PB4649): each is reported as the compilation that compiles it
+/// would report it, so a word one text raises never hides the same word of another, and the position carries the expansion's
+/// <see cref="DiagnosticRegion"/> (<see cref="ExpansionToken.CursorOf"/>) for the sink to attribute and to withdraw.</para>
 /// </summary>
 public static class WordCharacterScreen
 {
@@ -87,7 +91,8 @@ public static class WordCharacterScreen
     }
 
     /// <summary>The frontend reported no error, so the binder runs on the complete tree: screen every word the tree holds,
-    /// outside its comment-entries, its terminals read in source order.</summary>
+    /// outside its comment-entries, its terminals read in source order. <paramref name="tree"/> is ONE text of the group (see the
+    /// class remarks): the written unit, or an expansion's text.</summary>
     public static void RunOnTree(IParseTree tree, EditionInfo edition, IDiagnosticSink sink)
     {
         var scanner = new WordScanner();
@@ -112,8 +117,9 @@ public static class WordCharacterScreen
         if (scanner.Finish() is { } words) Check(words, edition, sink);
     }
 
-    /// <summary>A word the screen judges: its text (a word token's, or a joined run's) and where its first character is.</summary>
-    private readonly record struct ScreenedWord(string Text, int Line, int Column);
+    /// <summary>A word the screen judges: its text (a word token's, or a joined run's) and where its first character is, the region of an
+    /// expansion's text included (<see cref="ExpansionToken.CursorOf"/>, kb/Work PB4649).</summary>
+    private readonly record struct ScreenedWord(string Text, DiagnosticCursor At);
 
     /// <summary>⭐ The words of a token sequence in source order (see the class remarks). Tokens are grouped into CHAINS of
     /// adjacent tokens — each one starting where the previous one stopped, so no separator stands between them — and a chain
@@ -184,7 +190,7 @@ public static class WordCharacterScreen
                 if (!IsSignedInteger(word))
                 {
                     var first = _chain[start].Token;
-                    (_words ??= []).Add(new(word, first.Line, first.Column));
+                    (_words ??= []).Add(new(word, ExpansionToken.CursorOf(first)));
                     return;
                 }
             }
@@ -193,7 +199,7 @@ public static class WordCharacterScreen
 
         private void AddCandidate(IToken token)
         {
-            if (IsCandidate(token, out string? text)) (_words ??= []).Add(new(text, token.Line, token.Column));
+            if (IsCandidate(token, out string? text)) (_words ??= []).Add(new(text, ExpansionToken.CursorOf(token)));
         }
 
         /// <summary>A hyphen followed by digits alone: a numeric literal's sign and its digits (§8.3.3.3.2 2).</summary>
@@ -260,10 +266,10 @@ public static class WordCharacterScreen
     private static void Check(List<ScreenedWord> words, EditionInfo edition, IDiagnosticSink sink)
     {
         var reported = new HashSet<string>(CobolNames.Comparer);
-        foreach (var (word, line, column) in words)
+        foreach (var (word, at) in words)
         {
             if (!reported.Add(word)) continue;
-            using var _ = sink.At(line, column);
+            using var _ = sink.At(at);
             CheckWord(word, edition, sink);
         }
     }

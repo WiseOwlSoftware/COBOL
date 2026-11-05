@@ -1050,8 +1050,8 @@ public sealed class ExternalRepositoryExpansionTests
 
     /// <summary>A client with its own class LBOX that expands two repository skeletons whose texts declare the same reserved word: HOLD
     /// over LIBX's BOX (placement (a): an assembly of its own, then an import) and KEEP over LBOX (placement (b): the group's assembly),
-    /// and, when <paramref name="declares"/>, declares the word in its own WORKING-STORAGE too.</summary>
-    private static string TwoExpansionsClient(bool declares) => Box.Replace("BOX", "LBOX") + $"""
+    /// and carries <paramref name="declaration"/> (a data entry, or none) in its own WORKING-STORAGE.</summary>
+    private static string TwoExpansionsClient(string declaration) => Box.Replace("BOX", "LBOX") + $"""
         IDENTIFICATION DIVISION.
         PROGRAM-ID. CLIENTW.
         ENVIRONMENT DIVISION.
@@ -1067,7 +1067,7 @@ public sealed class ExternalRepositoryExpansionTests
         WORKING-STORAGE SECTION.
         01 HB USAGE OBJECT REFERENCE HOLD-BOX.
         01 KL USAGE OBJECT REFERENCE KEEP-LBOX.
-        {(declares ? "01 EDITING PIC X." : "")}
+        {declaration}
         PROCEDURE DIVISION.
             INVOKE HOLD-BOX "NEW" RETURNING HB
             INVOKE KEEP-LBOX "NEW" RETURNING KL
@@ -1078,14 +1078,31 @@ public sealed class ExternalRepositoryExpansionTests
     [Theory]   // kb/Work PB4483 review R1-1, ISO §8.9: the once-per-word COBOL0901 belongs to each text; a report the group withdraws hides none.
     [InlineData(false)]
     [InlineData(true)]
-    public void AReservedWordOfAWithdrawnExpansionText_DoesNotHideTheSameWordInAnotherText(bool declares)
+    public void AReservedWordOfAWithdrawnExpansionText_DoesNotHideTheSameWordInAnotherText(bool declares) =>
+        AssertWordReportedOncePerText(declares, "EDITING", "COBOL0901");
+
+    /// <summary>The removed U+30FB (Annex E.2 item 4; a COBOL-2023 removal, COBOL0902, a warning under <c>--permissive</c>) as the last
+    /// character of a word: Annex B.3 item 3 permits it only inside a word.</summary>
+    private const string RemovedCharacterWord = "ABC・";
+
+    [Theory]   // kb/Work PB4649, ISO §8.3.2.1 + Annex B.3: the word-character screen walks the text of an expansion of a repository skeleton, per text.
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ARemovedCharacterOfAnExpansionText_IsReportedAtTheEntry_InEveryPlacement_AndOncePerText(bool declares) =>
+        AssertWordReportedOncePerText(declares, RemovedCharacterWord, "COBOL0902");
+
+    /// <summary>Two repository skeletons (HOLD and KEEP) whose texts hold the word <paramref name="word"/>, a client expanding HOLD in an
+    /// assembly of its own (then imported) and KEEP in the group's assembly, and (when <paramref name="declares"/>) the client declaring the
+    /// word too: the diagnostic <paramref name="code"/> of the word is reported once by each text that the compilation answers for, at the
+    /// place that text is written (the EXPANDS entry for a repository text), and by no other.</summary>
+    private static void AssertWordReportedOncePerText(bool declares, string word, string code)
     {
         WithDirectory("expansion-word-per-text", dir =>
         {
-            string hold = Hold().Replace("01 ITEM USAGE OBJECT REFERENCE ELEM.", "01 ITEM USAGE OBJECT REFERENCE ELEM. 01 EDITING PIC X.");
+            string hold = Hold().Replace("01 ITEM USAGE OBJECT REFERENCE ELEM.", $"01 ITEM USAGE OBJECT REFERENCE ELEM. 01 {word} PIC X.");
             var library = Compile(dir, "LIBX", Box + hold + "\n" + hold.Replace("HOLD", "KEEP"), level: 2023, permissive: true);
             Assert.True(library.Success, Codes(library));
-            string source = TwoExpansionsClient(declares);
+            string source = TwoExpansionsClient(declares ? $"01 {word} PIC X." : "");
             var lines = source.Split('\n').ToList();
             string file = Path.Combine(dir, "CLIENTW.cob");
             string At(string text) => $"{file}({lines.FindIndex(l => l.Contains(text, StringComparison.Ordinal)) + 1},";
@@ -1097,16 +1114,16 @@ public sealed class ExternalRepositoryExpansionTests
             foreach (var (r, holdReports) in new[] { (apart, 1), (imported, 0) })
             {
                 Assert.True(r.Success, Codes(r));
-                var reports = WithCode(r, "COBOL0901");
-                Assert.All(reports, w => Assert.Contains("'EDITING'", w, StringComparison.Ordinal));
+                var reports = WithCode(r, code);
+                Assert.All(reports, w => Assert.Contains($"'{word}'", w, StringComparison.Ordinal));
                 string keep = Assert.Single(reports, w => w.EndsWith("[in the expansion 'KEEP-LBOX']", StringComparison.Ordinal));
-                Assert.StartsWith($"{At("EXPANDS KEEP")}5): warning COBOL0901:", keep, StringComparison.Ordinal);
+                Assert.StartsWith($"{At("EXPANDS KEEP")}5): warning {code}:", keep, StringComparison.Ordinal);
                 var holdBox = reports.Where(w => w.EndsWith("[in the expansion 'HOLD-BOX']", StringComparison.Ordinal)).ToArray();
                 Assert.Equal(holdReports, holdBox.Length);
-                Assert.All(holdBox, w => Assert.StartsWith($"{At("EXPANDS HOLD")}5): warning COBOL0901:", w, StringComparison.Ordinal));
+                Assert.All(holdBox, w => Assert.StartsWith($"{At("EXPANDS HOLD")}5): warning {code}:", w, StringComparison.Ordinal));
                 var own = reports.Where(w => !w.Contains("[in the expansion", StringComparison.Ordinal)).ToArray();
                 Assert.Equal(declares ? 1 : 0, own.Length);
-                Assert.All(own, w => Assert.StartsWith(At("01 EDITING PIC X."), w, StringComparison.Ordinal));
+                Assert.All(own, w => Assert.StartsWith(At($"01 {word} PIC X."), w, StringComparison.Ordinal));
                 Assert.Equal(1 + holdReports + own.Length, reports.Length);
             }
         });
