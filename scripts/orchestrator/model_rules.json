@@ -28,11 +28,11 @@
         "config_dir": null,
         "weekly_reset": {
           "weekday": 6,
-          "hour": 3,
+          "hour": 10,
           "minute": 0,
-          "tz": "America/Los_Angeles"
+          "tz": "UTC"
         },
-        "_source": "the default config dir; its week resets Sunday 03:00 America/Los_Angeles (the owner's meter since 2026-09)"
+        "_source": "the default config dir; its week resets Sunday 03:00 America/Los_Angeles in daylight saving time (the owner's meter since 2026-09), a fixed instant, Sunday 10:00 UTC: after daylight saving time ended its /usage read 'Resets Nov 8, 2am (America/Los_Angeles)' (owner 2026-11-05, kb/Work PB4746)"
       },
       {
         "name": "account2",

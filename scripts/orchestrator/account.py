@@ -362,7 +362,8 @@ def _self_test() -> int:
     a1 = current(rules, {})
     check("unset -> the default account", (a1.name, a1.explicit), ("account1", False))
     check("default global config is ~/.claude.json", a1.global_config, home / ".claude.json")
-    check("account 1 resets Sunday 03:00", (a1.weekly_reset["weekday"], a1.weekly_reset["hour"]), (6, 3))
+    check("account 1 resets Sunday 10:00 UTC", (a1.weekly_reset["weekday"], a1.weekly_reset["hour"], a1.weekly_reset["tz"]),
+          (6, 10, "UTC"))
     a2 = current(rules, {ENV: str(home / ".claude-acct2")})
     check("acct2 dir -> account2", (a2.name, a2.explicit), ("account2", True))
     check("account 2 resets Saturday 17:00 UTC", (a2.weekly_reset["weekday"], a2.weekly_reset["hour"], a2.weekly_reset["tz"]),

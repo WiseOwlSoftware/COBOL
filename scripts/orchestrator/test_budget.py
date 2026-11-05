@@ -74,8 +74,10 @@ def source(events):
 check("week start, Sunday after 03:00", budget.week_start(at(2026, 10, 4, 14), RESET1), at(2026, 10, 4, 3))
 check("week start, Sunday before 03:00", budget.week_start(at(2026, 10, 4, 2), RESET1), at(2026, 9, 27, 3))
 check("week start, Wednesday", budget.week_start(at(2026, 10, 7, 9), RESET1), at(2026, 10, 4, 3))
-# DST ends 2026-11-01 at 02:00: the reset that day is still 03:00 wall-clock
-check("week start across DST", budget.week_start(at(2026, 11, 1, 12), RESET1).hour, 3)
+# DST ends 2026-11-01 at 02:00: the reset is a fixed instant (Sunday 10:00 UTC, kb/Work PB4746), so from then on it is
+# 02:00 Pacific, not 03:00 (owner 2026-11-05: account 1's /usage "Resets Nov 8, 2am")
+check("week start across DST", budget.week_start(at(2026, 11, 1, 12), RESET1), at(2026, 11, 1, 2))
+check("week start after DST", budget.week_start(at(2026, 11, 5, 9), RESET1), at(2026, 11, 1, 2))
 
 # 2. points: 1 M counted Sonnet tokens = 1 point; 0.4 M Opus = 1 point; cache reads are not counted
 cal = FIXTURE["calibration"]
@@ -103,7 +105,7 @@ check("go: decision", r["decision"], "go")
 check("go: headroom", r["headroom_pct"], 6.6)
 
 r = budget.estimate(now, [reading], source([ev(at(2026, 10, 5, 10), "sonnet", out=9_000_000)]), FIXTURE, A1)
-check("hold-day over allowance", (r["decision"], r["resume_at"]), ("hold-day", at(2026, 10, 6, 3, 5).isoformat()))
+check("hold-day over allowance", (r["decision"], dt.datetime.fromisoformat(r["resume_at"])), ("hold-day", at(2026, 10, 6, 3, 5)))
 r = budget.estimate(now, [reading], source([ev(at(2026, 10, 5, 10), "sonnet", out=9_000_000)]), FIXTURE, A1, borrow_days=1)
 check("borrowing a day turns hold-day into go/hold-session", r["allowance_pct"], 42.9)
 

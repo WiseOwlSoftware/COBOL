@@ -944,8 +944,8 @@ D5), because it changes the landing contract.
 
 - **One account.** Every estimate is one account's (section 2.1): the account `account.py` resolves from
   `CLAUDE_CONFIG_DIR`, or `--account NAME`. Its week starts at ITS weekly reset, the row's `weekly_reset` in
-  `model_rules.json` (account 1 Sunday 03:00 America/Los_Angeles; account 2 Saturday 17:00 UTC, a fixed instant, which is
-  10:00 Pacific in daylight saving time and 09:00 outside it) and its quota is the shared `quota` with the row's overrides. `--record` stamps
+  `model_rules.json` (fixed instants, kept in UTC: account 1 Sunday 10:00 UTC, 03:00 Pacific in daylight saving time and 02:00
+  outside it; account 2 Saturday 17:00 UTC, 10:00 and 09:00 Pacific; kb/Work PB4746) and its quota is the shared `quota` with the row's overrides. `--record` stamps
   the reading with the account.
 - **Anchor.** That account's newest reading in `readings.json` (owner-meter values read by the `meter` unit). Readings
   from before the account's current week's reset anchor nothing; the weekly base is then 0 from the reset. A reading
