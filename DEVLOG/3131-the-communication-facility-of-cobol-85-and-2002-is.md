@@ -1,4 +1,4 @@
-## The communication facility of COBOL-85 and 2002 is implemented, with a message control system in the runtime
+## Entry 3131 — 2026-11-04 20:53 PST — The communication facility of COBOL-85 and 2002 is implemented, with a message control system in the runtime
 
 Owner decision 12 of PB4614 (kb/Work PB4677). The re-probe on base 83365cbf3: a COMMUNICATION SECTION drew COBOL0001 at every edition, so all nine CCVS-85 CM programs failed to compile.
 
@@ -15,3 +15,4 @@ Branch review round 1 (kb/Work PB3027) found what the self-review missed, and ea
 Self-review, four lenses. Architecture: one bound node, one emitter, the store behind the session; the store's transaction and what it holds are two files. Full code: reading the rules back found a reference-modified RECEIVE receiver going through the whole-group store, PIC A admitted where SR2 says category alphanumeric, FILLER admitted in a clause, a store refusal keeping the run unit's half, and a state file of the wrong shape escaping as a NullReferenceException; each is fixed with its test. Performance: the SEND predicate runs only where the word is SEND. Duplication: the positions are written twice, `CommunicationFormats` in the compiler and `CommunicationArea` in the runtime, because the compiler's table builds DataItems and the runtime's reads an image; `pb4677_mcs_receive` reads through the first what the second wrote, field by field, and a unit test holds the sizes.
 
 === BUILD-LOCAL GATE: GREEN — Conformance 21,887/21,887 · Unit 39,974/39,974 · Characterization 37/37 cases ran (skipped 0) · slot 1 of 3 (ticket 4570, waited 0.0 s) · toolchain dotnet-sdk 10.0.403, python 3.15.2, jdk 27.0.1, pwsh 7.6.9, git-windows 2.56.0, gh 2.103.3, jq 1.8.2 (1 class(es) first; run 000002-20261105T042620Z) ===
+
