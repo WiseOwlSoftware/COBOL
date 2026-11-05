@@ -40,11 +40,11 @@ namespace WiseOwl.Cobol.Runtime;
 public readonly struct FunctionValueField
 {
     /// <summary>What the temporary is: a value the value describes, a copy of an item, a binary64 image, or a value of more than
-    /// 38 digits held EXACTLY on the wide intermediate (<see cref="OfWide"/>, kb/Work PB3953).</summary>
-    private enum Shape : byte { Value, Item, Float, Wide }
+    /// 38 digits held EXACTLY, on the wide intermediate or past it (<see cref="OfWide"/>, <see cref="OfExact"/>, kb/Work PB3953, PB4750).</summary>
+    private enum Shape : byte { Value, Item, Float, Exact }
 
-    /// <summary>The temporary's SDIDI value. For a <see cref="Shape.Wide"/> temporary it is only the round-to-odd IMAGE of
-    /// <see cref="_wide"/>, and <see cref="Compare"/> never orders by that image: a pair holding a wide value is ordered by the
+    /// <summary>The temporary's SDIDI value. For a <see cref="Shape.Exact"/> temporary it is only the round-to-odd IMAGE of
+    /// <see cref="_exact"/>, and <see cref="Compare"/> never orders by that image: a pair holding an exact value is ordered by the
     /// exact values.</summary>
     private readonly CobolDec _value;
     private readonly NumProfile _item;
@@ -52,8 +52,7 @@ public readonly struct FunctionValueField
     private readonly Shape _shape;
     private readonly int _positions;
     private readonly int _bytes;
-    private readonly CobolWide _wide;
-    private readonly int _wideScale;
+    private readonly CobolExact _exact;
 
     private FunctionValueField(Shape shape, CobolDec value, in NumProfile item, int positions, int bytes, string? image = null)
     {
@@ -65,13 +64,9 @@ public readonly struct FunctionValueField
         _image = image;
     }
 
-    /// <summary>A temporary holding a value of more than 38 digits exactly (<paramref name="wide"/> at <paramref name="scale"/>).</summary>
-    private FunctionValueField(CobolWide wide, int scale, in NumProfile item, int bytes)
-        : this(Shape.Wide, wide.ToDec(scale), item, bytes, bytes)
-    {
-        _wide = wide;
-        _wideScale = scale;
-    }
+    /// <summary>A temporary holding a value of more than 38 digits exactly (<paramref name="exact"/>, on the wide form or past it).</summary>
+    private FunctionValueField(CobolExact exact, in NumProfile item, int bytes)
+        : this(Shape.Exact, exact.Image, item, bytes, bytes) => _exact = exact;
 
     /// <summary>The temporary whose positions are its bytes: every temporary but the copy of a USAGE NATIONAL item, whose position is two bytes.</summary>
     private FunctionValueField(Shape shape, CobolDec value, in NumProfile item, int bytes, string? image = null)
@@ -134,30 +129,28 @@ public readonly struct FunctionValueField
     public static FunctionValueField OfWide(CobolWide value, int scale)
     {
         if (value.TryToInt128(out Int128 narrow)) return OfValue(CobolDec.From(narrow, scale));
-        NumProfile described = CobolNum.ReturnedValueProfile(value, scale, out _, out int bytes);
-        return new(value, scale, described, bytes);
+        return OfExactForm(CobolExact.FromWide(value, scale));
     }
 
-    /// <summary>The temporary of an exact native value whose scale only the run time knows (<see cref="CobolExact"/>, kb/Work PB4575:
-    /// an argument expression in which an exact wide intermediate met an SDIDI-carried operand): <see cref="OfWide"/> for a value on the
-    /// wide form, <see cref="OfValue"/> for one the SDIDI carries, so it keeps every digit exactly as the wide argument does.</summary>
+    /// <summary>⛔ THE TEMPORARY OF AN EXACT NATIVE VALUE, ON THE WIDE FORM OR PAST IT (<see cref="CobolExact"/>, kb/Work PB4575, PB4750:
+    /// an argument expression in which an exact wide intermediate met an SDIDI-carried operand, an arbitrary-precision value of an
+    /// expression past the 256-bit form, a selection or mean over such values): <see cref="OfWide"/> for a value on the wide form, the
+    /// same temporary over the arbitrary-precision value for one past it - every digit, as GnuCOBOL's arbitrary-precision temporary
+    /// shows it, never the value's 34-digit image - and <see cref="OfValue"/> for one the SDIDI carries.</summary>
     public static FunctionValueField OfExact(CobolExact value) =>
-        value.TryWide(out CobolWide wide, out int scale) ? OfWide(wide, scale) : OfValue(value.Image);
+        value.TryWide(out CobolWide wide, out int scale) ? OfWide(wide, scale)
+        : value.IsBig ? OfExactForm(value)
+        : OfValue(value.Image);
 
-    /// <summary>This temporary's value exactly: its own wide value, or its SDIDI value at its own exponent.</summary>
-    private CobolExact Exact() => _shape == Shape.Wide ? CobolExact.FromWide(_wide, _wideScale) : CobolExact.FromDec(_value);
-
-    /// <summary>This temporary's value exactly ON THE WIDE FORM, for the even MEDIAN's exact mean of two middles: its own wide value,
-    /// or its SDIDI value written at its own exponent. False only for an SDIDI value whose integer is past the 256-bit range.</summary>
-    private bool TryExact(out CobolWide wide, out int scale)
+    /// <summary>The temporary of a value of more than 38 digits held exactly, described by its own digits.</summary>
+    private static FunctionValueField OfExactForm(CobolExact value)
     {
-        if (_shape == Shape.Wide)
-        {
-            (wide, scale) = (_wide, _wideScale);
-            return true;
-        }
-        return CobolWide.TryFrom(_value, out wide, out scale);
+        NumProfile described = CobolNum.ReturnedValueProfile(value, out _, out int bytes);
+        return new(value, described, bytes);
     }
+
+    /// <summary>This temporary's value exactly: its own exact value, or its SDIDI value at its own exponent.</summary>
+    private CobolExact Exact() => _shape == Shape.Exact ? _exact : CobolExact.FromDec(_value);
 
     /// <summary>⛔ THE ONE ORDERING OF TWO TEMPORARIES (§8.8.4.2.4 - a comparison of the algebraic values; §15.59.4, §15.63.4, §15.61.4
     /// compare "according to the rules for simple conditions"). Two temporaries neither of which is a wide value are ordered by their
@@ -168,7 +161,7 @@ public readonly struct FunctionValueField
     /// it has the second's image BELOW the first. The exact order is <see cref="CobolExact.Compare"/>, the one the native SDIDI lane's
     /// selections take over the same mixed carriers (kb/Work PB4568), so DISPLAY and an operand select the same argument.</summary>
     private static int Compare(in FunctionValueField a, in FunctionValueField b) =>
-        a._shape != Shape.Wide && b._shape != Shape.Wide
+        a._shape != Shape.Exact && b._shape != Shape.Exact
             ? CobolDec.Compare(a._value, b._value)
             : CobolExact.Compare(a.Exact(), b.Exact());
 
@@ -191,7 +184,7 @@ public readonly struct FunctionValueField
     public FunctionValueField Abs() => _shape switch
     {
         Shape.Float => new(Shape.Float, new CobolDec(Int128.Abs(_value.Sig), _value.Exp), _item, _positions, _bytes, _image![0] == '-' ? _image[1..] : _image),
-        Shape.Wide => new(CobolWide.Abs(_wide), _wideScale, _item, _bytes),
+        Shape.Exact => new(_exact.Sign < 0 ? CobolExact.Negate(_exact) : _exact, _item, _bytes),
         _ => new(_shape, new CobolDec(Int128.Abs(_value.Sig), _value.Exp), _item, _positions, _bytes),
     };
 
@@ -233,12 +226,10 @@ public readonly struct FunctionValueField
         int n = sorted.Length;
         if ((n & 1) == 1) return sorted[n / 2];
         FunctionValueField low = sorted[n / 2 - 1], high = sorted[n / 2];
-        // The mean of two middles one of which is a wide value is formed EXACTLY on the wide form (kb/Work PB3953): their sum
-        // at the common scale, halved exactly as five times the sum one place further (MedianWide's rule).
-        if ((low._shape == Shape.Wide || high._shape == Shape.Wide)
-            && low.TryExact(out CobolWide lw, out int ls) && high.TryExact(out CobolWide hw, out int hs)
-            && CobolWide.TryUp(lw, Math.Max(ls, hs) - ls, out lw) && CobolWide.TryUp(hw, Math.Max(ls, hs) - hs, out hw))
-            return OfWide(CobolWide.Mul(CobolWide.Add(lw, hw), CobolWide.From(5)), Math.Max(ls, hs) + 1);
+        // The mean of two middles one of which is held exactly is formed EXACTLY (kb/Work PB3953, PB4750): their exact sum times
+        // the exact one half, whatever form the sum takes.
+        if (low._shape == Shape.Exact || high._shape == Shape.Exact)
+            return OfExact(CobolExact.Mul(CobolExact.Add(low.Exact(), high.Exact()), CobolExact.From(5, 1)));
         CobolDec sum = CobolDec.Add(low._value, high._value, CobolRounding.Truncation);
         return OfValue(CobolDec.Div(sum, CobolDec.From(2, 0), CobolRounding.Truncation));
     }
@@ -249,7 +240,7 @@ public readonly struct FunctionValueField
     {
         Shape.Float => _image!,
         Shape.Item => CobolNum.DisplayDecimal(_value.ToUnscaled(_item.FractionDigits, CobolRounding.Truncation), _item, commaMode),
-        Shape.Wide => CobolNum.DeviceFunctionText(_wide, _wideScale, _item.Signed, commaMode),
+        Shape.Exact => CobolNum.DeviceFunctionText(_exact, _item.Signed, commaMode),
         _ => CobolNum.DeviceFunctionText(_value, _item.Signed, commaMode),
     };
 
