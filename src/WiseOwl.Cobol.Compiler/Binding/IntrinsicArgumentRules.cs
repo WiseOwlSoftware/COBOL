@@ -756,6 +756,11 @@ internal static class IntrinsicArgumentRules
         // string): §15.2 states no usage for it. The usage-by-type table is the ONE IntrinsicSig.ImplicitUsageOf
         // (kb/Work PB3665).
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } => IntrinsicSig.ImplicitUsageOf(ic.ResultCategory),
+        // ⛔ A COUNTER REGISTER IS AN ITEM WITH A USAGE (kb/Work PB4766 review R1-1): LINAGE-COUNTER's description is a DISPLAY
+        // integer item and LINE-/PAGE-COUNTER's an unsigned 32-bit BINARY one (AlgebraicRanges.CounterRegisterUsage, the ONE
+        // statement of the registers' description, which STRING / UNSTRING and the relation already screen by). Answering null
+        // let CONCAT (§15.18.3 r2, r3) and BASECONVERT (§15.12.3 r1) fail open on a register that has no display or national image.
+        BoundComputedOperand { Expr: var register } when AlgebraicRanges.CounterRegisterUsage(register) is { } registerUsage => registerUsage,
         _ => null,
     };
 

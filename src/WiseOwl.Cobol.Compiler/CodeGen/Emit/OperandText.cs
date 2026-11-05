@@ -75,8 +75,8 @@ internal static class OperandText
             ? NumericIntrinsicText(num, nic, deSign)
         // A COUNTER REGISTER — LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER — in a string context (DISPLAY, MOVE to
         // an alphanumeric item, STRING, a relation with an alphanumeric operand). The binder carries it as a computed
-        // operand because it is runtime state, but §8.4.3.14.4 GR1 / §8.4.3.15.4 GR1 make it "a temporary unsigned
-        // integer data item of class and category numeric", and §8.4.3.15.3 SR1 admits it "in any context where an
+        // operand because it is runtime state, but §8.4.3.14.4 GR1 / §8.4.3.15.4 GR1 make it a "temporary unsigned
+        // integer data item" of class and category numeric, and §8.4.3.15.3 SR1 admits it "in any context where an
         // integer data item may appear". So its image is an unsigned integer ITEM's: its digits, zero-filled to the
         // digit count of the register's implicit description (AlgebraicRanges.CounterRegisterDigits: LINAGE-COUNTER's
         // PIC 9(d), 10 for LINE-/PAGE-COUNTER's 32-bit binary integer — kb/Work PB1746), exactly the image
@@ -109,6 +109,21 @@ internal static class OperandText
         : op is BoundBoolOperand bo
             ? bo.AtItemWidth ? BooleanRenderer.RenderAtItemWidth(bo.Expr, num, sending) : BooleanRenderer.Render(bo.Expr, num, sending)
             : op.Accept(Visitor(deSign, sending));
+
+    /// <summary>Whether a computed operand IS a counter register (LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER), the shape
+    /// <see cref="AsString"/> images as an unsigned integer item — the ONE test, so a string-argument visitor that renders a
+    /// register asks it here and the Emit layer reads <c>AlgebraicRanges</c> from this class alone (kb/Work PB4766).</summary>
+    public static bool IsCounterRegister(BoundComputedOperand op) => AlgebraicRanges.CounterRegisterDigits(op.Expr) is not null;
+
+    /// <summary>The STORAGE image of a counter register (CONVERT's ANY source, §15.19.3 r7: the storage bits, never the display
+    /// image): LINAGE-COUNTER's description is a DISPLAY integer item, whose storage IS its zoned digits (<see cref="AsString"/>), and
+    /// LINE-/PAGE-COUNTER's is the 32-bit unsigned binary item <see cref="PicInfo.ReportCounterItem"/>, whose bytes are the ones the
+    /// storage codec gives any declared item of that description, through the profile the report's counter item declares
+    /// (<c>ReportModel.PageCounterRegister</c>, the one the receiving place reads). So CONVERT of PAGE-COUNTER and CONVERT of a
+    /// declared BINARY-LONG UNSIGNED item agree, and FUNCTION BYTE-LENGTH's 4 matches (kb/Work PB4766 review R1-2).</summary>
+    public static string CounterRegisterStorageImage(BoundComputedOperand op, NumericRenderer num) => op.Expr is BoundReportCounterRef report
+        ? num.CounterStorageImage(report)
+        : AsString(op, num);
 
     /// <summary>The text image of a NUMERIC-result intrinsic (DA2), across all three shapes a numeric
     /// intermediate can take. A FLOAT-valued function renders through the same <c>CobolFloat.Display</c> a float
