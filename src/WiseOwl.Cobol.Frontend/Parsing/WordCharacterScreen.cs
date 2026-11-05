@@ -137,6 +137,11 @@ public static class WordCharacterScreen
         /// operator.</summary>
         public void Add(IToken token, bool isOperator)
         {
+            if (ExpansionToken.IsClientWritten(token))   // the client's own word, screened once in the written tree (kb/Work PB4721)
+            {
+                Close();
+                return;
+            }
             if (_chain.Count > 0 && (token.StartIndex < 0 || token.StartIndex != _chain[^1].Token.StopIndex + 1)) Close();
             _chain.Add((token, isOperator));
         }

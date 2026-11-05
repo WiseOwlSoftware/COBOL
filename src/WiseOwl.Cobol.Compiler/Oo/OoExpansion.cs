@@ -593,7 +593,7 @@ internal static class OoExpansion
                 else if ((t.Parent is Core.CobolWordContext || tok.Type == CobolLexer.IDENTIFIER)
                          && map.TryGetValue(tok.Text, out var actual))
                     text = actual;
-                var copy = new ExpansionToken(tok, region);
+                var copy = new ExpansionToken(tok, region) { ClientWritten = text is not null };   // the client wrote the substituted word (kb/Work PB4721)
                 if (text is not null)
                 {
                     copy.Text = text;
@@ -609,10 +609,10 @@ internal static class OoExpansion
                 result.Add(copy);
                 if (text is not null && FormalSpecifierName(t) is { } formalSpecifier && formalSpecifier.externalizedNamePhrase() is null
                     && actualSpecifier.FirstOrDefault(r => CobolNames.Same(DeclaredName(r), text))?.externalizedNamePhrase() is { } actualAs)
-                    foreach (var asToken in Terminals(actualAs)) result.Add(new ExpansionToken(asToken, region));
+                    foreach (var asToken in Terminals(actualAs)) result.Add(new ExpansionToken(asToken, region) { ClientWritten = true });
                 // (e) the specifier's own `AS literal-1` externalizes the EXPANSION (§12.3.8.4 GR2), right after the name it follows.
                 if (ReferenceEquals(tok, headerName) && x.Entry.externalizedNamePhrase() is { } entryAs)
-                    foreach (var asToken in Terminals(entryAs)) result.Add(new ExpansionToken(asToken, region));
+                    foreach (var asToken in Terminals(entryAs)) result.Add(new ExpansionToken(asToken, region) { ClientWritten = true });
                 return;
             }
             for (int i = 0; i < n.ChildCount; i++) Walk(n.GetChild(i));
