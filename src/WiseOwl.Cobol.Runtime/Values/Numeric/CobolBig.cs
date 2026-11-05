@@ -32,6 +32,9 @@ internal readonly struct CobolBig
 
     private static readonly BigInteger LowMask = (BigInteger.One << 128) - 1;
 
+    /// <summary>10^38: the low-order digits a store can use of a value past the carrier.</summary>
+    private static readonly UInt128 TenTo38 = (UInt128)BigInteger.Pow(10, 38);
+
     /// <summary>The exact integer; the value is <c>Value × 10^-Scale</c>.</summary>
     internal BigInteger Value { get; }
 
@@ -82,21 +85,28 @@ internal readonly struct CobolBig
     /// <c>m × 2^e</c>. Finite only: the caller screens a NaN or an infinity.</summary>
     internal static CobolBig FromBinary64(double d)
     {
-        long bits = BitConverter.DoubleToInt64Bits(d);
-        bool negative = bits < 0;
-        int exponent = (int)((bits >> 52) & 0x7FF);
-        long mantissa = bits & 0xFFFFFFFFFFFFFL;
-        if (exponent == 0) exponent = 1; else mantissa |= 1L << 52;
+        var (negative, mantissa, exponent) = SplitBinary64(d);
         if (mantissa == 0) return new(BigInteger.Zero, 0);
-        exponent -= 1075;
-        int trailing = BitOperations.TrailingZeroCount(mantissa);
-        mantissa >>= trailing;
-        exponent += trailing;
         BigInteger magnitude = mantissa;
         if (exponent >= 0) return new(negative ? -(magnitude << exponent) : magnitude << exponent, 0);
         int k = -exponent;
         magnitude *= BigInteger.Pow(5, k);
         return new(negative ? -magnitude : magnitude, k);
+    }
+
+    /// <summary>A finite binary64 as <c>(-1)^negative × mantissa × 2^exponent</c> with the mantissa ODD (a zero has mantissa 0): the one
+    /// decomposition both exact forms write a float item's content from (<see cref="FromBinary64"/>, <c>CobolExact.FromBinary64</c>'s wide arm).</summary>
+    internal static (bool Negative, long Mantissa, int Exponent) SplitBinary64(double d)
+    {
+        long bits = BitConverter.DoubleToInt64Bits(d);
+        bool negative = bits < 0;
+        int exponent = (int)((bits >> 52) & 0x7FF);
+        long mantissa = bits & 0xFFFFFFFFFFFFFL;
+        if (exponent == 0) exponent = 1; else mantissa |= 1L << 52;
+        if (mantissa == 0) return (negative, 0, 0);
+        exponent -= 1075;
+        int trailing = BitOperations.TrailingZeroCount(mantissa);
+        return (negative, mantissa >> trailing, exponent + trailing);
     }
 
     /// <summary>The value on the 256-bit form at its own scale when its integer fits, else false (the form this struct exists for).</summary>
@@ -380,9 +390,21 @@ internal readonly struct CobolBig
     private static Int128 Land(BigInteger integer, bool checkedTransfer)
     {
         if (BigInteger.Abs(integer) <= (BigInteger)Int128.MaxValue) return (Int128)integer;
-        if (checkedTransfer)
-            throw new CobolSizeError("the value is further from zero than any fixed-point receiver permits (ISO §14.7.5 "
-                + "case 3 — EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION");
+        if (checkedTransfer) throw PastTheCarrier();
         return (Int128)BigInteger.Remainder(integer, Pow10(38));
     }
+
+    /// <summary><see cref="Land(BigInteger, bool)"/> for an integer the 128-bit magnitude <paramref name="magnitude"/> holds (the wide form's
+    /// quotient, <c>CobolExact.QuotientAtScale</c>): the one landing rule, spelled once for both magnitudes.</summary>
+    internal static Int128 Land(UInt128 magnitude, bool negative, bool checkedTransfer)
+    {
+        if (magnitude <= (UInt128)Int128.MaxValue) return negative ? -(Int128)magnitude : (Int128)magnitude;
+        if (checkedTransfer) throw PastTheCarrier();
+        Int128 low = (Int128)(magnitude % TenTo38);
+        return negative ? -low : low;
+    }
+
+    private static CobolSizeError PastTheCarrier() =>
+        new("the value is further from zero than any fixed-point receiver permits (ISO §14.7.5 "
+            + "case 3 — EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION");
 }

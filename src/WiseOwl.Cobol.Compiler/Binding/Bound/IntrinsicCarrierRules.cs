@@ -112,7 +112,7 @@ internal static class IntrinsicCarrierRules
 
     /// <summary>
     /// ⛔ IS A FUNCTION'S BINARY64 RETURNED VALUE AN ENGINE APPROXIMATION, OR A FLOAT ITEM'S CONTENT (kb/Work PB4622)? Asked
-    /// by <c>FunctionValueLane.Of</c> (bind time) and <c>IntrinsicRenderer.RenderNum</c> (the renderer) alike, so the two
+    /// by <c>FunctionValueLane.Of</c> (bind time) and <c>IntrinsicRenderer.RenderFloat</c> (the renderer) alike, so the two
     /// cannot disagree. It is an APPROXIMATION exactly when the function is in the §15.4.1 floating-math family
     /// (<paramref name="floatFamily"/>: SIN, SQRT, EXP, LOG, ...: no finite decimal spells its value, the implementor's
     /// approximation is the whole of §15.4.1's native latitude), or when no binary64 argument is a float ITEM's content

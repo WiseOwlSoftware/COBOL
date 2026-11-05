@@ -98,6 +98,19 @@ public readonly struct CobolExact
     {
         CobolDec.RejectNonFinite(value);
         if (value == 0) return From(0, 0);
+        var (negative, mantissa, exponent) = CobolBig.SplitBinary64(value);
+        // The 256-bit form first: m × 2^e is the integer m << e (mantissa below 2^53, so e up to 203), m × 5^k at scale k for e = -k
+        // while the product fits, and only a binary64 whose expansion is wider (a tiny magnitude: k past 87) is formed on the third form.
+        if (exponent >= 0 && exponent <= 203)
+        {
+            UInt128 low = (UInt128)mantissa, high = 0;
+            if (exponent >= 128) { high = low << (exponent - 128); low = 0; }
+            else if (exponent > 0) { high = low >> (128 - exponent); low <<= exponent; }
+            return new(CobolWide.FromParts(negative, high, low), 0, 0);
+        }
+        if (exponent < 0 && CobolWide.TryPow(CobolWide.From(5), -(long)exponent, out CobolWide power)
+            && CobolWide.TryMul(CobolWide.FromUnsigned((UInt128)mantissa), power, out CobolWide product))
+            return new(negative ? CobolWide.Negate(product) : product, -exponent, -exponent);
         CobolBig big = CobolBig.FromBinary64(value);
         return Of(big, Math.Max(0, big.Scale));
     }
@@ -248,7 +261,34 @@ public readonly struct CobolExact
     public static Int128 QuotientAtScale(CobolExact a, CobolExact b, int toScale, CobolRounding mode, bool checkedTransfer)
     {
         if (b.Sign == 0) throw CobolSizeError.ZeroDivide();
-        return CobolBig.QuotientAtScale(a.AsBig(), b.AsBig(), toScale, mode, checkedTransfer);
+        return TryQuotientAtScale(a, b, toScale, mode, checkedTransfer, out Int128 landed)
+            ? landed
+            : CobolBig.QuotientAtScale(a.AsBig(), b.AsBig(), toScale, mode, checkedTransfer);
+    }
+
+    /// <summary>The final-transfer quotient on the 256-bit form: both operands on it, the dividend's alignment to the receiver's scale
+    /// on it, and the truncated quotient and the divisor within 128 bits (so the remainder is, and <see cref="CobolNum.BumpsMagnitude{T}"/>
+    /// rounds it once). Anything wider is the third form's, which is exact at any size.</summary>
+    private static bool TryQuotientAtScale(CobolExact a, CobolExact b, int toScale, CobolRounding mode, bool checkedTransfer, out Int128 landed)
+    {
+        landed = 0;
+        if (!a.TryAt(a.Scale, out CobolWide numerator) || !b.TryAt(b.Scale, out CobolWide divisor)) return false;
+        long up = (long)b.Scale + toScale - a.Scale;
+        if (up > 0 ? up > 76 || !CobolWide.TryUp(numerator, (int)up, out numerator)
+            : up < 0 && (up < -76 || !CobolWide.TryUp(divisor, (int)-up, out divisor))) return false;
+        CobolWide quotient = CobolWide.DivRem(numerator, divisor, out CobolWide remainder);
+        var (_, quotientHigh, quotientLow) = quotient.Parts;
+        bool negative = numerator.Sign != 0 && (numerator.Sign < 0) != (divisor.Sign < 0);
+        var (_, divisorHigh, divisorLow) = divisor.Parts;
+        var (_, _, remainderLow) = remainder.Parts;   // |remainder| < |divisor| < 2^128, so its high half is zero
+        if (quotientHigh != 0 || divisorHigh != 0) return false;
+        if (remainder.Sign != 0 && CobolNum.BumpsMagnitude(negative, !UInt128.IsEvenInteger(quotientLow), remainderLow, divisorLow, mode))
+        {
+            if (quotientLow == UInt128.MaxValue) return false;
+            quotientLow++;
+        }
+        landed = CobolBig.Land(quotientLow, negative, checkedTransfer);
+        return true;
     }
 
     /// <summary>The value's integer at its own <see cref="Scale"/>: the wide form, or the SDIDI's significand.</summary>

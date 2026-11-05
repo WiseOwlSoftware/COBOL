@@ -91,7 +91,6 @@ public sealed class SdidiOperandLiftDriftTests
             if (!line.Contains("DecOperandExact(")) continue;
             if (line.Contains("private string DecOperandExact(")) continue;                // the declaration
             if (line.Contains("!LiftRounds(x) ? DecOperandExact(x)")) continue;           // DecOperand's own pass-through, guarded by the ONE predicate (kb/Work PB3018)
-            if (line.Contains("DecMulToOdd(")) continue;   // the round-to-odd consumer (the quotients' are DecDivTruncatedToOdd, checked below, and ExactFinalQuotient, which lifts no SDIDI)
             // The nested quotient's operand (kb/Work PB3538 review finding R2-1): exact except an unsigned-wide value,
             // and read only by the third round-to-odd consumer, DecDivTruncatedToOdd (checked below).
             if (line.Contains("private string DecQuotientOperand(NumX x) => x.U ? DecOperand(x) : DecOperandExact(x);")) continue;

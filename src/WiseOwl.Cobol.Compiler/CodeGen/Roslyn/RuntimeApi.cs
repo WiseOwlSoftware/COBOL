@@ -817,11 +817,6 @@ internal static class RuntimeApi
     public static string DecPow(string baseOperand, string expOperand, string mode) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.Pow)}({baseOperand}, {expOperand}, {mode})";
 
-    /// <summary>A NATIVE product past the Int128 carrier formed on the SDIDI — <c>CobolDec.MulToOdd</c> (kb/Work PB1143):
-    /// the exact product reduced to 34 digits by round-to-odd, so the receiver's one rounding sees any tail.</summary>
-    public static string DecMulToOdd(string leftOperand, string rightOperand) =>
-        $"{nameof(CobolDec)}.{nameof(CobolDec.MulToOdd)}({leftOperand}, {rightOperand})";
-
     /// <summary>The FINAL TRANSFER of a native product past the Int128 carrier — <c>CobolDec.MulAtScale</c> (kb/Work PB1143,
     /// review finding N1): the exact product rounded once to <paramref name="resultScale"/> with <paramref name="mode"/>,
     /// as an unscaled Int128 at that scale. <paramref name="checkedTransfer"/> is the statement's ON SIZE ERROR /

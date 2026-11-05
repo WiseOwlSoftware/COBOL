@@ -65,8 +65,9 @@ public sealed class FloatItemSdidiLiftDriftTests
         // temporary of a function's binary64 RESULT that DISPLAY orders and shows (FunctionValueField.OfFloat, kb/Work PB3514:
         // a floating-point ITEM argument arrives with its exact lift, OfFloatItem, and never reaches this one), and the three
         // LANDINGS of such an approximation into a fixed-point receiver (CobolFloat.ToScaledApproximation*, kb/Work PB4516:
-        // the float ITEM's landings beside them take the exact value).
-        var runtime = Callers("WiseOwl.Cobol.Runtime", "CobolDec.FromApproximation(", "CobolIntrinsics.RealArgs.cs", "CallAbi.cs", "FunctionValueField.cs", "CobolFloat.cs");
+        // the float ITEM's landings beside them take the exact value), and an approximation entering the exact lane beside a float
+        // item in a selection list (CobolExact.FromApproximation, kb/Work PB4622: it keeps the binary64 it came from).
+        var runtime = Callers("WiseOwl.Cobol.Runtime", "CobolDec.FromApproximation(", "CobolIntrinsics.RealArgs.cs", "CallAbi.cs", "FunctionValueField.cs", "CobolFloat.cs", "CobolExact.cs");
         Assert.True(runtime.Count == 0, "CobolDec.FromApproximation lifts a function's or a power's binary64 approximation, never a data item: "
             + string.Join("; ", runtime));
     }

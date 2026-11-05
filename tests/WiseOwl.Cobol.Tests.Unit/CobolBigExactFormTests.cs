@@ -144,6 +144,80 @@ public sealed class CobolBigExactFormTests
             CobolExact.QuotientAtScale(dividend, CobolExact.From(0, 0), 0, CobolRounding.Truncation, false));
     }
 
+    /// <summary>The oracle of a quotient rounded ONCE to an integer in a receiver's mode (§14.7.4.3), from the numerator and denominator.</summary>
+    private static BigInteger RoundQuotient(BigInteger numerator, BigInteger denominator, CobolRounding mode)
+    {
+        bool negative = (numerator.Sign < 0) != (denominator.Sign < 0);
+        BigInteger q = BigInteger.DivRem(BigInteger.Abs(numerator), BigInteger.Abs(denominator), out BigInteger r);
+        BigInteger twice = 2 * r, d = BigInteger.Abs(denominator);
+        bool up = !r.IsZero && mode switch
+        {
+            CobolRounding.Truncation => false,
+            CobolRounding.AwayFromZero => true,
+            CobolRounding.TowardGreater => !negative,
+            CobolRounding.TowardLesser => negative,
+            CobolRounding.NearestAwayFromZero => twice >= d,
+            CobolRounding.NearestTowardZero => twice > d,
+            CobolRounding.NearestEven => twice > d || (twice == d && !q.IsEven),
+            _ => throw new ArgumentOutOfRangeException(nameof(mode)),
+        };
+        if (up) q += 1;
+        return negative ? -q : q;
+    }
+
+    /// <summary>⛔ THE FINAL-TRANSFER QUOTIENT ON THE 256-BIT FORM (review R1-4): the third form is reached only where the 256-bit form
+    /// fails, and the answer is the same either way. A dividend past 38 digits over a divisor, both on the wide form, at several receiver
+    /// scales (the alignment up and down), both signs, every ROUNDED mode, against an integer oracle; a quotient past the carrier keeps its
+    /// low-order 38 digits unchecked and is EC-SIZE-TRUNCATION checked; a quotient past 128 bits is the third form's.</summary>
+    [Fact]
+    public void QuotientAtScale_OnTheWideForm_IsTheExactQuotientRoundedOnce()
+    {
+        BigInteger big = BigInteger.Parse("98765432109876543210987654321098765432109876543210987654321", CultureInfo.InvariantCulture);   // 59 digits
+        foreach (BigInteger n in new[] { big, -big, BigInteger.Pow(7, 50), big * 1000 + 5, 25 * Ten(37), -25 * Ten(37) })
+        foreach (BigInteger d in new[] { 1, 3, -7, 1000003, BigInteger.Parse("12345678901234567", CultureInfo.InvariantCulture) })
+        foreach (int sa in new[] { 0, 2, 9 })
+        foreach (int sb in new[] { 0, 3 })
+        foreach (int toScale in new[] { 0, 4, 12 })
+        foreach (CobolRounding mode in new[]
+                 { CobolRounding.Truncation, CobolRounding.NearestAwayFromZero, CobolRounding.NearestEven, CobolRounding.NearestTowardZero,
+                   CobolRounding.AwayFromZero, CobolRounding.TowardGreater, CobolRounding.TowardLesser })
+        {
+            CobolExact a = CobolExact.Mul(ExactOf(n), CobolExact.From(1, sa)), b = CobolExact.Mul(ExactOf(d), CobolExact.From(1, sb));
+            int e = sb + toScale - sa;
+            BigInteger expected = RoundQuotient(e >= 0 ? n * Ten(e) : n, e >= 0 ? d : d * Ten(-e), mode);
+            if (BigInteger.Abs(expected) > (BigInteger)Int128.MaxValue)
+            {
+                Assert.Throws<CobolSizeError>(() => CobolExact.QuotientAtScale(a, b, toScale, mode, checkedTransfer: true));
+                BigInteger low = BigInteger.Remainder(expected, Ten(38));
+                Assert.True(low == (BigInteger)CobolExact.QuotientAtScale(a, b, toScale, mode, checkedTransfer: false),
+                    $"{n}/{d} sa={sa} sb={sb} to={toScale} {mode}: the low-order 38 digits of {expected}");
+            }
+            else
+                Assert.True(expected == (BigInteger)CobolExact.QuotientAtScale(a, b, toScale, mode, checkedTransfer: true),
+                    $"{n}/{d} sa={sa} sb={sb} to={toScale} {mode}: expected {expected}");
+        }
+    }
+
+    /// <summary>A float item's content on the 256-bit form (review R1-4): the integer <c>m &lt;&lt; e</c> up to 203 bits and <c>m × 5^k</c> at scale k
+    /// while the product fits are the same exact values the third form writes, in both signs; a tiny magnitude whose expansion is
+    /// wider is the third form's and lands the same.</summary>
+    [Fact]
+    public void FromBinary64_OnTheWideForm_IsTheExactExpansion()
+    {
+        foreach (double d in new[] { 1.0, 3.0, 0.1, 0.5, 123456.789, 1e22, 2.5E+40, 1e60, 1.5e61, 0.001, 1.0 / 3, 1e-20, 1e-25, 5e-324, 1e300, double.Epsilon, 4503599627370496.0 })
+            foreach (double v in new[] { d, -d })
+            {
+                CobolExact x = CobolExact.FromBinary64(v);
+                // the value, by the exact comparison against the definition m * 2^e
+                var (negative, mantissa, exponent) = CobolBig.SplitBinary64(v);
+                BigInteger expectedNumerator = mantissa, expectedDenominator = 1;
+                if (exponent >= 0) expectedNumerator <<= exponent; else expectedDenominator <<= -exponent;
+                // x == numerator/denominator: x.Scale-scaled integer compare through the oracle's own FromBinary64 on the third form
+                Assert.Equal(0, CobolExact.Compare(x, CobolExact.Mul(ExactOf(negative ? -expectedNumerator : expectedNumerator),
+                    exponent >= 0 ? CobolExact.From(1, 0) : CobolExact.Pow(CobolExact.From(5, 1), -exponent))));
+            }
+    }
+
     /// <summary>The published bound: an exact intermediate is below 10^6145 in magnitude (EC-SIZE-OVERFLOW past it), and a power whose
     /// integer would pass the working cap is refused before it is formed.</summary>
     [Fact]

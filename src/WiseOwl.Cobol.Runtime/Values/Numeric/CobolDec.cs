@@ -95,7 +95,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// <summary>A binary64's EXACT value as a ROUND-TO-ODD <see cref="Int128"/> significand of 38 digits (kb/Work PB1606):
     /// the first 38 digits of the expansion, made odd when anything nonzero was dropped, so a consumer that rounds to at
     /// most 36 digits itself, in any §14.7.4.3 mode, and asks whether the value was exact (rule 7, PROHIBITED), sees the
-    /// double's own value on the same side of every boundary: the lowering argument <see cref="MulToOdd"/> and
+    /// double's own value on the same side of every boundary: the lowering argument <see cref="FromWideToOdd"/> and
     /// <c>CobolEdit</c>'s unsigned-wide significand rest on. The floating-point numeric-edited store takes its sender
     /// here, because a mask holds at most 31 digits and its rounding is the receiver's, not the SDIDI's. NOT an SDIDI
     /// (it may hold more than 34 digits). The same non-finite rules as <see cref="FromBinary64"/>.</summary>
@@ -750,26 +750,15 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return Round34Wide(hi, lo, negative, a.Exp + b.Exp, mode);
     }
 
-    /// <summary>⛔ THE PRODUCT A NATIVE STATEMENT FORMS ON THE SDIDI WHEN ITS SCALED OPERANDS COULD LEAVE <c>Int128</c>
-    /// (kb/Work PB1143 — <c>NumericRenderer.Multiply</c>): the exact 256-bit product reduced to 34 significant digits
-    /// by ROUND-TO-ODD. Native arithmetic rounds ONCE, at the final transfer (§14.7 NOTE 1), and that transfer's mode
-    /// has to see whether anything lay beyond the 34th digit — a bare truncation hid it (a product 1 + 2e-30 + 1e-60
-    /// under ROUNDED AWAY-FROM-ZERO stored …002 where …003 is owed; a product above a NEAREST-EVEN tie became the tie;
-    /// PROHIBITED stored an inexact product silently). Round-to-odd keeps the truncated magnitude when its last digit is
-    /// odd and the next one up when it is even, whenever digits were dropped: the stored neighbour is never on a
-    /// rounding boundary of a coarser precision, so rounding THIS value to the receiver's ≤ 31 digit positions (a
-    /// margin of at least 3 digits, only 2 are needed) in ANY mode equals rounding the exact product once. A product
-    /// of ≤ 34 digits is exact and unchanged.</summary>
-    public static CobolDec MulToOdd(CobolDec a, CobolDec b)
-    {
-        bool negative = (a.Sig < 0) ^ (b.Sig < 0);
-        var (hi, lo) = Mul128(UAbs(a.Sig), UAbs(b.Sig));
-        return FromWideToOdd(negative, hi, lo, a.Exp + b.Exp);
-    }
-
-    /// <summary>The exact 256-bit magnitude <paramref name="hi"/>:<paramref name="lo"/> × 10^<paramref name="exp"/>
-    /// (sign <paramref name="negative"/>) reduced to 34 significant digits by ROUND-TO-ODD — the one reduction
-    /// <see cref="MulToOdd"/> and <see cref="CobolWide.ToDec"/> share.</summary>
+    /// <summary>⛔ THE EXACT 256-BIT MAGNITUDE <paramref name="hi"/>:<paramref name="lo"/> × 10^<paramref name="exp"/>
+    /// (sign <paramref name="negative"/>) reduced to 34 significant digits by ROUND-TO-ODD (kb/Work PB1143) — the one reduction
+    /// <see cref="CobolWide.ToDec"/> makes of an exact product, sum or power. Native arithmetic rounds ONCE, at the final transfer
+    /// (§14.7 NOTE 1), and that transfer's mode has to see whether anything lay beyond the 34th digit — a bare truncation hid it (a
+    /// product 1 + 2e-30 + 1e-60 under ROUNDED AWAY-FROM-ZERO stored …002 where …003 is owed; a product above a NEAREST-EVEN tie became
+    /// the tie; PROHIBITED stored an inexact product silently). Round-to-odd keeps the truncated magnitude when its last digit is odd
+    /// and the next one up when it is even, whenever digits were dropped: the stored neighbour is never on a rounding boundary of a
+    /// coarser precision, so rounding THIS value to the receiver's ≤ 31 digit positions (a margin of at least 3 digits, only 2 are
+    /// needed) in ANY mode equals rounding the exact value once. A value of ≤ 34 digits is exact and unchanged.</summary>
     internal static CobolDec FromWideToOdd(bool negative, UInt128 hi, UInt128 lo, int exp) =>
         Round34Wide(hi, lo, negative, exp, CobolRounding.Truncation, jam: true);
 
@@ -778,7 +767,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// (<c>NumericRenderer.Multiply</c>; kb/Work PB1143, PB1641's review finding N1). The exact 256-bit product is
     /// rounded ONCE to the result scale with the RECEIVER's mode and lands as an unscaled <see cref="Int128"/> —
     /// the multiplicative twin of <see cref="CobolNum.Divide"/>'s outermost division, so the receiver's ROUNDED phrase
-    /// sees every digit of the product whatever width the receiver is. <see cref="MulToOdd"/> cannot do this job for a
+    /// sees every digit of the product whatever width the receiver is. <see cref="FromWideToOdd"/> cannot do this job for a
     /// receiver that holds more than 32 digits: a 16-byte COMP-5 item owns a 38-digit container
     /// (DOC-A.1-208), and an SDIDI product keeps 34.
     /// <para>The two statement dispositions are <see cref="ToUnscaled"/>'s and <see cref="ToUnscaledChecked"/>'s, the final
@@ -914,7 +903,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// arm of the three value lanes' one zero-divisor rule.</summary>
     public static CobolDec Div(CobolDec a, CobolDec b, CobolRounding mode) => Div(a, b, mode, jam: false);
 
-    /// <summary>The quotient, reduced to 34 significant digits by ROUND-TO-ODD — <see cref="MulToOdd"/>'s sibling for
+    /// <summary>The quotient, reduced to 34 significant digits by ROUND-TO-ODD — <see cref="FromWideToOdd"/>'s sibling for
     /// <c>CobolNum.Divide</c>'s alignment-past-the-carrier path (kb/Work PB1143): the remainder of the division and any
     /// digit dropped by the reduction make the result inexact, and an inexact result keeps an ODD last digit, so the
     /// caller's single rounding to the result scale (any mode, ≥ 2 digits coarser) equals rounding the exact quotient.</summary>
@@ -998,7 +987,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// <summary>⛔ A NESTED NATIVE QUOTIENT ON THE SDIDI (kb/Work PB3538 review finding R2-1; CONFORMANCE.md DOC-A.1-123):
     /// the quotient TRUNCATED at <paramref name="scale"/> fraction digits — the one rule a nested native quotient has on
     /// every lane (the scaled <c>CobolNum.Divide</c> at that scale, <see cref="CobolWide.DivTruncated"/>) — then held to
-    /// the SDIDI's 34 significant digits by ROUND-TO-ODD (<see cref="MulToOdd"/>'s reduction). A truncated quotient of at
+    /// the SDIDI's 34 significant digits by ROUND-TO-ODD (<see cref="FromWideToOdd"/>'s reduction). A truncated quotient of at
     /// most 34 digits is therefore EXACT, and the lane never changes the value: `2 / 7 * 7` at a working scale of 20 is
     /// 1.99999999999999999996 whether the 2 is an item, an intrinsic's value or a product the compiler could not bound.
     /// <see cref="DivToOdd"/> rounds the EXACT quotient to 34 digits instead, and the product above it rounded back up to
@@ -1234,7 +1223,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         bool inexact = roundDigit != 0 || sticky;
         if (inexact && jam)
         {
-            // ROUND-TO-ODD (kb/Work PB1143 — see MulToOdd): keep the truncated magnitude if its last digit is odd, else the
+            // ROUND-TO-ODD (kb/Work PB1143 — see FromWideToOdd): keep the truncated magnitude if its last digit is odd, else the
             // next one up. Neither neighbour lies ON a coarser rounding boundary (a multiple of 10 is even), so any later
             // rounding to ≤ 32 digits, in any mode, sees the exact value on the same side of every boundary.
             if (sig % 2 == 0) sig++;

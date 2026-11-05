@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <see cref="Int128"/> carrier, NESTED in a larger expression, keeps every digit until the one final transfer
 /// (§14.7.7 rule 3 NOTE 1: ROUNDED governs only that transfer): <c>COMPUTE R = A * B - C * D</c> over
 /// <c>PIC 9(21)</c> operands forms two 41-digit products and subtracts them EXACTLY. The 34-digit SDIDI
-/// (<see cref="CobolDec.MulToOdd"/>) it replaces rounded each product first, and the cancellation of the two nearly
+/// (a product reduced by <see cref="CobolDec.FromWideToOdd"/>) it replaces rounded each product first, and the cancellation of the two nearly
 /// equal products left only the rounding error.
 /// <para>The implementor's choice (§8.8.1.3 — "Native arithmetic is an implementor-defined method of evaluating an
 /// arithmetic expression"; §14.7.7 4) a) — "an implementor-defined intermediate data item is used"; CONFORMANCE.md
@@ -433,7 +433,7 @@ public readonly struct CobolWide
         IsZero ? 0 : CobolDec.TransferWide(_negative, _hi, _lo, scale - toScale, mode, checkedTransfer);
 
     /// <summary>This value, at <paramref name="scale"/>, as the SDIDI reduced to 34 significant digits by ROUND-TO-ODD
-    /// (<see cref="CobolDec.MulToOdd"/>'s rule): the lowering a consumer that has no wide form takes, so that
+    /// (<see cref="CobolDec.FromWideToOdd"/>'s rule): the lowering a consumer that has no wide form takes, so that
     /// whatever rounds it next, in any mode, sees the exact value on the same side of every boundary.</summary>
     public CobolDec ToDec(int scale) => CobolDec.FromWideToOdd(_negative, _hi, _lo, -scale);   // a zero is held at -scale too
 

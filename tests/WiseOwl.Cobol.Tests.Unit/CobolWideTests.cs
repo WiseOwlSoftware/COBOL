@@ -32,8 +32,8 @@ public sealed class CobolWideTests
         Assert.Equal(1, Read(CobolWide.Sub(ab, cd)));
         Assert.Equal(-1, Read(CobolWide.Sub(cd, ab)));
         // The SDIDI the nested product used to take rounds each to 34 digits and the cancellation keeps only the error.
-        CobolDec oldAb = CobolDec.MulToOdd(CobolDec.From((Int128)(Pow20 + 1), 0), CobolDec.From((Int128)(Pow20 + 1), 0));
-        CobolDec oldCd = CobolDec.MulToOdd(CobolDec.From((Int128)Pow20, 0), CobolDec.From((Int128)(Pow20 + 2), 0));
+        CobolDec oldAb = ab.ToDec(0);
+        CobolDec oldCd = cd.ToDec(0);
         CobolDec oldDiff = CobolDec.Sub(oldAb, oldCd, CobolRounding.NearestAwayFromZero);
         BigInteger oldValue = oldDiff.Exp >= 0 ? (BigInteger)oldDiff.Sig * BigInteger.Pow(10, oldDiff.Exp)
                                                : (BigInteger)oldDiff.Sig / BigInteger.Pow(10, -oldDiff.Exp);

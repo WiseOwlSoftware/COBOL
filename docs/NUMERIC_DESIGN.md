@@ -392,7 +392,10 @@ store INTO a float receiver is the float arm of the same funnel (`FloatResultant
 for a scaled/SDIDI carrier, the binary64 intermediate for a `Real` one — is rounded ONCE into the receiver's binary
 format under the receiver's §14.7.4.3 mode (implied TRUNCATION by rule 2, rules 3–10 alike; PROHIBITED an exactness
 test), and under ON SIZE ERROR / EC-SIZE checking a value past the format's largest finite magnitude after that
-rounding is §14.7.5 case 3 (EC-SIZE-TRUNCATION, receiver unchanged). A binary64 intermediate lands in a binary64
+rounding is §14.7.5 case 3 (EC-SIZE-TRUNCATION, receiver unchanged). An EXACT native value (`CobolExact`: a selected float item's
+41-digit content, an exact sum, a power) lands in a float receiver from ALL its digits, once (`FloatResultant.FromExact`, handed the
+final transfer by `NumericRenderer.Settle` when `ReceiverContext.LandsAsBinary64`; kb/Work PB4730): the SDIDI's 34-digit image of it,
+truncated, sat one binary64 below the item. A binary64 intermediate lands in a binary64
 receiver unchanged under every mode. **The binary64 lane's operations are checked like the scaled lane's** where
 size-error checking is enabled (`CobolFloat.AddChecked`/`SubChecked`/`MulChecked`/`DivChecked`,
 `PowNativeRealChecked`, kb/Work PB1147/PB1581): a zero divisor is EC-SIZE-ZERO-DIVIDE (§14.7.5 case 2) and a result
@@ -1168,7 +1171,7 @@ non-binary64 base takes (1) for a literal exponent n ≥ 1 whose digit bound (`b
 digits though the value may fit, as `2 ** 130`): for an integer or exact base (`NumX.Wide`, `NumX.Exact`, scale 0)
 `CobolExact.Pow`, a `NumX.Exact` — exact on the wide form at the base's scale times the exponent while the VALUE fits,
 `CobolBig` past it — and the same `CobolExact.Pow` for a scaled or SDIDI base (`CobolIntrinsics.PowNativeDec` and its
-round-to-odd `MulToOdd` chain are deleted). `CobolExact.Pow` owns its scale at run time: the exact power (the wide lane, then
+round-to-odd product chain are deleted, with `CobolDec.MulToOdd` and `RuntimeApi.DecMulToOdd`). `CobolExact.Pow` owns its scale at run time: the exact power (the wide lane, then
 `CobolBig.Pow`, `mpz_pow_ui` with scale × n), the reciprocal `1 / (b ** |e|)` of §8.8.1.5.4 r3 for a negative exponent (one
 rounding of the exact quotient), and `CheckPowRule6`'s §8.8.1.2 rule-6 screen. A power past 77 digits is therefore ONE rounding
 of the exact power, round-to-odd, which is what every receiver of at most 32 digit positions sees as the exact value
@@ -1346,7 +1349,7 @@ NATIVE statement with a Dec operand (a float literal, an integer power; CONFORMA
 an exact operand of up to 38 digits (`CobolDec.AddSigned`'s wide scratch, kb/Work PB1510) and reduce it once at the
 result, and whose relations compare such a value exactly (DOC-A.1-179 (3)) — so a native 36-digit product is not
 pre-rounded (that rounded it twice, and turned `pb156_float_literal_exact_native`'s LANE leg EQ), while a 16-byte
-container's 39th digit or an unknown bound is. The ROUND-TO-ODD consumers (`DecMulToOdd` / `DecDivTruncatedToOdd`, via `DecOperandExact`) keep the
+container's 39th digit or an unknown bound is. The ROUND-TO-ODD consumer (`DecDivTruncatedToOdd`, via `DecOperandExact`) keep the
 exact lift on purpose: they reduce the exact value once, and a pre-rounded operand would be rounded twice.
 Before, `From` put a 39-digit significand into the intermediate unrounded, past the 34-digit invariant `CobolDec.Add` and
 the other operations assume, and `COMPUTE R = S + 1` with S = −2^127 took ON SIZE ERROR for a result R holds (and the
