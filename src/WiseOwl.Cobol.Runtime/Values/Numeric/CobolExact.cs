@@ -133,7 +133,27 @@ public readonly struct CobolExact
     public static CobolExact DivTruncated(CobolExact a, CobolExact b, int receiverScale, CobolRounding mode)
     {
         int precision = Math.Max(a._precision, b._precision);
-        int w = CobolNum.NestedQuotientScale(receiverScale, precision);
+        return TruncatedQuotient(a, b, CobolNum.NestedQuotientScale(receiverScale, precision), precision, mode);
+    }
+
+    /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF A NATIVE <c>DIVIDE ... GIVING ... REMAINDER</c> OVER EXACT OPERANDS (ISO §14.9.12.4 6) c),
+    /// kb/Work PB4640; DOC-A.1-70, DOC-A.1-123): the exact quotient TRUNCATED toward zero at <paramref name="scale"/>, identifier-3's
+    /// decimal point location, with EVERY integer digit — "derived from the quotient by truncation of digits at the least significant
+    /// end". It is formed from the operands' exact values, not from the final transfer's 34-digit quotient (<see cref="DivToOdd"/>):
+    /// a quotient past 34 digits (a size error at identifier-3, the remainder still stored with checking off, GnuCOBOL 3.2's
+    /// <c>cob_div_quotient</c> / <c>cob_div_remainder</c> by CLAUDE.md rule 1) lost its low-order digits there, so
+    /// <c>dividend − subsidiary × divisor</c> was not the remainder. The truncation is the nested quotient's
+    /// (<see cref="DivTruncated"/>), at the receiver's own scale and not the working scale derived from it, and the precision is that
+    /// scale. A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5 case 2).</summary>
+    public static CobolExact SubsidiaryQuotient(CobolExact a, CobolExact b, int scale, CobolRounding mode) =>
+        TruncatedQuotient(a, b, scale, scale, mode);
+
+    /// <summary>The quotient truncated toward zero at <paramref name="w"/> fraction digits, carrying <paramref name="precision"/>: exact
+    /// on the wide form while the dividend's alignment fits it (<see cref="CobolWide.DivTruncated"/>), else held to 34 digits by
+    /// round-to-odd (<see cref="CobolDec.DivTruncatedToOdd"/>) over the operands as <see cref="Add"/> lifts them. The ONE truncated
+    /// quotient of the nested quotient and the subsidiary quotient.</summary>
+    private static CobolExact TruncatedQuotient(CobolExact a, CobolExact b, int w, int precision, CobolRounding mode)
+    {
         if (b.Sign == 0) throw CobolSizeError.ZeroDivide();
         if (a.TryAt(a.Scale, out CobolWide num) && b.TryAt(b.Scale, out CobolWide den))
         {

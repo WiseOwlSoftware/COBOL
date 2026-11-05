@@ -997,6 +997,11 @@ internal static class RuntimeApi
     public static string ExactDivToOdd(string left, string right, string modeExpr) =>
         $"{nameof(CobolExact)}.{nameof(CobolExact.DivToOdd)}({left}, {right}, {modeExpr})";
 
+    /// <summary>The SUBSIDIARY quotient of a native <c>DIVIDE ... REMAINDER</c> over exact values (<c>CobolExact.SubsidiaryQuotient</c>,
+    /// kb/Work PB4640): the exact quotient truncated at identifier-3's <paramref name="scale"/>.</summary>
+    public static string ExactSubsidiaryQuotient(string left, string right, int scale, string modeExpr) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.SubsidiaryQuotient)}({left}, {right}, {scale}, {modeExpr})";
+
     /// <summary>The negation of an exact value (<c>CobolExact.Negate</c>).</summary>
     public static string ExactNegate(string exact) => $"{nameof(CobolExact)}.{nameof(CobolExact.Negate)}({exact})";
 

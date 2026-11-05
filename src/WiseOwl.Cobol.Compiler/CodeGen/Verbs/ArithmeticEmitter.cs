@@ -303,22 +303,39 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         var pic = d.Quotient.Place.Item.Pic;
         NumX QuotientAt(CobolRounding mode) => FinalQuotient(dividend, divisor, ReceiverContext.Of(pic, mode, TakenBy(ise)));
         NumX truncated = Snapshot(QuotientAt(CobolRounding.Truncation));
-        NumX subsidiary = shape.Form switch
-        {
-            SubsidiaryForm.FloatEdited => FloatEditedSubsidiary(truncated, shape.Pic!),
-            SubsidiaryForm.BinaryFloat => BinaryFloatSubsidiary(truncated, shape.Pic!),
-            _ => FixedPointSubsidiary(truncated, ise, shape),
-        };
-        // ⛔ THE BACK-MULTIPLY OF AN EXACT WIDE SENDER IS EXACT (kb/Work PB4599, GR7): the subsidiary quotient beside a sender on the
-        // exact wide form joins it as an exact value, so `subsidiary × divisor` (a 45-digit product of a 15-digit quotient and a
-        // 30-digit divisor) and the dividend's subtraction keep every digit. Left an SDIDI, the product beside the scaled divisor took
-        // the SDIDI lane's 34 digits (DOC-A.1-82) and `DIVIDE FUNCTION ABS (A * A * A + 7) BY FUNCTION ABS (A * A) GIVING Q
-        // REMAINDER R` stored the remainder 6 where it is 7.
+        // ⛔ THE SUBSIDIARY QUOTIENT OF AN EXACT WIDE SENDER IS FORMED FROM THE EXACT OPERANDS (kb/Work PB4640, GR6 c) and GR7). The final
+        // transfer's quotient is held to the SDIDI's 34 digits, so truncating THAT at identifier-3's scale kept 34 digits of a quotient
+        // that has more: `DIVIDE FUNCTION ABS (A * A * A + 7) BY 1000 GIVING R REMAINDER R2` (a 42-digit quotient, a size error at R with
+        // the remainder still stored, DOC-A.1-70) stored the remainder 99999999994 where it is 6. The subsidiary quotient is the exact
+        // quotient truncated at the scale (every integer digit), an exact value, so `subsidiary × divisor` (a 45-digit product of a
+        // 15-digit quotient and a 30-digit divisor, or 42 digits and 1000) and the dividend's subtraction keep every digit, as GnuCOBOL's
+        // cob_div_quotient / cob_div_remainder do (CLAUDE.md rule 1 for §8.8.1.3's latitude).
+        NumX subsidiary = shape.Form == SubsidiaryForm.FixedPoint && TakesExactSubsidiary(dividend, divisor)
+            ? Snapshot(num.ExactSubsidiaryQuotient(dividend, divisor, shape.Scale))
+            : shape.Form switch
+            {
+                SubsidiaryForm.FloatEdited => FloatEditedSubsidiary(truncated, shape.Pic!),
+                SubsidiaryForm.BinaryFloat => BinaryFloatSubsidiary(truncated, shape.Pic!),
+                _ => FixedPointSubsidiary(truncated, ise, shape),
+            };
+        // ⛔ THE BACK-MULTIPLY OF AN EXACT WIDE SENDER IS EXACT TOO (kb/Work PB4599, GR7): a floating-point numeric-edited identifier-3's
+        // subsidiary quotient (an SDIDI) beside a sender on the exact wide form joins it as an exact value, so `subsidiary × divisor`
+        // and the dividend's subtraction keep every digit. Left an SDIDI, the product beside the scaled divisor took the SDIDI lane's 34
+        // digits (DOC-A.1-82).
         if (subsidiary.Dec && (dividend.Wide || dividend.Exact || divisor.Wide || divisor.Exact))
             subsidiary = new NumX(RuntimeApi.ExactFromDec(subsidiary.Expr), 0, Exact: true);
         return (dividend, divisor, subsidiary,
             mode => mode == CobolRounding.Truncation || truncated.Dec || truncated.Real ? truncated : QuotientAt(mode));
     }
+
+    /// <summary>Does a native sender pair take the EXACT subsidiary quotient (<see cref="NumericRenderer.ExactSubsidiaryQuotient"/>)?
+    /// The pair whose final-transfer quotient is the exact quotient of exact values (<c>NumericRenderer.CombineCore</c>'s exact arm and
+    /// <c>Divide</c>'s last line): one sender on the wide or the run-time-scaled exact form and neither a binary64, whose quotient is a
+    /// binary64 (the float lane). Never under standard-decimal arithmetic, whose senders are SDIDI values and whose quotient is the
+    /// 34-digit SDIDI the standard names (ISO §14.9.12.4 GR1, §8.8.1.5.2); an SDIDI-only native pair keeps the SDIDI lane's 34
+    /// digits (DOC-A.1-82).</summary>
+    private bool TakesExactSubsidiary(NumX dividend, NumX divisor) =>
+        !num.StandardDecimal && !dividend.Real && !divisor.Real && (dividend.Wide || dividend.Exact || divisor.Wide || divisor.Exact);
 
     /// <summary>The subsidiary quotient for a FIXED-POINT identifier-3: the quotient truncated at its scale (kb/Work PB3017;
     /// no digit cap, <see cref="SubsidiaryShape"/>, kb/Work PB3975).</summary>

@@ -1199,6 +1199,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     private NumX ExactFinalQuotient(NumX a, NumX b, string intermediate) =>
         new(RuntimeApi.ExactDivToOdd(ExactOperand(a), ExactOperand(b), intermediate), 0, Dec: true);
 
+    /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF A NATIVE <c>DIVIDE ... REMAINDER</c> OVER EXACT OPERANDS (ISO §14.9.12.4 6) c), kb/Work
+    /// PB4640): the quotient of the two operands' EXACT values truncated at identifier-3's <paramref name="scale"/> with every integer
+    /// digit (<c>CobolExact.SubsidiaryQuotient</c>), an exact value (<see cref="NumX.Exact"/>) that the back-multiply and the
+    /// subtraction of GR7 keep exact. It is NOT the final transfer's quotient (<see cref="ExactFinalQuotient"/>) truncated: that
+    /// quotient is held to the SDIDI's 34 digits, and a quotient of 42 digits lost its low-order eight.</summary>
+    internal NumX ExactSubsidiaryQuotient(NumX dividend, NumX divisor, int scale) =>
+        new(RuntimeApi.ExactSubsidiaryQuotient(ExactOperand(dividend), ExactOperand(divisor), scale, IntermediateMode), 0, Exact: true, Precision: scale);
+
     /// <summary>Is the quotient being rendered NESTED — neither the final transfer to a resultant that rounds at its own
     /// scale nor a floating-point edited resultant's — so that it is the truncated quotient at the working scale on
     /// every lane (<see cref="Divide"/>; CONFORMANCE.md DOC-A.1-123)?</summary>
