@@ -9,9 +9,8 @@
       *> to the right of the decimal point." §15.3 item 6 (cite.py --check 15.3 OK) makes "an arithmetic expression that will always
       *> result in an integer value" an Integer argument, and the §15.7.1 result table (cite.py --check 15.7.1 OK) gives ABS of an
       *> Integer argument the Integer type, as the sibling tables give MAX, MIN, RANGE and SUM. So an argument integral by VALUE but
-      *> WRITTEN with fraction digits (I2 + 1.0, 1.5 + 0.5, 4 / 2, I2 ** 2.0, the bare literal 1.0 and the parenthesized (1.0), which
-      *> are the same arithmetic expression) selects the Integer row, and the returned value has no digits to the right of the
-      *> decimal point: a MOVE of it to an alphanumeric receiver (§14.9.25.3 SR10, Table 16: a Noninteger numeric sender does not
+      *> WRITTEN with fraction digits (I2 + 1.0, 1.5 + 0.5, 4 / 2, I2 ** 2.0, 1.0E0 + I2) selects the Integer row, and the returned
+      *> value has no digits to the right of the decimal point: a MOVE of it to an alphanumeric receiver (§14.9.25.3 SR10, Table 16: a Noninteger numeric sender does not
       *> move there, an Integer one does; cite.py --check 14.9.25.3 OK) delivers the digits of the integer, "4", never "4.0". The
       *> receivers are PIC X(3) so that a stored fraction ("4.0") shows instead of being cut off by the receiver's width. The
       *> multi-receiver form moves the one value "to the data item referenced by each identifier-2" (§14.9.25.4 GR1, cite.py --check
@@ -21,8 +20,10 @@
       *> too, and the product with 0 is 0 whatever the counter holds (FACTORIAL(0) = 1). ABS(S2) equals S2 for every value of an
       *> UNSIGNED S2, so S2 - FUNCTION ABS(S2) is always 0, an integer (§15.3 item 6), and FACTORIAL(0) = 1.
       *>
-      *> EXPECTED VALUES, I2 = 3: ABS(4.0) = 4; ABS(2.0) = 2; MAX(4.0, 1) = 4; ABS(6.0) = 6; SUM(4.0, 1) = 5; ABS(1) = 1 twice;
-      *> ABS(ABS(4.0) * 2) = 8; ABS(4 / 2) = 2; MIN(3 ** 2, 3) = 3; ABS(1.0E0 + I2) = 4; ABS(-2.0 * I2) = 6.
+      *> EXPECTED VALUES, I2 = 3: ABS(3 + 1) = 4; ABS(1.5 + 0.5) = 2; MAX(3 + 1, 1) = 4; ABS(3 * 2) = 6; SUM(3 + 1, 1) = 5;
+      *> ABS(ABS(3 + 1) * 2) = 8; ABS(4 / 2) = 2; MIN(3 ** 2, 3) = 3; ABS(1 + 3) = 4; ABS(-2 * 3) = 6; FACTORIAL(ABS(3 - 3 + 1)) = 1.
+      *> The bare literal 1.0 and the parenthesized (1.0) are a literal operand read by its FORM (§8.3.3.3.2: an integer literal
+      *> "contains no decimal point"), so they keep the Numeric row and are refused as a MOVE sender (pb4709-abs-parenthesized-fraction-literal).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4709SCALEZERO.
        ENVIRONMENT DIVISION.
@@ -53,24 +54,16 @@
            DISPLAY "MUL [" A3 "]"
            MOVE FUNCTION SUM(I2 + 1.0 1) TO A3
            DISPLAY "SUM [" A3 "]"
-           MOVE FUNCTION ABS((1.0)) TO A3
-           DISPLAY "PAREN [" A3 "]"
-           MOVE FUNCTION ABS(1.0) TO A3
-           DISPLAY "BARE [" A3 "]"
            MOVE FUNCTION ABS(FUNCTION ABS(I2 + 1.0) * 2) TO A3
            DISPLAY "NEST [" A3 "]"
            MOVE FUNCTION ABS(4 / 2) TO A3
            DISPLAY "DIV [" A3 "]"
-           MOVE FUNCTION MIN(I2 ** 2.0 3.0) TO A3
+           MOVE FUNCTION MIN(I2 ** 2.0 3) TO A3
            DISPLAY "MIN [" A3 "]"
            MOVE FUNCTION ABS(1.0E0 + I2) TO A3
            DISPLAY "FLOAT [" A3 "]"
            MOVE FUNCTION ABS(-2.0 * I2) TO A3
            DISPLAY "NEG [" A3 "]"
-           COMPUTE T = FUNCTION FACTORIAL(FUNCTION ABS((1.0)))
-           DISPLAY "F1=" T
-           COMPUTE T = FUNCTION FACTORIAL(FUNCTION ABS(1.0))
-           DISPLAY "F2=" T
            COMPUTE T = FUNCTION FACTORIAL(FUNCTION ABS(I2 - 3.0 + 1.0))
            DISPLAY "F3=" T
            COMPUTE T = FUNCTION FACTORIAL(

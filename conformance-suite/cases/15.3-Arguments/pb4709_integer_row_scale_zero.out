@@ -4,15 +4,11 @@ FOLD [2  ]
 MAX [4  ]
 MUL [6  ]
 SUM [5  ]
-PAREN [1  ]
-BARE [1  ]
 NEST [8  ]
 DIV [2  ]
 MIN [3  ]
 FLOAT [4  ]
 NEG [6  ]
-F1=0001
-F2=0001
 F3=0001
 COUNTER=0001
 OPAQUE=0001

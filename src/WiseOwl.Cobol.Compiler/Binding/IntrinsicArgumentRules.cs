@@ -1803,24 +1803,57 @@ internal static class IntrinsicArgumentRules
     /// An integer function "has an operational sign and no digits to the right of the decimal point" (§15.2 5)), and ABS, MAX, MIN,
     /// RANGE and SUM return their argument's value at the argument's own scale, so an argument integral by VALUE but written with
     /// fraction digits (<c>I2 + 1.0</c>, <c>1.5 + 0.5</c>, <c>4 / 2</c>) would return <c>4.0</c> from a function whose type says it has
-    /// none: <c>MOVE FUNCTION ABS(I2 + 1.0) TO A10</c> stored <c>4.0</c>. The rewrite replaces every integral-valued subtree by the
-    /// integer literal of its exact value (the folds <see cref="ExactValue"/> makes, the very folds the proof read) and walks the
-    /// remaining +, −, ×, unary − and ** spine, so the value is the same and every carrier it reaches is at scale 0. A subtree
-    /// that is already an integer-form literal, an item, a register or an integer function is returned as it is.</summary>
-    internal static BoundExpr IntegralForm(BoundExpr e)
+    /// none: <c>MOVE FUNCTION ABS(I2 + 1.0) TO A10</c> stored <c>4.0</c>. The rewrite replaces every integral-valued subtree WRITTEN with
+    /// fraction digits (a literal of fraction or floating-point form, a quotient) by the integer literal of its exact value (the folds
+    /// <see cref="ExactValue"/> makes, the very folds the proof read) and walks the remaining +, −, ×, unary − and ** spine, so the value is
+    /// the same and every carrier it reaches is at scale 0. Everything else (an integer-form literal or constant, an item, a register, an
+    /// integer function) is returned as the instance it was. Null when the value is an integer wider than the scaled carrier
+    /// (<see cref="PicInfo.ScaledCarrierDigits"/>): the argument cannot be given a scale-0 literal, so it is not an Integer argument.</summary>
+    internal static BoundExpr? IntegralForm(BoundExpr e)
     {
-        if (e is BoundNumLiteral { Carrier: null } literal && WiseOwl.Cobol.Common.NumericLiteral.IsIntegerLiteralForm(literal.Text))
-            return e;
+        // ⛔ A SUBTREE THAT NEEDS NO REWRITE IS RETURNED AS THE INSTANCE IT WAS: the binder's evaluation-order analysis
+        // (ArgumentOrder, §8.4.3.2.4 GR2) holds an argument by reference, and a rebuilt-but-equal node made it lose
+        // the frozen value of `FUNCTION SUM(WS-B * WS-B, FUNCTION RVBMP(WS-B))` (pb3974_expression_subject_frozen_past_carrier);
+        // an integer constant such as `10 ** 40` is no business of this rewrite either.
+        if (!WrittenWithFraction(e)) return e;
         if (ExactValue(e) is { IsInteger: true } value)
-            return new BoundNumLiteral(value.Numerator.ToString(System.Globalization.CultureInfo.InvariantCulture));
-        return e switch
         {
-            BoundBinary b => b with { Left = IntegralForm(b.Left), Right = IntegralForm(b.Right) },
-            BoundNegate n => n with { Operand = IntegralForm(n.Operand) },
-            BoundPower pw => pw with { Base = IntegralForm(pw.Base), Exp = IntegralForm(pw.Exp) },
-            _ => e,
-        };
+            string text = value.Numerator.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return text.TrimStart('-').Length <= PicInfo.ScaledCarrierDigits ? new BoundNumLiteral(text) : null;
+        }
+        switch (e)
+        {
+            case BoundBinary b:
+            {
+                if (IntegralForm(b.Left) is not { } left || IntegralForm(b.Right) is not { } right) return null;
+                return ReferenceEquals(left, b.Left) && ReferenceEquals(right, b.Right) ? b : b with { Left = left, Right = right };
+            }
+            case BoundNegate n:
+            {
+                if (IntegralForm(n.Operand) is not { } operand) return null;
+                return ReferenceEquals(operand, n.Operand) ? n : n with { Operand = operand };
+            }
+            case BoundPower pw:
+            {
+                if (IntegralForm(pw.Base) is not { } @base || IntegralForm(pw.Exp) is not { } exponent) return null;
+                return ReferenceEquals(@base, pw.Base) && ReferenceEquals(exponent, pw.Exp) ? pw : pw with { Base = @base, Exp = exponent };
+            }
+            default:
+                return e;
+        }
     }
+
+    /// <summary>Does the expression carry a number written with digits to the right of the decimal point, or a quotient, anywhere in its
+    /// +, −, ×, ÷, unary − and ** spine? A floating-point literal is such a number (its significand includes a decimal point, §8.3.3.3.3
+    /// r2). The leaves beneath an item or a call are not the spine's.</summary>
+    private static bool WrittenWithFraction(BoundExpr e) => e switch
+    {
+        BoundNumLiteral l => l.Carrier is not null || !WiseOwl.Cobol.Common.NumericLiteral.IsIntegerLiteralForm(l.Text),
+        BoundBinary b => b.Op == '/' || WrittenWithFraction(b.Left) || WrittenWithFraction(b.Right),
+        BoundNegate n => WrittenWithFraction(n.Operand),
+        BoundPower pw => WrittenWithFraction(pw.Base) || WrittenWithFraction(pw.Exp),
+        _ => false,
+    };
 
     /// <summary>The EXACT algebraic value of a literal-only subtree (numeric literals under +, −, ×, ÷, unary −
     /// and an integral literal exponent of modest magnitude), or null when the subtree references anything else,
