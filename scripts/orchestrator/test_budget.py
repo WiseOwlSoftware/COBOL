@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Self-test for budget.py: the week and day boundaries in America/Los_Angeles, the anchor, the token-to-point
+"""Self-test for budget.py: the week and day boundaries, fixed UTC instants read here in America/Los_Angeles across a
+daylight saving change (kb/Work PB4746), the anchor, the token-to-point
 conversion, each of the four decisions, borrowing, --record, and the ACCOUNT (kb/Work PB2478): each account's own
 weekly reset, readings and telemetry.
 Run: python scripts/orchestrator/test_budget.py   (no submodule, no build, no telemetry sink)."""

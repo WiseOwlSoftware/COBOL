@@ -270,7 +270,7 @@ Each iteration, in this order:
    breaker's state, neither up nor back to zero, and waits one base backoff; `next_unit.py` counts it per unit type
    (rule 3, section 3.2).
 4. **Budget.** `python scripts/orchestrator/budget.py --json` decides: `go` continues; `hold-session` sleeps until
-   the session reset it reports; `hold-day` sleeps until 03:05 America/Los_Angeles the next day; `stop-week` ends the
+   the session reset it reports; `hold-day` sleeps until the next pacing day, 5 minutes after the account's weekly reset time of day (account 1 10:05 UTC, account 2 17:05 UTC; kb/Work PB4746); `stop-week` ends the
    loop. Sleeps wake every minute to honour `STOP`.
 5. **Next unit** (section 3.2): the operator's steer first (validated again here: a hand-edited invalid one is moved to
    `logs\<time>-handoff.operator.invalid.json` and said, never ignored in silence), then the last handoff and the
@@ -422,7 +422,7 @@ one chain link per wave, hand off at ~60 min". Three mechanisms carry it:
 ### 4.4 Replacing the daily-resume cron
 
 The session-only cron (it lived inside one interactive session and died with it) is replaced by the supervisor
-itself: `hold-day` sleeps until 03:05 the next day and continues, and `hold-session` sleeps until the session
+itself: `hold-day` sleeps until the next pacing day (the weekly reset time plus 5 minutes) and continues, and `hold-session` sleeps until the session
 reset. The supervisor survives as long as its PowerShell window. To survive a reboot, a Windows Task Scheduler task
 can start `orchestrate.ps1` at logon; the single-instance lock makes a duplicate start harmless. The task is not
 registered by this change (open decision D2).
@@ -1366,7 +1366,7 @@ and runs `scripts/orchestrator/autostart.ps1`, which lives in git: wait 25 s for
 `orchestrate.ps1 -Watch` in that window so the owner can watch it, and print what the exit code means.
 
 This replaced an older arrangement (a script under `%LOCALAPPDATA%` that started an interactive `claude` session whose prompt had
-to re-create a session-only cron job at `5 3 * * *`). The supervisor needs no cron: `budget.py` returns `hold-day` until 03:05 and
+to re-create a session-only cron job at `5 3 * * *`). The supervisor needs no cron: `budget.py` returns `hold-day` until the next pacing day and
 `hold-session` until the 5-hour reset, and every unit is a fresh session chained by `handoff.json`, so a reboot loses at most the unit
 that was running (a Workflow in flight dies with its process; its worktrees and checkpoints survive and the next `resume` unit
 picks them up). EXACTLY ONE entry starts the loop: the installer moves every other Startup `.cmd` whose text runs

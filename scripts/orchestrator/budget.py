@@ -51,14 +51,15 @@ def parse_ts(s: str) -> dt.datetime:
 
 
 def week_start(now: dt.datetime, r: dict[str, Any]) -> dt.datetime:
-    """The most recent weekly reset `r` (an account's `weekly_reset`: weekday, hour, minute, tz) at or before `now`."""
-    local = now.astimezone(ZoneInfo(r["tz"]))
-    back = (local.weekday() - r["weekday"]) % 7
-    start = (local - dt.timedelta(days=back)).replace(hour=r["hour"], minute=r["minute"], second=0, microsecond=0)
-    if start > local:
+    """The most recent weekly reset `r` (an account's `weekly_reset`: weekday, hour, minute in `tz`, which account.py
+    holds to UTC) at or before `now`. The reset is a fixed instant, so every week is exactly seven days long and a
+    daylight saving change moves only its local reading (kb/Work PB4746)."""
+    base = now.astimezone(ZoneInfo(r["tz"]))
+    back = (base.weekday() - r["weekday"]) % 7
+    start = (base - dt.timedelta(days=back)).replace(hour=r["hour"], minute=r["minute"], second=0, microsecond=0)
+    if start > base:
         start -= dt.timedelta(days=7)
-    # Re-localize the wall time so a DST change inside the week does not shift the reset by an hour.
-    return start.replace(tzinfo=None).replace(tzinfo=ZoneInfo(r["tz"]))
+    return start
 
 
 def points(events: Iterable[dict[str, Any]], since: dt.datetime, until: dt.datetime,
@@ -145,7 +146,6 @@ def estimate(now: dt.datetime, readings: list[dict[str, Any]], all_events_for, r
     allowance = min(cap, (day_n + max(0, borrow_days)) * float(q["daily_pct"]))
     next_day = start + day_n * DAY + dt.timedelta(minutes=q["day_resume_minutes_after_reset"])
     next_week = start + 7 * DAY + dt.timedelta(minutes=q["day_resume_minutes_after_reset"])
-    next_day = next_day.replace(tzinfo=None).replace(tzinfo=start.tzinfo)  # wall-clock 03:05 across DST
     if weekly >= cap:
         decision, resume = "stop-week", next_week
     elif weekly >= allowance:
