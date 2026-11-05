@@ -6,9 +6,9 @@
 
 This page tracks a nightly test called **differential fuzzing**. An AI model picks sections of the standard at random, each one defining a COBOL statement, built-in function, data-description clause or kind of expression, and writes small test programs that use what that section defines. Both compilers run every one of those thousands of programs. When the two give different answers, at least one of them is wrong, or the standard allows both answers. Each disagreement is then settled by reading the standard itself, never by trusting either compiler. The totals below run from 2026-10-20 to batc-h--30.
 
-> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Ledger version ab9d4b61c372. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
+> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Ledger version 24c8d12f80a5. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
 
-**10** nights of testing · **54,107** test programs written and run · **15,992** on which the two compilers disagreed · **32** bugs found in WiseOwl · **32** of those bugs fixed · **133** bugs recorded in GnuCOBOL
+**10** nights of testing · **54,107** test programs written and run · **15,992** on which the two compilers disagreed · **32** bugs found in WiseOwl · **32** of those bugs fixed · **135** bugs recorded in GnuCOBOL
 
 ## How a night of testing works
 
@@ -118,6 +118,7 @@ Every note the testing filed on the WiseOwl side, including a run that stopped b
 | 2026-10-28 | 7 |
 | 2026-10-29 | 5 |
 | 2026-10-30 | 9 |
-| 2026-11-03 | 47 |
+| 2026-11-03 | 43 |
+| 2026-11-04 | 6 |
 
 The testing also checks the reference compiler: the GnuCOBOL bugs it found, by the day each was written up.

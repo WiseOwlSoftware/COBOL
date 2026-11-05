@@ -74,7 +74,7 @@ public sealed class DivideQuotientOneFormerDriftTests
         string enumBody = Regex.Match(text, "private enum SubsidiaryForm\\s*\\{(?<b>[^}]*)\\}").Groups["b"].Value;
         var forms = Regex.Matches(enumBody, "\\b(?<n>[A-Z]\\w+),").Select(m => m.Groups["n"].Value).ToList();
         Assert.True(forms.Count >= 3, "SubsidiaryForm shrank - re-point this guard");
-        string arms = Between(text, "NumX subsidiary = shape.Form switch", "};");
+        string arms = Between(text, ": shape.Form switch", "};");
         foreach (string form in forms.Where(f => f != "FixedPoint"))
             Assert.True(arms.Contains($"SubsidiaryForm.{form} =>", StringComparison.Ordinal),
                 $"the subsidiary-quotient switch has no arm for SubsidiaryForm.{form}: a form of identifier-3 whose shape is not " +
