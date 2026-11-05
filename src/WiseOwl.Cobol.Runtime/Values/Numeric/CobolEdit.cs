@@ -182,31 +182,35 @@ public static partial class CobolEdit
         // The currency STRING replaces the canonical '$' the mask carries whenever it is not that single
         // character — a one-character '#' (§12.3.7.4 GR13) as much as a multi-character "USD" (§12.3.7.3 r23).
         bool wideCurrency = currencyString is not null && currencyString != currency.ToString();
-        var (logical, placed, negative) = Render(value, valueScale, mask, pattern, blankWhenZero, currency, edits, wideCurrency);
+        var (logical, placedBy, negative) = Render(value, valueScale, mask, pattern, blankWhenZero, currency, edits, wideCurrency);
         if (commaMode)
             for (int i = 0; i < pattern.Length; i++)
                 if (pattern[i] is '.' or ',')
                     logical[i] = logical[i] switch { '.' => ',', ',' => '.', _ => logical[i] };
-        return Materialize(pattern, logical, placed, edits, currency, currencyString, negative);
+        return Materialize(pattern, logical, placedBy, edits, currency, currencyString, negative);
     }
 
     /// <summary>⭐ THE LOGICAL RENDER — one character per picture SYMBOL, which is the image every editing rule
     /// of §13.18.40.5 is written about. <see cref="Materialize"/> turns it into the physical image by giving the
     /// two variable-width symbols of §13.18.40.4 GR14 — the currency symbol ('cs', whose currency string "may
     /// have any length") and a PICTURE EDITING character-1 ('es', whose literal may be 50 characters) — the
-    /// width GR14 gives them. <paramref name="placed"/> is null (and never read) unless some symbol IS wider
+    /// width GR14 gives them. <paramref name="placedBy"/> is null (and never read) unless some symbol IS wider
     /// than one character, so an ordinary program's render allocates and walks exactly what it did before.
     /// <c>Negative</c> is THE sign every editing path reads (the fixed <c>+ - CR DB</c>, the floating <c>+ -</c>,
     /// the extended editing sign control symbols and <see cref="Materialize"/>), decided ONCE from the value the
     /// receiver ends up holding (see the comment where it is computed).</summary>
-    private static (char[] Logical, bool[]? Placed, bool Negative) Render(Int128 value, int valueScale, string picture,
+    private static (char[] Logical, char[]? PlacedBy, bool Negative) Render(Int128 value, int valueScale, string picture,
         string pattern, bool blankWhenZero, char currency, EditRule[]? edits, bool wideCurrency)
     {
-        // ⛔ THE VARIABLE-WIDTH MARKER. `placed[i]` says the symbol at position i renders its whole STRING here
-        // — the currency string, or literal-2/literal-3/literal-1 — as opposed to holding a digit, a space or a
-        // replacement character. It is the ONE fact Materialize cannot re-derive, because where a FLOATING
-        // symbol lands is decided by the suppression walk (§13.18.40.5 rule 6 a) and not by the mask.
-        bool[]? placed = wideCurrency || HasWideLiteral(edits) ? new bool[pattern.Length] : null;
+        // ⛔ THE VARIABLE-WIDTH MARKER. `placedBy[i]` names (upper-cased; '\0' for none) the symbol whose whole
+        // STRING — the currency string, or literal-1/literal-2/literal-3 — is rendered at position i, as opposed
+        // to a digit, a space or a replacement character there. It is the ONE fact Materialize cannot re-derive,
+        // because where a FLOATING symbol lands is decided by the suppression walk (§13.18.40.5 rule 6 a) and
+        // not by the mask — and the landing position can be a simple insertion symbol EMBEDDED in the string
+        // (rule 6: "part of the string"), whose own character is then NOT the one that lands: the symbol must
+        // travel with the position, or Materialize writes the embedded symbol's string where the floating
+        // symbol's belongs (kb/Work PB4703).
+        char[]? placedBy = wideCurrency || HasWideLiteral(edits) ? new char[pattern.Length] : null;
 
         // Pre-scan (on the full picture): fixed vs floating sign/currency — ONE occurrence is a fixed-insertion
         // character; TWO OR MORE form a floating string whose members are also digit positions (§13.18.40.4).
@@ -267,7 +271,7 @@ public static partial class CobolEdit
         // (kb/Work PB566 — MOVE 0.4 TO PIC ZZZ9 BLANK WHEN ZERO rendered '   0'). It is the same "value being
         // stored" that rule 7 b)'s all-suppressed test below already reads.
         if (blankWhenZero && digits.AsSpan().IndexOfAnyExcept('0') < 0)
-            return (Filled(' ', pattern.Length), placed, false);
+            return (Filled(' ', pattern.Length), placedBy, false);
 
         // Pass 1 — right-to-left: fill digit positions, place insertion and fixed characters.
         var output = new char[pattern.Length];
@@ -282,7 +286,7 @@ public static partial class CobolEdit
             if (TrySimpleInsertion(pattern[i], edits, out char simpleIns))
             {
                 output[i] = simpleIns;
-                if (placed is not null && RuleFor(pattern[i], edits) is not null) placed[i] = true;
+                if (placedBy is not null && RuleFor(pattern[i], edits) is not null) placedBy[i] = p;
                 continue;
             }
             // FIXED INSERTION with an extended editing sign control symbol (rule 5, Table 8): the FOR form selects
@@ -295,7 +299,7 @@ public static partial class CobolEdit
                 {
                     string lit = negative ? rule.Neg : rule.Pos;
                     output[i] = lit.Length > 0 ? lit[0] : ' ';
-                    if (placed is not null) placed[i] = true;
+                    if (placedBy is not null) placedBy[i] = p;
                     continue;
                 }
                 output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
@@ -304,7 +308,7 @@ public static partial class CobolEdit
             if (p == currencyChar)
             {
                 output[i] = isFixedCurrency ? currencyChar : digitIdx >= 0 ? digits[digitIdx--] : '0';
-                if (placed is not null && isFixedCurrency) placed[i] = true;
+                if (placedBy is not null && isFixedCurrency) placedBy[i] = p;
                 continue;
             }
             switch (p)
@@ -408,7 +412,7 @@ public static partial class CobolEdit
                         // The literal is no longer AT this position — the replacement character is (rule 7 a),
                         // and GR14 'es' still counts the literal's width, so Materialize repeats the
                         // replacement character across it rather than writing literal-1.
-                        if (placed is not null) placed[i] = false;
+                        if (placedBy is not null) placedBy[i] = default;
                     }
                     else suppressing = false;
                     break;
@@ -433,26 +437,26 @@ public static partial class CobolEdit
                 // "all character positions of the item will contain the character space / asterisk" (rule 7 b)
                 // — every position, so no symbol renders its string; Materialize still gives each the width
                 // GR14 gives it, so the physical image stays the item's own size.
-                if (placed is not null) placed[i] = false;
+                if (placedBy is not null) placedBy[i] = default;
             }
         }
-        if (fullFieldBlanked && !asteriskFill) return (output, placed, negative);
+        if (fullFieldBlanked && !asteriskFill) return (output, placedBy, negative);
 
         // Floating symbol placement: the symbol lands at the rightmost suppressed position of its floating zone.
         if (plusCount > 0 && plusCount + minusCount > 1)
         {
             int pos = FindFloatingPlacement(pattern, output, '+', edits);
-            if (pos >= 0) output[pos] = negative ? '-' : '+';
+            if (pos >= 0) { output[pos] = negative ? '-' : '+'; if (placedBy is not null) placedBy[pos] = '+'; }
         }
         else if (minusCount > 0 && plusCount + minusCount > 1)
         {
             int pos = FindFloatingPlacement(pattern, output, '-', edits);
-            if (pos >= 0) output[pos] = negative ? '-' : ' ';
+            if (pos >= 0) { output[pos] = negative ? '-' : ' '; if (placedBy is not null) placedBy[pos] = '-'; }
         }
         if (currencyCount > 1)
         {
             int pos = FindFloatingPlacement(pattern, output, currencyChar, edits);
-            if (pos >= 0) { output[pos] = currencyChar; if (placed is not null) placed[pos] = true; }
+            if (pos >= 0) { output[pos] = currencyChar; if (placedBy is not null) placedBy[pos] = char.ToUpperInvariant(currencyChar); }
         }
         // A FLOATING extended editing sign control symbol lands by the SAME rule 6 a) walk — Table 9 selects
         // literal-2 on a negative value and literal-3 otherwise, the unspecified side being SR12c's spaces
@@ -465,10 +469,10 @@ public static partial class CobolEdit
                 if (pos < 0) continue;
                 string lit = negative ? e.Neg : e.Pos;
                 output[pos] = lit.Length > 0 ? lit[0] : ' ';
-                if (placed is not null) placed[pos] = true;
+                if (placedBy is not null) placedBy[pos] = char.ToUpperInvariant(e.Char1);
             }
 
-        return (output, placed, negative);
+        return (output, placedBy, negative);
     }
 
     /// <summary>⛔ ISO §13.18.8.4 GR3's CONTENT TEST — "the content of the sending data item is all spaces",
@@ -524,10 +528,39 @@ public static partial class CobolEdit
         var (signStart, signEnd) = facts.Plus + facts.Minus > 1 && edits is not null
             ? FloatingZone(pattern, facts.Plus > 0 ? '+' : '-', edits)
             : (-1, -1);
+        // The floating strings whose whole landed text (a currency string, an extended sign control literal) can
+        // stand on a simple insertion symbol embedded in them (PB4703), and the sign of a floating extended
+        // sign control symbol whose NEGATIVE text is blank: a blank cannot be read at a position, because every
+        // suppressed position of the string is a space too, so the item is negative exactly when the POSITIVE
+        // text never landed (rule 6 a: a nonzero value always lands one).
+        var landings = LandingZones(pattern, edits, currencyChar, !fixedCs && csWidth > 1, currencyString);
+        bool signByAbsence = false;
+        if (edits is not null)
+            foreach (var fe in edits)
+                if (fe.Floating && fe.Neg != fe.Pos && IsBlanked(fe.Neg) && !IsBlanked(fe.Pos)) signByAbsence = true;
+        bool positiveLanded = false;
         for (int i = 0; i < pattern.Length && phys < image.Length; i++)
         {
             char p = char.ToUpperInvariant(pattern[i]);
             char c = image[phys];
+            // A BLANK landing wider than one space starts a run of spaces that no position can claim alone.
+            if (!digitSeen && landings is not null && BlankLandingRun(image, phys, i, pattern, edits, landings) is { } run)
+            {
+                phys += run.Chars;
+                i += run.Positions - 1;
+                continue;
+            }
+            // ⛔ A floating string's landing on a simple insertion symbol embedded in it (rule 6: part of the
+            // string; Materialize writes it, see LandedStringAt) holds the landed text, not the symbol's own.
+            // Only before the first digit: after one, the symbol shows its own literal.
+            if (!digitSeen && landings is not null && TrySimpleInsertion(pattern[i], edits, out _)
+                && LandedStringAt(image, phys, RuleFor(pattern[i], edits)?.Width ?? 1, i, landings) is { } landed)
+            {
+                if (landed.Negative) negative = true;
+                if (landed.Positive) positiveLanded = true;
+                phys += landed.Width;
+                continue;
+            }
             // A user EDITING character-1 holds no digit while it renders its literal; a sign-control (FOR)
             // character-1 whose image text is literal-2 recovers the sign (ISO §13.18.40.5 Table 8 / Table 9 —
             // the de-editing MOVE, §14.9.25.4 GR5).
@@ -544,13 +577,21 @@ public static partial class CobolEdit
                     // is told from the landed sign by position (digitSeen above). A character-1 outside the string
                     // (left of its first symbol, or past its end) is never a landing position: its '-' is the
                     // literal (kb/Work PB4621; FloatingZone is the one extent both walks read).
-                    else if (c == '-' && i >= signStart && i < signEnd && (!digitSeen || !Matches(image, phys, e.Pos))) negative = true;
+                    // The landed sign stands at the END of the symbol's slot, the slot's other characters holding the
+                    // replacement space (Materialize; GR14 'es' counts the whole literal width, PB4703).
+                    else if (i >= signStart && i < signEnd && phys + w <= image.Length && image[phys + w - 1] == '-'
+                             && (!digitSeen || !Matches(image, phys, e.Pos))) negative = true;
                     phys += w;
                     continue;
                 }
-                if (Matches(image, phys, e.Neg)) { if (e.Neg != e.Pos) negative = true; phys += w; continue; }
-                if (Matches(image, phys, e.Pos)) { phys += w; continue; }
+                // A BLANK text is no evidence at a position (the suppressed positions are spaces too), and a
+                // suppressed position is ONE space wide: a blank landing wider than one is read as a whole run
+                // by BlankLandingRun above, and signByAbsence reads a blank negative text from the positive
+                // text never landing. Only a nonblank text is matched here, at its own width.
+                if (!IsBlanked(e.Neg) && Matches(image, phys, e.Neg)) { if (e.Neg != e.Pos) negative = true; phys += w; continue; }
+                if (!IsBlanked(e.Pos) && Matches(image, phys, e.Pos)) { if (e.Neg != e.Pos) positiveLanded = true; phys += w; continue; }
                 value = value * 10 + (c is >= '0' and <= '9' ? c - '0' : 0);   // a floating repetition — a digit position
+                if (c is >= '0' and <= '9') digitSeen = true;
                 phys++;
                 continue;
             }
@@ -559,6 +600,7 @@ public static partial class CobolEdit
                 if (fixedCs) { phys += csWidth; continue; }
                 if (csWidth > 1 && Matches(image, phys, currencyString!)) { phys += csWidth; continue; }
                 value = value * 10 + (c is >= '0' and <= '9' ? c - '0' : 0);
+                if (c is >= '0' and <= '9') digitSeen = true;
                 phys++;
                 continue;
             }
@@ -582,6 +624,7 @@ public static partial class CobolEdit
             else if (p == 'C' && c == 'C') negative = true;     // CR rendered (negative value)
             else if (p == 'D' && c == 'D') negative = true;     // DB rendered
         }
+        if (signByAbsence && !positiveLanded) negative = true;
         Int128 result = negative ? -value : value;
         if (ExceptionState.DataIncompatibleChecking)
         {
@@ -626,7 +669,7 @@ public static partial class CobolEdit
     // in reverse. Nothing else in this file knows that a symbol can be wider than one character.
 
     /// <summary>⭐ LOGICAL → PHYSICAL, the ONE place a picture symbol wider than one character position is
-    /// written out. <paramref name="placed"/> is null when no symbol is wide, and then the logical image IS the
+    /// written out. <paramref name="placedBy"/> is null when no symbol is wide, and then the logical image IS the
     /// physical one — an ordinary program pays nothing for this.
     /// <para>The widths are ISO §13.18.40.4 GR14's own:</para>
     /// <list type="bullet">
@@ -649,14 +692,16 @@ public static partial class CobolEdit
     /// currency string had alone (kb/Work PB60), generalized so the EDITING literal of §13.18.40.3 SR9 — up to
     /// 50 characters, and Annex D.24's own examples — renders by the same mechanism (kb/Work PB491).</para>
     /// </summary>
-    private static string Materialize(string pattern, char[] logical, bool[]? placed, EditRule[]? edits,
+    private static string Materialize(string pattern, char[] logical, char[]? placedBy, EditRule[]? edits,
         char currency, string? currencyString, bool negative)
     {
-        if (placed is null) return new string(logical);
+        if (placedBy is null) return new string(logical);
         char currencyChar = char.ToUpperInvariant(currency);
         bool wideCurrency = currencyString is not null && currencyString != currency.ToString();
-        // One pre-pass over the mask: each wide symbol's FIRST occurrence, and whether any occurrence of it
-        // rendered its string — the two facts the per-position decision needs, so the walk stays linear.
+        // One pre-pass over the mask: each wide symbol's FIRST occurrence, and whether any position rendered
+        // its string — the two facts the per-position decision needs, so the walk stays linear. The landing
+        // position is read from placedBy, not from the mask: a floating string can land on a simple insertion
+        // symbol embedded in it.
         int firstCurrency = -1;
         bool anyCurrencyPlaced = false;
         var firstChar1 = new Dictionary<char, int>(2);
@@ -667,28 +712,40 @@ public static partial class CobolEdit
             if (wideCurrency && p == currencyChar)
             {
                 if (firstCurrency < 0) firstCurrency = i;
-                if (placed[i]) anyCurrencyPlaced = true;
             }
             else if (RuleFor(pattern[i], edits) is { Width: > 1 })
-            {
                 firstChar1.TryAdd(p, i);
-                if (placed[i]) char1Placed.Add(p);
-            }
+            if (placedBy[i] == default) continue;
+            if (wideCurrency && placedBy[i] == currencyChar) anyCurrencyPlaced = true;
+            else if (RuleFor(placedBy[i], edits) is not null) char1Placed.Add(placedBy[i]);
         }
         var sb = new System.Text.StringBuilder(logical.Length + 16);
         for (int i = 0; i < pattern.Length; i++)
         {
             char p = char.ToUpperInvariant(pattern[i]);
+            char by = placedBy[i];
+            if (by != default && by != p)
+            {
+                // ⛔ A FLOATING string landed on a simple insertion symbol EMBEDDED in it (rule 6 a: the sign or
+                // currency goes "into the character position(s) immediately preceding" the first nonzero digit,
+                // and rule 6 makes the embedded symbols part of the string). The landed string is the FLOATING
+                // symbol's, never the embedded symbol's own: it stands immediately before the next position, and
+                // the slot's other characters, which GR14 still counts, hold the replacement space
+                // (kb/Work PB4703). DeEdit reads the same layout (LandedStringAt).
+                int slot = RuleFor(pattern[i], edits)?.Width ?? 1;
+                sb.Append(' ', slot - 1).Append(LandedText(by, logical[i]));
+                continue;
+            }
             if (wideCurrency && p == currencyChar)
             {
-                if (placed[i]) sb.Append(currencyString);
+                if (by != default) sb.Append(currencyString);
                 else if (i == firstCurrency && !anyCurrencyPlaced) sb.Append(logical[i], currencyString!.Length);
                 else sb.Append(logical[i]);
                 continue;
             }
             if (RuleFor(pattern[i], edits) is { Width: > 1 } e)
             {
-                if (placed[i]) sb.Append(negative ? e.Neg : e.Pos);
+                if (by != default) sb.Append(negative ? e.Neg : e.Pos);
                 else if (!e.Floating || (i == firstChar1[p] && !char1Placed.Contains(p))) sb.Append(logical[i], e.Width);
                 else sb.Append(logical[i]);
                 continue;
@@ -696,6 +753,13 @@ public static partial class CobolEdit
             sb.Append(logical[i]);
         }
         return sb.ToString();
+
+        // The string the symbol `by` renders where it lands: the currency string, literal-2 / literal-3, or the one
+        // character the logical image holds there (a floating '+' / '-' sign, or a one-character currency symbol).
+        string LandedText(char by, char logicalChar) =>
+            wideCurrency && by == currencyChar ? currencyString!
+            : RuleFor(by, edits) is { } r ? (negative ? r.Neg : r.Pos)
+            : logicalChar.ToString();
     }
 
     /// <summary>Does the image carry <paramref name="text"/> at <paramref name="at"/>? An empty literal matches
@@ -837,5 +901,112 @@ public static partial class CobolEdit
                && (char.ToUpperInvariant(pattern[end]) == target || TrySimpleInsertion(pattern[end], edits, out _)))
             end++;
         return (start, end);
+    }
+
+    /// <summary>A floating string whose WHOLE-STRING landing (the currency string, or an extended sign control
+    /// symbol's literal-2/literal-3) can stand on a simple insertion symbol embedded in it: its
+    /// <see cref="FloatingZone"/> and the text it lands as on a negative (<c>Neg</c>) and a nonnegative
+    /// (<c>Pos</c>) value. The floating <c>+</c>/<c>-</c> strings are not here: their landing is the one
+    /// character, read at the position (kb/Work PB4514, PB4621).</summary>
+    private readonly record struct LandingZone(int Start, int End, string Neg, string Pos)
+    {
+        /// <summary>The landed text's width (SR12a: both texts occupy the same number of positions).</summary>
+        public int Width => Neg.Length;
+
+        /// <summary>Does a landing of this string show only spaces, over more than one position? Then it cannot be
+        /// told from the suppression spaces around it by looking at one position.</summary>
+        public bool BlankWide => Width > 1 && (IsBlanked(Neg) || IsBlanked(Pos));
+    }
+
+    /// <summary>The landing zones of a mask for <see cref="DeEdit"/>: one per FLOATING extended sign control
+    /// symbol and one for a floating currency symbol whose currency string is wider than one character; null
+    /// when the mask holds none, so the common mask pays nothing. They are the strings
+    /// <see cref="Materialize"/> writes with a landing on an embedded symbol.</summary>
+    private static List<LandingZone>? LandingZones(string pattern, EditRule[]? edits, char currencyChar,
+        bool floatingWideCurrency, string? currencyString)
+    {
+        List<LandingZone>? zones = null;
+        if (edits is not null)
+            foreach (var e in edits)
+            {
+                if (!e.Floating) continue;
+                var (start, end) = FloatingZone(pattern, e.Char1, edits);
+                if (start >= 0) (zones ??= []).Add(new LandingZone(start, end, e.Neg, e.Pos));
+            }
+        if (floatingWideCurrency)
+        {
+            var (start, end) = FloatingZone(pattern, currencyChar, edits);
+            if (start >= 0) (zones ??= []).Add(new LandingZone(start, end, currencyString!, currencyString!));
+        }
+        return zones;
+    }
+
+    /// <summary>The run of spaces a BLANK landing wider than one position belongs to, read at the first symbol of
+    /// its floating string (<paramref name="at"/>): a blank text cannot be told from the one-space suppressed
+    /// positions around it by looking at one position, so the whole suppressed prefix is read at once. Returns the
+    /// physical characters the prefix occupies and the mask positions it covers (the last of them is the landing),
+    /// or null when this is not the start of such a prefix: a nonblank landing follows the spaces (the per-position
+    /// reads then answer), or the widths do not add up.</summary>
+    private static (int Chars, int Positions)? BlankLandingRun(string image, int phys, int at, string pattern,
+        EditRule[]? edits, List<LandingZone> zones)
+    {
+        foreach (var z in zones)
+        {
+            if (z.Start != at || !z.BlankWide) continue;
+            int run = image.AsSpan(phys).IndexOfAnyExcept(' ');
+            if (run < 0) return (image.Length - phys, 1);   // the rest is blank: zero, nothing lands, nothing to read
+            int next = phys + run;
+            // A nonblank landing follows the run: the suppressed positions before it are one space each and
+            // the per-position reads answer, the landing itself included.
+            if (LandsAt(image, phys, next, z.Neg) || LandsAt(image, phys, next, z.Pos)) return null;
+            // Otherwise the run is the string's whole suppressed prefix, and the LAST of its positions is the
+            // landing of the blank text (rule 6 a): every position is one space wide (a symbol embedded in the
+            // string, its own width) and the landing takes Width - 1 more. Walk the positions until they sum to it.
+            int target = run - (z.Width - 1);
+            int sum = 0;
+            for (int j = at; j < z.End && sum < target; j++)
+            {
+                sum += j > at && RuleFor(pattern[j], edits) is { Floating: false } r ? r.Width : 1;
+                if (sum == target) return (run, j - at + 1);
+            }
+        }
+        return null;
+    }
+
+    /// <summary>Does a NONBLANK landed <paramref name="text"/> stand in the image with its first nonspace character
+    /// at <paramref name="next"/>, the first nonspace character after the suppressed run that begins at
+    /// <paramref name="phys"/>? A literal may begin with spaces (<c>" -"</c>, <c>" CR"</c>: SR9 and SR12 limit only a
+    /// literal's kind and width), and those spaces are part of the run, so the text starts that many characters
+    /// BEFORE <paramref name="next"/> (never before the run).</summary>
+    private static bool LandsAt(string image, int phys, int next, string text)
+    {
+        if (IsBlanked(text)) return false;
+        int start = next - text.AsSpan().IndexOfAnyExcept(' ');
+        return start >= phys && Matches(image, start, text);
+    }
+
+    /// <summary>⛔ DE-EDITING'S HALF OF A LANDING ON AN EMBEDDED SYMBOL: does the image, at the physical offset
+    /// <paramref name="phys"/> of the simple insertion symbol at mask position <paramref name="at"/>, carry the
+    /// string a floating string landed there? <see cref="Materialize"/> writes it as the slot's
+    /// <paramref name="slot"/> - 1 replacement spaces and then the landed text (ISO §13.18.40.5 rule 6 a), the
+    /// text being literal-2 on a negative value, literal-3 otherwise, and the currency string either way).
+    /// Reports which sign text it was (<c>Negative</c>; <c>Positive</c> for a nonnegative text of a zone whose
+    /// two texts differ, the evidence <see cref="DeEdit"/> needs when the negative text is blank) and the
+    /// physical width the slot occupies, or null when the position is not a landing: a BLANK text cannot be told
+    /// from the suppression spaces around it, and a position the caller reaches after a digit shows the
+    /// symbol's own literal (rule 6 a puts only spaces and the landed string before the first nonzero digit),
+    /// so neither is answered here.</summary>
+    private static (bool Negative, bool Positive, int Width)? LandedStringAt(string image, int phys, int slot, int at,
+        List<LandingZone> zones)
+    {
+        int text = phys + slot - 1;
+        if (text > image.Length || image.AsSpan(phys, slot - 1).IndexOfAnyExcept(' ') >= 0) return null;
+        foreach (var z in zones)
+        {
+            if (at <= z.Start || at >= z.End) continue;
+            if (z.Neg != z.Pos && !IsBlanked(z.Neg) && Matches(image, text, z.Neg)) return (true, false, slot - 1 + z.Neg.Length);
+            if (!IsBlanked(z.Pos) && Matches(image, text, z.Pos)) return (false, z.Neg != z.Pos, slot - 1 + z.Pos.Length);
+        }
+        return null;
     }
 }
