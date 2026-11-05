@@ -86,6 +86,57 @@ public sealed class EvaluateObjectOperandFaultTests
     public void ARefusedPair_StillBindsABareOperandAfterAConnective(string statement, string expected) =>
         Assert.Equal(expected.Split(' '), Codes(statement));
 
+    /// <summary>⛔ THE INSERTION ENDS AT A COMPLETE SIMPLE CONDITION (kb/Work PB4627, ISO §8.8.4.12.4 GR1: "The insertion
+    /// of an omitted subject and/or relational operator terminates once a complete simple condition is encountered
+    /// within a complex condition"). A bare value after a condition-name, a class or sign condition, a parenthesized
+    /// group or a truth word is no object of the carried relation and no condition either (COBOL2318, §8.8.4.2.1); an
+    /// abbreviated relation there has no subject (COBOL2552, §8.8.4.12.1); a STATED relation restarts the insertion,
+    /// so the value after it is its object. The refused pair draws these beside its Table 15 verdict, as the same
+    /// condition in an IF draws them alone.</summary>
+    [Theory]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND C88 AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2318")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND C88 AND A DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2318")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND NOT C88 AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2318")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND (C88) AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2318")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND (N = 2) AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2318")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND N NUMERIC AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2318")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND N POSITIVE AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2318")]
+    [InlineData("           EVALUATE TRUE WHEN NUMERIC AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2318")]
+    [InlineData("           EVALUATE TRUE WHEN POSITIVE AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2318")]
+    [InlineData("           EVALUATE TRUE WHEN NUMERIC AND ADDRESS OF A DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2318")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND TRUE DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2318")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND C88 AND UNDEFX DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL1639")]
+    [InlineData("           EVALUATE TRUE WHEN NUMERIC AND > 1 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2552")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND C88 OR < 2 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2552")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND (N = 2) AND < 3 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2552")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND N = 2 AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND N = 2 OR < 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND < 5 AND ADDRESS OF A DISPLAY \"B\" END-EVALUATE.", "COBOL1634")]
+    public void ARefusedPair_JudgesABareOperandAndAnAbbreviatedRelationByTheInsertion(string statement, string expected) =>
+        Assert.Equal(expected.Split(' '), Codes(statement));
+
+    /// <summary>A bare class-name after a stated or leading relation is read as the carried relation's object, as an IF
+    /// reads it, so the operand binder refuses the word (COBOL1639); after a complete simple condition it is no
+    /// condition (COBOL2318, §8.8.4.2.1), and a class-name that LEADS the object is the class condition without its
+    /// identifier (§14.9.13.3 SR5) and draws nothing of its own.</summary>
+    [Theory]
+    [InlineData("WHEN > 1 AND MYCLS", "COBOL1634 COBOL1639")]
+    [InlineData("WHEN MYCLS AND 5", "COBOL1634 COBOL2318")]
+    [InlineData("WHEN MYCLS AND MYCLS", "COBOL1634 COBOL2318")]
+    [InlineData("WHEN MYCLS", "COBOL1634")]
+    public void ARefusedPair_JudgesABareClassNameByTheInsertion(string when, string expected)
+    {
+        string source = "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. EOF4627.\n"
+            + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n"
+            + "           CLASS MYCLS IS \"A\" THRU \"C\".\n"
+            + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 N PIC 9 VALUE 1.\n"
+            + $"       PROCEDURE DIVISION.\n           EVALUATE TRUE {when} DISPLAY \"B\" END-EVALUATE.\n           STOP RUN.\n";
+        var (ok, errors) = EditionHarness.Compile(source, 2023);
+        Assert.False(ok);
+        Assert.Equal(expected.Split(' '), errors.Select(e => Regex.Match(e, @"COBOL\d{4}").Value).Order(StringComparer.Ordinal));
+    }
+
     /// <summary>The surplus objects of an SR2 breach have no subject, so no Table 15 verdict, and each is bound.</summary>
     [Theory]
     [InlineData("           EVALUATE TRUE WHEN TRUE ALSO UNDEFX DISPLAY \"B\" END-EVALUATE.", "COBOL1639 COBOL2106")]
@@ -95,6 +146,8 @@ public sealed class EvaluateObjectOperandFaultTests
         "COBOL1634 COBOL2096 COBOL2096 COBOL2106")]
     [InlineData("           EVALUATE N WHEN 1 ALSO > 1 AND UNDEFX DISPLAY \"B\" END-EVALUATE.", "COBOL1639 COBOL2106")]
     [InlineData("           EVALUATE N WHEN 1 ALSO > 1 AND RELF (1) DISPLAY \"B\" END-EVALUATE.", "COBOL2096 COBOL2106")]
+    [InlineData("           EVALUATE N WHEN 1 ALSO > 1 AND C88 AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL2106 COBOL2318")]
+    [InlineData("           EVALUATE N WHEN 1 ALSO > 1 AND N = 2 AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL2106")]
     public void ASurplusObject_IsBoundByItsOwnRow(string statement, string expected) =>
         Assert.Equal(expected.Split(' '), Codes(statement));
 
