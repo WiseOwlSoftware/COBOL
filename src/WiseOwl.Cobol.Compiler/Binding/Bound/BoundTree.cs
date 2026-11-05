@@ -629,6 +629,15 @@ public sealed record BoundComputedOperand(BoundExpr Expr) : BoundOperand
     /// <c>IntrinsicBinder.BindArgOperandCore</c>.</summary>
     public bool CounterRegisterValue { get; init; }
 
+    /// <summary>True when the operand is an ARITHMETIC EXPRESSION AS WRITTEN - an operator, a unary sign, or enclosing parentheses
+    /// (§8.8.1.1, "an arithmetic expression enclosed in parentheses"; §8.8.1.2 GR1 makes a parenthesized value "a single operand") -
+    /// the binder's statement for it, as <see cref="FunctionValue"/> is for a function-identifier and <see cref="CounterRegisterValue"/>
+    /// for a register (kb/Work PB4763, PB1935). The expression binder drops grouping parentheses, so <c>(FUNCTION ABS(I2))</c> and
+    /// <c>(LINAGE-COUNTER)</c> carry the same <see cref="Expr"/> as the function-identifier and the register written sole, and a screen
+    /// that must tell identifier-1 from an expression (a class condition's subject, §8.8.4.4.2) asks THIS, never the tree's shape. Set
+    /// only by <c>ConditionBinder.CompoundOperand</c>.</summary>
+    public bool ArithmeticExpression { get; init; }
+
     /// <summary>True when the operand is the value of a NUMERIC function-identifier: <see cref="FunctionValue"/> (the binder's
     /// statement that the source wrote the function-identifier, however it lowered to a tree) whose value is numeric. The one
     /// question every channel that sends a value into a plain group asks (<c>OperandText.NonElementaryMoveSender</c>, the CALL
