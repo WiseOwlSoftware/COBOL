@@ -61,10 +61,11 @@
        WORKING-STORAGE SECTION.
        01 WS-STAT PIC XX.
        01 WS-AMT  PIC #99.99 VALUE 12.34.
+       01 WS-DIG  PIC X VALUE "7".
        PROCEDURE DIVISION.
        MAIN-PARA.
            DISPLAY "AMT=" WS-AMT
-           IF "7" IS DIGITS
+           IF WS-DIG IS DIGITS
                DISPLAY "CLASS-OK"
            END-IF
            DISPLAY "PB829-LEGAL-FORMATS-OK"
