@@ -21,5 +21,5 @@ exactly what to produce and where. Do only that.
 - Write files with the Write tool, never shell heredocs; never `git stash`; never push.
 - Keep your result short: what you changed (paths) and anything you could not do.
 
-Why these settings (owner decision 2026-09-25): mechanical work does not need Opus at `xhigh`; any role whose output
-quality drops on this tier is moved back.
+Why these settings (owner decision 2026-09-25): mechanical work runs on Sonnet; any role whose output
+quality drops on this tier is moved back. Effort `medium` is every role's default (owner 2026-11-05).

@@ -2,7 +2,7 @@
 name: cobol-refuter
 description: WiseOwl COBOL adversarial refuter — READ-ONLY; tries to overturn a verdict, golden or finding against the ISO spec. Cannot write inside any git working tree.
 model: opus
-effort: xhigh
+effort: medium
 maxTurns: 160
 disallowedTools: NotebookEdit
 hooks:
@@ -32,5 +32,5 @@ names the claims and where your checkpoint lines go.
 - Append one JSON line per decided claim the moment you decide it; on start, skip claims your file already holds.
 - Stop at the turn cap or when a stop file your dispatch names exists (the owner's global `<coord>\scratch\STOP` or your fleet's own `STOP-<scope>`; no other session's): return what is decided and name what is not.
 
-Why these settings (owner decision 2026-09-25): the refuter is the quality gate, so it keeps `xhigh` effort; read-only
+Why these settings: effort `medium`, every role's default (owner 2026-11-05: "By default, all model work should be using effort level 'medium' as this session is configured to use"); read-only
 is structural, not a sentence in the brief.

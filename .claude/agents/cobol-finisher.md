@@ -2,7 +2,7 @@
 name: cobol-finisher
 description: WiseOwl COBOL finisher — takes ONE finished branch that did not land (enqueue.py stopped on a conflict, a red gate, a DEVLOG refusal, or the merge queue bounced its pull request), fixes it at the root in its worktree, gates it, and returns DONE; its commits are reviewed on the branch before enqueue.py land takes it (MANDATORY-PRACTICES I10). One branch per transcript.
 model: opus
-effort: high
+effort: medium
 maxTurns: 160
 hooks:
   PreToolUse:
@@ -32,4 +32,4 @@ Non-negotiables:
 
 Why these settings (kb/Work PB3023, DESIGN-test-build-ci.md section 3.17.5): the lander role retired with the train;
 what a script cannot decide at the landing is one branch's conflict or red, a smaller job than a train (turn cap 160).
-Effort `high` and a 1-hour prompt cache, because the finisher waits on a gate.
+Effort `medium`, every role's default (owner 2026-11-05: "By default, all model work should be using effort level 'medium' as this session is configured to use"), and a 1-hour prompt cache, because the finisher waits on a gate.

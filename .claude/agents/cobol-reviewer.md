@@ -2,7 +2,7 @@
 name: cobol-reviewer
 description: WiseOwl COBOL reviewer — READ-ONLY, in two forms. The BRANCH review - one DONE fix-lane branch, reviewed when its implementer returns (kb/Work PB3027, the review skill's branch form), its decisions recorded through review_findings.py and its verdict stamped into the report. The R2 review - one shard of the pinned tree along one dimension, a null-result examination or a lens skeptic, one JSON line per decision through r2_collect.py. Cannot write inside any git working tree.
 model: opus
-effort: high
+effort: medium
 maxTurns: 120
 disallowedTools: NotebookEdit
 hooks:
