@@ -165,7 +165,7 @@ internal static class ClassConditionModel
             if (item.IsGroup && DataItem.HasVariableLengthSubordinate(item))
                 return "a variable-length group";
         }
-        return IntrinsicArgumentRules.ClassOf(op) is CobolClass.Index or CobolClass.Object or CobolClass.Pointer
+        return IntrinsicArgumentRules.ClassOf(op) is CobolClass.Index or CobolClass.MessageTag or CobolClass.Object or CobolClass.Pointer
             ? "an operand of class index, message-tag, object, or pointer"
             : null;
     }

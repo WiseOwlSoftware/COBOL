@@ -681,9 +681,8 @@ usageKeyword
     | BINARY
     | PACKED_DECIMAL
     | INDEX
-    | MESSAGE_TAG           // §13.18.60.4 GR9 (COBOL-2023, Annex E.2 item 25) — the MCS message-tag usage. DECLINED
-                            // (docs/CONFORMANCE.md §4 item 1 / Annex A.3 item 4): recognize-only, refused BY NAME
-                            // at bind (COBOL1943). ⛔ It is in the CLAUSE grammar, not just the reserved-word
+    | MESSAGE_TAG           // §13.18.60.4 GR9 (COBOL-2023, Annex E.2 item 25) — the MCS message-tag usage (kb/Work
+                            // PB4740: a bound message-tag category). ⛔ It is in the CLAUSE grammar, not just the reserved-word
                             // table, because §13.18.60.2 prints `[ USAGE IS ]` as OPTIONAL for every usage: without
                             // an arm here the bare `01 M MESSAGE-TAG.` fell to the §13.16.2 catch-all and bound with
                             // NO usage at all (kb/Work PB487).

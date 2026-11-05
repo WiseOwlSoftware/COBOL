@@ -35,6 +35,7 @@ internal static class RepositoryVocabulary
         PicCategory.Pointer => RepositoryCategory.Pointer,
         PicCategory.ProgramPointer => RepositoryCategory.ProgramPointer,
         PicCategory.FunctionPointer => RepositoryCategory.FunctionPointer,
+        PicCategory.MessageTag => RepositoryCategory.MessageTag,
         _ => throw new UnreachableException($"PicCategory.{c} has no persisted value"),
     };
 
@@ -50,6 +51,7 @@ internal static class RepositoryVocabulary
         RepositoryCategory.Pointer => PicCategory.Pointer,
         RepositoryCategory.ProgramPointer => PicCategory.ProgramPointer,
         RepositoryCategory.FunctionPointer => PicCategory.FunctionPointer,
+        RepositoryCategory.MessageTag => PicCategory.MessageTag,
         _ => throw new UnreachableException($"RepositoryCategory {(int)c} is no persisted category"),
     };
 

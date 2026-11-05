@@ -256,10 +256,13 @@ internal sealed class CheckUsageDeclarationsPass : IBindPass
 
     /// <summary>§13.18.22.3 SR4 — "The EXTERNAL clause shall not be specified for a data item of class object or
     /// pointer." True when it reported. One screen for the WRITTEN-entry loop and the TYPE-entry loop of
-    /// <see cref="Run"/>: the class is the entry's COMPOSED one, however it was acquired.</summary>
+    /// <see cref="Run"/>: the class is the entry's COMPOSED one, however it was acquired. ⚠ The message tag rides the same
+    /// slot (<see cref="SlotWindow.CarriedBySlot"/>) but is class message-tag, which SR4 does not list: an EXTERNAL tag is
+    /// legal (kb/Work PB4740 review R1-2; DESIGN-message-control §4.2).</summary>
     private static bool ScreenExternalClassItem(DataBinder binder, DataItem item, string name)
     {
-        if (!(item.HasExternalClause && SlotWindow.CarriedBySlot(item))) return false;
+        if (!(item.HasExternalClause && SlotWindow.CarriedBySlot(item) && item.Pic!.Category is not PicCategory.MessageTag))
+            return false;
         binder.Edition.Error(DiagnosticCatalog.ExternalPointerOrObjectItem, $"data item '{name}' is described "
             + $"with USAGE {Sr14PhraseNameOf(item)} — of class "
             + $"{(item.Pic!.Category is PicCategory.ObjectReference ? "object" : "pointer")} — and with "
@@ -317,12 +320,12 @@ internal sealed class CheckUsageDeclarationsPass : IBindPass
     /// <see cref="Sr4ConstantRecordUsage"/>).
     /// <para>It asks the PHRASE and never the resolved CATEGORY, because the rule is written over the phrase
     /// ("A USAGE clause with the MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, or PROGRAM-POINTER
-    /// phrase") and a usage the compiler REFUSES by name (MESSAGE-TAG, declined non-support, COBOL1943) binds a
+    /// phrase") and a usage with no bound model binds a
     /// recovery profile whose category is no analysis: arm B used to key on the class
     /// (<c>PointerObjectClass</c>, the §13.18.44.3 REDEFINES screen's predicate), so it was blind to exactly the usages
-    /// whose keyword is refused while arm A, reading the written clause, still reported them — a staged or declined
-    /// usage took a different path from a landed one. FUNCTION-POINTER was the first such cell and gained a model
-    /// (kb/Work PB817); MESSAGE-TAG is the live one. A usage added tomorrow is covered by
+    /// whose keyword was refused while arm A, reading the written clause, still reported them — a staged or declined
+    /// usage took a different path from a landed one. FUNCTION-POINTER (kb/Work PB817) and MESSAGE-TAG (kb/Work
+    /// PB4740) gained a model since. A usage added tomorrow is covered by
     /// <see cref="ItemCategory.Sr14PhraseOf(Usage?)"/>'s recorded verdict
     /// (<c>UsageDeclarationPlacementDriftTests</c>) instead of by this screen's author remembering it.</para></summary>
     private static string? Sr14PhraseOf(DataItem d) =>

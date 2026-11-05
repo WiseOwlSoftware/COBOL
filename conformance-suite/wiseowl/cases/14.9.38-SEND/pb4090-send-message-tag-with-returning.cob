@@ -10,8 +10,7 @@
       *> RETURNING as Format 1's alone, so a TO name that IS a message-tag data item with a RETURNING phrase is a
       *> statement in neither format (5.2.1).
       *>   cite.py: OK  14.9.38.3 4)  OK  14.9.38.2  OK  5.2.1  (General)
-      *> The program also draws COBOL1943 at the WS-TAG entry (USAGE MESSAGE-TAG is the data half of the declined
-      *> facility, refused by name, docs/CONFORMANCE.md section 4 item 1); the SEND statement's own verdict is
+      *> The WS-TAG entry is a message-tag item (kb/Work PB4740); the SEND statement's own verdict is
       *> the one this case expects. SendFormatClassificationTests pins that a message-tag TO name draws neither
       *> COBOL1850 nor COBOL5488 when the phrases agree with it.
        IDENTIFICATION DIVISION.

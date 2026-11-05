@@ -55,3 +55,28 @@ Table A.1 of the COBOL 2002 standard gives the status key values. WiseOwl COBOL 
 `mcs.json` file cannot be used, and `92`, the host refuses the MCS's files. Each takes no action, so a program can repeat the statement. At COBOL 1985, status `40` reports a wrong `KEY`.
 
 `docs/CONFORMANCE.md`, section 3.3, records every determination, and `docs/rearchitecture/DESIGN-communication-facility.md` the design.
+
+## Message tags (COBOL 2023)
+
+COBOL 2023 describes an asynchronous messaging facility whose statements, `SEND` and `RECEIVE`, exchange messages between run units and name
+each party with a message tag. WiseOwl COBOL provides the message-tag data item at `--std 2023`: describe it with `USAGE MESSAGE-TAG`
+(the `USAGE IS` words are optional), at level 1 or inside a type declaration that has the `STRONG` phrase.
+
+```cobol
+01 REPLY-TAG USAGE MESSAGE-TAG.
+01 NOTE-TAG  USAGE MESSAGE-TAG.
+...
+SET NOTE-TAG TO NULL
+SET REPLY-TAG TO NOTE-TAG
+IF REPLY-TAG = NULL ... END-IF
+INITIALIZE REPLY-TAG
+```
+
+A message tag starts as `NULL`. `SET tag TO NULL` and `SET tag TO other-tag` set the tag named first. A relation condition compares two tags,
+or a tag and `NULL`, for equality only (`=`, `NOT =`, `<>`, `IS [NOT] EQUAL TO`): two tags are equal when both are `NULL` or they name the
+same message server or the same requestor. `INITIALIZE` sets a tag to `NULL`, and `INITIALIZE g REPLACING MESSAGE-TAG DATA BY other-tag` copies one.
+A tag passes to a program `BY REFERENCE` or `BY CONTENT`, and a `PROCEDURE DIVISION USING BY VALUE` formal may be one; a `CALL` cannot pass one
+`BY VALUE`. A message tag takes no `PICTURE` or `VALUE` clause, and it cannot be moved, displayed, accepted, added to or compared in order.
+`FUNCTION BYTE-LENGTH` of a tag is 8. At this release no statement makes a tag that is not `NULL`: `SEND` and `RECEIVE` are accepted and do nothing
+(`docs/CONFORMANCE.md`, section 4, item 1), so a program can hold and compare only the null content. Section 7 of that document records the
+representation (item 212) and how Format 17 of `SET` is read (D-SET17).

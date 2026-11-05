@@ -93,8 +93,8 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
         foreach (var dref in DataReferencesAfter(s, Core.RETURNING))
             if (ScreenName(dref, "SEND RETURNING data-name-1", SendClause))
                 _ = host.Expr.ResolveSending(dref);
-        // A message-tag data-name-2 has no place to build (its profile is the COBOL1943 recovery shape); its entry drew
-        // that refusal and the name is a declared item. Any other Format 2 name resolves, so an undefined one is COBOL1639.
+        // A message-tag data-name-2 is a declared item the classification above already probed; any other Format 2
+        // name resolves here, so an undefined one is COBOL1639.
         if (format is SendFormat.MessageServerResponse && to is not null && toIsName && !toIsMessageTag)
             _ = host.Expr.ResolveSending(to);
         // Format 2's RAISING EXCEPTION exception-name-1 (§14.9.38.2) is a WRITTEN exception-name, so it resolves through
@@ -233,7 +233,7 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
                 + "local-storage, or working-storage section (ISO §14.9.50.3 SR1)");
         }
 
-        if (IntrinsicArgumentRules.ClassOfPlace(place) is CobolClass.Index or CobolClass.Object or CobolClass.Pointer)
+        if (IntrinsicArgumentRules.ClassOfPlace(place) is CobolClass.Index or CobolClass.MessageTag or CobolClass.Object or CobolClass.Pointer)
         {
             ctx.Edition.Error(DiagnosticCatalog.ValidateOperandClass,
                 $"VALIDATE '{written}' — identifier-1 is of class {IntrinsicArgumentRules.ClassNameOf(place)}, and "

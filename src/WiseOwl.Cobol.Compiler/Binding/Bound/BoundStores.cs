@@ -331,6 +331,7 @@ public static class BoundStores
         public StoreKind Visit(BoundSetEntry n) => WriteIfAny(n.Targets);               // Format 9, ENTRY sender (§8.4.3.13)
         public StoreKind Visit(BoundSetFunctionPointer n) => WriteIfAny(n.Targets);     // Format 8 (GR14; kb/Work PB452)
         public StoreKind Visit(BoundSetFunctionAddress n) => WriteIfAny(n.Targets);     // Format 8, §8.4.3.12 sender
+        public StoreKind Visit(BoundSetMessageTag n) => WriteIfAny([n.Target]);         // Format 17 (GR40/GR41; kb/Work PB4740)
         public StoreKind Visit(BoundSaveLocale n) => Hit(n.Target) ? StoreKind.Write : StoreKind.None;   // Format 12 (GR26/GR27)
         public StoreKind Visit(BoundSetLocale n) => StoreKind.None;                    // Format 11 reads a saved pointer
         // Format 10: the address is moved BY the amount (GR20), so the receiver is read and written.

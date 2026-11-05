@@ -32,7 +32,8 @@ internal enum SortKeyRules
 ///     has no such arm HERE: its keys lie inside the table, whose own OCCURS is the point, and SR14 e) — an OCCURS
 ///     BETWEEN the key and data-name-2 — is asked of the walk to data-name-2 (<c>SortBinder.KeyUnderInnerOccurs</c>).</item>
 ///   <item><b>Class</b> — SR6 c) / SR4 c): "Key data items shall not be of the class boolean, message-tag, object, or
-///     pointer"; SR14 c): "boolean, object, or pointer". The class is the OPERAND's (<see cref="DataItem.OperandPic"/>,
+///     pointer"; SR14 c): "boolean, object, or pointer" — and the table form refuses a message-tag key too, on §8.8.4.2.14's
+///     equality-only comparison (kb/Work PB4740). The class is the OPERAND's (<see cref="DataItem.OperandPic"/>,
 ///     the ONE operand-category reader), so a bit GROUP is the boolean operand §13.18.29.4 GR1b makes it.</item>
 ///   <item><b>Shape</b> — SR6 d) / SR4 d): a variable-length group, an occurs-depending-on data item, a
 ///     dynamic-length elementary item, or an item subordinate to a dynamic-capacity table; SR14 d): a variable-length
@@ -81,8 +82,16 @@ internal static class SortKeyAdmission
             PicCategory.Boolean => "boolean",
             PicCategory.ObjectReference => "object",
             PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer => "pointer",
+            PicCategory.MessageTag => "message-tag",
             _ => null,
         };
+        // SR14 c) does not list message-tag, but a key is ORDERED and §8.8.4.2.14 defines the message-tag comparison for
+        // equality alone ("may be compared with another operand of class message-tag"; a tag has no order), so the table
+        // form is refused on that ground (kb/Work PB4740 review R1-3).
+        if (cls == "message-tag" && rules == SortKeyRules.TableSort)
+            return $"{verb} key '{name}' is of class message-tag, which has no ordering: a message-tag operand "
+                + "\"may be compared with another operand of class message-tag\" for equality only, and a sort key "
+                + "is ordered (ISO §8.8.4.2.14; " + clause + ")";
         if (cls is not null)
             return $"{verb} key '{name}' is of class {cls}: \"Key data items shall not be of "
                 + (rules == SortKeyRules.TableSort ? "class boolean, object, or pointer" : "the class boolean, message-tag, object, or pointer")
