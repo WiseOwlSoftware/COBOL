@@ -1771,12 +1771,16 @@ internal static class IntrinsicArgumentRules
 
     /// <summary>Is <paramref name="e"/> an integer for EVERY valuation of the items it references? Sound, not
     /// complete: true only for a literal fold with an integral value, an item whose description admits only
-    /// integers, and +, −, ×, unary − and a non-negative integral literal power over such terms. A quotient over
-    /// an item, a function and every other shape answer false — the caller then fails open.
+    /// integers, an integer-type function-identifier, and +, −, ×, unary − and a non-negative integral literal power
+    /// over such terms. A quotient over an item, a numeric function and every other shape answer false — the caller
+    /// then fails open.
+    /// <para>It is also the ONE reading of §15.3 type 6's "arithmetic expression that will always result in an integer
+    /// value" for the result-type rows (<c>IntrinsicResultType.IsIntegerArgument</c>, kb/Work PB4709): an argument that
+    /// is such an expression keeps ABS, MAX and MIN on their Integer row (§15.7.1, Table 21).</para>
     /// <para>⛔ It must agree with <see cref="NonIntegralItemsBeneath"/>: a subtree that returns true here has no
     /// item beneath it that admits a non-integral value, which is why <see cref="CollectAdditive"/> may skip the
     /// opaque marking for it.</para></summary>
-    private static bool ProvablyIntegral(BoundExpr e) => e switch
+    internal static bool ProvablyIntegral(BoundExpr e) => e switch
     {
         _ when ExactValue(e) is { } v => v.IsInteger,
         // Category NUMERIC only: any other operand an extension admits (a de-edited numeric-edited item, say) is
@@ -1785,6 +1789,10 @@ internal static class IntrinsicArgumentRules
             => !AdmitsNonIntegralValue(p),
         BoundBinary { Op: '+' or '-' or '*' } b => ProvablyIntegral(b.Left) && ProvablyIntegral(b.Right),
         BoundNegate n => ProvablyIntegral(n.Operand),
+        // An INTEGER-TYPE function-identifier is an integer for every reference (§15.2 type 5 - its value is an integer by the
+        // function's TYPE, never by this reference's value), so a sum, product or negation over one is always integral. The
+        // ARGUMENTS beneath the call are the call's business: NonIntegralItemsBeneath does not walk into a call either.
+        BoundIntrinsicCall { ResultType: IntrinsicType.Integer } => true,
         BoundPower { Exp: var x } pw => ProvablyIntegral(pw.Base) && ExactValue(x) is { IsInteger: true, Sign: >= 0 },
         _ => false,
     };
