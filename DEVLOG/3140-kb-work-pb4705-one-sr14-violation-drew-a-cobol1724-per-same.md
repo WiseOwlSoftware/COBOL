@@ -1,4 +1,4 @@
-## kb/Work PB4705: one SR14 violation drew a COBOL1724 per SAME AS copy of its group
+## Entry 3140 — 2026-11-04 23:08 PST — kb/Work PB4705: one SR14 violation drew a COBOL1724 per SAME AS copy of its group
 
 `01 PG. 05 PX PIC X. 05 PP USAGE POINTER. 01 PHH SAME AS PG. 01 G. 05 Q SAME AS PG.` is one violation of ISO 13.18.60.3 SR14 (a
 pointer at level 05 in a group that is no strong type declaration), and the compiler reported it three times at PP's position: once for
@@ -15,3 +15,4 @@ the copy's placement changes (SR4 CONSTANT RECORD, SR15, EXTERNAL, BASED) still 
 `UsageDeclarationPlacementMatrixTests.ASameAsCopyOfAViolatingGroup_AddsNoSecondReport` asserts exactly one COBOL1724 for every SR14
 phrase in both spellings, and fails with the guard off; the strongly-typed copy is pinned legal. Golden
 `pb4705-usage-pointer-same-as-group` (refused 2002-2023; the harness cannot count reports, so the unit test does).
+
