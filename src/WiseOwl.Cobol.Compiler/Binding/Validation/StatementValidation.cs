@@ -2029,9 +2029,14 @@ internal sealed class StatementValidation(DataBinder data)
         // §8.8.4.2.3 SR5's two halves, asked of the pair. An operand whose class is not statically decidable
         // (an already-reported error node, a figurative whose class the context picks) abstains rather than
         // drawing a second diagnostic about something the binder has already spoken about.
+        // ⛔ A FIGURATIVE CONSTANT IS DECIDED, NOT UNDECIDABLE (kb/Work PB4740 review R1-4): its class set (§8.3.3.6.4) holds
+        // no Format 3 class, and identifier-3 / identifier-4 are data items, with NULL the one predefined operand
+        // (§8.4.3.10.3 SR1), so `IF T = SPACE` against a message tag, pointer or object is the SR5 violation. It used to
+        // abstain with the already-reported nodes (ClassOf answers null for its plural set) and rendered as NULL.
+        static bool Decided(BoundOperand o, CobolClass? c) => c is not null || o is BoundFigurative or BoundAllLiteral;
         if (!IsFormat3(lc) || !IsFormat3(rc))
         {
-            if (lc is not null && rc is not null)
+            if (Decided(left, lc) && Decided(right, rc))
                 data.Edition.Error(code, $"both operands of {band} relation shall be of class message-tag, "
                     + "object or pointer — a data item of one of those classes, or the predefined NULL "
                     + "(ISO §8.8.4.2.3 SR5; §8.4.3.10.3 SR1)");

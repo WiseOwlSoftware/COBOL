@@ -1565,10 +1565,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // r7 — ANY takes any usage EXCEPT the address-holding ones; "it is not necessary for the contents
             // to be valid according to the usage", so this exclusion is the ONLY screen on an ANY source.
             // ClassOfCategory cannot express it (the pointer/program-pointer collapse), which is why the
-            // predicate reads Usage. MESSAGE-TAG has no Usage member — the usage-inventory drift test forces
-            // that decision when the usage lands.
+            // predicate reads Usage. MESSAGE-TAG is the sixth member the rule names (kb/Work PB4740 review R1-6:
+            // the screen had no arm for it, so `CONVERT(T ANY ANUM HEX)` over a tag compiled and aborted at run time).
             if (src == 0 && u is Usage.Index or Usage.ObjectReference or Usage.Pointer or Usage.ProgramPointer
-                    or Usage.FunctionPointer)
+                    or Usage.FunctionPointer or Usage.MessageTag)
                 ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: an ANY source-format argument-1 shall not "
                     + "be of usage index, message-tag, object reference, pointer, function-pointer or "
                     + "program-pointer (ISO §15.19.3 rule 7)");

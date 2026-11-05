@@ -256,10 +256,13 @@ internal sealed class CheckUsageDeclarationsPass : IBindPass
 
     /// <summary>§13.18.22.3 SR4 — "The EXTERNAL clause shall not be specified for a data item of class object or
     /// pointer." True when it reported. One screen for the WRITTEN-entry loop and the TYPE-entry loop of
-    /// <see cref="Run"/>: the class is the entry's COMPOSED one, however it was acquired.</summary>
+    /// <see cref="Run"/>: the class is the entry's COMPOSED one, however it was acquired. ⚠ The message tag rides the same
+    /// slot (<see cref="SlotWindow.CarriedBySlot"/>) but is class message-tag, which SR4 does not list: an EXTERNAL tag is
+    /// legal (kb/Work PB4740 review R1-2; DESIGN-message-control §4.2).</summary>
     private static bool ScreenExternalClassItem(DataBinder binder, DataItem item, string name)
     {
-        if (!(item.HasExternalClause && SlotWindow.CarriedBySlot(item))) return false;
+        if (!(item.HasExternalClause && SlotWindow.CarriedBySlot(item) && item.Pic!.Category is not PicCategory.MessageTag))
+            return false;
         binder.Edition.Error(DiagnosticCatalog.ExternalPointerOrObjectItem, $"data item '{name}' is described "
             + $"with USAGE {Sr14PhraseNameOf(item)} — of class "
             + $"{(item.Pic!.Category is PicCategory.ObjectReference ? "object" : "pointer")} — and with "

@@ -974,6 +974,7 @@ WiseOwl.Cobol.Runtime.MessageParty.Server = 1 -> WiseOwl.Cobol.Runtime.MessagePa
 WiseOwl.Cobol.Runtime.MessageTag
 WiseOwl.Cobol.Runtime.MessageTag.IsNull.get -> bool
 WiseOwl.Cobol.Runtime.MessageTag.MessageTag() -> void
+static WiseOwl.Cobol.Runtime.CobolArgAdapt.StoreReturn(WiseOwl.Cobol.Runtime.CobolArg? ret, WiseOwl.Cobol.Runtime.MessageTag value) -> void
 static WiseOwl.Cobol.Runtime.MessageTag.SameParty(WiseOwl.Cobol.Runtime.MessageTag a, WiseOwl.Cobol.Runtime.MessageTag b) -> bool
 static readonly WiseOwl.Cobol.Runtime.MessageTag.Null -> WiseOwl.Cobol.Runtime.MessageTag
 WiseOwl.Cobol.Runtime.Repository.RepositoryCategory.MessageTag = 10 -> WiseOwl.Cobol.Runtime.Repository.RepositoryCategory

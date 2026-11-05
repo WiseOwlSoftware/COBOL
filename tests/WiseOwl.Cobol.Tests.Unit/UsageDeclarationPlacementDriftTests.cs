@@ -87,13 +87,10 @@ public sealed class UsageDeclarationPlacementDriftTests
         ["BinaryLong"] = null,
         ["BinaryDouble"] = null,
         // The member landed with kb/Work PB487 and this row is the verdict the missing one was holding open.
-        // SR14 names MESSAGE-TAG FIRST in its five-phrase list, so the phrase arm carries it — the
-        // FUNCTION-POINTER situation exactly: the usage is DECLINED non-support (Annex A.3 item 4), refused by
-        // name at ParseUsage with COBOL1943, so its bound PicInfo is a recovery shape and the CLASS arm
-        // never sees it, but the WRITTEN clause is visible to the screen and the rule governs it.
+        // SR14 names MESSAGE-TAG FIRST in its five-phrase list, so the phrase arm carries it. The usage binds
+        // since kb/Work PB4740 (its PicInfo is the MessageTag category), so the class arm sees it as well, and
         // SR21 ("If the MESSAGE-TAG phrase is specified, no other usage phrase shall be specified in the same
-        // data description entry") stays unreachable rather than unimplementable: no message-tag item can ever
-        // BIND, so it is still deliberately NOT written as dead code.
+        // data description entry") is enforced as COBOL2158 (MessageTagUsageExclusive).
         ["MessageTag"] = "MESSAGE-TAG",
     };
 

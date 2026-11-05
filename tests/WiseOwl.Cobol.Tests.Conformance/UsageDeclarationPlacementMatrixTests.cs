@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 ///     01 G USAGE u.  05 A PIC X.      the GROUP spelling, §13.18.60.4 GR1    (arm A)
 /// </code>
 /// <para>Both are violations of the one rule, so both draw COBOL1724 — for EVERY phrase, whether the compiler
-/// models the usage or refuses its keyword (MESSAGE-TAG: declined non-support, COBOL1943). The matrix is read off
+/// models the usage or refuses its keyword (every SR14 phrase is a modelled usage since kb/Work PB4740). The matrix is read off
 /// <see cref="ItemCategory.Sr14PhraseOf(Usage?)"/>, so a usage added to SR14's population is a row here without anyone
 /// remembering it; one hand-written <c>if</c> per phrase is how the elementary arm went blind to the staged
 /// FUNCTION-POINTER and the declined MESSAGE-TAG while the group arm saw them.</para>

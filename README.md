@@ -194,7 +194,7 @@ its §2 dispositions every processor-dependent element of Annex A.3, its §5 eve
 item, and a documentation audit (`scripts/doc_audits.py`, `scripts/docchecks/register.py`) fails when this list and the tables disagree:
 
 - The Message Control System (A.3 item 4) compiles with the warning §4.2.6 requires for a processor-dependent element
-  (COBOL1578), and the program runs with the facility inert; the MESSAGE-TAG usage (COBOL1943) is refused.
+  (COBOL1578), and the program runs with the facility inert; the MESSAGE-TAG usage binds as a data item (kb/Work PB4740).
 - The VALIDATE statement (A.4.14) compiles with a warning by documented choice under §4.2.7 (COBOL1580); the
   facility's data-division clauses (COBOL1708) and its EC-VALIDATE exception names (COBOL1710) are refused.
 - Screen handling (A.4.2; COBOL1560, COBOL1707), FORMAT and SELECT WHEN file handling (A.4.8, COBOL1705) and

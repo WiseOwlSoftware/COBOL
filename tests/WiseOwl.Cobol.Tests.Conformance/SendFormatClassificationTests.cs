@@ -12,8 +12,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// its phrases AND on what the name IS: a message-tag data item (§14.9.38.3 SR4) is Format 2's, any other name is a
 /// message-server-name-1 (SR2). <c>DeclinedFacilityBinder.ClassifySend</c> reads them in one place. The conformance
 /// cases (<c>conformance-suite/wiseowl/cases/14.9.38-SEND/pb4090-*</c>) pin the refusals through the harness; this
-/// class pins the part a golden cannot — the ABSENCE of a diagnostic — and the MESSAGE-TAG arm, whose item is refused
-/// by name (COBOL1943, the data half of the declined facility) and so cannot sit in an accepted program.</para>
+/// class pins the part a golden cannot — the ABSENCE of a diagnostic — and the MESSAGE-TAG arm, whose item binds since
+/// kb/Work PB4740 (USAGE MESSAGE-TAG is a bound category, so a message-tag data item can sit in an accepted program).</para>
 /// </summary>
 public sealed class SendFormatClassificationTests
 {
