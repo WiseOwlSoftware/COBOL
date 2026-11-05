@@ -3125,7 +3125,7 @@ draws the obsolete-element warning COBOL0903; from 2014 it is removed, COBOL0902
 | A program scheduled by the MCS (A.1.2.3 GR6, GR28) | A process acting for the MCS sets `WISEOWL_COBOL_MCS_SCHEDULED`, the queue's levels separated by `/` or the terminal's name. WiseOwl COBOL itself starts no program. Unset, the names are spaces |
 | RECEIVE: when data is not available (2002 B.1 item 116) | The designated structure holds no complete message. Without NO DATA the run unit waits, polling the store |
 | The choice among unnamed levels (E.5.5.3, E.5.5.4) | Alphabetical by symbolic name, each level first in, first out |
-| Status key 9x (2002 B.1 item 28; Table A.1) | `91` the definition file cannot be used; `92` the host refuses the store. The statement takes no action, and a RECEIVE passes control as if data had been made available |
+| Status key 9x (2002 B.1 item 28; Table A.1) | `91` the definition file cannot be used; `92` the host refuses the store, a device's file, or the lock past its retries. The statement takes no action: the CD's area changes only in its status key, nothing reaches a device, and a retry finds what the first attempt found. And a RECEIVE passes control as if data had been made available |
 | Error key A-Z (2002 B.1 item 27; Table A.2) | None is defined. '0' is written for a destination with no error |
 | Communication devices (A.2.6.3 GR1, GR2, GR12, GR14-GR18) | Oriented to variable-length messages: a destination with no `deliverTo` and a terminal append each complete message as a line of the file `<name>.out`. Vertical positioning is not applicable, so the MCS ignores ADVANCING and REPLACING LINE |
 | Special control characters in a message (2002 B.2 item 52) | Carried as data |

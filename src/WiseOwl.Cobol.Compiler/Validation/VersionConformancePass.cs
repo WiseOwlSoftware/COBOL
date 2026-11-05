@@ -556,6 +556,9 @@ internal sealed class VersionConformancePass
         // mandatory and directly follows SELECT [OPTIONAL], before any file-control clause keyword — the slot
         // is always the file being DEFINED. FD/statement file-name REFERENCES stay unchecked.
         CobolParserCore.FileNameContext { Parent: CobolParserCore.FileControlClauseGroupContext } => true,
+        // The CD entry's cd-name (ISO/IEC 1989:2002 A.1.2.1: CD cd-name-1): the name is mandatory and directly follows CD, so the slot is always the
+        // description being DEFINED (kb/Work PB4677). A statement's cd-name is a REFERENCE and stays unchecked.
+        CobolParserCore.CdNameContext => true,
         // The PROGRAM-ID / FUNCTION-ID / END-marker program-name (§11.10.2 / §11.5 / §10.6.1): program-names
         // are user-defined words (§8.3.2.2) and every programName site names the source unit itself, directly
         // after a dedicated header token — no keyword can occupy the slot.

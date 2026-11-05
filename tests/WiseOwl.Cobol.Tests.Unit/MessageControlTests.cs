@@ -74,6 +74,11 @@ public sealed class MessageControlTests : IDisposable
     [InlineData("""{ "destinations": [ { "name": "D", "deliverTo": "NOWHERE" } ] }""")]
     [InlineData("""{ "destinations": [ { "name": "D", "deliverTo": "terminal:NOWHERE" } ] }""")]
     [InlineData("""{ "queues": [ { "name": "Q", "messages": [ { "segments": [] } ] } ] }""")]
+    [InlineData("""{ "queues": [ { "name": "Q1" } ], "queues": [ { "name": "Q2" } ] }""")]
+    [InlineData("""{ "queues": [ { "name": "Q", "name": "R" } ] }""")]
+    [InlineData("""{ "queues": [ { "name": "Q", "messages": [ { "segments": [ "A" ], "segments": [ "B" ] } ] } ] }""")]
+    [InlineData("""{ "queues": [ { "name": "A/B" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "../EVIL" } ] }""")]
     public void UnusableDefinitionFile_IsStatus91_OnEveryStatement(string definitions)
     {
         var session = Session(definitions);
@@ -112,6 +117,8 @@ public sealed class MessageControlTests : IDisposable
     [InlineData("[]")]
     [InlineData("""{ "queues": [ null ], "sources": [], "destinations": [], "terminals": [] }""")]
     [InlineData("""{ "queues": [ { "path": "Q1" } ], "sources": [], "destinations": [], "terminals": [] }""")]
+    [InlineData("""{ "queues": [], "queues": [], "sources": [], "destinations": [], "terminals": [] }""")]
+    [InlineData("""{ "queues": [ { "path": "Q1", "path": "Q2", "enabled": true, "messages": [] } ], "sources": [], "destinations": [], "terminals": [] }""")]
     public void StateOfTheWrongShape_IsStatus92(string state)
     {
         var session = Session();
@@ -146,15 +153,194 @@ public sealed class MessageControlTests : IDisposable
     {
         var session = Session();
         Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "A", SendIndicator.None)));
-        string state = Path.Combine(_root, "mcs-state.json");
-        string saved = File.Exists(state) ? File.ReadAllText(state) : "";
-        File.Delete(state);
-        Directory.CreateDirectory(state);
-        Assert.Equal("92", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "B", SendIndicator.EndOfMessage)));
-        Directory.Delete(state);
-        if (saved.Length > 0) File.WriteAllText(state, saved);
+        using (RefusedState())
+            Assert.Equal("92", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "B", SendIndicator.EndOfMessage)));
         Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "C", SendIndicator.EndOfMessage)));
         Assert.Equal("ACX", session.Receive("R", CommunicationFormat.Input, InputArea("Q2"), false, "XXX", noDataPhrase: true).Into);
+    }
+
+    /// <summary>A directory in the state file's place until the scope ends: the store reads no state and cannot commit one. The end of the scope puts the file back.</summary>
+    private RefusedStateScope RefusedState() => new(Path.Combine(_root, "mcs-state.json"));
+
+    private sealed class RefusedStateScope : IDisposable
+    {
+        private readonly string _state;
+        private readonly string? _saved;
+
+        internal RefusedStateScope(string state)
+        {
+            _state = state;
+            _saved = File.Exists(state) ? File.ReadAllText(state) : null;
+            File.Delete(state);
+            Directory.CreateDirectory(state);
+        }
+
+        public void Dispose()
+        {
+            Directory.Delete(_state);
+            if (_saved is not null) File.WriteAllText(_state, _saved);
+        }
+    }
+
+    /// <summary>The refusal Table A.1's 9x names: no action. A program that retries a SEND on 92 delivers the message once.</summary>
+    [Fact]
+    public void SendTheStoreRefuses_TransmitsNothing_AndItsRetryDeliversOnce()
+    {
+        var session = Session("""{ "destinations": [ { "name": "DEV" } ] }""");
+        string device = Path.Combine(_root, "DEV.out");
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(5, "DEV"), "FIRST", SendIndicator.EndOfMessage)));
+        string first = "FIRST" + Environment.NewLine;
+        Assert.Equal(first, File.ReadAllText(device));
+        string area = OutputArea(5, "DEV");
+        using (RefusedState())
+            for (int attempt = 0; attempt < 2; attempt++)
+            {
+                Assert.Equal(area[..8] + "92" + area[10..], session.Send("C", CommunicationFormat.Output, area, "HELLO", SendIndicator.EndOfMessage));
+                Assert.Equal(first, File.ReadAllText(device));
+            }
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, area, "HELLO", SendIndicator.EndOfMessage)));
+        Assert.Equal(first + "HELLO" + Environment.NewLine, File.ReadAllText(device));
+    }
+
+    /// <summary>A device that did not exist before the refused statement does not exist after it.</summary>
+    [Fact]
+    public void SendTheStoreRefuses_LeavesNoNewDevice()
+    {
+        var session = Session("""{ "terminals": [ { "name": "T1" } ] }""");
+        using (RefusedState())
+        {
+            Assert.Equal("92", InOutStatus(session.Send("I", CommunicationFormat.InputOutput, InOutArea("T1", 2), "XY", SendIndicator.EndOfMessage)));
+            Assert.False(File.Exists(Path.Combine(_root, "T1.out")));
+        }
+    }
+
+    /// <summary>A device the host refuses: the statement answers 92, what the devices before it took goes back, and the state stays, so a retry finds the message unsent.</summary>
+    [Fact]
+    public void DeviceTheHostRefuses_IsStatus92_AndTakesBackTheOtherDevices()
+    {
+        var session = Session("""{ "destinations": [ { "name": "GOOD" }, { "name": "BAD" } ] }""");
+        string good = Path.Combine(_root, "GOOD.out"), bad = Path.Combine(_root, "BAD.out");
+        string two = "0002" + "0002" + "99" + " " + "GOOD".PadRight(12) + " " + "BAD".PadRight(12);
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "GOOD"), "0", SendIndicator.EndOfMessage)));
+        Directory.CreateDirectory(bad);
+        Assert.Equal(two[..8] + "92" + two[10..], session.Send("C", CommunicationFormat.Output, two, "AB", SendIndicator.EndOfMessage));
+        Assert.Equal("0" + Environment.NewLine, File.ReadAllText(good));
+        Directory.Delete(bad);
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, two, "AB", SendIndicator.EndOfMessage)));
+        Assert.Equal("0" + Environment.NewLine + "AB" + Environment.NewLine, File.ReadAllText(good));
+        Assert.Equal("AB" + Environment.NewLine, File.ReadAllText(bad));
+    }
+
+    /// <summary>RECEIVE with a store that refuses: the receiver and the area stay as they were but for the status key, and the message stays the store's, whole.</summary>
+    [Fact]
+    public void ReceiveTheStoreRefuses_ReportsNoTransfer()
+    {
+        var session = Session();
+        string area = InputArea("Q1");
+        using (RefusedState())
+        {
+            var receipt = session.Receive("C", CommunicationFormat.Input, area, false, "XXXX", noDataPhrase: true);
+            Assert.Equal(area[..79] + "92" + area[81..], receipt.Area);
+            Assert.Equal("XXXX", receipt.Into);
+            Assert.True(receipt.DataAvailable);
+        }
+        var healed = session.Receive("C", CommunicationFormat.Input, area, false, "XXXX", noDataPhrase: true);
+        Assert.Equal("00", InputStatus(healed.Area));
+        Assert.Equal("SEED", healed.Into);
+    }
+
+    /// <summary>The same for the remainder the run unit holds: a refused RECEIVE does not advance it.</summary>
+    [Fact]
+    public void ReceiveOfARemainderTheStoreRefuses_KeepsItsPlace()
+    {
+        var session = Session();
+        Assert.Equal("SE", session.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
+        using (RefusedState())
+            Assert.Equal("..", session.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
+        Assert.Equal("ED", session.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).Into);
+    }
+
+    /// <summary>PURGE with a store that refuses keeps the portion and the error keys.</summary>
+    [Fact]
+    public void PurgeTheStoreRefuses_KeepsThePortion()
+    {
+        var session = Session();
+        string area = OutputArea(1, "D2");
+        session.Send("C", CommunicationFormat.Output, area, "A", SendIndicator.None);
+        using (RefusedState())
+            Assert.Equal(area[..8] + "92" + area[10..], session.Purge("C", CommunicationFormat.Output, area));
+        Assert.Equal("00", OutputStatus(session.Purge("C", CommunicationFormat.Output, area)));
+        Assert.Equal("70", OutputStatus(session.Purge("C", CommunicationFormat.Output, area)));
+    }
+
+    /// <summary>ENABLE and DISABLE with a store that refuses: the path stays as it was, an output CD's error keys are not written, and A.1.2.3 GR30's "first statement" is not one that took no action.</summary>
+    [Fact]
+    public void PathsTheStoreRefuses_StayAsTheyWere()
+    {
+        var session = Session();
+        string area = OutputArea(0, "D2");
+        using (RefusedState())
+        {
+            Assert.Equal(area[..8] + "92" + area[10..], session.SetPath("C", CommunicationFormat.Output, CommunicationPath.Output, area, null, enable: false));
+            Assert.Equal("92", InOutStatus(session.SetPath("I", CommunicationFormat.InputOutput, CommunicationPath.InputOutputTerminal, InOutArea("NOPE"), null, enable: false)));
+        }
+        Assert.Equal("15", OutputStatus(session.SetPath("C", CommunicationFormat.Output, CommunicationPath.Output, area, null, enable: true)));
+        Assert.Equal("15", InOutStatus(session.SetPath("I", CommunicationFormat.InputOutput, CommunicationPath.InputOutputTerminal, InOutArea("T1"), null, enable: true)));
+    }
+
+    /// <summary>ACCEPT MESSAGE COUNT with a store that cannot read its state: the count stays the program's.</summary>
+    [Fact]
+    public void AcceptTheStoreRefuses_LeavesTheCount()
+    {
+        var session = Session();
+        File.WriteAllText(Path.Combine(_root, "mcs-state.json"), "{ truncated");
+        string area = InputArea("Q1")[..81] + "123456";
+        Assert.Equal(area[..79] + "92" + area[81..], session.AcceptMessageCount(area));
+    }
+
+    /// <summary>A sharing violation on the lock is another run unit's statement, and is waited out: the statement completes once the lock is free.</summary>
+    [Fact]
+    public void LockAnotherRunUnitHolds_IsWaitedOut()
+    {
+        Session();
+        var other = new FileStream(Path.Combine(_root, "mcs.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        int waits = 0;
+        var session = new MessageControlSession(MessageStore.OpenAt(_root, [], new LockWait(5, () =>
+        {
+            waits++;
+            other.Dispose();
+        })));
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage)));
+        Assert.Equal(1, waits);
+        Assert.Equal("ABCD", session.Receive("R", CommunicationFormat.Input, InputArea("Q2"), false, "....", noDataPhrase: true).Into);
+    }
+
+    /// <summary>A lock never released is status 92 after the retries, never a run unit hung for ever, and the statement took no action.</summary>
+    [Fact]
+    public void LockNeverReleased_IsStatus92_AfterTheRetries()
+    {
+        Session();
+        int waits = 0;
+        var session = new MessageControlSession(MessageStore.OpenAt(_root, [], new LockWait(3, () => waits++)));
+        string area = OutputArea(4, "D2");
+        using (new FileStream(Path.Combine(_root, "mcs.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+            Assert.Equal(area[..8] + "92" + area[10..], session.Send("C", CommunicationFormat.Output, area, "ABCD", SendIndicator.EndOfMessage));
+        Assert.Equal(3, waits);
+        Assert.False(session.Receive("R", CommunicationFormat.Input, InputArea("Q2"), false, "....", noDataPhrase: true).DataAvailable);
+    }
+
+    /// <summary>A refusal that is no sharing violation is no other run unit's statement: status 92 at once, with no wait.</summary>
+    [Fact]
+    public void LockTheHostRefuses_IsStatus92_WithNoWait()
+    {
+        string gone = Path.Combine(_root, "gone");
+        Directory.CreateDirectory(gone);
+        File.WriteAllText(Path.Combine(gone, "mcs.json"), Definitions);
+        int waits = 0;
+        var session = new MessageControlSession(MessageStore.OpenAt(gone, [], new LockWait(3, () => waits++)));
+        Directory.Delete(gone, recursive: true);
+        Assert.Equal("92", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage)));
+        Assert.Equal(0, waits);
     }
 
     [Fact]
@@ -199,15 +385,22 @@ public sealed class MessageControlTests : IDisposable
         Assert.False(Session().Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "..", noDataPhrase: true).DataAvailable);
     }
 
-    /// <summary>A.2.5.3 GR5 b): "If the NO DATA phrase is not specified ... execution of the run unit is suspended until data is made available". Another run unit makes it available.</summary>
+    /// <summary>A.2.5.3 GR5 b): "If the NO DATA phrase is not specified ... execution of the run unit is suspended until data is made available". Another run unit makes it available while this
+    /// one waits: the send happens at the wait, so the RECEIVE has found the queue empty first.</summary>
     [Fact]
-    public async Task ReceiveWithoutNoData_WaitsForAnotherRunUnit()
+    public void ReceiveWithoutNoData_WaitsForAnotherRunUnit()
     {
-        var waiter = Session();
-        var received = Task.Run(() => waiter.Receive("C", CommunicationFormat.Input, InputArea("Q2"), false, "....", noDataPhrase: false));
-        Assert.Equal("00", OutputStatus(Session().Send("C", CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage)));
-        var receipt = await received.WaitAsync(TimeSpan.FromMinutes(2));
+        var sender = Session();
+        int waits = 0;
+        var waiter = new MessageControlSession(MessageStore.OpenAt(_root, []), awaitData: () =>
+        {
+            waits++;
+            Assert.Equal("00", OutputStatus(sender.Send("C", CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage)));
+        });
+        var receipt = waiter.Receive("C", CommunicationFormat.Input, InputArea("Q2"), false, "....", noDataPhrase: false);
+        Assert.Equal(1, waits);
         Assert.Equal("ABCD", receipt.Into);
+        Assert.True(receipt.DataAvailable);
     }
 
     [Fact]

@@ -132,7 +132,7 @@ public abstract class CobolParserCoreBase : Parser
     /// procedure division, and an action never runs during prediction, so a name is here by the time a statement can name it.</summary>
     private readonly HashSet<string> _communicationNames = new(StringComparer.Ordinal);
 
-    /// <summary>The action of the <c>cdName</c> rule: record the name its <c>dataName</c> just matched.</summary>
+    /// <summary>The action of the <c>cdName</c> rule: record the name it just matched.</summary>
     protected void declareCommunicationName(IToken? name)
     {
         if (name?.Text is { } text) _communicationNames.Add(CobolNames.UpperFold(text));

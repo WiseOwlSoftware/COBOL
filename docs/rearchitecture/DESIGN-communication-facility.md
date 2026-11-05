@@ -51,11 +51,12 @@ A CD is a redefinition class, the FD's implicit record area applied to a new sec
 - Every record written after the CD joins the class by `RedefinitionKind.ImplicitCommunicationRecord`. The class's anchor is the FIRST written record when there is
   one, because "only the first redefinition may contain VALUE clauses" (SR5, SR9, SR14) and a class's seed is its anchor's.
 - The items are static like working-storage's (ISO/IEC 1989:2002 8.6.3), so they join `WorkingStorageRoots`, under `EntrySection.Communication`.
-- A cd-name is a user word of its own type (`UserWordKind.CdName`) and no data-name. It qualifies an item of its entry (the file-cd-report-qualifier of 8.4.1.1.1), through the
+- A cd-name is a user word of its own type (`UserWordKind.CdName`) and no data-name. The `cdName` rule does not ride `dataName`, whose FILLER and PROCEDURE are reserved words (A.1.2.1, 8.3.1.1.1): a word
+  §8.9 reserves draws COBOL0901 through `reservedGatedWord` and `IsProvableUserWordPosition`, and FILLER or PROCEDURE draws COBOL5506. It qualifies an item of its entry (the file-cd-report-qualifier of 8.4.1.1.1), through the
   one qualifier walk.
 
 Asked at the entry: SR2 (INITIAL once, and not with USING), SR4 and SR8 (some way of describing the area), SR6, SR10 and SR15 (unique data-names), and Annex A's "only in a program definition". `LevelNumberPass` asks 13.16.31 SR2 (no level 77) with the FD's arm, and `ResolveRedefinesPass` 13.16.42
-SR4 (no REDEFINES at level 1). Asked once the forest is complete (`CheckCommunicationRecordsPass`): SR5 and SR14 (exactly 87 or 33
+SR4 (no REDEFINES at level 1). A residence row of `ClausePlacementRules` lists the sections its sentence lists, so EXTERNAL, GLOBAL (2002 13.16.25.2 SR1 b) and BASED refuse a CD's record as COBOL2404. Asked once the forest is complete (`CheckCommunicationRecordsPass`): SR5 and SR14 (exactly 87 or 33
 positions) and the VALUE rule. All are COBOL6169 with the rule quoted, the COBOL1720 precedent.
 
 ## 4. The statements
@@ -96,12 +97,16 @@ at some time prior to the execution of the run unit", E.5.1), and the MCS's own 
 }
 ```
 
-Every member but `name` is optional. A name is 1 to 12 characters; queues nest to the four levels of E.5.5.4. `key` is the COBOL-85 password (a KEY phrase's value against it, status 40; an endpoint with
+Every member but `name` is optional. A name is 1 to 12 characters with no `/` or `\`, since a queue path and a device file are built from names; queues nest to the four levels of E.5.5.4. `key` is the COBOL-85 password (a KEY phrase's value against it, status 40; an endpoint with
 none admits any). `messages` enter once, when the store first answers. `capacity` bounds a destination's waiting messages (status 65, error key 6). `deliverTo` makes a destination feed a queue path or
 `terminal:<name>`, so one run unit talks to another; a destination without it transmits to its device, the file `<name>.out`, and a terminal's SEND does too.
 
-**The transaction.** Each statement takes the exclusive lock (`mcs.lock`, a share-none open, waited out), reads the state, acts, delivers, and writes the state atomically (a temporary file, then a move). Two run units
-never see a half-applied statement, and a crash leaves the last complete one. The cost is linear in what the store holds, which an obsolete facility's traffic does not make worth more.
+**The transaction.** Each statement takes the exclusive lock (`mcs.lock`, a share-none open, waited out for up to 500 retries of 20 ms, then status 92), reads the state and acts. The commit is `MessageStore.Commit`: the state goes to a
+temporary file, the devices take their messages, and the state file moves into place. Two run units never see a half-applied statement. The cost is linear in what the store holds, which an obsolete facility's traffic does not make worth more.
+
+**Status 9x takes no action, by construction.** `MessageControlSession.Statement` is the one path of every statement: the action works on a copy of the CD's area and a copy of the run unit's half, and only a committed store publishes them, so a refused statement
+answers the area it was handed with its status key changed. A commit the host refuses at any step takes back what the devices took (each device file goes back to its length before the statement, or away), so a program that retries on 9x delivers once. A crash
+between the devices and the move leaves the device's message and the old state: the one window a file system with no two-file transaction leaves, which can repeat a message and never loses one.
 
 **The run unit's half.** A portion released and not ended, the remainder of a message begun, and each input-output CD's first terminal live in `MessageControlSession`, on the `RunUnit`. ISO/IEC 1989:2002 14.5.10 rule 2 follows by
 construction: "remaining portions of any partially-received messages are eliminated from the queue. Any portions of messages transferred from the run unit by a SEND statement, and not terminated by an EMI or EGI, are purged
@@ -121,7 +126,7 @@ available. No alphabetic error key is defined (B.1 item 27). ADVANCING is §4 ab
 - `conformance:cases/_unassigned/pb4677_cd_area_layout`, `pb4677_initial_cd_spaces`, `pb4677_user_words_from_2014`: what any MCS answers.
 - `conformance:wiseowl/cases/_unassigned/pb4677_mcs_receive`, `pb4677_mcs_send`, `pb4677_mcs_paths`, `pb4677_mcs_key_85`, `pb4677_mcs_transaction`, over the shared `mcs.json` beside them.
 - The refusals `wiseowl/diagnostics/pb4677-*`: each rule above, one program each.
-- `unit:MessageControlTests`: statuses 91 and 92, a message across run units, a RECEIVE waiting on another run unit, GR30 and 14.5.10 rule 2.
+- `unit:MessageControlTests`: statuses 91 and 92, no action on each statement a store refuses, a refused device, the lock waited out and never released, a message across run units, a RECEIVE waiting on another run unit, GR30 and 14.5.10 rule 2.
 - `conformance:CommunicationCcvsTests`: all nine CM programs compile at COBOL-85; CM102M, CM103M, CM105M and CM201M run against `tests/nist/data/mcs.json` with no CCVS failure. CM101M, CM104M and CM202M wait out
   wall-clock delays and an operator, and CM303M and CM401M test the federal flagging layer, outside the ISO suite (PB4614 decision 11).
 

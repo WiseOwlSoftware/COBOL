@@ -139,7 +139,8 @@ internal sealed class MessageStoreState
     internal static MessageStoreState Empty() => new();
 
     /// <summary>Build the state the definitions describe, refusing one that cannot be used: a name no CD could hold (a symbolic name is at most
-    /// 12 characters, A.1.2.3 GR2), a name defined twice, or a <c>deliverTo</c> that names nothing.</summary>
+    /// 12 characters, A.1.2.3 GR2), a name that would address a directory (a queue path and a device file are built from names), a name defined
+    /// twice, or a <c>deliverTo</c> that names nothing.</summary>
     internal static MessageStoreState FromDefinitions(JsonObject definitions, DateTimeOffset now)
     {
         var state = new MessageStoreState();
@@ -188,6 +189,7 @@ internal sealed class MessageStoreState
     {
         string name = MessageJson.Text(o["name"]);
         if (name.Length is 0 or > CommunicationArea.NameLength) throw new FormatException($"'{name}' is no symbolic name of 1 to 12 characters");
+        if (name.Contains('/') || name.Contains('\\')) throw new FormatException($"the symbolic name '{name}' holds a path separator");
         return name;
     }
 
@@ -253,17 +255,16 @@ internal sealed class MessageStoreState
     }
 
     /// <summary>The MCS's own work after each statement that changed anything: each enabled destination's output queue moves on, into the input
-    /// queue it feeds where that queue and the source's path are enabled ("provided that input queue is enabled", E.5.5.1), and otherwise to its device.</summary>
-    internal void Deliver(Action<string, StoredMessage> transmit)
+    /// queue it feeds where that queue and the source's path are enabled ("provided that input queue is enabled", E.5.5.1), and otherwise to its device.
+    /// Returns what the devices are to take: nothing here reaches outside the state, so the store commits the two together.</summary>
+    internal IReadOnlyList<(string Device, StoredMessage Message)> Deliver()
     {
-        foreach (var (device, message) in _transmissions) transmit(device, message);
-        _transmissions.Clear();
         foreach (var destination in _destinations.Values)
         {
             if (!destination.Enabled || destination.Pending.Count == 0) continue;
             if (destination.DeliverTo is not { } target)
             {
-                foreach (var message in destination.Pending) transmit(destination.Name, message);
+                _transmissions.AddRange(destination.Pending.Select(message => (destination.Name, message)));
                 destination.Pending.Clear();
             }
             else if (target.StartsWith(TerminalPrefix, StringComparison.Ordinal))
@@ -278,6 +279,7 @@ internal sealed class MessageStoreState
                 destination.Pending.Clear();
             }
         }
+        return _transmissions;
     }
 
     internal JsonObject ToJson()

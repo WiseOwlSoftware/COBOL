@@ -52,6 +52,6 @@ terminal's name; a CD with the `INITIAL` clause then holds those names when the 
 ## Status keys
 
 Table A.1 of the COBOL 2002 standard gives the status key values. WiseOwl COBOL adds two of the `9x` values it leaves to the implementor: `91`, the
-`mcs.json` file cannot be used, and `92`, the host refuses the MCS's files. Each takes no action. At COBOL 1985, status `40` reports a wrong `KEY`.
+`mcs.json` file cannot be used, and `92`, the host refuses the MCS's files. Each takes no action, so a program can repeat the statement. At COBOL 1985, status `40` reports a wrong `KEY`.
 
 `docs/CONFORMANCE.md`, section 3.3, records every determination, and `docs/rearchitecture/DESIGN-communication-facility.md` the design.
