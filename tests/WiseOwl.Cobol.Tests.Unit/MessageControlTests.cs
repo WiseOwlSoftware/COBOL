@@ -338,7 +338,7 @@ public sealed class MessageControlTests : IDisposable
         File.WriteAllText(Path.Combine(gone, "mcs.json"), Definitions);
         int waits = 0;
         var session = new MessageControlSession(MessageStore.OpenAt(gone, [], new LockWait(3, () => waits++)));
-        Directory.Delete(gone, recursive: true);
+        ScratchDirectory.Remove(gone);
         Assert.Equal("92", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage)));
         Assert.Equal(0, waits);
     }
