@@ -50,6 +50,7 @@ internal static class BindPipeline
         new OccursKeyResolvePass(),
         new ResolveTableValuesPass(),
         new CheckValueLiteralClassesPass(),
+        new CheckCommunicationRecordsPass(),
         new ResolveFilesPass(),
         new GateFileRecordByteSurfacePass(),
         new ResolveReportsPass(),

@@ -128,6 +128,22 @@ public abstract class CobolParserCoreBase : Parser
     /// a predicate steers prediction rather than throwing (kb/Work PB829, the dynamic-length-structure-clause).</summary>
     protected bool wordAhead(string word) => Word(TokenStream.LT(1), word);
 
+    /// <summary>The cd-names the communication sections parsed so far declare (kb/Work PB4677). A data division precedes its
+    /// procedure division, and an action never runs during prediction, so a name is here by the time a statement can name it.</summary>
+    private readonly HashSet<string> _communicationNames = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The action of the <c>cdName</c> rule: record the name its <c>dataName</c> just matched.</summary>
+    protected void declareCommunicationName(IToken? name)
+    {
+        if (name?.Text is { } text) _communicationNames.Add(text);
+    }
+
+    /// <summary>Whether the word after the current token (SEND) is a declared cd-name, the one reading of <c>SEND x FROM y</c>
+    /// no parse alternative can make: it is ISO/IEC 1989:2002 A.2.6.1 Format 1 when x is a cd-name and the 2023 format
+    /// (§14.9.38.2) otherwise. A literal LEFT-EDGE predicate over LT(2), so ANTLR may evaluate it from an enclosing rule.</summary>
+    protected bool communicationNameFollows() =>
+        _communicationNames.Count > 0 && TokenStream.LT(2)?.Text is { } word && _communicationNames.Contains(word);
+
     /// <summary>X3.23-1985 <c>SEGMENT-LIMIT IS segment-number</c> — the word SEGMENT-LIMIT (kb/Work PB830).</summary>
     protected bool segmentLimitAhead() => Word(TokenStream.LT(1), "SEGMENT-LIMIT");
 

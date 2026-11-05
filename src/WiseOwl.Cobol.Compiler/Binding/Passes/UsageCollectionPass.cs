@@ -147,6 +147,15 @@ internal static class UsageCollectionPass
         public bool Visit(BoundExceptionPerform n) => false;   // no direct data operands; imp-1..5 walked via StatementChildren
         public bool Visit(BoundDisplay n) { foreach (var o in n.Operands) Op(o); return false; }
         public bool Visit(BoundAccept n) { P(n.Target); return false; }
+        public bool Visit(BoundCommunicationStatement n)   // the record-area image round trip (kb/Work PB4677)
+        {
+            P(n.Area);
+            if (n.Into is { } into) P(into);
+            Op(n.Key);
+            Op(n.Text);
+            Op(n.IndicatorItem);
+            return false;
+        }
         public bool Visit(BoundInspect n)
         {
             // identifier-1 is an OPERAND since PB10 (it may be a function-identifier in Format 1). Op() delegates

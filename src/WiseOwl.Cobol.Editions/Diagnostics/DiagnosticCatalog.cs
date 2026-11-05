@@ -9155,6 +9155,36 @@ public static class DiagnosticCatalog
         + "(Step 3), so the synonym begins no statement. Write COPY or REPLACE as the reserved word, or remove the directive.",
         "ISO §7.3.10.4 GR6; §7.2.2.2; §7.2.1");
 
+    // kb/Work PB4677: the communication facility (ISO/IEC 1989:2002 Annex A; docs/rearchitecture/DESIGN-communication-facility.md).
+    /// <summary>COBOL6169 — a communication description entry breaks a rule of ISO/IEC 1989:2002 A.1.1 or A.1.2.2 (one code,
+    /// each site quoting its own rule, the COBOL1720 precedent).</summary>
+    public static readonly DiagnosticDescriptor CommunicationEntryRule = new(
+        "COBOL6169", "communication-entry-rule", EditionSeverity.Error,
+        "A communication section or communication description entry breaks a syntax rule of the communication facility: "
+        + "ISO/IEC 1989:2002 Annex A (the facility \"may be used only in a program definition\"), A.1.2.1 (the clauses each "
+        + "format prints) and A.1.2.2 (the INITIAL clause, the record area's size, the VALUE clauses and the data-names).",
+        "ISO/IEC 1989:2002 Annex A; A.1.2.1; A.1.2.2");
+
+    /// <summary>COBOL6170 — a statement of the communication facility names no communication description entry of the
+    /// format its syntax rule requires.</summary>
+    public static readonly DiagnosticDescriptor CommunicationStatementCdName = new(
+        "COBOL6170", "communication-statement-cd-name", EditionSeverity.Error,
+        "A statement of the communication facility names something other than a cd-name, or a cd-name of a format its syntax "
+        + "rule does not admit: ACCEPT MESSAGE COUNT an input CD (ISO/IEC 1989:2002 A.2.1.2 SR1), ENABLE and DISABLE an input CD "
+        + "with INPUT, an input-output CD with I-O TERMINAL and an output CD with OUTPUT (A.2.2.2, A.2.3.2), PURGE and SEND an "
+        + "output or input-output CD (A.2.4.2 SR1, A.2.6.2 SR1), RECEIVE an input or input-output CD (A.2.5.2 SR1).",
+        "ISO/IEC 1989:2002 A.2.1.2; A.2.2.2; A.2.3.2; A.2.4.2; A.2.5.2; A.2.6.2");
+
+    /// <summary>COBOL6171 — an operand of RECEIVE, SEND, ENABLE or DISABLE is not of the class or category its syntax rule
+    /// requires.</summary>
+    public static readonly DiagnosticDescriptor CommunicationStatementOperand = new(
+        "COBOL6171", "communication-statement-operand", EditionSeverity.Error,
+        "An operand of a statement of the communication facility is not of the class or category its syntax rule requires: "
+        + "RECEIVE identifier-1 shall be of category alphanumeric (ISO/IEC 1989:2002 A.2.5.2 SR2), SEND identifier-1 of class "
+        + "alphanumeric (A.2.6.2 SR2, SR7), identifier-2 a one-character integer without an operational sign (SR3), identifier-3 "
+        + "an integer data item (SR4), and mnemonic-name-1 the name of a feature (SR5).",
+        "ISO/IEC 1989:2002 A.2.5.2; A.2.6.2");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

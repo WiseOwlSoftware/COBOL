@@ -15,7 +15,7 @@ options {
 // token before the parse (kb/Work PB4341): see embeddedBlockStatement. No lexer rule emits either token.
 tokens { ZERO_ARITH, EMBEDDED_BLOCK }
 
-import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolOO, CobolScreen, CobolDeclined, CobolWords;
+import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolOO, CobolScreen, CobolDeclined, CobolCommunication, CobolWords;
 
 // ==========================================
 // CONTEXT-SENSITIVE KEYWORDS
@@ -932,7 +932,8 @@ procedureName
 // ==========================================
 
 statement
-    : acceptStatement
+    : acceptMessageCountStatement   // ISO/IEC 1989:2002 A.2.1; the communication facility (CobolCommunication.g4)
+    | acceptStatement
     | addStatement
     | alterStatement
     | useStatement
@@ -1009,7 +1010,16 @@ statement
     //    COMMIT / ROLLBACK (reserved from 2023, their introduction) keep facilityWord: the statement is the bare verb,
     //    so `COMMIT.` at 2014, where COMMIT is a user word, IS a paragraph header and no parse can tell otherwise. ──
     | {wordAhead("RECEIVE")}?     mcsReceiveStatement
-    | {wordAhead("SEND")}?        mcsSendStatement
+    | {wordAhead("SEND") && !communicationNameFollows()}? mcsSendStatement
+    //    ⛔ THE COMMUNICATION FACILITY'S STATEMENTS ARE THE UNION GRAMMAR TOO (kb/Work PB4677; CobolCommunication.g4), keyword-led
+    //    like the arms above, and gated on recognition (communication-facility-removed-2014). RECEIVE parts itself from the 2023
+    //    format by the word after its operand. `SEND x FROM y` is the shape of both SENDs, so a declared cd-name decides, which
+    //    only the predicate above can read; a SEND that writes an indicator fails the 2023 arm and arrives here whatever x is.
+    | {wordAhead("RECEIVE")}?     communicationReceiveStatement
+    | {wordAhead("SEND")}?        communicationSendStatement
+    | {wordAhead("ENABLE")}?      enableStatement
+    | {wordAhead("DISABLE")}?     disableStatement
+    | {wordAhead("PURGE")}?       purgeStatement
     | {wordAhead("VALIDATE")}?    validateFacilityStatement
     | {facilityWord("COMMIT")}?   commitFacilityStatement
     | {facilityWord("ROLLBACK")}? rollbackFacilityStatement

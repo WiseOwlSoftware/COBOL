@@ -48,6 +48,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private FileLockBinder FileLock => _fileLockBinder ??= new FileLockBinder(Ctx, this);
     private DeclinedFacilityBinder? _declinedFacilityBinder;
     private DeclinedFacilityBinder DeclinedFacility => _declinedFacilityBinder ??= new DeclinedFacilityBinder(Ctx, this);
+    private CommunicationBinder? _communicationBinder;
+    private CommunicationBinder Communication => _communicationBinder ??= new CommunicationBinder(Ctx, this);
     private PtrBinder? _ptrBinder;
     internal PtrBinder Ptr => _ptrBinder ??= new PtrBinder(Ctx, this);
     private KeyedIoBinder? _keyedIoBinder;
@@ -588,6 +590,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.stringStatement() is { } sstr => Strings.BindString(sstr),
         _ when s.unstringStatement() is { } suns => Strings.BindUnstring(suns),
         _ when s.acceptStatement() is { } ac => Accept.BindAccept(ac),
+        // The communication facility (ISO/IEC 1989:2002 Annex A.2; kb/Work PB4677). The edition pass gates it.
+        _ when s.acceptMessageCountStatement() is { } amc => Communication.BindAcceptMessageCount(amc),
+        _ when s.enableStatement() is { } en => Communication.BindEnable(en),
+        _ when s.disableStatement() is { } dis => Communication.BindDisable(dis),
+        _ when s.purgeStatement() is { } pur => Communication.BindPurge(pur),
+        _ when s.communicationReceiveStatement() is { } crv => Communication.BindReceive(crv),
+        _ when s.communicationSendStatement() is { } csn => Communication.BindSend(csn),
         _ when s.initializeStatement() is { } ini => Init.Bind(ini),
         // ── Wave H — recognize-and-name the unsupported facilities. ISO §4.2.6 ¶3 makes the compile-time
         //    warning mechanism MANDATORY for the Annex A.3 halves (MCS, A.3 item 4; COMMIT/ROLLBACK, A.3 items

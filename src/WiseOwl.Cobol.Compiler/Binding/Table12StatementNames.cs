@@ -57,6 +57,9 @@ internal static class Table12StatementNames
     /// <see cref="NameOfRule"/> and compares against the scraped table).</summary>
     private static readonly FrozenDictionary<string, string> Irregular = new Dictionary<string, string>
     {
+        ["acceptMessageCount"] = "ACCEPT",  // ISO/IEC 1989:2002 A.2.1 — the communication facility's format of ACCEPT
+        ["communicationReceive"] = "RECEIVE", // ISO/IEC 1989:2002 A.2.5
+        ["communicationSend"] = "SEND",     // ISO/IEC 1989:2002 A.2.6
         ["deleteFile"] = "DELETE",          // §14.9.10.1 — the DELETE FILE format of the DELETE statement
         ["searchAll"] = "SEARCH",           // §14.9.37 — SEARCH Format 2 (binary search) of the SEARCH statement
         ["mcsReceive"] = "RECEIVE",         // Wave-H facility arms: the mcs/facility affixes disambiguate the

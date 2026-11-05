@@ -1,0 +1,27 @@
+{
+  "queues": [
+    { "name": "CCVSQ1", "key": "CCVSKEY1" },
+    { "name": "CCVSQ2", "key": "CCVSKEY3" },
+    { "name": "CCVSQ3", "key": "CCVSKEY1", "subQueues": [
+        { "name": "SUBP", "subQueues": [
+            { "name": "SUBP", "subQueues": [ { "name": "SUBP" }, { "name": "SUBS" } ] },
+            { "name": "SUBS", "subQueues": [ { "name": "SUBP" } ] }
+          ] },
+        { "name": "SUBS", "subQueues": [
+            { "name": "SUBP", "subQueues": [ { "name": "SUBP" } ] }
+          ] }
+      ] }
+  ],
+  "destinations": [
+    { "name": "CCVSD1", "key": "CCVSKEY2" },
+    { "name": "CCVSD2", "key": "CCVSKEY4" }
+  ],
+  "sources": [
+    { "name": "CCVST1", "key": "CCVSKEY1" },
+    { "name": "CCVST2", "key": "CCVSKEY1" }
+  ],
+  "terminals": [
+    { "name": "CCVST1" },
+    { "name": "CCVST2" }
+  ]
+}

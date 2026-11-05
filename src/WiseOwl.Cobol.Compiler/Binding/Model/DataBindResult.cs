@@ -29,6 +29,9 @@ internal sealed class DataBindResult
     /// <summary>The files the element declares (<see cref="FileSlice"/>), frozen.</summary>
     public required FileSlice Files { get; init; }
 
+    /// <summary>The communication description entries the element declares (<see cref="CommunicationSlice"/>), frozen.</summary>
+    public required CommunicationSlice Communication { get; init; }
+
     /// <summary>The static channels, cell backings and bridges (<see cref="StorageTierSlice"/>), frozen.</summary>
     public required StorageTierSlice StorageTier { get; init; }
 

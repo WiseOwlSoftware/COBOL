@@ -154,6 +154,7 @@ internal static class IntegerOperandRules
         // run-time VALUE; no syntax rule otherwise-specifies integer-1, so the §5.5 default holds.
         [typeof(Core.PerformTimesContext)] = Nonzero,
         [typeof(Core.WriteBeforeAfterContext)] = All(IntegerSlot.Zero("ISO §14.9.51.3 SR15")),
+        [typeof(Core.SendAdvancingPhraseContext)] = All(IntegerSlot.Zero("ISO/IEC 1989:2002 A.2.6.2 SR6")),
     };
 
     /// <summary>§13.18.43.2's three formats: Format 1 <c>RECORD CONTAINS integer-1</c>; Format 2 <c>RECORD IS
