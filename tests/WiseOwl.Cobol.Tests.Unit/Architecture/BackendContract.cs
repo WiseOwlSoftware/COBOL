@@ -144,7 +144,7 @@ internal static class BackendContract
             // a skeleton's recorded source and the directive lines of the state it was compiled under: COBOL source text, which both backends
             // write as an attribute string alike (kb/Work PB2104)
             "Model.CompileState.CobolWordsMap", "Model.CompileState.CompilationVariables", "Model.CompileState.DirectiveFolds",
-            "Model.SkeletonRecord.Source", "Model.ExpansionToWrite.Text",
+            "Model.SkeletonRecord.Source", "Model.ExpansionToWrite.Text", "Model.ExpansionToWrite.ClientWritten",   // the texts of the client's tokens of that source (kb/Work PB4721)
             // a published record's PICTURE, editing and currency strings, as the publishing element wrote them (kb/Work PB4319)
             "Model.CurrencyRecord.Text", "Model.EditRuleRecord.Neg", "Model.EditRuleRecord.Pos", "Model.LocaleEditRecord.Picture",
             "Model.PicRecord.CurrencyString", "Model.PicRecord.EditMask", "Model.PictureClauseRecord.CharacterString",
