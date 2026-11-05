@@ -440,6 +440,18 @@ public sealed class CobolBigExactFormTests
         }
     }
 
+    /// <summary>The negation of an approximation is the approximation of the negated binary64 (kb/Work PB4753): the sign flip is exact,
+    /// so the double still lands whole, where the negated decimal truncated sits one binary64 below -0.001's double; and the negation of
+    /// the decimal-only value does truncate, which is what separates the two.</summary>
+    [Fact]
+    public void Negate_KeepsTheBinary64OfAnApproximation()
+    {
+        CobolExact negated = CobolExact.Negate(CobolExact.FromApproximation(0.001));
+        Assert.Equal(-0.001, FloatResultant.FromExact(negated, CobolRounding.Truncation, single: false));
+        Assert.Equal(0.001, FloatResultant.FromExact(CobolExact.Negate(negated), CobolRounding.Truncation, single: false));
+        Assert.NotEqual(-0.001, FloatResultant.FromExact(CobolExact.Negate(CobolExact.From(1, 3)), CobolRounding.Truncation, single: false));
+    }
+
     /// <summary>An engine's approximation lands as the binary64 it is, in every mode (its decimal, truncated, would sit one below
     /// 0.001's double); a PROHIBITED landing of an inexact value raises, an exact one does not; a checked landing past the format's range
     /// is the size error; a binary32 receiver rounds once.</summary>
