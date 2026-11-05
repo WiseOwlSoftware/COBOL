@@ -138,9 +138,9 @@ public readonly struct FunctionValueField
     /// same temporary over the arbitrary-precision value for one past it - every digit, as GnuCOBOL's arbitrary-precision temporary
     /// shows it, never the value's 34-digit image - and <see cref="OfValue"/> for one the SDIDI carries.</summary>
     public static FunctionValueField OfExact(CobolExact value) =>
-        value.TryWide(out CobolWide wide, out int scale) ? OfWide(wide, scale)
-        : value.IsBig ? OfExactForm(value)
-        : OfValue(value.Image);
+        value.IsDec ? OfValue(value.Image)
+        : value.TryWide(out CobolWide wide, out int scale) ? OfWide(wide, scale)
+        : OfExactForm(value);   // past the 256-bit form, or a wide value at a negative scale that cannot be written out on it
 
     /// <summary>The temporary of a value of more than 38 digits held exactly, described by its own digits.</summary>
     private static FunctionValueField OfExactForm(CobolExact value)

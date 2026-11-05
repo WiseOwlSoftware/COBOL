@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
-using System.Numerics;
 
 namespace WiseOwl.Cobol.Runtime;
 
@@ -57,16 +56,14 @@ public static partial class CobolNum
         return Compose(value.Sign < 0, digits, temporary, commaMode);
     }
 
-    /// <summary>The description of the temporary an EXACT value describes (kb/Work PB4750): the wide value's
-    /// (<see cref="ReturnedValueProfile(CobolWide, int, out string, out int)"/>) or, past the 256-bit form, the arbitrary-precision
-    /// value's own digits under the same rule.</summary>
+    /// <summary>The description of the temporary an EXACT value describes (kb/Work PB4750): the wide value's own digits
+    /// under the same rule, on whichever form holds it.</summary>
     internal static NumProfile ReturnedValueProfile(CobolExact value, out string digits, out int storageBytes)
     {
-        if (value.TryWide(out CobolWide wide, out int scale)) return ReturnedValueProfile(wide, scale, out digits, out storageBytes);
-        (BigInteger unscaled, int bigScale) = value.BigParts();
-        string magnitude = BigInteger.Abs(unscaled).ToString(CultureInfo.InvariantCulture);
-        if (!unscaled.IsZero && bigScale < 0) magnitude += new string('0', -bigScale);   // trailing P positions are integer digits
-        return ReturnedValueProfile(unscaled.Sign < 0, magnitude, !unscaled.IsZero && bigScale > 0 ? bigScale : 0, out digits, out storageBytes);
+        int sign = value.Sign, scale = value.Scale;
+        string magnitude = value.MagnitudeDigits();
+        if (sign != 0 && scale < 0) magnitude += new string('0', -scale);   // trailing P positions are integer digits
+        return ReturnedValueProfile(sign < 0, magnitude, sign != 0 && scale > 0 ? scale : 0, out digits, out storageBytes);
     }
 
     /// <summary>

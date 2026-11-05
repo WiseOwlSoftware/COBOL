@@ -20,3 +20,9 @@ PV 1 and 0 past the wide form, 78-digit MAX, ABS and MEDIAN, expected values der
 (`pb4750_..._85`, COBOL1502). `docs/INTRINSICS_DESIGN.md` "What still takes the image" no longer lists the three functions.
 
 **Rows.** None claimed or closed (`closes_rows: []`, DOC-A.1-123 already CONFORMS).
+
+**Review round 1.** R1-1: `FunctionValueField.OfExact` lowered a wide value at a negative scale that `TryWide` cannot write out
+(`ABS (PA * PA * PA)` with `PA PIC 9(20)P(10)`) to its 34-digit image; it now takes the exact temporary for every non-SDIDI value,
+`ReturnedValueProfile(CobolExact)` reads `CobolExact.MagnitudeDigits()` on every form, and the golden gained PABS and PMAX legs.
+R1-2: `BigParts` (a raw `BigInteger` crossing into `CobolNum`) is replaced by that digit-text member, so no `BigInteger` use is added
+outside `CobolBig.cs`. R1-3 (lead, `VarianceBig` range on arguments past 10^3000) is left for the clerk: not in a file this round changes.
