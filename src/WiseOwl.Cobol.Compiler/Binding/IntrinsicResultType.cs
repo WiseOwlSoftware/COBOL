@@ -400,8 +400,8 @@ internal static class IntrinsicResultType
     /// purpose (§8.3.3.3.2 rule 2), so <see cref="BoundNegate"/> asks its operand.</summary>
     public static bool IsIntegerOperand(BoundExpr e) => e switch
     {
-        BoundNumLiteral l => IsIntegerOperand(new BoundNumericLiteral(l.Text) { FunctionType = l.FunctionType }),
-        BoundNumRef r => IsIntegerOperand(new BoundFieldOperand(r.Place)),
+        BoundNumLiteral l => IsIntegerOperand(l.AsOperand()),
+        BoundNumRef r => IsIntegerOperand(r.AsOperand()),
         BoundIntrinsicCall c => IsIntegerOperand(new BoundComputedOperand(c)),
         BoundNegate n => IsIntegerOperand(n.Operand),
         _ when AlgebraicRanges.IsCounterRegister(e) => IsIntegerOperand(new BoundComputedOperand(e)),

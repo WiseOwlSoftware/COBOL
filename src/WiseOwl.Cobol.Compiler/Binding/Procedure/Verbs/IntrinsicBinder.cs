@@ -229,12 +229,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// Required, so a new position states which it is.</summary>
     public static BoundOperand OperandOf(BoundExpr e, bool functionValue) => e switch
     {
-        BoundNumLiteral l => new BoundNumericLiteral(l.Text) { FunctionValue = l.FunctionValue, FunctionType = l.FunctionType, FoldedFunction = l.FoldedFunction, DecimalSeparator = l.DecimalSeparator },   // a folded function (LENGTH …) keeps saying so, and its type
+        BoundNumLiteral l => l.AsOperand(),   // a folded function (LENGTH …) keeps saying so, and its type
         // A user-function result temp (M2-UDF-1). ⚠ Nothing here can tell it from a numeric data item whose grouping
         // parentheses the expression binder dropped: `(C)` binds to C's BoundNumRef. A position whose operand is an
         // arithmetic expression by SHAPE wraps the bound expression itself (ConditionBinder.CompoundOperand, kb/Work
         // PB1935), never maps it through here.
-        BoundNumRef r => new BoundFieldOperand(r.Place),
+        BoundNumRef r => r.AsOperand(),
         BoundExprError err => BoundOperandError.Carry(err.Feature, err.IsUnbuilt),
         _ => new BoundComputedOperand(e) { FunctionValue = functionValue },
     };

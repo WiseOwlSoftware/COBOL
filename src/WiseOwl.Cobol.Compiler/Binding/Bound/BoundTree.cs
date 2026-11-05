@@ -220,6 +220,12 @@ public sealed record BoundNumLiteral(string Text, BinaryFloatCarrier? Carrier = 
     /// <see cref="BoundNumericLiteral.DecimalSeparator"/>, which <c>IntrinsicBinder.OperandOf</c> carries it to
     /// (kb/Work PB1643).</summary>
     public char DecimalSeparator { get; init; } = '.';
+
+    /// <summary>The operand this literal is - THE ONE mapping from a bound literal expression to its operand
+    /// (<c>IntrinsicBinder.OperandOf</c>, <see cref="BoundComputedOperand.EnclosedOperand"/>): a folded function keeps saying so, and its
+    /// type, and the source's decimal separator travels.</summary>
+    public BoundNumericLiteral AsOperand() =>
+        new(Text) { FunctionValue = FunctionValue, FunctionType = FunctionType, FoldedFunction = FoldedFunction, DecimalSeparator = DecimalSeparator };
 }
 
 /// <summary>The ISO/IEC 60559 binary interchange format a <see cref="BoundNumLiteral"/>'s value is exactly a value
@@ -227,7 +233,12 @@ public sealed record BoundNumLiteral(string Text, BinaryFloatCarrier? Carrier = 
 public enum BinaryFloatCarrier { Binary32, Binary64 }
 
 /// <summary>A reference to a numeric data item.</summary>
-public sealed record BoundNumRef(Place Place) : BoundExpr;
+public sealed record BoundNumRef(Place Place) : BoundExpr
+{
+    /// <summary>The operand this reference is - THE ONE mapping from a bound item reference to its operand
+    /// (<c>IntrinsicBinder.OperandOf</c>, <see cref="BoundComputedOperand.EnclosedOperand"/>).</summary>
+    public BoundFieldOperand AsOperand() => new(Place);
+}
 
 /// <summary>A binary arithmetic node (<c>+ - * /</c>).</summary>
 public sealed record BoundBinary(BoundExpr Left, char Op, BoundExpr Right) : BoundExpr;
@@ -631,8 +642,12 @@ public sealed record BoundComputedOperand(BoundExpr Expr) : BoundOperand
     /// selecting function's returned value (<c>FunctionDeviceText.Field</c>: GnuCOBOL's parser makes <c>(N)</c> the identifier <c>N</c>,
     /// and DOC-A.1-92 gives the implementor-defined image to GnuCOBOL), and the <c>--permissive</c> coercion of such an argument at a
     /// character position (<c>IntrinsicRenderer</c>'s string-argument visitor).</summary>
-    public BoundOperand? EnclosedOperand =>
-        Expr is BoundNumRef or BoundNumLiteral ? Procedure.IntrinsicBinder.OperandOf(Expr, functionValue: false) : null;
+    public BoundOperand? EnclosedOperand => Expr switch
+    {
+        BoundNumRef r => r.AsOperand(),
+        BoundNumLiteral l => l.AsOperand(),
+        _ => null,
+    };
 }
 
 /// <summary>A figurative constant operand (ISO §8.3.3.6). <paramref name="Kind"/> ∈ {Z=ZERO, S=SPACE, H=HIGH-VALUE,
