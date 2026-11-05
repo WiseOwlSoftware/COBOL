@@ -407,6 +407,77 @@ public sealed class DebugFacilityTests
         EditionHarness.AssertNoDiagnostic(diags, "COBOL1639");
     }
 
+    /// <summary>One USE FOR DEBUGGING declarative (line 17) over a program with an input CD, CM-IN, whose record has the data item
+    /// IN-Q, and a data item T: the cd-name rows of the operand-kind matrix (kb/Work PB4713).</summary>
+    private static string CdOperandProgram(string operand) => $"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. DBGCDOPERAND.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 T PIC X(5).
+        COMMUNICATION SECTION.
+        CD CM-IN FOR INPUT.
+        01 IN-SPECS.
+            02 IN-Q PIC X(12).
+            02 FILLER PIC X(75).
+        PROCEDURE DIVISION.
+        DECLARATIVES.
+        DBG SECTION.
+            USE FOR DEBUGGING ON {operand}.
+        DBG-BODY.
+            DISPLAY DEBUG-NAME.
+        END DECLARATIVES.
+        MAIN SECTION.
+        P1.
+            MOVE "Z" TO T.
+            STOP RUN.
+        """;
+
+    /// <summary>A bare operand that names a cd-name the program declares is the staged cd-name subject, COBOL1571: X3.23-1985's debug
+    /// module triggers on the ENABLE, DISABLE, PURGE, RECEIVE and SEND of a cd-name (CCVS DB205A writes <c>ON CM-INQUE CM-OUTQUE</c>),
+    /// and the declared name is not "not defined" (COBOL1639, ISO §8.4.2.1). Each cd-name of one phrase is its own diagnostic, at its
+    /// own operand (kb/Work PB4713).</summary>
+    [Fact]
+    public void BareOperandNamingACdName_At85_IsTheStagedCdNameSubject()
+    {
+        var (ok, diags) = EditionHarness.Compile(CdOperandProgram("CM-IN"), 85);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON 'CM-IN' names a file-name, cd-name");
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL1639");
+        EditionHarness.AssertHasDiagnostic(diags, "(17,");
+        EditionHarness.AssertEveryDiagnosticPositioned(diags, "CM-IN");
+    }
+
+    /// <summary>An unknown word beside a declared cd-name is still the undefined reference, and only that word: the cd-name is not
+    /// swallowed with it, and it is not excused by sitting in the same phrase.</summary>
+    [Fact]
+    public void BareOperandsCdNameAndUndeclaredWord_At85_AreEachJudgedOnTheirOwn()
+    {
+        var (ok, diags) = EditionHarness.Compile(CdOperandProgram("CM-IN NOSUCH"), 85);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON 'CM-IN' names a file-name, cd-name");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL1639: 'NOSUCH' is not defined");
+    }
+
+    /// <summary>A cd-name after ALL is no identifier-1: a cd-name is declared, so the refusal says what it is declared as
+    /// (the resolver's file-name wording, now for the cd-name) and never "not defined" (ISO §8.4.2.1; kb/Work PB4713, the
+    /// reference resolver's sibling of the bare-name arm). A data item of the CD's record is a data item, so it stays the
+    /// staged data-item subject.</summary>
+    [Theory]
+    [InlineData("ALL CM-IN", "COBOL1639: 'CM-IN' is declared as a cd-name")]
+    [InlineData("ALL REFERENCES OF CM-IN", "COBOL1639: 'CM-IN' is declared as a cd-name")]
+    [InlineData("ALL IN-Q", "COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON ALL REFERENCES OF 'IN-Q'")]
+    public void AllOperandNamingACdName_At85_IsDeclaredAsACdName(string operand, string expected)
+    {
+        var (ok, diags) = EditionHarness.Compile(CdOperandProgram(operand), 85);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(diags, expected);
+        EditionHarness.AssertNoDiagnostic(diags, "is not defined");
+    }
+
     /// <summary>A debug operand that names a table element is written WITHOUT its subscripts (the DEBUG-SUB-n items
     /// report them, X3.23-1985; CCVS DB201A writes <c>ON B-LEVEL-1 B-LEVEL-2 B-LEVEL-3</c> and <c>ALL REFERENCES OF
     /// AB1 OF A1</c> over OCCURS items), so it is the data item the staged COBOL1571 describes and not a reference
