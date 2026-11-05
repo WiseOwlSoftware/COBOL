@@ -28,6 +28,8 @@ public sealed class EvaluateObjectOperandFaultTests
         + "       01 A PIC X(3) VALUE \"ABC\".\n"
         + "       01 N PIC 9 VALUE 1.\n"
         + "       01 BW PIC 1(2) VALUE B\"10\".\n"
+        + "       01 B1 PIC 1 VALUE B\"1\".\n"
+        + "       01 B2 PIC 1 VALUE B\"0\".\n"
         + "       01 G.\n          05 T OCCURS 2 PIC 9.\n"
         + "       01 Q1.\n          05 DUP PIC 9.\n"
         + "       01 Q2.\n          05 DUP PIC 9.\n"
@@ -114,6 +116,48 @@ public sealed class EvaluateObjectOperandFaultTests
     [InlineData("           EVALUATE TRUE WHEN > 1 AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634")]
     [InlineData("           EVALUATE TRUE WHEN > 1 AND < 5 AND ADDRESS OF A DISPLAY \"B\" END-EVALUATE.", "COBOL1634")]
     public void ARefusedPair_JudgesABareOperandAndAnAbbreviatedRelationByTheInsertion(string statement, string expected) =>
+        Assert.Equal(expected.Split(' '), Codes(statement));
+
+    /// <summary>⛔ A BOOLEAN RELATION IS ASKED BEFORE THE INSERTION (kb/Work PB4707, ISO §8.8.4.12.3 SR1: "Relation-condition-1
+    /// shall not be a boolean relation condition."). A relation of boolean expressions (<c>B1 B-AND B2 = B"0"</c>) is a boolean
+    /// relation that carries NO subject, so a walk that asks whether an insertion is in flight first calls the bare value or
+    /// address-identifier after it "no condition" (COBOL2318), where an IF refuses the abbreviation (COBOL2723). A bare
+    /// boolean operand is a simple boolean condition (§8.8.4.3) and draws SR1's length-1 screen (COBOL1511, §8.8.4.3.3 SR1),
+    /// which the analysis leaves to the wrapper.</summary>
+    [Theory]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND B1 B-AND B2 = B\"0\" AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2723")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND B1 B-AND B2 = B\"0\" AND A DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2723")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND B1 B-AND B2 = B\"0\" AND ADDRESS OF A DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2723")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND B1 = B2 AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2723")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND B1 = B2 AND ADDRESS OF A DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2723")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND B1 = B2 OR > 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2723")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND B1 = B2 AND UNDEFX DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL1639 COBOL2723")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND B1 B-AND B2 = B\"0\" AND ADDRESS OF UNDEFX DISPLAY \"B\" END-EVALUATE.",
+        "COBOL1634 COBOL1639 COBOL2723")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND B1 B-AND B2 = B\"0\" AND C88 DISPLAY \"B\" END-EVALUATE.", "COBOL1634")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND BW DISPLAY \"B\" END-EVALUATE.", "COBOL1511 COBOL1634")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND NOT BW DISPLAY \"B\" END-EVALUATE.", "COBOL1511 COBOL1634")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND (BW) DISPLAY \"B\" END-EVALUATE.", "COBOL1511 COBOL1634")]
+    [InlineData("           EVALUATE TRUE WHEN > 1 AND B1 DISPLAY \"B\" END-EVALUATE.", "COBOL1634")]
+    [InlineData("           EVALUATE N WHEN 1 ALSO > 1 AND BW DISPLAY \"B\" END-EVALUATE.", "COBOL1511 COBOL2106")]
+    [InlineData("           EVALUATE N WHEN 1 ALSO > 1 AND B1 = B2 AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL2106 COBOL2723")]
+    public void ARefusedPair_AsksTheBooleanRelationBeforeTheInsertionAndTheLengthScreenOfABooleanOperand(string statement, string expected) =>
+        Assert.Equal(expected.Split(' '), Codes(statement));
+
+    /// <summary>The IF, whose condition the standalone walk mirrors: the refused abbreviation after a boolean relation asks
+    /// the boolean relation first for an address-identifier too (kb/Work PB4707), and the object of an abbreviation that is
+    /// refused (after a boolean relation, or with no subject to insert) is still a reference the program wrote, so its own
+    /// fault is indicated beside the refusal (§8.4.2.1, §8.4.2.3.3 SR2; the IF counterpart of kb/Work PB4446).</summary>
+    [Theory]
+    [InlineData("           IF B1 B-AND B2 = B\"0\" AND ADDRESS OF A DISPLAY \"T\" END-IF.", "COBOL2723")]
+    [InlineData("           IF B1 = B2 AND ADDRESS OF A DISPLAY \"T\" END-IF.", "COBOL2723")]
+    [InlineData("           IF B1 = B2 OR UNDEFX DISPLAY \"T\" END-IF.", "COBOL1639 COBOL2723")]
+    [InlineData("           IF B1 = B2 OR = UNDEFX DISPLAY \"T\" END-IF.", "COBOL1639 COBOL2723")]
+    [InlineData("           IF B1 = B2 OR RELF (1) DISPLAY \"T\" END-IF.", "COBOL2096 COBOL2723")]
+    [InlineData("           IF B1 = B2 OR ADDRESS OF UNDEFX DISPLAY \"T\" END-IF.", "COBOL1639 COBOL2723")]
+    [InlineData("           IF N = 1 AND (N = 1) AND < UNDEFX DISPLAY \"T\" END-IF.", "COBOL1639 COBOL2552")]
+    [InlineData("           IF N = 1 AND C88 AND ADDRESS OF A DISPLAY \"T\" END-IF.", "COBOL2318")]
+    public void AnIf_RefusesAnAbbreviationAfterABooleanRelationAndIndicatesItsObjectsOwnFault(string statement, string expected) =>
         Assert.Equal(expected.Split(' '), Codes(statement));
 
     /// <summary>A bare class-name after a stated or leading relation is read as the carried relation's object, as an IF
