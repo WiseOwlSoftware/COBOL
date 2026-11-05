@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Self-test for budget.py: the week and day boundaries in America/Los_Angeles, the anchor, the token-to-point
+"""Self-test for budget.py: the week and day boundaries, fixed UTC instants read here in America/Los_Angeles across a
+daylight saving change (kb/Work PB4746), the anchor, the token-to-point
 conversion, each of the four decisions, borrowing, --record, and the ACCOUNT (kb/Work PB2478): each account's own
 weekly reset, readings and telemetry.
 Run: python scripts/orchestrator/test_budget.py   (no submodule, no build, no telemetry sink)."""
@@ -74,8 +75,10 @@ def source(events):
 check("week start, Sunday after 03:00", budget.week_start(at(2026, 10, 4, 14), RESET1), at(2026, 10, 4, 3))
 check("week start, Sunday before 03:00", budget.week_start(at(2026, 10, 4, 2), RESET1), at(2026, 9, 27, 3))
 check("week start, Wednesday", budget.week_start(at(2026, 10, 7, 9), RESET1), at(2026, 10, 4, 3))
-# DST ends 2026-11-01 at 02:00: the reset that day is still 03:00 wall-clock
-check("week start across DST", budget.week_start(at(2026, 11, 1, 12), RESET1).hour, 3)
+# DST ends 2026-11-01 at 02:00: the reset is a fixed instant (Sunday 10:00 UTC, kb/Work PB4746), so from then on it is
+# 02:00 Pacific, not 03:00 (owner 2026-11-05: account 1's /usage "Resets Nov 8, 2am")
+check("week start across DST", budget.week_start(at(2026, 11, 1, 12), RESET1), at(2026, 11, 1, 2))
+check("week start after DST", budget.week_start(at(2026, 11, 5, 9), RESET1), at(2026, 11, 1, 2))
 
 # 2. points: 1 M counted Sonnet tokens = 1 point; 0.4 M Opus = 1 point; cache reads are not counted
 cal = FIXTURE["calibration"]
@@ -103,7 +106,7 @@ check("go: decision", r["decision"], "go")
 check("go: headroom", r["headroom_pct"], 6.6)
 
 r = budget.estimate(now, [reading], source([ev(at(2026, 10, 5, 10), "sonnet", out=9_000_000)]), FIXTURE, A1)
-check("hold-day over allowance", (r["decision"], r["resume_at"]), ("hold-day", at(2026, 10, 6, 3, 5).isoformat()))
+check("hold-day over allowance", (r["decision"], dt.datetime.fromisoformat(r["resume_at"])), ("hold-day", at(2026, 10, 6, 3, 5)))
 r = budget.estimate(now, [reading], source([ev(at(2026, 10, 5, 10), "sonnet", out=9_000_000)]), FIXTURE, A1, borrow_days=1)
 check("borrowing a day turns hold-day into go/hold-session", r["allowance_pct"], 42.9)
 
@@ -162,7 +165,8 @@ r = subprocess.run([sys.executable, str(HERE / "budget.py"), "--json", "--accoun
                    capture_output=True, text=True)
 check("CLI: an account the table lacks is refused", r.returncode, 2)
 
-# 7. two accounts (kb/Work PB2478). Account 2's week resets Saturday 10:00 Los Angeles (2026-10-10 is a Saturday).
+# 7. two accounts (kb/Work PB2478). Account 2's week resets Saturday 17:00 UTC, 10:00 Los Angeles in daylight saving time
+#    (2026-10-10 is a Saturday).
 check("account 2 week start, Saturday after 10:00", budget.week_start(at(2026, 10, 10, 11), RESET2), at(2026, 10, 10, 10))
 check("account 2 week start, Saturday before 10:00", budget.week_start(at(2026, 10, 10, 9), RESET2), at(2026, 10, 3, 10))
 check("account 2 week start, Sunday", budget.week_start(at(2026, 10, 11, 4), RESET2), at(2026, 10, 10, 10))
@@ -174,7 +178,11 @@ r2 = {"noted_at": at(2026, 10, 10, 9).isoformat(), "account": "account2", "weekl
 r = budget.estimate(sat, [r2], source([]), FIXTURE, A2)
 check("Saturday-10:00 reset: account 2's new week", (r["anchor"], r["weekly_est_pct"], r["day"], r["decision"]),
       (None, 0.0, 1, "go"))
-check("Saturday-10:00 reset: the week start", r["week_start"], at(2026, 10, 10, 10).isoformat())
+check("Saturday-10:00 reset: the week start", dt.datetime.fromisoformat(r["week_start"]), at(2026, 10, 10, 10))
+# the reset is a fixed instant (Saturday 17:00 UTC): after daylight saving time ends it is 09:00 Pacific, not 10:00
+# (owner 2026-11-05: "The reset moved to 09:00 AM")
+r = budget.estimate(at(2026, 11, 7, 9, 30), [], source([]), FIXTURE, A2)
+check("after DST ends the reset is 09:00 Pacific", dt.datetime.fromisoformat(r["week_start"]), at(2026, 11, 7, 9))
 r = budget.estimate(sat, [dict(r2, account="account1")], source([]), FIXTURE, A1)
 check("the same instant is still account 1's old week", (r["weekly_est_pct"], r["day"]), (90.0, 7))
 # 7b. interleaved readings: account 1 at 86 % (13:08), account 2 at 0 % (13:26), an unstamped one in between

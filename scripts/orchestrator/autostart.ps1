@@ -7,7 +7,7 @@ install-autostart.ps1 writes. Design: docs/rearchitecture/DESIGN-orchestrator-lo
 .DESCRIPTION
 Replaces an older launcher under %LOCALAPPDATA% (an interactive `claude` session whose prompt had to re-create a
 session-only cron job). The supervisor needs no cron: it owns its own timing (budget.py holds until the session reset or until
-03:05 the next day) and every unit is a fresh session chained by a handoff file, so a reboot loses at most the unit that was running.
+the next pacing day, the weekly reset time plus 5 minutes) and every unit is a fresh session chained by a handoff file, so a reboot loses at most the unit that was running.
 
 Order: wait for the desktop, honour the STOP file, fast-forward the checkout when it is clean, run orchestrate.ps1 in THIS window
 (so the owner can watch it), and print what its exit code means. -DryRun prints each step and starts nothing.

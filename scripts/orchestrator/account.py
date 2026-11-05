@@ -155,8 +155,19 @@ def _table(rules: dict[str, Any]) -> list[dict[str, Any]]:
 
 def _make(row: dict[str, Any], cdir: pathlib.Path, explicit: bool, rules: dict[str, Any]) -> Account:
     quota = {**rules["quota"], **row.get("quota", {})}
-    return Account(name=row["name"], config_dir=cdir, explicit=explicit, weekly_reset=row["weekly_reset"],
+    return Account(name=row["name"], config_dir=cdir, explicit=explicit, weekly_reset=_weekly_reset(row),
                    quota=quota, quota_overrides=_overrides(row, quota))
+
+
+def _weekly_reset(row: dict[str, Any]) -> dict[str, Any]:
+    """A row's `weekly_reset`, refused unless its `tz` is UTC. A weekly reset is a fixed instant, so a local wall-clock
+    time moves an hour against it at every daylight saving change (kb/Work PB4746: both accounts' resets read an hour
+    late after 2026-11-01)."""
+    r = row["weekly_reset"]
+    if r.get("tz") != "UTC":
+        raise ValueError(f"model_rules.json accounts.list {row['name']!r} weekly_reset: tz must be \"UTC\" (a reset is a "
+                         f"fixed instant; a local zone shifts it at each daylight saving change, kb/Work PB4746), got {r.get('tz')!r}")
+    return r
 
 
 #: The keys of a `quota_overrides` entry that are not quota keys.
@@ -362,10 +373,12 @@ def _self_test() -> int:
     a1 = current(rules, {})
     check("unset -> the default account", (a1.name, a1.explicit), ("account1", False))
     check("default global config is ~/.claude.json", a1.global_config, home / ".claude.json")
-    check("account 1 resets Sunday 03:00", (a1.weekly_reset["weekday"], a1.weekly_reset["hour"]), (6, 3))
+    check("account 1 resets Sunday 10:00 UTC", (a1.weekly_reset["weekday"], a1.weekly_reset["hour"], a1.weekly_reset["tz"]),
+          (6, 10, "UTC"))
     a2 = current(rules, {ENV: str(home / ".claude-acct2")})
     check("acct2 dir -> account2", (a2.name, a2.explicit), ("account2", True))
-    check("account 2 resets Saturday 10:00", (a2.weekly_reset["weekday"], a2.weekly_reset["hour"]), (5, 10))
+    check("account 2 resets Saturday 17:00 UTC", (a2.weekly_reset["weekday"], a2.weekly_reset["hour"], a2.weekly_reset["tz"]),
+          (5, 17, "UTC"))
     check("explicit global config is inside the dir", a2.global_config, home / ".claude-acct2" / ".claude.json")
     check("by name", by_name("account2", rules).config_dir, home / ".claude-acct2")
     check("project dir key", a2.project_dir(r"E:\COBOL"), home / ".claude-acct2" / "projects" / "E--COBOL")
@@ -419,6 +432,13 @@ def _quota_override_cases(check, rules: dict[str, Any], row: dict[str, Any], d: 
             check(f"override with {what} refused", False, True)
         except ValueError:
             check(f"override with {what} refused", True, True)
+    # kb/Work PB4746: a weekly reset in a local zone is refused (it would shift an hour at each daylight saving change)
+    local = dict(row, weekly_reset=dict(row["weekly_reset"], tz="America/Los_Angeles"))
+    try:
+        current(dict(rules, accounts={"list": [local]}), {ENV: str(d)})
+        check("a weekly_reset in a local zone refused", False, True)
+    except ValueError:
+        check("a weekly_reset in a local zone refused", True, True)
 
 
 def _skill_review_cases(check) -> None:
