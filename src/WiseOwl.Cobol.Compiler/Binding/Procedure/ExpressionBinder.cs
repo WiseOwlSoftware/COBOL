@@ -85,6 +85,15 @@ internal enum OperandContext
     /// closed list has no subscript and no PERFORM entry — so <c>E(IDX / 1)</c> and
     /// <c>PERFORM VARYING V FROM IDX</c> take §8.8.1.1's class screen like any arithmetic operand.</summary>
     ArithmeticIndexNameWindow,
+
+    /// <summary>A PARENTHESIZED SOLE intrinsic-function argument, <c>(N)</c> / <c>(3)</c> / <c>(FUNCTION f(…))</c> (kb/Work PB4635).
+    /// Enclosing parentheses make it an arithmetic expression (§8.4.3.2.3 SR8: "Argument-1 shall be an identifier, a literal, a
+    /// boolean expression, or an arithmetic expression"; §8.8.1.1), so §8.8.1.1's class screen governs its operand — except that the same written shape is
+    /// also "a boolean expression enclosed in parentheses" (§8.8.2), which §8.4.3.2.3 SR8 and §15.45.3 r1 admit as an argument, so
+    /// a class-BOOLEAN item or function is admitted here beside the numeric ones (<see cref="OperandContextRules.Rules"/>' fourth
+    /// axis). A compound argument (an operator, a unary sign) is no boolean expression and binds under
+    /// <see cref="Arithmetic"/>.</summary>
+    GroupedFunctionArgument,
 }
 
 /// <summary>⛔ THE TWO AXES EVERY OPERAND SLOT DECIDES, AS A TABLE (kb/Work PB169–PB172 — the burn-down cluster's
@@ -114,6 +123,10 @@ internal enum OperandContext
 ///         NC135A · NC236A), every one of them a SET statement SR10 names outright. A rule that enumerates
 ///         CONTEXTS cannot be modelled as a property of the operand (feedback_model_the_rule_shape_not_one_case).
 ///         </item>
+///   <item><b>BooleanOperandAdmitted</b> — does the position's written shape ALSO read as a boolean expression, so that a
+///         class-boolean operand is as legal here as a numeric one? A parenthesized sole intrinsic argument is both "an
+///         arithmetic expression" (§8.8.1.1) and "a boolean expression enclosed in parentheses" (§8.8.2), the two
+///         alternatives §8.4.3.2.3 SR8 lists (kb/Work PB4635); no other position does.</item>
 /// </list>
 /// ⛔ A NEW MEMBER CANNOT SILENTLY INHERIT §8.8.1.1. The discard arm THROWS rather than defaulting — an enum
 /// switch expression needs one at all (CS8509 covers the undeclared-value space, and this repository builds with
@@ -125,13 +138,15 @@ internal enum OperandContext
 /// repository's most reproducible defect shape — into a question that cannot be asked.</summary>
 internal static class OperandContextRules
 {
-    internal static (bool NumericClassScreen, bool IndexNameScreen, bool IndexDataItemAdmitted) Rules(
+    internal static (bool NumericClassScreen, bool IndexNameScreen, bool IndexDataItemAdmitted, bool BooleanOperandAdmitted) Rules(
         this OperandContext c) => c switch
     {
-        //                                       §8.8.1.1   §13.18.38.3 r7   §13.18.60.3 SR10
-        OperandContext.Arithmetic            => (true,      true,            false),
-        OperandContext.FunctionArgument      => (false,     true,            true),   // SR10: "an intrinsic function argument"
-        OperandContext.CallByValue           => (false,     false,           true),   // SR10: "the USING phrase of a CALL"
+        //                                       §8.8.1.1   §13.18.38.3 r7   §13.18.60.3 SR10   §8.8.2
+        OperandContext.Arithmetic            => (true,      true,            false,              false),
+        OperandContext.FunctionArgument      => (false,     true,            true,               false),   // SR10: "an intrinsic function argument"
+        OperandContext.CallByValue           => (false,     false,           true,               false),   // SR10: "the USING phrase of a CALL"
+        // A parenthesized sole argument: Arithmetic's row, plus the boolean expression the same written shape can be (kb/Work PB4635).
+        OperandContext.GroupedFunctionArgument => (true,    true,            false,              true),
         // ⛔ THE TWO INDEX LISTS ARE DIFFERENT, SO THEY ARE TWO ROWS (kb/Work PB215). r7 (index-NAME) lists "as
         // a subscript; in the VARYING phrase of a PERFORM statement; in the VARYING phrase of a SEARCH
         // statement; in the SET statement; as an operand in a relation condition". SR10 (index DATA ITEM)
@@ -140,17 +155,18 @@ internal static class OperandContextRules
         // VARYING, and every such site answered SR10's question with r7's list.
         //   · SET (every format, incl. CAPACITY / SIZE / pointer UP BY): on BOTH. (A relation condition and SEARCH are
         //     on both lists too, but their OPERAND is a bare name — FieldOperand — never an expression: PB2018.)
-        OperandContext.ArithmeticIndexWindow => (true,      false,           true),
+        OperandContext.ArithmeticIndexWindow => (true,      false,           true,               false),
         //   · a subscript's compound segment, PERFORM VARYING FROM/BY: on r7's list only. (The SIMPLE
         //     subscript never comes through here — ReferenceResolver screens it by the same two rules.)
-        OperandContext.ArithmeticIndexNameWindow => (true,  false,           false),
+        OperandContext.ArithmeticIndexNameWindow => (true,  false,           false,              false),
         //   · the Report Writer's VARYING FROM/BY (§13.18.64.2: plain arithmetic-expression-1/-2) is on
         //     NEITHER list, so it binds under Arithmetic — both screens on. It needs no member of its own: the
         //     row it would declare IS Arithmetic's.
         _ => throw new ArgumentOutOfRangeException(nameof(c), c,
-            "a new OperandContext must declare ALL THREE axes in OperandContextRules.Rules() — whether ISO "
+            "a new OperandContext must declare ALL FOUR axes in OperandContextRules.Rules() — whether ISO "
             + "§8.8.1.1's class screen governs the position, whether §13.18.38.3 r7's index-name screen applies, "
-            + "and whether §13.18.60.3 SR10 admits a class-index DATA item. A context that declares none "
+            + "whether §13.18.60.3 SR10 admits a class-index DATA item, and whether §8.8.2 makes a class-boolean "
+            + "operand a legal alternative to the numeric ones. A context that declares none "
             + "acquires §8.8.1.1 by default, which is the shape of kb/Work PB169–PB172."),
     };
 }
@@ -637,8 +653,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // subscript, PERFORM VARYING: kb/Work PB215) the operand falls through to §8.8.1.1's class screen.
         bool indexItem = p.DenotedItem is not null && p.Item.Pic is { Usage: Usage.Index };
         if (indexItem && rules.IndexDataItemAdmitted) return new BoundNumRef(p);
-        if (rules.NumericClassScreen
-            && !IntrinsicArgumentRules.IsArithmeticOperandClass(new BoundFieldOperand(p)))
+        if (rules.NumericClassScreen && !ClassScreenAdmits(new BoundFieldOperand(p), context))
         {
             string what = NonNumericOperandKind(p);
             bool decodable = IntrinsicArgumentRules.IsDigitDecodable(new BoundFieldOperand(p));
@@ -1148,13 +1163,20 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// diagnostic. Binding it as arithmetic quoted §8.8.1.1 at a programmer who had broken SR22.</summary>
     public BoundExpr BindByValueExpr(IParseTree node) => BindExprCore(node, OperandContext.CallByValue);
 
-    /// <summary>Bind an INTRINSIC-FUNCTION ARGUMENT expression. Identical to <see cref="BindExpr"/> except that the
-    /// §8.8.1.1 numeric-operand screen does not apply: an argument's legality is governed by the individual
+    /// <summary>Bind a SOLE (unparenthesized) INTRINSIC-FUNCTION ARGUMENT. Identical to <see cref="BindExpr"/> except that the
+    /// §8.8.1.1 numeric-operand screen does not apply: a sole argument's legality is governed by the individual
     /// function's §15.x argument rule, which for the string functions admits alphanumeric data
     /// (<c>FUNCTION TRIM(S)</c> over a <c>PIC X</c> item is legal). The grammar reuses the
     /// <c>arithmeticExpression</c> production for arguments, which is why the distinction has to be made by the
-    /// CALLER and cannot be inferred at the leaf.</summary>
+    /// CALLER and cannot be inferred at the leaf. An argument that is an arithmetic expression by its written shape
+    /// (an operator, a sign, enclosing parentheses) is screened: <see cref="BindExpr"/>, or
+    /// <see cref="BindGroupedFunctionArgumentExpr"/> for a parenthesized sole operand (kb/Work PB4635).</summary>
     public BoundExpr BindFunctionArgumentExpr(IParseTree node) => BindExprCore(node, OperandContext.FunctionArgument);
+
+    /// <summary>Bind a PARENTHESIZED SOLE intrinsic-function argument, <c>(N)</c> (<see cref="OperandContext.GroupedFunctionArgument"/>,
+    /// kb/Work PB4635): an arithmetic expression, so §8.8.1.1's class screen governs it, and also a boolean expression enclosed in
+    /// parentheses (§8.8.2), so a class-boolean item or function passes the screen.</summary>
+    public BoundExpr BindGroupedFunctionArgumentExpr(IParseTree node) => BindExprCore(node, OperandContext.GroupedFunctionArgument);
 
     /// <summary>The ONE recursive expression spine. <paramref name="context"/> rides every recursive call rather
     /// than living in a field — the same discipline the render-side receiver follows (P7 Step 3: "travels by
@@ -1442,8 +1464,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     {
         if (!context.Rules().NumericClassScreen) return bound;
         var operand = IntrinsicBinder.OperandOf(bound, functionValue: true);
-        if (IntrinsicArgumentRules.IsArithmeticOperandClass(operand)) return bound;
-        string cls = IntrinsicArgumentRules.ClassOf(operand) is { } c ? IntrinsicArgumentRules.Name(c) : "non-numeric";
+        if (ClassScreenAdmits(operand, context)) return bound;
+        string cls =IntrinsicArgumentRules.ClassOf(operand) is { } c ? IntrinsicArgumentRules.Name(c) : "non-numeric";
         string article = cls[0] is 'a' or 'e' or 'i' or 'o' or 'u' ? "an" : "a";
         string what = bound is BoundIntrinsicCall sc
             ? $"FUNCTION {sc.Sig.Name} ({article} {cls} function, ISO §15.2)"
@@ -1469,6 +1491,13 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             + "ZERO in an arithmetic expression." + PermissiveDecodingHint(decodable));
         return BoundExprError.Refused(ctx.Edition, $"{what} in an arithmetic expression (ISO §8.8.1.1)");
     }
+
+    /// <summary>⛔ THE ONE VERDICT OF THE CLASS SCREEN, for both its doors (<see cref="OperandRef"/>, <see cref="ScreenIdentifierOperand"/>):
+    /// the §8.8.1.1 numeric class (<see cref="IntrinsicArgumentRules.IsArithmeticOperandClass"/>), and — where the position's fourth axis says its
+    /// written shape is also a boolean expression (<see cref="OperandContextRules.Rules"/>, kb/Work PB4635) — class boolean (§8.8.2).</summary>
+    private static bool ClassScreenAdmits(BoundOperand operand, OperandContext context) =>
+        IntrinsicArgumentRules.IsArithmeticOperandClass(operand)
+        || context.Rules().BooleanOperandAdmitted && IntrinsicArgumentRules.ClassOf(operand) is CobolClass.Boolean;
 
     /// <summary>The closing sentence of a strict §8.8.1.1 refusal: the <c>--permissive</c> digit-decoding extension is
     /// named only for an operand it can actually read (<see cref="IntrinsicArgumentRules.IsDigitDecodable"/>).</summary>

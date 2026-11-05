@@ -451,7 +451,7 @@ PB169–PB172 burn-down cluster followed from that default, and the four defects
 decision was recorded in four different places: an enum member at ten sites, a call-site comment at two, a
 private category switch at three, and **nowhere at all** in `ReferenceResolver`'s token renderer.
 
-Every operand slot answers **three independent axes**, and both now live in `OperandContextRules.Rules()`
+Every operand slot answers **four independent axes**, and all now live in `OperandContextRules.Rules()`
 (`ExpressionBinder.cs`), a switch with no discard arm:
 
 | Axis | Question | Clause |
@@ -459,14 +459,16 @@ Every operand slot answers **three independent axes**, and both now live in `Ope
 | **A — NumericClassScreen** | Does §8.8.1.1's class-numeric screen govern this position, or does the position have its own syntax rule? | §8.8.1.1 |
 | **B — IndexNameScreen** | Is the index-**name** screen applied here, or is this one of r7's five contexts? | §13.18.38.3 r7 |
 | **C — IndexDataItemAdmitted** | May a class-index **data item** be referenced here? | §13.18.60.3 SR10 |
+| **D — BooleanOperandAdmitted** | Is the slot's written shape ALSO a boolean expression, so that a class-boolean operand is as legal as a numeric one? | §8.8.2, §8.4.3.2.3 SR8 |
 
-| `OperandContext` | A | B | C | Why |
-|---|---|---|---|---|
-| `Arithmetic` | screen | screen | no | the plain arithmetic-expression position |
-| `ArithmeticIndexWindow` | screen | exempt | yes | BOTH lists name it (SET amounts and values; a SEARCH or relation operand that is a bare name never reaches the expression spine, PB2018) |
-| `ArithmeticIndexNameWindow` | screen | exempt | no | r7 lists it, SR10 does not (subscript segment · PERFORM VARYING FROM/BY) — PB215 |
-| `FunctionArgument` | exempt | screen | yes | the function's own §15.x argument rule governs (COBOL1627) |
-| `CallByValue` | exempt | exempt | yes | §14.9.4.3 SR22 governs, and screens the operand itself (COBOL1628) |
+| `OperandContext` | A | B | C | D | Why |
+|---|---|---|---|---|---|
+| `Arithmetic` | screen | screen | no | no | the plain arithmetic-expression position |
+| `ArithmeticIndexWindow` | screen | exempt | yes | no | BOTH lists name it (SET amounts and values; a SEARCH or relation operand that is a bare name never reaches the expression spine, PB2018) |
+| `ArithmeticIndexNameWindow` | screen | exempt | no | no | r7 lists it, SR10 does not (subscript segment · PERFORM VARYING FROM/BY) — PB215 |
+| `FunctionArgument` | exempt | screen | yes | no | a SOLE intrinsic argument: the function's own §15.x argument rule governs (COBOL1627) |
+| `GroupedFunctionArgument` | screen | screen | no | yes | a PARENTHESIZED sole intrinsic argument is an arithmetic expression (§8.8.1.1) and also "a boolean expression enclosed in parentheses" (§8.8.2), the two alternatives §8.4.3.2.3 SR8 lists beside the identifier and the literal — PB4635 |
+| `CallByValue` | exempt | exempt | yes | no | §14.9.4.3 SR22 governs, and screens the operand itself (COBOL1628) |
 
 ⛔ **AXIS C IS NOT A CONSEQUENCE OF AXIS A, and assuming it was is a measured mistake.** The two index lists
 are genuinely different rules about different things:

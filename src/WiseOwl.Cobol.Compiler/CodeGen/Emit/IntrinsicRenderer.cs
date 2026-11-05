@@ -1956,6 +1956,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // ⚠ transfer: true — CONVERT only READS the storage image (kb/Work PB1901, the Visit(BoundFieldOperand) twin):
         // a pointer-leaf strongly-typed group's image is its D-SLOT placeholder, the one image every reader gets.
         BoundFieldOperand f => OperandText.AsStorageImage(f.Place, transfer: true),
+        // A class-boolean item in grouping parentheses is a boolean EXPRESSION operand (§8.8.2, "a boolean expression enclosed in
+        // parentheses"; §8.4.3.2.3 SR8 admits it as an argument), and the parentheses leave the item's own bits or characters as
+        // they are (IntrinsicArgumentRules.StaticUsageOf reads the same item for the r7 usage screen): its storage image is the
+        // item's, not the '0'/'1' text the boolean renderer would send (kb/Work PB4635 review R2-1). A COMPOUND boolean
+        // expression has no storage and keeps its text.
+        BoundBoolOperand { Expr: BoundBoolRef { Place: var p } } => OperandText.AsStorageImage(p, transfer: true),
         BoundStringLiteral { Category: PicCategory.National } sl => RuntimeApi.NatBytes(EmitText.CsLiteral(sl.Value)),
         BoundStringLiteral { Category: PicCategory.Boolean } sl =>
             RuntimeApi.BitsPack(EmitText.CsLiteral(sl.Value), sl.Value.Length.ToString()),
@@ -1995,6 +2001,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         public string Visit(BoundComputedOperand n) =>
             n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } nested
                 ? owner.RenderString(nested)   // string-class results incl. national (§15.66) + boolean (§15.13 — the '0'/'1' substrate)
+            // ⛔ THE --permissive COERCION OF A PARENTHESIZED ITEM OR LITERAL AT A CHARACTER POSITION (kb/Work PB4635 review R2-3): the
+            // binder makes `(X9)` an arithmetic expression, so strict mode refuses it at a string function (COBOL0844 / COBOL1627) and
+            // --permissive warns and coerces — the coercion offered every other operand that holds characters is its own image, and the
+            // enclosed item or literal is that operand (it ran as the bare spelling before the parentheses were kept). The two
+            // numeric-admitting positions (CONCAT, BASECONVERT argument-1) are no coercion site: their "data item or literal" rule
+            // refuses the expression's SHAPE in every mode (IntrinsicArgumentRules.IsCoercible, review R3-1), so this arm never serves them.
+            : n.EnclosedOperand is { } enclosed
+                ? enclosed.Accept(this)
             // ⛔ A NUMERIC FUNCTION'S RETURNED VALUE AT A NUMERIC-ADMITTING POSITION (kb/Work PB1420). CONCAT §15.18.3 r1
             // lists class numeric and BASECONVERT §15.12.3 r1 a numeric argument-1 below base 11, and §8.4.3.2.3 SR12
             // exempts "the integer form of the ABS function" from the bar on integer functions at an unsigned-integer

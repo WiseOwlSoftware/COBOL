@@ -73,17 +73,21 @@ public sealed class OperandContextRulesTests
     /// written by hand — they are the CLAUSES, and deriving them from the table under test would measure
     /// nothing — but MEMBERSHIP is now mechanical, so a new member fails here until someone reads §8.8.1.1,
     /// §13.18.38.3 r7 and §13.18.60.3 SR10 for it.</remarks>
-    private static readonly Dictionary<string, (bool NumericClassScreen, bool IndexNameScreen, bool IndexDataItemAdmitted)>
+    private static readonly Dictionary<string, (bool NumericClassScreen, bool IndexNameScreen, bool IndexDataItemAdmitted, bool BooleanOperandAdmitted)>
         ExpectedAxes = new(StringComparer.Ordinal)
         {
-            ["Arithmetic"] = (true, true, false),
-            ["FunctionArgument"] = (false, true, true),   // SR10: "an intrinsic function argument"
-            ["CallByValue"] = (false, false, true),       // SR10: "the USING phrase of a CALL"
+            ["Arithmetic"] = (true, true, false, false),
+            ["FunctionArgument"] = (false, true, true, false),   // SR10: "an intrinsic function argument"
+            ["CallByValue"] = (false, false, true, false),       // SR10: "the USING phrase of a CALL"
             // SET / SEARCH / a relation condition: on r7's list AND SR10's.
-            ["ArithmeticIndexWindow"] = (true, false, true),
+            ["ArithmeticIndexWindow"] = (true, false, true, false),
             // A subscript segment / PERFORM VARYING: on r7's list ("as a subscript; in the VARYING phrase of a
             // PERFORM statement"), NOT on SR10's (kb/Work PB215).
-            ["ArithmeticIndexNameWindow"] = (true, false, false),
+            ["ArithmeticIndexNameWindow"] = (true, false, false, false),
+            // A parenthesized sole intrinsic argument (kb/Work PB4635): Arithmetic's row (8.8.1.1 screens it; SR10 lists no
+            // "arithmetic expression", only the argument itself) plus 8.8.2's "a boolean expression enclosed in parentheses",
+            // the other alternative 8.4.3.2.3 SR8 lists for an argument.
+            ["GroupedFunctionArgument"] = (true, true, false, true),
         };
 
     public static TheoryData<string> AllMembers()
@@ -99,9 +103,10 @@ public sealed class OperandContextRulesTests
     {
         Assert.True(ExpectedAxes.TryGetValue(member, out var want),
             $"OperandContext.{member} has no expected-axes row in this test. A new operand context must have its "
-            + "THREE axes read off the standard before it is trusted: does ISO §8.8.1.1's class screen govern the "
-            + "slot, does §13.18.38.3 r7 admit an index-NAME there, and does §13.18.60.3 SR10 admit an index DATA "
-            + "item there. The two index lists are genuinely DIFFERENT (a subscript and PERFORM VARYING are r7's "
+            + "FOUR axes read off the standard before it is trusted: does ISO §8.8.1.1's class screen govern the "
+            + "slot, does §13.18.38.3 r7 admit an index-NAME there, does §13.18.60.3 SR10 admit an index DATA "
+            + "item there, and is the slot's written shape also a boolean expression (§8.8.2), which admits a class-boolean "
+            + "operand beside the numeric ones. The two index lists are genuinely DIFFERENT (a subscript and PERFORM VARYING are r7's "
             + "and not SR10's; an intrinsic argument and CALL USING are SR10's and not r7's), so a transposed row "
             + "is a real and silent hazard — see kb/Work PB215.");
         object value = Enum.Parse(EnumType(), member);
@@ -110,6 +115,7 @@ public sealed class OperandContextRulesTests
         Assert.Equal(want.NumericClassScreen, (bool)t.GetField("Item1")!.GetValue(row)!);
         Assert.Equal(want.IndexNameScreen, (bool)t.GetField("Item2")!.GetValue(row)!);
         Assert.Equal(want.IndexDataItemAdmitted, (bool)t.GetField("Item3")!.GetValue(row)!);
+        Assert.Equal(want.BooleanOperandAdmitted, (bool)t.GetField("Item4")!.GetValue(row)!);
     }
 
     /// <summary>⛔ AND NO SITE MAY ASK THE QUESTION ITS OWN WAY AGAIN. The defect shape the table replaces is a
