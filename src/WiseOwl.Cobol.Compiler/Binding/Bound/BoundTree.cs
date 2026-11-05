@@ -515,7 +515,20 @@ public sealed record BoundIntrinsicCall(
 
 /// <summary>A bound operand usable where either a string image or a numeric value may be required.</summary>
 [BoundNode]
-public abstract record BoundOperand;
+public abstract record BoundOperand
+{
+    /// <summary>True when the operand is an EXPRESSION AS WRITTEN - an arithmetic expression with an operator, a unary sign or
+    /// enclosing parentheses (§8.8.1.1, "an arithmetic expression enclosed in parentheses"), or a boolean expression enclosed in
+    /// parentheses (§8.8.2) - the binder's statement for it, as <see cref="BoundComputedOperand.FunctionValue"/> is for a
+    /// function-identifier and <see cref="BoundComputedOperand.CounterRegisterValue"/> for a register (kb/Work PB4763, PB1935).
+    /// §8.8.1.2 GR1 makes a parenthesized value "a single operand", not the data item. The expression binder drops grouping
+    /// parentheses, so <c>(FUNCTION ABS(I2))</c> and <c>(LINAGE-COUNTER)</c> carry the same tree as the function-identifier and the
+    /// register written sole, and <c>(B1)</c> the same field operand as <c>B1</c>; a screen that must tell identifier-1 from an
+    /// expression (a class condition's subject, §8.8.4.4.2) asks THIS, never the tree's shape. Set only by
+    /// <c>ConditionBinder.CompoundOperand</c> and <c>ConditionBinder.EnclosedBooleanOperand</c>, the two wrappers of an expression
+    /// operand.</summary>
+    public bool ExpressionAsWritten { get; init; }
+}
 
 /// <summary>A non-numeric literal, already decoded to its character value. <paramref name="Category"/> carries
 /// the literal's data category — Alphanumeric for a plain <c>"…"</c>, National for <c>N"…"</c> (§8.3.3.5),

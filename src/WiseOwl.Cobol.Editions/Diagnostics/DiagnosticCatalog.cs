@@ -5130,9 +5130,9 @@ public static class DiagnosticCatalog
     /// <c>ConditionBinder.CheckClassConditionOperand</c>, the one screen of every class condition's subject.</summary>
     public static readonly DiagnosticDescriptor ClassConditionSubjectNotIdentifier = new(
         "COBOL3318", "class-condition-subject-not-identifier", EditionSeverity.Error,
-        "The subject of a class condition is an arithmetic expression. The class condition's format prints "
+        "The subject of a class condition is an expression or a literal. The class condition's format prints "
         + "identifier-1 alone (ISO §8.8.4.4.2), and the condition tests the characters of the data item identifier-1 "
-        + "references; a parenthesized operand or other arithmetic expression is a value, not a data item "
+        + "references; a parenthesized operand, an arithmetic or boolean expression or a literal is a value, not a data item "
         + "(§8.8.1.2 GR1). Write the identifier without parentheses.",
         "ISO §8.8.4.4.2; §8.8.1.2 GR1");
 

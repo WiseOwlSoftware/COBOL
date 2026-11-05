@@ -640,7 +640,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 // relation IS relation-condition-1), a class or sign one is a complete simple condition.
                 if (pc.abbreviatedRelation() is { } leading)
                 {
-                    _ = ComparisonOperand(leading.comparisonOperand());
+                    // The subject is the refused selection subject's, unknown here; the object alone can make it boolean.
+                    ins.BooleanRelation = IsBooleanClassOperand(ComparisonOperand(leading.comparisonOperand()));
                     ins.Active = true;
                 }
                 else ins.End();
@@ -848,10 +849,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // the subject is seeded as the carried subject and the ordinary abbreviated-relation arm does the rest —
         // which is also what carries it on to a following `AND < 10`.
         carry.Subject = subj.Value;
-        var spliced = BindAbbreviatedRelation(pc.abbreviatedRelation(), carry);
+        var spliced = BindAbbreviatedRelation(pc.abbreviatedRelation(), carry, out var statedObject);
         // The spliced relation IS relation-condition-1 (SR8: the subject precedes the partial-expression), so it is
-        // the NEXT abbreviation that §8.8.4.12.3 SR1 refuses after a boolean one — set after this one is bound.
-        carry.BooleanRelation = IsBooleanClassOperand(subj.Value);
+        // the NEXT abbreviation that §8.8.4.12.3 SR1 refuses after a boolean one — set after this one is bound, and
+        // asked of the subject OR the object as BindComparison asks it of a written relation (§8.8.4.2.1).
+        carry.BooleanRelation = IsBooleanClassOperand(subj.Value) || statedObject is { } o && IsBooleanClassOperand(o);
         return spliced;
     }
 
@@ -920,8 +922,15 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// With no carried subject — GR1's insertion "terminates once a complete simple condition is encountered", and a
     /// parenthesized group opens a fresh scope — the relation has nothing to insert: COBOL2552 (kb/Work PB1390;
     /// it used to be refused unreported, which the COBOL2319 internal-error net caught).</summary>
-    private BoundCondition BindAbbreviatedRelation(Core.AbbreviatedRelationContext ar, AbbrevCarry carry)
+    private BoundCondition BindAbbreviatedRelation(Core.AbbreviatedRelationContext ar, AbbrevCarry carry) =>
+        BindAbbreviatedRelation(ar, carry, out _);
+
+    /// <param name="statedObject">The relation's own object as bound, or null when the relation was refused before it was
+    /// bound as a relation: the leading partial-expression asks it (<see cref="BindPartialComparison"/>), because the relation
+    /// it splices is a boolean relation when its subject OR its object is of class boolean (§8.8.4.2.1).</param>
+    private BoundCondition BindAbbreviatedRelation(Core.AbbreviatedRelationContext ar, AbbrevCarry carry, out BoundOperand? statedObject)
     {
+        statedObject = null;
         if (carry.BooleanRelation)
             return RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(ar), () => ComparisonOperand(ar.comparisonOperand()));
         if (carry.Subject is not { } subject)
@@ -932,7 +941,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         }
         string op = MapOperator(ar.comparisonOperator().GetText());
         carry.Op = op;
-        return WrittenRelational(subject, op, ComparisonOperand(ar.comparisonOperand()));
+        statedObject = ComparisonOperand(ar.comparisonOperand());
+        return WrittenRelational(subject, op, statedObject);
     }
 
     /// <summary>The ONE report of an abbreviated relation with no subject to insert (COBOL2552, kb/Work PB1390):
@@ -983,15 +993,19 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 + "it has its own unique class and category (ISO §8.8.4.4.3 SR1)");
             return;
         }
-        // §8.8.4.4.2 prints identifier-1: a computed operand built from an operator, a sign, a literal or a
-        // parenthesized data item is an arithmetic expression — `(N) IS NUMERIC` (kb/Work PB1935 binds a
-        // parenthesized operand as the expression it is) — and the condition would answer from its decoded value
-        // instead of the item's characters. A function-identifier and a counter register are identifiers whose value
-        // is computed (§8.5.2.12 items 3-7; kb/Work PB1401) and stay admitted.
-        if (op is BoundComputedOperand { Expr: BoundNumRef or BoundBinary or BoundNegate or BoundPower or BoundNumLiteral })
+        // §8.8.4.4.2 prints identifier-1: an operand written as an arithmetic expression — an operator, a sign or
+        // enclosing parentheses: `(N) IS NUMERIC`, `(FUNCTION ABS(N)) IS NUMERIC`, `(LINAGE-COUNTER) IS NUMERIC`
+        // (kb/Work PB1935 binds each as the expression it is) — would answer from its decoded value instead of the
+        // item's characters. ⛔ ASKED OF THE BINDER'S STATEMENT, NEVER THE TREE'S SHAPE (kb/Work PB4763, PB4712): the
+        // expression binder drops grouping parentheses, so the tree of `(FUNCTION ABS(N))` is the function-identifier's
+        // own. A function-identifier and a counter register written SOLE are identifiers whose value is computed
+        // (§8.5.2.12 items 3-7; kb/Work PB1401) and stay admitted. A literal or figurative constant is no identifier either
+        // (review R1-2: `IF 5 IS NUMERIC` compiled and aborted at run time), and a boolean operand enclosed in parentheses is
+        // an expression too (§8.8.2; EnclosedBooleanOperand).
+        if (op is { ExpressionAsWritten: true } or BoundStringLiteral or BoundNumericLiteral or BoundFigurative or BoundAllLiteral)
         {
             ctx.Edition.Error(DiagnosticCatalog.ClassConditionSubjectNotIdentifier,
-                "a class condition's subject shall be identifier-1, not an arithmetic expression (ISO §8.8.4.4.2)");
+                "a class condition's subject shall be identifier-1, not an expression or a literal (ISO §8.8.4.4.2)");
             return;
         }
         if (ClassConditionModel.Sr1Refusal(op) is { } why)
@@ -1766,8 +1780,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (vo?.arithmeticExpression() is not { } whole || ConditionOperandExpression(vo) is not { } enclosed
             || ReferenceEquals(whole, enclosed) || !IsBooleanValueOperand(vo))
             return null;
-        return SoleDataRef(enclosed) is { } enclosedRef ? host.Expr.FieldOperand(enclosedRef)
-            : new BoundBoolOperand(BindBoolOperandValue(vo));
+        // ExpressionAsWritten: the enclosed item's own operand carries no trace of the parentheses (kb/Work PB4763).
+        return SoleDataRef(enclosed) is { } enclosedRef ? host.Expr.FieldOperand(enclosedRef) with { ExpressionAsWritten = true }
+            : new BoundBoolOperand(BindBoolOperandValue(vo)) { ExpressionAsWritten = true };
     }
 
     /// <summary>Bind a <c>valueOperand</c> as a comparison operand: the ONE body of <see cref="ComparisonOperand"/>,
@@ -1838,7 +1853,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         host.Expr.BindExpr(expr) switch
         {
             BoundExprError err => BoundOperandError.Carry(err.Feature, err.IsUnbuilt),
-            var e => new BoundComputedOperand(e),
+            var e => new BoundComputedOperand(e) { ExpressionAsWritten = true },
         };
 
     /// <summary>The condition-name references already reported as ambiguous — one report per source reference.</summary>
