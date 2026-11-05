@@ -1,0 +1,5 @@
+## The message control systems are redesigned on merit: a paged store for 85/2002, peer sockets for 2023
+
+The owner asked why PB4677's file store should decide the 2023 transport, and then said the two facilities need not share one: "We should use the best for the task and for longterm support." Four advocates designed a file store, a broker, peer sockets and a hybrid; two judges scored them per facility. Both chose the paged store with a bell for COBOL-85/2002; the judges split on 2023 and the decision chose peer AF_UNIX sockets, gated on a Windows and Linux platform witness. The owner approved both transports, then both documents and the nine questions of DESIGN-message-control.md as recommended.
+
+Landed: `docs/rearchitecture/DESIGN-message-control.md` (new, with its cite log), DESIGN-communication-facility.md §6-§9 revised, DESIGN.md §0.5 and DOC_INDEX rows. kb/Work PB4734-PB4738 (85/2002 slices; PB4736 carries a wrong-answer defect: the landed mcs.lock is not taken where `flock` fails with ENOTSUP or EACCES) and PB4739-PB4745 (2023 slices, S0 the platform witness). PB4700 is blocked by its slices.
