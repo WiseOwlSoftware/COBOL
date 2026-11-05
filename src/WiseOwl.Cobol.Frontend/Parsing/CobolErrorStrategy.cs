@@ -2064,7 +2064,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         return new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
                 Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
             closedFormat.Refusal(run is not null ? WrittenSource.Of(run) : WrittenResidueItem(recognizer, at.Token),
-                ClosedFormats.OwnerName(recognizer.Context)) + ".", 0, run?.Start, LeavesNoTail: run is null);
+                at.OwnerName()) + ".", 0, run?.Start, LeavesNoTail: run is null);
     }
 
     /// <summary>A closed format's residue: the format whose list stands there, and the error production's form
@@ -3492,11 +3492,44 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
         /// <summary>⛔ IS THE ENTRY'S OWN NAME DUE AT THE TOKEN (kb/Work PB4604)? The token is the first word after the
         /// level-number of a data description entry that has written no data-name, so it is read two ways at once, as the
-        /// entry-name and as the first clause (<see cref="ClosedFormats.EntryNameDueAfter"/>). False where the report was
-        /// carried forward or a name or a clause stands between.</summary>
+        /// entry-name and as the first clause (<see cref="ClosedFormats.EntryAwaitingItsName"/>). False where the report was
+        /// carried forward, a name or a clause stands between, or the word and the one after it begin what follows the
+        /// entry (<see cref="BeginsWhatFollows"/>: <c>01</c> then <c>LINKAGE SECTION.</c> is a missing period, kb/Work PB4646).</summary>
         public bool EntryNameIsDue
-            => !CarriedForward && ClosedFormats.EntryNameDueAfter(_recognizer.Context) is { } levelNumber
-               && PreviousDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex)?.TokenIndex == levelNumber.TokenIndex;
+            => _entryNameIsDue ??= !CarriedForward && ClosedFormats.EntryAwaitingItsName(_recognizer.Context) is { } entry
+               && PreviousDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex)?.TokenIndex == entry.levelNumber()?.Stop?.TokenIndex
+               && !BeginsWhatFollows(entry);
+
+        private bool? _entryNameIsDue;
+
+        /// <summary>⛔ DO THE TOKEN AND THE ONE AFTER IT BEGIN WHAT MAY FOLLOW <paramref name="entry"/> (kb/Work PB4646)? The entry
+        /// is walked from its end in its real context (<see cref="ResimulationWalk.After"/>: the next entry, the next
+        /// section, the procedure division, <c>END PROGRAM</c>, as the grammar and the edition print them), so the token
+        /// is the missing period's reading, the one the closed-format residue gives a header word and a word after the
+        /// period (<see cref="ClosedFormatResidue"/>), and not a reserved word written as the entry's name. Two tokens,
+        /// because the first alone cannot tell <c>01 LINKAGE SECTION.</c> from <c>01 LINKAGE PIC X.</c>, a name written.</summary>
+        private bool BeginsWhatFollows(ParserRuleContext entry)
+            => NextDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex) is { } next
+               && ResimulationWalk.After(_recognizer, entry, skipsErrorProductions: true) is var walk
+               && walk.Consume(Token.Type) && walk.Expected().Contains(next.Type);
+
+        /// <summary>⛔ THE NAME OF THE ENTRY THE REPORT STANDS IN (kb/Work PB4645): <see cref="ClosedFormats.OwnerName"/> of the
+        /// parser's context, and, where a prediction failed AHEAD of the parser (<c>01 W-A MOVE.</c>: the decision at the
+        /// entry's optional name looked past W-A and died at MOVE, with the parser still before the name) the data-name
+        /// has not been attached to that context, so the name is the word written after the level-number when that word can
+        /// only be an entry-name (<see cref="ClosedFormats.EntryNameOnlyWords"/>) and the parser has not passed it. Null
+        /// where the entry is unnamed or the reading is ambiguous.</summary>
+        public string? OwnerName()
+        {
+            if (ClosedFormats.OwnerName(_recognizer.Context) is { } attached) return attached;
+            if (CarriedForward || ClosedFormats.EntryAwaitingItsName(_recognizer.Context) is not { } entry
+                || entry.levelNumber()?.Stop is not { } levelNumber) return null;
+            return NextDefault((ITokenStream)_recognizer.InputStream, levelNumber.TokenIndex) is { } written
+                   && written.TokenIndex < Token.TokenIndex && ParserTokenIndex <= written.TokenIndex
+                   && ClosedFormats.EntryNameOnlyWords(_recognizer.Atn).Contains(written.Type)
+                ? WrittenSource.Of(written)
+                : null;
+        }
 
         /// <summary>The tokens the parse could take at the token, or null.</summary>
         public IntervalSet? Expected() => ParserIsThere ? _recognizer.GetExpectedTokens() : Walk?.Expected();

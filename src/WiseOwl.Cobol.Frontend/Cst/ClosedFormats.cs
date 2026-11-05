@@ -3,6 +3,8 @@
 using System.Collections.Frozen;
 using System.Runtime.CompilerServices;   // RuntimeHelpers.GetUninitializedObject — a context type's rule index
 using Antlr4.Runtime;
+using Antlr4.Runtime.Atn;
+using Antlr4.Runtime.Misc;
 using WiseOwl.Cobol.Editions.Diagnostics;     // DiagnosticCatalog — the band's three codes
 
 using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
@@ -169,18 +171,35 @@ public static class ClosedFormats
         return null;
     }
 
-    /// <summary>⛔ THE LAST TOKEN OF THE LEVEL-NUMBER AFTER WHICH THE ENTRY'S OWN NAME IS STILL DUE (kb/Work PB4604), or
-    /// null where no entry waits for one. ISO §13.16.3 SR4: "the entry-name clause shall immediately follow the
-    /// level-number" and, when it is not specified, the entry is a filler; so a data description entry whose context
-    /// holds no data-name has two readings of the first word after its level-number, the entry-name and the first clause,
-    /// and only a word that is neither is "not a clause". The other formats write a mandatory name before their clause
-    /// list (FD, SD, SELECT) or hold none (the report group entry's clause list is no closed format), so the slot is
-    /// open only here. The caller compares the returned token with the one before the offending word: a name or a clause
-    /// written already closes the slot.</summary>
-    public static IToken? EntryNameDueAfter(RuleContext? ctx)
+    /// <summary>⛔ THE DATA DESCRIPTION ENTRY WHOSE OWN NAME IS STILL DUE (kb/Work PB4604), or null where no entry waits
+    /// for one. ISO §13.16.3 SR4: "the entry-name clause shall immediately follow the level-number" and, when it is not
+    /// specified, the entry is a filler; so a data description entry whose context holds no data-name has two readings
+    /// of the first word after its level-number, the entry-name and the first clause, and only a word that is neither
+    /// is "not a clause". The other formats write a mandatory name before their clause list (FD, SD, SELECT) or hold
+    /// none (the report group entry's clause list is no closed format), so the slot is open only here. The caller
+    /// compares the entry's level-number with the token before the offending word: a name or a clause written already
+    /// closes the slot.</summary>
+    public static Core.DataDescriptionEntryContext? EntryAwaitingItsName(RuleContext? ctx)
     {
         for (RuleContext? p = ctx; p is not null; p = p.Parent)
-            if (p is Core.DataDescriptionEntryContext d) return d.dataName() is null ? d.levelNumber()?.Stop : null;
+            if (p is Core.DataDescriptionEntryContext d) return d.dataName() is null ? d : null;
         return null;
     }
+
+    /// <summary>⛔ THE WORDS THAT CAN ONLY BE A DATA DESCRIPTION ENTRY'S NAME (kb/Work PB4645): the tokens the data-name rule
+    /// begins with that no clause of the entry begins with, read from the ATN. The error production
+    /// (<c>unrecognizedDataClause</c>) opens with any user word, but it is the diagnosis of a clause the format does not
+    /// print, not a reading of the source, so its opening words are not clause starts here: a user word after the
+    /// level-number is the entry's name. A word that begins a real clause as well (a context word a program may name or
+    /// use as a clause) says nothing about which reading the parser took, so it is not here. Cached, as the other
+    /// ATN-derived sets are.</summary>
+    public static IntervalSet EntryNameOnlyWords(ATN atn)
+    {
+        if (_entryNameOnlyWords is { } cached) return cached;
+        var clauseStarts = atn.NextTokens(atn.ruleToStartState[Core.RULE_dataDescriptionBody])
+            .Subtract(atn.NextTokens(atn.ruleToStartState[Core.RULE_unrecognizedDataClause]));
+        return _entryNameOnlyWords = atn.NextTokens(atn.ruleToStartState[Core.RULE_dataName]).Subtract(clauseStarts);
+    }
+
+    private static IntervalSet? _entryNameOnlyWords;
 }
