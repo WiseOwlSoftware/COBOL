@@ -1956,6 +1956,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // ⚠ transfer: true — CONVERT only READS the storage image (kb/Work PB1901, the Visit(BoundFieldOperand) twin):
         // a pointer-leaf strongly-typed group's image is its D-SLOT placeholder, the one image every reader gets.
         BoundFieldOperand f => OperandText.AsStorageImage(f.Place, transfer: true),
+        // A class-boolean item in grouping parentheses is a boolean EXPRESSION operand (§8.8.2, "a boolean expression enclosed in
+        // parentheses"; §8.4.3.2.3 SR8 admits it as an argument), and the parentheses leave the item's own bits or characters as
+        // they are (IntrinsicArgumentRules.StaticUsageOf reads the same item for the r7 usage screen): its storage image is the
+        // item's, not the '0'/'1' text the boolean renderer would send (kb/Work PB4635 review R2-1). A COMPOUND boolean
+        // expression has no storage and keeps its text.
+        BoundBoolOperand { Expr: BoundBoolRef { Place: var p } } => OperandText.AsStorageImage(p, transfer: true),
         BoundStringLiteral { Category: PicCategory.National } sl => RuntimeApi.NatBytes(EmitText.CsLiteral(sl.Value)),
         BoundStringLiteral { Category: PicCategory.Boolean } sl =>
             RuntimeApi.BitsPack(EmitText.CsLiteral(sl.Value), sl.Value.Length.ToString()),

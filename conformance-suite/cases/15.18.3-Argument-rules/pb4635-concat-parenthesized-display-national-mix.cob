@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb4635-concat-parenthesized-display-national-mix
-*> rules: [AR-15.18.3-1]
+*> rules: [AR-15.18.3-2]
 *> source-format: free
 *> portable: unverified
 *>---
