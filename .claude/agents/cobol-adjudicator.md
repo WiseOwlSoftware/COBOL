@@ -2,7 +2,7 @@
 name: cobol-adjudicator
 description: WiseOwl COBOL adjudicator / analyst / probe — READ-ONLY; decides inventory rows or investigates a defect against the ISO spec and a pinned built compiler, and records verdicts with evidence. Cannot write inside any git working tree.
 model: opus
-effort: high
+effort: medium
 maxTurns: 160
 disallowedTools: NotebookEdit
 hooks:
@@ -31,4 +31,4 @@ whose built compiler you probe, and where your checkpoint lines go.
   scratch directory your brief names (never the session scratchpad: MANDATORY-PRACTICES P16); record_verdicts batches are applied by the orchestrator.
 - Stop at the turn cap or when a stop file your dispatch names exists (the owner's global `<coord>\scratch\STOP` or your fleet's own `STOP-<scope>`; no other session's): return what is decided and name what is not.
 
-Why these settings (owner decision 2026-09-25): effort `high`; 1-hour prompt cache because probes block on compiles.
+Why these settings: effort `medium`, every role's default (owner 2026-11-05: "By default, all model work should be using effort level 'medium' as this session is configured to use"); 1-hour prompt cache because probes block on compiles.

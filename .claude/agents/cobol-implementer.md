@@ -2,7 +2,7 @@
 name: cobol-implementer
 description: WiseOwl COBOL fix-lane implementer — fixes one kb/Work group at its root cause in an isolated worktree, gates it, and reports. Dispatch with a rendered spec from make_dispatch_specs.py.
 model: sonnet
-effort: high
+effort: medium
 maxTurns: 400
 hooks:
   PreToolUse:
@@ -26,6 +26,6 @@ definition adds only what the harness needs of any implementer:
   before the cap, and never for a gate that is not yours.
 - Your last action is the StructuredOutput call; a report file is not your result.
 
-Why these settings (owner decision 2026-09-25, kb/Work tooling note): effort `high` rather than the session's `xhigh`,
+Why these settings (owner decision 2026-09-25, kb/Work tooling note): effort `medium`, every role's default (owner 2026-11-05: "By default, all model work should be using effort level 'medium' as this session is configured to use"),
 and a 1-hour prompt cache because an implementer blocks 5–10 minutes on each gate and a 5-minute cache would re-read
-its whole context uncached after every gate. Roll back to `xhigh` if the refuters' overturn rate on this role rises.
+its whole context uncached after every gate.
