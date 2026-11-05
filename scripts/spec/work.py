@@ -786,10 +786,50 @@ def harm_rank(it: dict) -> int:
     return next((n for n, flag in enumerate(HARM_FLAGS) if it.get(flag)), len(HARM_FLAGS))
 
 
+#: The statuses whose harm a prerequisite owes (inherited_harm): open and half work, and a note held `blocked` (its
+#: prerequisites are still the way to it). Not `owner`: the owner has not yet decided that work should be done.
+INHERITING_STATUSES = ("open", "half", "blocked")
+
+
+def inherited_harm(items: list[dict]) -> dict[str, list[str]]:
+    """The harm flags each open note owes to the open harmed notes that wait on it, directly or through a chain of
+    `blocked_by` (open_blockers), in HARM_FLAGS' order (kb/Work PB4769). A prerequisite does to a user's program what
+    the defect it unblocks does: PB4734 and PB4739 are `process_only` with no harm of their own, yet PB4736 (a wrong
+    answer) and PB4741 to PB4744 (rejected legal source) wait on them, so a register that ranked only stored flags
+    listed neither in `next` and the fix lane planned neither, and the harmed notes waited for ever. Derived, never
+    stored: the ONE reading `actionable`, `view_notes` and the planner's ready view (clusters.ready_notes_view) share.
+    Another project's record (kind upstream) inherits nothing."""
+    by_id = {i.get("id"): i for i in items}
+    owed: dict[str, set[str]] = {}
+    for h in items:
+        flags = [f for f in HARM_FLAGS if h.get(f)]
+        if not flags or h.get("status") not in INHERITING_STATUSES or h.get("process_only"):
+            continue
+        stack, seen = list(open_blockers(h, by_id)), set()
+        while stack:
+            b = stack.pop()
+            if b in seen or b not in by_id or by_id[b].get("kind") == "upstream":
+                continue
+            seen.add(b)
+            owed.setdefault(b, set()).update(flags)
+            stack.extend(open_blockers(by_id[b], by_id))
+    return {nid: [f for f in HARM_FLAGS if f in fs] for nid, fs in owed.items()}
+
+
+def with_inherited_harm(items: list[dict]) -> list[dict]:
+    """`items` with each prerequisite of a harmed note carrying the harm it owes (inherited_harm): its flags set and
+    `process_only` false, plus `harm_inherited` naming the flags, so every view ranks it as the work it unblocks."""
+    owed = inherited_harm(items)
+    return [dict(i, **{f: True for f in owed[i["id"]]}, process_only=False, harm_inherited=owed[i["id"]])
+            if i.get("id") in owed else i for i in items]
+
+
 def actionable(items: list[dict]) -> list[dict]:
     """`next`: the open, unblocked notes that harm a user's program, by severity, then by what the harm DOES to the
-    program (HARM_FLAGS' order: a wrong answer before a misleading message), then by id."""
+    program (HARM_FLAGS' order: a wrong answer before a misleading message), then by id. A prerequisite of a harmed
+    note counts with the harm it owes (with_inherited_harm, kb/Work PB4769)."""
     sev = {"BLOCKER": 0, "MAJOR": 1, "MINOR": 2, "OWNER": 3}
+    items = with_inherited_harm(items)
     by_id = {i.get("id"): i for i in items}
     live = [i for i in items if i.get("status") in ("open", "half")
             and any(i.get(f) for f in HARM_FLAGS)
@@ -830,8 +870,10 @@ VIEWS = {
 
 
 def view_notes(items: list[dict], view: str) -> list[dict]:
-    """The notes of one of VIEWS, in its order."""
+    """The notes of one of VIEWS, in its order, each prerequisite of a harmed note with the harm it owes
+    (with_inherited_harm), so `unharmed` stays the exact complement of `next`."""
     _, select, order = VIEWS[view]
+    items = with_inherited_harm(items)
     by_id = {i.get("id"): i for i in items}
     return sorted((i for i in items if select(i, by_id)), key=order)
 
@@ -2024,14 +2066,20 @@ def view_findings() -> list[str]:
         "PB9009": {"kind": "upstream", "process_only": "true", "upstream_status": "unreported"},
         "PB9010": {"blocked_by": "[PB9005]", "under_rejects": "true"},
         "PB9011": {"silent": "true"},
+        # a note held `blocked` passes its harm to its ready prerequisite; one held `owner` does not (PB4769)
+        "PB9012": {"status": "blocked", "wrong_answer": "true", "blocked_by": "[PB9013]"},
+        "PB9013": {"process_only": "true"},
+        "PB9014": {"status": "owner", "wrong_answer": "true", "blocked_by": "[PB9015]"},
+        "PB9015": {"process_only": "true"},
     }
     # one open note per harm flag the register ranks, each of which `next` must list and `unharmed` must not
     notes.update({f"PB92{n:02d}": {flag: "true"} for n, flag in enumerate(HARM_FLAGS)})
     harmed = [f"PB92{n:02d}" for n in range(len(HARM_FLAGS))]
     want = {
-        "next": sorted(["PB9001", "PB9010", *harmed]),
-        "blocked": ["PB9003", "PB9004"],
-        "unharmed": ["PB9002", "PB9007", "PB9011"],
+        # PB9002 is process_only with no harm of its own, but PB9003 (a crash) waits on it: it owes that harm (PB4769)
+        "next": sorted(["PB9001", "PB9002", "PB9010", "PB9013", *harmed]),
+        "blocked": ["PB9003", "PB9004", "PB9012", "PB9014"],
+        "unharmed": ["PB9007", "PB9011", "PB9015"],
         "analyses": ["PB9007", "PB9008"],
         "landed": ["PB9005", "PB9006"],
         "upstream": ["PB9009"],

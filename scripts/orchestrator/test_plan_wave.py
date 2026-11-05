@@ -2214,6 +2214,22 @@ for nid, status, bb in (("PB801", "open", ""), ("PB802", "open", "PB801"), ("PB8
 view = ready_notes_view("open", TMP / "fix-lane-view", FL)
 check("the fix lane reads the open notes that wait on nothing: a landed blocker is no hold, an open one, an owner status and "
       "a chain are", sorted(p.stem for p in view.iterdir()), ["PB801", "PB803"])
+# a ready process_only prerequisite of a harmed note joins the view with the harm it owes (kb/Work PB4769); one with no
+# harmed dependent stays hidden, and the register's own file is untouched
+PQ = TMP / "prereq-register"
+PQ.mkdir()
+for nid, extra in (("PB811", "process_only: true"), ("PB812", f"process_only: false{NL}wrong_answer: true{NL}blocked_by: [PB813]"),
+                   ("PB813", f"process_only: true{NL}blocked_by: [PB811]"), ("PB814", "process_only: true")):
+    (PQ / f"{nid}.md").write_text(f"---{NL}id: {nid}{NL}kind: defect{NL}status: open{NL}area: x{NL}{extra}{NL}---{NL}b{NL}",
+                                  encoding="utf-8", newline="")
+pv = ready_notes_view("open", TMP / "prereq-view", PQ)
+check("a chain's ready root joins the fix lane's view; a waiting link and a dependent-less note do not",
+      sorted(p.stem for p in pv.iterdir()), ["PB811", "PB814"])
+fm = (pv / "PB811.md").read_text(encoding="utf-8")
+check("the view's copy owes the harmed note's harm and is no longer process_only",
+      ("wrong_answer: true" in fm, "process_only: false" in fm, "process_only: true" in fm), (True, True, False))
+check("a process_only note no harmed note waits on keeps its stored flag", "process_only: true" in (pv / "PB814.md").read_text(encoding="utf-8"), True)
+check("the register's file is untouched", "wrong_answer" in (PQ / "PB811.md").read_text(encoding="utf-8"), False)
 check("an earlier view is replaced, never merged into", sorted(p.stem for p in ready_notes_view("half", view, FL).iterdir()),
       ["PB806"])
 check("unknown blocker", any(s.startswith("T2.md: blocked_by names 'nobody'") for s in probs), True)

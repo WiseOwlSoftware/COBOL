@@ -171,17 +171,39 @@ def ready_notes_view(status: str, view: pathlib.Path, work_dir: pathlib.Path | N
     """The notes of `status` that wait on nothing (work.waiting_on), copied into the empty directory `view` for
     fix_clusters.py to read (kb/Work PB3389). fix_clusters skips a note by a flag of its stored frontmatter
     (`.agent-fleet.json` `skip_flag`), and whether a note is blocked is derived, never stored, so the fix lane's
-    population is the register's own answer and the public script reads only what is ready."""
+    population is the register's own answer and the public script reads only what is ready. A ready prerequisite of a
+    harmed note (work.inherited_harm, kb/Work PB4769) is copied with the harm it owes written into the copy's
+    frontmatter and `process_only: false`, so the skip flag no longer hides the work a harmed note waits on and it
+    ranks as that note does; the register's own file is never edited."""
     work_dir = work_dir or work.WORK
     items = work.load(work_dir)
     by_id = {i.get("id"): i for i in items}
+    owed = work.inherited_harm(items)
     if view.exists():
         shutil.rmtree(view)
     view.mkdir(parents=True)
     for it in items:
         if it.get("status") == status and not work.waiting_on(it, by_id):
-            shutil.copyfile(work_dir / it["_file"], view / it["_file"])
+            if it.get("id") in owed:
+                (view / it["_file"]).write_text(owing(work_dir / it["_file"], owed[it["id"]]), encoding="utf-8", newline="")
+            else:
+                shutil.copyfile(work_dir / it["_file"], view / it["_file"])
     return view
+
+
+def owing(note: pathlib.Path, flags: list[str]) -> str:
+    """A note's text with `flags` set true and `process_only` false in its frontmatter (a line added where one is
+    absent): the planner's view of a prerequisite that owes a harmed note's harm (kb/Work PB4769)."""
+    text = note.read_text(encoding="utf-8")
+    head, sep, body = text.partition("\n---")
+    lines = head.split("\n")
+    for key, value in [*((f, "true") for f in flags), ("process_only", "false")]:
+        hit = [n for n, ln in enumerate(lines) if ln.startswith(f"{key}:")]
+        if hit:
+            lines[hit[0]] = f"{key}: {value}"
+        else:
+            lines.append(f"{key}: {value}")
+    return "\n".join(lines) + sep + body
 
 
 def fold_unsited(raw: Mapping[str, Any], notes: Mapping[str, Note]) -> dict[str, Any]:
