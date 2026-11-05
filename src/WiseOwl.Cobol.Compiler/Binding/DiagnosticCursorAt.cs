@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
-using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Frontend.Common;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -17,12 +17,7 @@ internal static class DiagnosticCursorAt
 
     /// <summary>Position at <paramref name="token"/> (null ⇒ no change of position, an empty scope).</summary>
     public static DiagnosticCursorScope At(this IDiagnosticSink sink, IToken? token) =>
-        sink.At(CursorOf(token));
-
-    /// <summary>The cursor <paramref name="token"/> stands at, the expansion it belongs to included (kb/Work PB4469): the position of a
-    /// token of an expansion's text carries the <see cref="ExpansionToken.Region"/> a sink attributes its diagnostics by. Unset for null.</summary>
-    public static DiagnosticCursor CursorOf(IToken? token) =>
-        token is null ? default : new DiagnosticCursor(token.Line, token.Column) { Region = (token as ExpansionToken)?.Region };
+        sink.At(ExpansionToken.CursorOf(token));   // the one token-to-cursor rule, the expansion's region included (kb/Work PB4469, PB4649)
 
     /// <summary>Position at a bound data item's declaring entry (<see cref="Model.DataItem.DeclaredAt"/>) — the
     /// post-build model passes' form.</summary>

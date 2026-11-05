@@ -1871,10 +1871,16 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
     The `>>FLAG` walk stays on the written tree (the directives bracket lines the user wrote, and `CompileState` does not carry them), and
     the pre-bind screens (level numbers, integer operands, procedure formats, end markers, areas, directive placement) run before any
     expansion exists; they are error-only, and the published skeleton passed them under the same state. `GroupTextScreenDriftTests` keeps
-    every other walk on `Texts`. The frontend's two token screens (`LiteralScreen`, `WordCharacterScreen`) walk the written tree alone:
-    they position by line and column, with no region, so they cannot yet print a repository text's report at its entry. Their gates are
-    introductions, which the published skeleton passed under the same state, except the COBOL-2023 removal of a word character, a warning
-    under `--permissive` that an expansion in the group's assembly does not repeat while its own assembly's compilation does.
+    every other walk on `Texts`. The frontend's two token screens (`LiteralScreen`, `WordCharacterScreen`) are screens of the text too
+    (kb/Work PB4649): the binder driver runs each over every member of `Texts`, and they position a report by
+    `ExpansionToken.CursorOf(token)`, the one token-to-cursor rule (in the frontend, beside the screens; `DiagnosticCursorAt.At` asks it
+    too), so a repository text's report is printed at its entry naming the expansion and the group can withdraw it. The COBOL-2023
+    removal of a word character, a warning under `--permissive`, is the report of this kind that exists: placement (a) printed it from the
+    expansion's own compilation and placement (b) printed nothing, because the screen walked the written tree alone. The word screen's
+    once-per-word rule is per text, each member a walk of its own (`WordCharacterScreen.RunOnTree` builds its set per call). The literal
+    screen's gates are introductions and its rules errors, which the published skeleton passed under the same state, so it reports nothing of
+    such a text today and asks it so that the next warning-severity gate needs no site. `GroupTextScreenDriftTests` holds both calls to
+    `text` and every `sink.At` of a token to `CursorOf`.
   *Representation:* `CompilerDriver.Result.Errors` and `Warnings` stay strings; the duplicate was two owners of one text, not the
   string form, so ownership is decided where the diagnostic is raised and the strings need no structure to be de-duplicated.
 - *Residual, stated:* an expansion of a skeleton published under another `CompileState` than this group's whose code also names a class of

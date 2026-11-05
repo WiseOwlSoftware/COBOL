@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 

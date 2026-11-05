@@ -2,9 +2,10 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Binding;
-using WiseOwl.Cobol.Compiler.Oo;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -121,6 +122,41 @@ public sealed class DiagnosticRegionTests
     {
         string text = File.ReadAllText(Path.Combine(TestRepo.Src(), "WiseOwl.Cobol.Compiler", "Oo", "OoExpansion.cs"));
         Assert.DoesNotContain("new CommonToken(", text, StringComparison.Ordinal);
+    }
+
+    /// <summary>A program text whose tokens are all tokens of <paramref name="region"/>, parsed as an expansion's text is
+    /// (<c>OoExpansion</c>: the skeleton's tokens, parsed apart from the written tree). It holds a word with the removed character U+30FB
+    /// last (a COBOL-2023 removal) and a zero-length literal (a COBOL-2014 introduction).</summary>
+    private static ParserRuleContext TextOf(DiagnosticRegion region, EditionInfo edition)
+    {
+        string source = "IDENTIFICATION DIVISION.\nPROGRAM-ID. P1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 ABC・ PIC X.\n"
+            + "PROCEDURE DIVISION.\n    DISPLAY \"\".\n    STOP RUN.\n";
+        var stream = new CommonTokenStream(new CobolLexer(new AntlrInputStream(source)));
+        stream.Fill();
+        IList<IToken> tokens = [.. stream.GetTokens().Select(t => (IToken)new ExpansionToken(t, region))];
+        return Assert.IsAssignableFrom<ParserRuleContext>(
+            FragmentParse.ParseTokens(tokens, edition, CobolWordsMap.Empty, p => p.compilationUnit()));
+    }
+
+    /// <summary>⛔ kb/Work PB4649, ISO §8.3.2.1 + Annex B.3 (the word) and §8.3.3.1 (the literal): the two frontend token screens position a
+    /// diagnostic of an expansion's text by <see cref="ExpansionToken.CursorOf"/>, as the binder's walkers do, so a text of a repository
+    /// skeleton is printed at the EXPANDS entry naming the expansion and the group can withdraw it. A screen that read the token's line and
+    /// column alone (<c>sink.At(line, column)</c>) printed a repository text's position, in a file it never was in.</summary>
+    [Theory]
+    [InlineData(2023, true, "COBOL0902", false)]   // the removed character: a warning under --permissive, the word screen
+    [InlineData(2002, false, "COBOL0900", true)]   // the zero-length literal below 2014: an error, the literal screen
+    public void AFrontendTokenScreen_AttributesADiagnosticOfAnExpansionsText_ToItsRegion(int level, bool permissive, string code, bool error)
+    {
+        var region = FromTheRepository("HOLD-BOX");
+        var edition = new EditionContext(level, permissive) { SourceFile = "client.cob" };
+        var text = TextOf(region, edition.Edition);
+        LiteralScreen.Run(text, edition.Edition, edition, gateFormats: true);
+        WordCharacterScreen.RunOnTree(text, edition.Edition, edition);
+        string line = Assert.Single(error ? edition.Diagnostics : edition.Warnings);
+        Assert.StartsWith($"client.cob(8,5): {(error ? "error" : "warning")} {code}:", line, StringComparison.Ordinal);
+        Assert.EndsWith("[in the expansion 'HOLD-BOX']", line, StringComparison.Ordinal);
+        edition.WithdrawWarningsOf(region);
+        Assert.Equal(error ? 1 : 0, edition.Diagnostics.Count + edition.Warnings.Count);   // a warning of the text is withdrawn, an error never
     }
 
     [Fact]

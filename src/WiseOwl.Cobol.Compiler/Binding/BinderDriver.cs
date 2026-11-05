@@ -9,6 +9,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Passes;
 using WiseOwl.Cobol.Binding.Procedure;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 
@@ -239,15 +240,20 @@ internal sealed class BinderDriver
         // same footing: the length and hexadecimal-grouping rules are properties of the literal TOKEN, whatever
         // position it is written in, so they are asked once per token of the raw tree rather than once per
         // consuming funnel (which is how VALUE / CONSTANT / ALL / concatenation-operand literals escaped them).
-        // kb/Work PB1393.
-        global::WiseOwl.Cobol.Frontend.Parsing.LiteralScreen.Run(tree, edition.Edition, edition, gateFormats: true);
+        // kb/Work PB1393. Over every text the group compiles (GroupBindContext.Texts), the text of an expansion of a skeleton read from the
+        // repository too, whose tokens name their DiagnosticRegion so a report is attributed as the group's other screens attribute it (kb/Work PB4649).
+        foreach (var text in ctx.Texts)
+            global::WiseOwl.Cobol.Frontend.Parsing.LiteralScreen.Run(text, edition.Edition, edition, gateFormats: true);
 
         // The word-character screen (ISO §8.3.2.1, §8.1.3.2 GR4, Annex B.3) — the character half of the COBOL-word rule is a
         // property of the word TOKEN, whatever position it is written in, so it is asked once per word of the tree rather
         // than once per name slot. A compilation whose frontend reported ANY error (a failed parse, or a parse beside a
         // separator, PICTURE or preprocessor error) never reaches the binder and was screened by the frontend over the
-        // lexer's whole stream (the same body), so this is the clean frontend's half. kb/Work PB3845.
-        global::WiseOwl.Cobol.Frontend.Parsing.WordCharacterScreen.RunOnTree(tree, edition.Edition, edition);
+        // lexer's whole stream (the same body), so this is the clean frontend's half. kb/Work PB3845. Each text of the group is screened as
+        // a compilation of its own, so the once-per-word rule is per text (a word an expansion's text raises is not hidden by the same word in
+        // another text), the expansion of a skeleton read from the repository included (kb/Work PB4649).
+        foreach (var text in ctx.Texts)
+            global::WiseOwl.Cobol.Frontend.Parsing.WordCharacterScreen.RunOnTree(text, edition.Edition, edition);
 
         // The declined-optional-element pass (ISO Annex A.4.1) — a THIRD sibling on the same footing: it answers
         // "does this implementation claim support for this optional module", which is orthogonal to both the
@@ -1057,7 +1063,7 @@ internal sealed class BinderDriver
         }
 
         // A parse node's first token as a diagnostic position (an unset cursor leaves the current one standing).
-        static DiagnosticCursor CursorOf(ParserRuleContext? ctx) => DiagnosticCursorAt.CursorOf(ctx?.Start);
+        static DiagnosticCursor CursorOf(ParserRuleContext? ctx) => ExpansionToken.CursorOf(ctx?.Start);
 
         // How a KIND reads in the cross-kind sentence: a definition of the unit kinds, or the EXTERNAL item itself.
         static string Noun(string kind) => kind.StartsWith("EXTERNAL", StringComparison.Ordinal) ? $"an {kind}" : $"a {kind} definition";

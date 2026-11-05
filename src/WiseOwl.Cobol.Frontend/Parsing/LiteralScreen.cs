@@ -5,6 +5,7 @@ using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Common;              // CobolLiteral — the ONE literal codec and its shape rules
 using WiseOwl.Cobol.Editions;             // Constructs, ConstructRegistry — the literal-format edition gates
 using WiseOwl.Cobol.Editions.Diagnostics; // DiagnosticCatalog
+using WiseOwl.Cobol.Frontend.Common;      // ExpansionToken — the one token-to-cursor rule, the expansion region included
 using WiseOwl.Cobol.Frontend.Expressions; // ArithmeticFormationRules — the ONE §8.3.3.3.2 rule-2 contiguity test
 using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore contexts of the signed literal slots
 
@@ -122,7 +123,7 @@ public static class LiteralScreen
     private static bool ScreenSign(IParseTree node, IToken sign, IToken first, IDiagnosticSink sink)
     {
         if (ArithmeticFormationRules.SignAbuts(sign, first)) return true;
-        using var _ = sink.At(sign.Line, sign.Column);
+        using var _ = sink.At(ExpansionToken.CursorOf(sign));
         string written = WrittenSource.Of((ParserRuleContext)node);
         Error(sink, DiagnosticCatalog.SignedLiteralSignNotAdjacent, $"the numeric literal `{written}` has its sign "
             + $"separated from its digits — {ArithmeticFormationRules.SignRuleQuote}, and a space or line break is a "
@@ -135,7 +136,7 @@ public static class LiteralScreen
     private static bool Screen(ITerminalNode t, EditionInfo edition, IDiagnosticSink sink, bool gateFormats)
     {
         string raw = t.GetText();
-        using var _ = sink.At(t.Symbol.Line, t.Symbol.Column);
+        using var _ = sink.At(ExpansionToken.CursorOf(t.Symbol));
         if (gateFormats) GateFormat(raw, edition, sink);
         if (CobolLiteral.SyntaxViolation(raw, edition.Year) is not { } v) return true;
         Error(sink, v.Rule switch
@@ -157,7 +158,7 @@ public static class LiteralScreen
     /// this is the format gate alone and the literal's value is left intact.</summary>
     private static void GateFloatingPoint(ITerminalNode t, EditionInfo edition, IDiagnosticSink sink)
     {
-        using var _ = sink.At(t.Symbol.Line, t.Symbol.Column);
+        using var _ = sink.At(ExpansionToken.CursorOf(t.Symbol));
         ConstructRegistry.Check(edition, sink, Constructs.FloatingPointLiteral2002,
             $"the floating-point numeric literal {t.GetText()}");
     }

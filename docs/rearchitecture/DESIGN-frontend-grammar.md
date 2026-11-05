@@ -2484,7 +2484,10 @@ lowercase with Annex C. Three pieces, each in one place:
   `Frontend.LexAndParseOnce` over the lexer's whole token stream (`RunOnTokens`, reporting through a frontend `BagSink` in
   its cursored form, next to that error; a word of a fixed-form debugging line that is a comment, channel
   `ABSENT_DEBUG_LINE`, is not a word); any other by `BinderDriver` over the tree's words (`RunOnTree`, through the
-  compiler's sink, so the reports sit beside the binder's own diagnostics and do not stop the compile before it). The one text that is not words is a comment-entry (`AUTHOR. JOSÉ` is a legal '85 comment), which the parse tree
+  compiler's sink, so the reports sit beside the binder's own diagnostics and do not stop the compile before it), once for
+  each text of the group (`GroupBindContext.Texts`: the written tree and the expansions of skeletons read from the repository,
+  kb/Work PB4649, so "one report per distinct word" is per text and a report is positioned by `ExpansionToken.CursorOf`,
+  which carries an expansion's region; DESIGN-external-repository §10.5). The one text that is not words is a comment-entry (`AUTHOR. JOSÉ` is a legal '85 comment), which the parse tree
   names by its single context `commentEntry`; the six paragraph rules call it. The directive stages scan their own words
   and ask `CobolWordRule` themselves (a directive leaves the text before the lexer runs).
   **The order it reports in (kb/Work PB4131).** The frontend screen needs the failed parse, so it reports after it, but the word

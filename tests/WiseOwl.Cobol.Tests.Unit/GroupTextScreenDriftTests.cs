@@ -57,6 +57,62 @@ public sealed class GroupTextScreenDriftTests
             + "with the reason its walk is about the written source. Offending sites:\n  " + string.Join("\n  ", offenders));
     }
 
+    private static readonly Regex FrontendScreen = new(@"\b(?:LiteralScreen\.Run|WordCharacterScreen\.RunOnTree)\((?<root>[^,)]*)", RegexOptions.Compiled);
+
+    /// <summary>
+    /// ⛔ kb/Work PB4649: the frontend's token screens (<c>LiteralScreen</c>, <c>WordCharacterScreen</c>) are screens of the source text too.
+    /// The binder driver ran them over the written tree alone, so a COBOL-2023 word-character removal under <c>--permissive</c> in the
+    /// text of an expansion of a repository skeleton was printed when that expansion was placed in an assembly of its own (its own
+    /// compilation walked the text as its written tree) and never when it was placed in the group's. A compiler call of one of them
+    /// takes the loop variable <c>text</c> of a walk of <c>GroupBindContext.Texts</c>, so a word's once-per-word rule is per text.
+    /// </summary>
+    [Fact]
+    public void EveryFrontendTokenScreenTheCompilerRunsWalksTheGroupsTexts()
+    {
+        var offenders = new List<string>();
+        int calls = 0;
+        foreach (string file in Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Compiler"), "*.cs", SearchOption.AllDirectories))
+        {
+            if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")) continue;
+            string[] lines = File.ReadAllLines(file);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (lines[i].TrimStart().StartsWith("//", StringComparison.Ordinal) || FrontendScreen.Match(lines[i]) is not { Success: true } call) continue;
+                calls++;
+                if (call.Groups["root"].Value != "text") offenders.Add($"{Path.GetFileName(file)}:{i + 1}: {lines[i].Trim()}");
+            }
+        }
+        Assert.True(calls >= 2, "The binder driver's calls of LiteralScreen.Run and WordCharacterScreen.RunOnTree are no longer found (renamed? update this guard).");
+        Assert.True(offenders.Count == 0,
+            "A frontend token screen runs over the written tree only, so the text of an expansion of a skeleton read from the repository "
+            + "is never screened by the group: `foreach (var text in ctx.Texts) Screen.Run(text, ...)`. Offending sites:\n  " + string.Join("\n  ", offenders));
+    }
+
+    private static readonly Regex TokenPositionedCursor = new(@"\.At\(\s*[\w.?]+\.Line\s*,\s*[\w.?]+\.Column\s*\)", RegexOptions.Compiled);
+
+    /// <summary>
+    /// ⛔ kb/Work PB4649: a reporter positions a sink at a TOKEN by <c>ExpansionToken.CursorOf</c>, which carries the expansion's region, and
+    /// never by the token's line and column alone (<c>sink.At(token.Line, token.Column)</c>): that form prints a repository text's
+    /// position in a file it never was in, and the group can neither name the expansion nor withdraw the report.
+    /// </summary>
+    [Fact]
+    public void NoReporterPositionsASinkAtATokensLineAndColumnAlone()
+    {
+        var offenders = new List<string>();
+        foreach (string project in new[] { "WiseOwl.Cobol.Frontend", "WiseOwl.Cobol.Compiler" })
+            foreach (string file in Directory.EnumerateFiles(TestRepo.Src(project), "*.cs", SearchOption.AllDirectories))
+            {
+                if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")) continue;
+                string[] lines = File.ReadAllLines(file);
+                for (int i = 0; i < lines.Length; i++)
+                    if (!lines[i].TrimStart().StartsWith("//", StringComparison.Ordinal) && TokenPositionedCursor.IsMatch(lines[i]))
+                        offenders.Add($"{Path.GetFileName(file)}:{i + 1}: {lines[i].Trim()}");
+            }
+        Assert.True(offenders.Count == 0,
+            "Position the sink at a token with `sink.At(ExpansionToken.CursorOf(token))`, so a token of an expansion's text carries its region. "
+            + "Offending sites:\n  " + string.Join("\n  ", offenders));
+    }
+
     [Fact]
     public void TheWrittenSourceWalksStillExist()
     {
