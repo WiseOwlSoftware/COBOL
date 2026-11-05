@@ -801,27 +801,24 @@
     },
     "mcs-only": {
       "verdict": "DOCUMENTED-NON-SUPPORT",
-      "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOL1578 at every SEND/RECEIVE and the refusals COBOL1943 (USAGE MESSAGE-TAG) and COBOL2205 (SET format 17).",
+      "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOL1578 at every SEND/RECEIVE. The owner approved the facility on 2026-11-04 (DESIGN-message-control.md, kb/Work PB4700): each slice that implements part of it narrows this selector to the rows still declined (slice S1, kb/Work PB4740, took the message-tag type: USAGE MESSAGE-TAG, NULL, SET Format 17, the relation, INITIALIZE and BY VALUE), and slice S4 deletes it.",
       "$selector": [
         "A rule is SOLELY conditioned on the MCS facility when it lives in the facility's own statements — §14.9.31",
         "RECEIVE and §14.9.38 SEND, general formats included, because §4.2.6 ¶3 releases their syntax ('it is not",
         "required to diagnose syntax errors within this unsupported syntax') and the grammar recognizes both only to",
-        "warn — or when its content is the MESSAGE-TAG class or the message server protocol stated from elsewhere:",
+        "warn — or when its content is the message server protocol stated from elsewhere: the EC-MCS exception",
+        "conditions, the implicit SEND at run-unit termination for an active message (GR-14.6.11-7) and the message",
+        "servers themselves.",
+        "",
+        "⛔ THE MESSAGE-TAG CLASS IS NO LONGER HERE (kb/Work PB4740). The data half of the facility is implemented:",
         "the null message-tag content (GR-8.4.3.10.4-4), a message-tag comparison (GR-8.8.4.2.1-9), the USAGE",
-        "MESSAGE-TAG clause, the implicit SEND at run-unit termination for an active message (GR-14.6.11-7), and",
-        "Annex A.1 item 212 (USAGE MESSAGE-TAG size and contents — withdrawn by A.1's preamble exactly as R42",
-        "withdrew the declined A.4 modules' items).",
+        "MESSAGE-TAG clause (GR-13.18.60.4-9), SET Format 17 (SR-14.9.39.3-35) and Annex A.1 item 212 (DOC-A.1-212) are",
+        "adjudicated CONFORMS rows, so a text arm that selected them by 'class message-tag' would hold them at a",
+        "verdict the tree no longer has.",
         "",
-        "⛔ THE EXCLUSION IS THE CLASS LIST. Most rules that say 'message-tag' say it inside an enumeration — 'of",
-        "class index, message-tag, object, or pointer' — and every such rule constrains the OTHER classes too, which",
-        "are live. The exclusion drops message-tag written next to another class name, in either order; measured,",
-        "it is what holds out SR-8.8.4.2.3-5 (object/pointer halves verified, so R43 item 2 gives it CONFORMS) and",
-        "GR-13.18.63.4-4 (VALUE initialization, CONFORMS). SR-13.18.60.3-21 ('If MESSAGE-TAG is specified, no other",
-        "usage clauses shall be specified') stays out because no arm names a bare MESSAGE-TAG phrase: it is",
-        "enforced independently of the decline and carries CONFORMS on its own negative golden.",
+        "The null message-tag content (GR-8.4.3.10.4-4) names a message server in passing and is excluded by its own words.",
         "",
-        "MEASURED 2026-09-24: 28 selected — 22 by the statement clauses, 6 by text (2 already DOCUMENTED-NON-SUPPORT:",
-        "GR-13.18.60.4-9, SR-14.9.39.3-35). Every other selected row was blank."
+        "MEASURED 2026-11-05: see TheMcsSelector_IsStillSharp for the floor."
       ],
       "arms": [
         {
@@ -832,15 +829,15 @@
           ]
         },
         {
-          "$arm": "text — the MESSAGE-TAG class and the message-server protocol stated inside a shared clause; never a general format",
-          "pattern": "\\b(?:class|category) message-tag\\b|\\bmessage-tag data items?\\b|\\bassociated with a message-tag\\b|\\bUSAGE MESSAGE-TAG\\b|\\bMESSAGE-TAG clause\\b|\\bEC-MCS\\b|\\bactive messages?\\b|\\bmessage servers?\\b",
+          "$arm": "text — the message server protocol stated inside a shared clause; never a general format",
+          "pattern": "\\bEC-MCS\\b|\\bactive messages?\\b|\\bmessage servers?\\b",
           "excludes-kinds": [
             "FMT"
           ]
         }
       ],
       "excludes-patterns": [
-        "\\bmessage-tag,\\s*(?:or\\s+|and\\s+)?(?:class\\s+)?(?:object|pointer|index|boolean|numeric|national|alphanumeric|alphabetic)\\b|\\b(?:object|pointer|index|boolean|numeric|national|alphanumeric|alphabetic|data-pointer|function-pointer|program-pointer),\\s*(?:or\\s+|and\\s+)?(?:class\\s+)?message-tag\\b|\\b(?:or|and)\\s+(?:class\\s+)?message-tag\\b"
+        "\\bnull content\\b"
       ]
     },
     "float-formats-not-provided": {

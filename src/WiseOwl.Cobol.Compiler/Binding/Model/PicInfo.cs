@@ -59,6 +59,11 @@ public enum PicCategory
     /// is never null on this category and GR26's signature invariant always has a prototype to compare against.
     /// Occupies NO character positions (the Pointer/ProgramPointer image posture).</summary>
     FunctionPointer,
+    /// <summary>Message tag (USAGE MESSAGE-TAG, ISO §8.5.2.9 / §13.18.60.4 GR9) — LIVE (kb/Work PB4740): a PICTURE-less
+    /// elementary item of class message-tag, carried by the runtime <c>MessageTag</c> (a managed slot, DOC-A.1-212); its
+    /// initial state and NULL are <c>MessageTag.Null</c> (§13.18.63.4 GR4). Occupies NO character positions of its own
+    /// (the Pointer/FunctionPointer image posture).</summary>
+    MessageTag,
 }
 
 /// <summary>A SIGN clause's content (ISO §13.18.52): position (LEADING/TRAILING) and SEPARATE CHARACTER mode.
@@ -131,15 +136,9 @@ public enum Usage
     /// prototypes are the P13 repository work; ParseUsage rejects with the named 0899-band descriptor and the
     /// member exists so the 2014 introduction gate (UsageConstructId) still fires below 2014.</summary>
     FunctionPointer,
-    /// <summary>USAGE MESSAGE-TAG (ISO §13.18.60.4 GR9; COBOL-2023, Annex E.2 item 25) — DECLINED
-    /// NON-SUPPORT: the data-item half of the asynchronous messaging facility (Annex A.3 item 4,
-    /// docs/CONFORMANCE.md §4 item 1), refused BY NAME with COBOL1943 at 2023 and, below it, answered by the
-    /// COBOL0900 introduction gate alone (usage-message-tag-2023, kb/Work PB916). The member exists for exactly the reason that one does: <c>ParseUsage</c> must
-    /// return SOMETHING, and the entry is PICTURE-less (§13.16.3 SR8 exempts message-tag), so without a member
-    /// of its own the recovery Pic could not be synthesized and the errored compile would carry a null
-    /// <c>Pic</c> into the emitter — which is precisely the unhandled NullReferenceException kb/Work PB487
-    /// found. It also makes the §13.18.60.3 SR4 / SR14 / SR21 message-tag arms EXPRESSIBLE where they were
-    /// forward obligations held open by a comment.</summary>
+    /// <summary>USAGE MESSAGE-TAG (ISO §13.18.60.4 GR9; COBOL-2023, Annex E.2 item 25) — LIVE (kb/Work PB4740): the
+    /// message-tag carrier (<see cref="PicCategory.MessageTag"/>), the data-item half of the asynchronous messaging
+    /// facility (Annex A.3 item 4). Below 2023 the COBOL0900 introduction gate (usage-message-tag-2023) answers.</summary>
     MessageTag,
     /// <summary>USAGE FLOAT-SHORT (ISO §13.18.60; the §13.18.59 D16 split) — LIVE (Phase 6a): the implementor-
     /// defined float trio maps FLOAT-SHORT → <c>float</c> (§13.18.60.4 GR13; <see cref="PicInfo.IsFloat"/> /
@@ -256,11 +255,7 @@ public static class UsageFamilies
         or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
         or Usage.Index or Usage.ObjectReference
         or Usage.Pointer or Usage.FunctionPointer or Usage.ProgramPointer
-        // message-tag is SR8's thirteenth entry. The usage itself is DECLINED non-support (COBOL1943, Annex
-        // A.3 item 4) and refused by name in ParseUsage, so this arm is reached only on the errored-recovery
-        // path — but SR8 names it either way, and leaving it out is what
-        // PicturelessUsageSetDriftTests.EverySr8NamedUsage_WithAMember_IsPictureless caught the moment kb/Work
-        // PB487 gave message-tag a Usage member.
+        // message-tag is SR8's thirteenth entry (PicturelessUsageSetDriftTests.EverySr8NamedUsage_WithAMember_IsPictureless)
         or Usage.MessageTag
         // ── COMP-1 / COMP-2: the implementor spellings of SR8's float-short / float-long ──
         or Usage.Float or Usage.Double
@@ -292,13 +287,9 @@ public static class UsageFamilies
     /// items of class message-tag, class object, and class pointer are initialized to null." The null initial
     /// value is the standard's, with no clause written.</para>
     ///
-    /// <para>MESSAGE-TAG's arm IS reached, and reports BESIDE the facility decline rather than instead of it —
-    /// MEASURED: `01 M USAGE MESSAGE-TAG VALUE "X".` draws COBOL1943 (this implementation does not provide
-    /// the Annex A.3 item 4 facility) and COBOL2168 (the standard forbids the clause on that usage at all).
-    /// The two say different things about the same line and both are true, which is why the decline does not
-    /// stand in for the rule. The FUNCTION-POINTER arm is the one that cannot be exercised today: such an entry
-    /// needs a prototype the repository work has not landed. A rule written only over its reachable arms is how
-    /// the other two went missing for the life of the tree.</para></summary>
+    /// <para>MESSAGE-TAG's arm is live (kb/Work PB4740): `01 M USAGE MESSAGE-TAG VALUE "X".` draws COBOL2168, the
+    /// standard's own refusal of the clause on that usage. The FUNCTION-POINTER arm is the one a rule written only over
+    /// reachable arms would miss.</para></summary>
     public static bool AdmitsNoValueLiteral(Usage u) => u
         // —— §13.16.3 SR10, class by class through §8.5.2.1 Table 2 ——
         is Usage.Index                                                          // class index
@@ -903,6 +894,9 @@ public sealed record PicInfo(
         // function; the ProgramPointer twin, a SEPARATE readonly identity struct so the generated C# cannot
         // make the two categories assignment-compatible behind the binder's screens).
         PicCategory.FunctionPointer => "FunctionPointer",
+        // A message tag is the runtime MessageTag carrier (§13.18.60.4 GR9 — a readonly struct whose default IS the
+        // null content, §8.4.3.10.4 GR4; DOC-A.1-212).
+        PicCategory.MessageTag => "MessageTag",
         // National (one UTF-16 char per national position, D-N1) and boolean (one '0'/'1' char per boolean
         // position, D-B1 — §13.18.40.4 GR14 R14) ride the same fixed-width string substrate as alphanumeric.
         PicCategory.Alphanumeric or PicCategory.NumericEdited
@@ -952,6 +946,7 @@ public sealed record PicInfo(
         PicCategory.Pointer => "ManagedPointer.Null",   // the predefined NULL data pointer (§8.4.3.10)
         PicCategory.ProgramPointer => "ProgramPointer.Null",   // the NULL program address (§8.4.3.10 GR3)
         PicCategory.FunctionPointer => "FunctionPointer.Null",   // the NULL function address (§8.4.3.10.4 GR2)
+        PicCategory.MessageTag => "MessageTag.Null",   // the null content (§8.4.3.10.4 GR4; §13.18.63.4 GR4)
         // Alphanumeric AND national default to spaces (the national space is U+0020 under the D-N4 Latin-1
         // repertoire); boolean to boolean zeros (§13.18.63 — the category fill values); numeric to zero (unscaled).
         PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National
@@ -1171,25 +1166,11 @@ public sealed record PicInfo(
         new(PicCategory.Alphanumeric, Usage.Display, Length: Math.Max(1, length), Digits: 0, Scale: 0, Signed: false)
         { IsRecovery = true };
 
-    /// <summary><see cref="Recovery"/> for a <c>USAGE MESSAGE-TAG</c> entry — a DECLINED usage, refused by name
-    /// at the data description entry (<c>PictureAnalyzer.ParseUsage</c>, COBOL1943; Annex A.3 item 4).
-    /// <para>⛔ IT CARRIES THE WRITTEN USAGE, AND THAT IS THE WHOLE POINT (kb/Work PB453). The profile is still a
-    /// recovery placeholder — <see cref="IsRecovery"/> is set and its category is NOT an analysis of anything,
-    /// because §13.18.60.4 GR9 makes the category of a message-tag item message-tag and this implementation
-    /// declines to model it — but the USAGE is a FACT the source states, and hiding it made every later screen
-    /// answer about a category the item does not have. A Format-17 SET on such an item reached the
-    /// object-reference screen KEYED TO §14.9.39.3 SR8 — COBOL0867, whose MESSAGE says the receiving operand
-    /// "shall be a USAGE OBJECT REFERENCE data item"; ⛔ those are the DIAGNOSTIC's words, not the rule's, and
-    /// SR8's own text is "Identifier-3 shall be any item of class object that is permitted as a receiving item" — and the
-    /// §8.8.1.1 arithmetic screen (COBOL0844, "of category alphanumeric is not a numeric operand", the
-    /// diagnostic's words again). Both are false about the program. With the usage visible,
-    /// <c>SetFormatSelection</c> selects Format 17 and the statement names the declined FACILITY instead.</para>
-    /// <para>⚠ Both arms of <c>ItemCategory.IsMessageTag</c> need it: <c>DataItem.OwnUsage</c> sees an entry
-    /// that WROTE the clause, and only the resolved <see cref="PicInfo"/> sees one that acquired the usage by a
-    /// TYPE clone or SAME AS copy.</para></summary>
-    public static PicInfo MessageTagRecovery() =>
-        new(PicCategory.Alphanumeric, Usage.MessageTag, Length: 1, Digits: 0, Scale: 0, Signed: false)
-        { IsRecovery = true };
+    /// <summary>A USAGE MESSAGE-TAG item's representation (ISO §13.18.60.4 GR9; PICTURE-less per §13.16.3 SR8 — the
+    /// <see cref="FunctionPointerItem"/> synthesis pattern). Occupies NO character positions of its own: the item is the
+    /// managed <c>MessageTag</c> carrier of a slot (DOC-A.1-212, the slot rule D-SLOT), never storage bytes.</summary>
+    public static PicInfo MessageTagItem() =>
+        new(PicCategory.MessageTag, Usage.MessageTag, Length: 0, Digits: 0, Scale: 0, Signed: false);
 
     /// <summary>The synthesized profile of a PICTURE-less <c>USAGE INDEX</c> data item (ISO §13.18.60): an
     /// elementary <c>long</c> holding an occurrence number. Digits/Scale are irrelevant — SET copies an index value

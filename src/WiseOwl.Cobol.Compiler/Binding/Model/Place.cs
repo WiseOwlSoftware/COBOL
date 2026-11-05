@@ -438,11 +438,9 @@ public sealed record SlotWindow(AccessPath Cell) : CellWindowCoding(Cell)
 {
     /// <summary>⛔ THE ONE test for "does this member ride the area's managed slots rather than its bytes?" (the
     /// <see cref="NationalWindow.PositionsOf"/> model — the gate and the geometry must not be able to disagree
-    /// about the population). It is the three pointer/object PICTURE categories the model gives a managed
-    /// carrier: data-pointer, program-pointer and object reference. USAGE FUNCTION-POINTER and USAGE MESSAGE-TAG
-    /// are NOT here because they gain no <c>PicInfo</c> at all (the staged §13.18.60 USAGE band, COBOL0899);
-    /// they reach <c>DataBinder.ByteWindowResidueOf</c>'s "no bound representation" arm instead, and the day
-    /// their stage lifts this predicate is where they join.
+    /// about the population). It is the PICTURE categories the model gives a managed carrier: data-pointer,
+    /// program-pointer, function-pointer, object reference and message-tag (USAGE MESSAGE-TAG, kb/Work PB4740; the
+    /// slot rule DOC-A.1-212).
     /// <para>⚠ A REDEFINES class can never contain such a member on conforming source, which is why
     /// <see cref="RedefViewPlace.For"/> may treat a missing cell as an internal error: §13.18.44.3 SR12 bars the
     /// REDEFINES subject from being "of class object, message-tag, or pointer or a strongly-typed group item",
@@ -456,7 +454,7 @@ public sealed record SlotWindow(AccessPath Cell) : CellWindowCoding(Cell)
     public static bool CarriedBySlot(DataItem item) =>
         item.IsElementary && item.Pic is
             { Category: PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer
-                  or PicCategory.ObjectReference };
+                  or PicCategory.ObjectReference or PicCategory.MessageTag };
 
     /// <summary>⛔ THE ONE ENUMERATION of the managed-slot members of <paramref name="item"/> — the item itself when it
     /// is slot-carried, else every slot-carried item beneath it. What an operation that moves an item as a byte IMAGE
@@ -477,11 +475,11 @@ public sealed record SlotWindow(AccessPath Cell) : CellWindowCoding(Cell)
 
     /// <summary>⛔ THE ONE test for "do this slot member's reserved positions hold a POINTER IMAGE?" (kb/Work PB1071;
     /// DOC-A.1-216): the three pointer categories do — <c>PointerImage</c> defines the image, NULL as eight zero
-    /// positions — and the object reference, the one other slot-carried category, has no image and keeps its
-    /// reserved placeholder. The cell seed (<c>GroupImageCodec.SlotSeedOf</c>), the one-way group image (<c>SlotImageOf</c>) and the
-    /// ALLOCATE seed (<see cref="PointerImageOffsetsOf"/>) all ask it.</summary>
+    /// positions — and the object reference and the message tag, the other slot-carried categories, have no image and
+    /// keep their reserved placeholder. The cell seed (<c>GroupImageCodec.SlotSeedOf</c>), the one-way group image
+    /// (<c>SlotImageOf</c>) and the ALLOCATE seed (<see cref="PointerImageOffsetsOf"/>) all ask it.</summary>
     public static bool CarriesPointerImage(DataItem item) =>
-        CarriedBySlot(item) && item.Pic!.Category != PicCategory.ObjectReference;
+        CarriedBySlot(item) && item.Pic!.Category is not (PicCategory.ObjectReference or PicCategory.MessageTag);
 
     /// <summary>The byte offset, within the storage class that <paramref name="root"/> heads, of EVERY pointer-image
     /// run — each OCCURS occurrence of each <see cref="CarriesPointerImage"/> member (kb/Work PB1071). What

@@ -4046,17 +4046,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // shape error; the recovery profile keeps the item in its own category rather than letting the
             // errored compile misclassify it as alphanumeric (which is what the PICTURE-less fall-through did).
             : entryUsage is Usage.FunctionPointer ? PicInfo.FunctionPointerItem(restrictedPrototypeName ?? "")
-            // USAGE MESSAGE-TAG — declined non-support, already refused BY NAME in ParseUsage (COBOL1943;
-            // Annex A.3 item 4, docs/CONFORMANCE.md §4 item 1). The recovery shape exists for the same reason
-            // the FLOAT-BINARY-128 / FLOAT-DECIMAL forms below have one: §13.16.3 SR8 exempts message-tag from
-            // needing a PICTURE, so without it the errored compile would carry a null Pic into the emitter —
-            // the unhandled NullReferenceException kb/Work PB487 measured. Never a bind: the compile has failed.
-            // ⛔ IT CARRIES THE WRITTEN USAGE (kb/Work PB453): a bare Recovery() said Usage.Display / category
-            // alphanumeric, so every later screen answered about a category the item does not have — a SET on
-            // such an item drew §14.9.39.3 SR8's object-reference diagnostic and §8.8.1.1's "not a numeric
-            // operand", neither of which is true of the program. The usage is a FACT the source states; the
-            // category still is not an analysis, which is what IsRecovery goes on saying.
-            : entryUsage is Usage.MessageTag ? PicInfo.MessageTagRecovery()
+            // USAGE MESSAGE-TAG (§13.18.60.4 GR9; kb/Work PB4740) — the PICTURE-less message-tag carrier, the
+            // FunctionPointerItem pattern (§13.16.3 SR8 exempts message-tag from a PICTURE).
+            : entryUsage is Usage.MessageTag ? PicInfo.MessageTagItem()
             : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectRefDesc)
             : UsageFamilies.IsFixedWidthBinary(entryUsage)
                 ? PicInfo.BinaryItem(entryUsage, signed: !usagePhrases.Unsigned)
@@ -4418,13 +4410,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>ISO §13.18.60.3 syntax rule 21: <i>"If MESSAGE-TAG is specified, no other usage clauses shall
     /// be specified in the data description entry."</i>
-    /// <para>⛔ RAISED BEFORE AND INDEPENDENTLY OF THE NON-SUPPORT DECLINE, which is the whole point (kb/Work
-    /// PB544). USAGE MESSAGE-TAG is an Annex A.3 item-4 processor-dependent element this compiler declines by
-    /// name (<see cref="DiagnosticCatalog.MessageTagUsageUnsupported"/>, COBOL1943, raised inside
-    /// <c>PictureAnalyzer.ParseUsage</c>), and a declined usage still has SYNTAX RULES over it. Before this
+    /// <para>⛔ RAISED AS A SYNTAX RULE OF THE USAGE CLAUSE (kb/Work PB544). Before this
     /// screen the rule had no subject at all: <c>usageText</c> was overwritten by each successive USAGE
     /// clause, so <c>01 M USAGE MESSAGE-TAG USAGE DISPLAY PIC X(3).</c> bound as a plain DISPLAY item and
-    /// compiled with NO diagnostic — not even the decline — at every edition.</para>
+    /// compiled with NO diagnostic at every edition.</para>
     /// <para>The rule is one-directional and this screen is too: it fires when MESSAGE-TAG is among the
     /// entry's usage clauses AND there is more than one, whichever order they are written in, because SR21
     /// forbids "any other usage clauses" in the entry rather than any particular pairing.</para>
@@ -4435,8 +4424,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// structure it will be enforced from.</para>
     /// <para>⚠ NO EDITION GATE HERE, AND NOW NONE IS OWED. MESSAGE-TAG is an Annex E.2 item-25 COBOL-2023
     /// addition, so below 2023 the entry also draws the COBOL0900 introduction gate (usage-message-tag-2023,
-    /// <c>VersionConformancePass.UsageConstructId</c>) — and ParseUsage no longer adds COBOL1943 beside it
-    /// (kb/Work PB916). This rule is a SYNTAX rule of the usage clause and, like FUNCTION-POINTER's COBOL1958, is
+    /// <c>VersionConformancePass.UsageConstructId</c>) (kb/Work PB916). This rule is a SYNTAX rule of the usage clause and, like FUNCTION-POINTER's COBOL1958, is
     /// reported beside the introduction gate rather than instead of it, so the clause list that breaks it is
     /// named at every edition; the negative golden sweeps all four.</para></summary>
     private void CheckMessageTagExclusivity(

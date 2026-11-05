@@ -536,35 +536,48 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         return new BoundSetPointer([.. targets.Select(t => new BoundPointerReceiver(t, null))], source, toNull);
     }
 
-    /// <summary>ISO §14.9.39.2 Format 17 (message-tag) — refused BY NAME, which is §4.2.6 ¶3's mandatory
-    /// compile-time warning mechanism for a processor-dependent element this implementation does not support
-    /// (Annex A.3 item 4; docs/CONFORMANCE.md §4 item 1). kb/Work PB453.
-    /// <para>⛔ THE POINT IS THE NAME. The statement already failed — its operands' own MESSAGE-TAG entries are
-    /// refused with COBOL1943 — but before this it went on to draw a rule from ANOTHER format: the screen
-    /// keyed to §14.9.39.3 SR8 for a TO NULL sender (COBOL0867, "shall be a USAGE OBJECT REFERENCE data
-    /// item" — the DIAGNOSTIC's words; SR8's own text is "Identifier-3 shall be any item of class object that is permitted as a receiving item"),
-    /// and the §8.8.1.1 screen for a message-tag sender (COBOL0844, "of category
-    /// alphanumeric is not a numeric operand", the diagnostic's words again). Both describe a statement the
-    /// programmer did not write, and both point at a repair that is not one. The SAME facility's SEND/RECEIVE
-    /// half has named itself since COBOL1578; this is its data half's statement arm.</para>
-    /// <para>⚠ Format 17's SEMANTICS are deliberately NOT implemented, and that is an owner decision still
-    /// owed rather than an omission: the printed format is <c>SET data-name-4 TO { data-name-5 | NULL }</c>,
-    /// making data-name-4 the receiver, while §14.9.39.4 GR40 moves the content of data-name-4 INTO data-name-5
-    /// and GR41 sets the content of data-name-5 — the two readings disagree about which operand is written, and
-    /// SR35 constrains only the class. kb/Work PB453 §2 records the contradiction.</para>
-    /// <para>⛔ BELOW 2023 THE FACILITY IS NOT THIS EDITION'S TO DECLINE (kb/Work PB916): the statement is selected by
-    /// its operand's message-tag USAGE, which exists from 2023 only (<c>usage-message-tag-2023</c>, the row
-    /// <c>PictureAnalyzer.ParseUsage</c> asks for the entry's own decline), and below it that operand's entry already
-    /// draws the COBOL0900 introduction gate. A COBOL2205 beside it would name a 2023 facility to a COBOL-85/2002/2014
-    /// program, so the statement binds to a no-op there — <c>StatementBinder.BindDeclinedMcs</c>'s shape — and the
-    /// entry's gate fails the compile.</para></summary>
-    private BoundStatement BindMessageTagSet(IReadOnlyList<Core.DataReferenceContext> receivers, string senderText)
+    /// <summary>SET message-tag assignment (ISO §14.9.39.2 Format 17; SR35 — "Data-name-4 and data-name-5 shall be
+    /// message-tag data items"; kb/Work PB4740): <c>SET data-name-4 TO { data-name-5 | NULL }</c> over the
+    /// <c>MessageTag</c> carrier, the Format-9 twin. The sender is NULL or another message-tag item.
+    /// <para>⛔ DATA-NAME-4 IS THE RECEIVER IN BOTH RULES (the owner-approved reading, docs/CONFORMANCE.md D-SET17;
+    /// DESIGN-message-control.md §0 Q1). The printed format makes data-name-4 the receiver, while §14.9.39.4 GR40 says
+    /// "If data-name-5 is specified, the content of data-name-4 is moved to data-name-5" and GR41 "If NULL is specified,
+    /// the content of data-name-5 shall be set to that of the null value", which names an operand that is not
+    /// written when NULL is. The format, every other SET format and §14.9.39.1 ("setting the content of a message-tag
+    /// data item to NULL or another message-tag") agree on the receiver, so the two rules are read as misprints.</para>
+    /// <para>The printed format has ONE receiving operand (no repetition, unlike Formats 7, 8 and 9), so a list of
+    /// receivers is refused.</para></summary>
+    private BoundStatement BindMessageTagSet(
+        IReadOnlyList<Core.DataReferenceContext> receivers, SetSender? sender, bool toNull, string senderText)
     {
-        if (!ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.UsageMessageTag2023))
-            return new BoundNop();   // no-op: the operands' usage-message-tag-2023 gate (COBOL0900) refuses this compile (kb/Work PB916)
-        ctx.Edition.Declined(DiagnosticCatalog.McsMessageTagSetUnsupported,
-            $"SET {SetFormatSelection.Written(receivers)} TO {senderText}");
-        return BoundRejected.Reported(ctx.Edition);
+        string written = SetFormatSelection.Written(receivers);
+        if (receivers.Count != 1)
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
+                $"SET {written} TO {senderText}: a message-tag SET names exactly one receiving data-name-4 "
+                + "(ISO §14.9.39.2 Format 17 prints no repetition of the receiving operand)");
+        var t = receivers[0];
+        if (SetIndexNameOperand(t, "receiving operand", "message-tag", "ISO §14.9.39 Format 17, §14.9.39.3 SR35")) return BoundRejected.Reported(ctx.Edition);
+        if (host.Expr.ResolveReceiving(t) is not { } target || target.Item.Pic?.Category is not PicCategory.MessageTag)
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
+                $"SET '{DataBinder.WrittenText(t)}': the receiving operand of a message-tag SET shall be a message-tag data item "
+                + "(ISO §14.9.39.3 SR35 — \"Data-name-4 and data-name-5 shall be message-tag data items\")");
+        Place? source = null;
+        if (!toNull)
+        {
+            if (sender is not { IsIdentifierOperand: true })
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
+                    $"SET {written} TO {senderText}: data-name-5 shall be a message-tag data item — the sender of a "
+                    + "message-tag SET is NULL or another message-tag item, never a literal or an arithmetic expression "
+                    + "(ISO §14.9.39.2 Format 17, §14.9.39.3 SR35)");
+            var sp = CarrierSenderPlace(sender, "message-tag", "ISO §14.9.39 Format 17, §14.9.39.3 SR35", out var senderRefusal);
+            if (senderRefusal is not null) return senderRefusal;
+            if (sp?.Item.Pic?.Category is not PicCategory.MessageTag)
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
+                    $"SET {written} TO '{sender.Text}': data-name-5 shall be a message-tag data item or NULL "
+                    + "(ISO §14.9.39.3 SR35 — \"Data-name-4 and data-name-5 shall be message-tag data items\")");
+            source = sp;
+        }
+        return new BoundSetMessageTag(target, source, toNull);
     }
 
     /// <summary>SET program-pointer assignment (ISO §14.9.39 Format 9; SR21 — every target AND the sender
@@ -1281,7 +1294,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             // ⛔ THE SECOND ARM OF THE SAME DISPATCH (kb/Work PB453; feedback_two_arm_dispatch). `SET MT TO NULL`
             // arrives HERE rather than through BindSetTo, and it was this arm that produced the §14.9.39.3 SR8
             // object-reference diagnostic the note measured.
-            SetFormat.F17 => BindMessageTagSet(recvs, written),
+            SetFormat.F17 => BindMessageTagSet(recvs, null, toNull: true, written),
             // Format 5, and the residual: NULL is a sender of no other format, so a receiving list that selects
             // Format 1/14/16 here is refused by SR8 inside — the diagnostic that names what the statement was
             // trying to be.
@@ -1313,8 +1326,6 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 return BindSetCapacity(recvs, kinds, amount, SetCapacityKind.To);
             case SetFormat.F16:   // the SIZE-OF-absent bare form; the explicit form enters at BindSetSize
                 return BindSetSize(recvs, kinds, amount);
-            case SetFormat.F17:
-                return BindMessageTagSet(recvs, senderText);
             case null:
                 _fmt.ReportNoFormat(recvs, kinds, SetDirections.To, senderText);
                 return BoundRejected.Reported(ctx.Edition);
@@ -1342,8 +1353,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             case SetFormat.F5:
                 return host.Oo.OoBindSetObjectRef(recvs, sender, senderNull: false, senderSelf: sender.IsSelf,
                     senderSuper: sender.IsSuper, senderText);
-            case SetFormat.F17:   // reached from a message-tag SENDER over Format 1's catch-all receiving brace
-                return BindMessageTagSet(recvs, senderText);
+            case SetFormat.F17:   // the receivers select it, or a message-tag SENDER over Format 1's catch-all brace
+                return BindMessageTagSet(recvs, sender, toNull: false, senderText);
             case SetFormat.F1:
                 break;
             default:

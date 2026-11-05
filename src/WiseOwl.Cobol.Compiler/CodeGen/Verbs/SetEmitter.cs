@@ -174,6 +174,16 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             ctx.Writer.Line(StorePointer(sender, s.Targets.Count, t, src) + "   // SET function-pointer (ISO §14.9.39.2 Format 8)");
     }
 
+    /// <summary><c>SET message-tag TO {NULL | message-tag}</c> (ISO §14.9.39.2 Format 17; GR40, GR41 read as D-SET17
+    /// has it — data-name-4 is the receiver): a carrier copy, the Format-9 twin. The general rules' "Item
+    /// identification ... immediately before the value is changed" clause belongs to the pointer formats; a message tag
+    /// is a plain value, so the store is in place. kb/Work PB4740.</summary>
+    public void EmitSetMessageTag(BoundSetMessageTag s)
+    {
+        string src = s.ToNull ? "MessageTag.Null" : PlaceRenderer.Read(s.Source!);
+        ctx.Writer.Line(PlaceRenderer.Write(s.Target, src) + "   // SET message-tag (ISO §14.9.39 Format 17)");
+    }
+
     /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2): the amount is evaluated ONCE
     /// through THE ONE landing (GR3 — "If arithmetic-expression-2 does not evaluate to an integer" ⇒
     /// EC-BOUND-SUBSCRIPT, the SET unsuccessful, the receiving operand unchanged), then each index is adjusted by

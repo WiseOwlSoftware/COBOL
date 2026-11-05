@@ -5,11 +5,11 @@
  "ordinal": 9,
  "subject": "USAGE clause",
  "rule-digest": "005c05f59acd",
- "verdict": "DOCUMENTED-NON-SUPPORT",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#usageKeyword",
- "test-ref": "conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#MessageTagItem; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Runtime/Messaging/MessageTag.cs",
+ "test-ref": "conformance:cases/13.18.60-USAGE/message-tag-usage; unit:MessageTagTests.TheDefaultTag_IsTheNullContent_AndIsNullEqualsNull",
  "derivation": "",
  "editions": "2023",
- "notes": "The MESSAGE-TAG usage is the DATA half of the asynchronous messaging facility, a processor-dependent element (ISO 4.2.6; Annex A.3 item 4) this implementation does not provide - the owner decision is recorded in docs/CONFORMANCE.md section 4 item 1, alongside SEND/RECEIVE. It is REFUSED BY NAME (COBOL1943), not accepted inert like those statements, because GR9 fixes the class AND category of a message-tag data item as message-tag: an accepted item would have to bind as some other class and every reference to it would answer wrong. Both spellings are refused - 13.18.60.2 prints [ USAGE IS ] as optional, so bare 01 M MESSAGE-TAG. is the same clause. Before kb/Work PB487 the bare spelling was not refused at all: it fell to the 13.16.2 catch-all, bound with no usage and no PICTURE, and crashed the compiler.",
+ "notes": "kb/Work PB4740 (slice S1 of DESIGN-message-control.md): USAGE MESSAGE-TAG binds the PICTURE-less category message-tag (PicCategory.MessageTag) of class message-tag (CobolClass.MessageTag), in both spellings (13.18.60.2 prints [ USAGE IS ] as optional), carried by the runtime MessageTag struct on a managed slot (StorageForm.MessageTagRef, DOC-A.1-212). cite.py --check 13.18.60.4 'The class and category of a message-tag data item are message-tag' OK (GR 9). Below 2023 the word is a user-defined word and the entry draws the COBOL0900 introduction gate (usage-message-tag-2023). The former refusal COBOL1943 is retired. retired-witness: conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage (the case was a refusal of USAGE MESSAGE-TAG (COBOL1943); the usage now binds, so message-tag-usage is the witness)",
  "state": "OK"
 }

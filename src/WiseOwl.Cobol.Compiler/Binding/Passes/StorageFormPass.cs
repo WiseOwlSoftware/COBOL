@@ -350,6 +350,7 @@ internal static class StorageFormPass
             PicCategory.Pointer => new StorageForm.PointerRef(),
             PicCategory.ProgramPointer => new StorageForm.ProgramPointerRef(),
             PicCategory.FunctionPointer => new StorageForm.FunctionPointerRef(),
+            PicCategory.MessageTag => new StorageForm.MessageTagRef(),
             PicCategory.Numeric when pic.Usage == Usage.Index => new StorageForm.IndexCell(item.ImageWidth),
             PicCategory.Numeric when pic.IsFloat => new StorageForm.NativeFloat(pic.IsSingle, item.ImageWidth),
             PicCategory.Numeric => new StorageForm.NativeInt(pic.IsWide, pic.Digits, item.ImageWidth),
@@ -382,6 +383,7 @@ internal static class StorageFormPass
         StorageForm.PointerRef => "ManagedPointer",
         StorageForm.ProgramPointerRef => "ProgramPointer",
         StorageForm.FunctionPointerRef => "FunctionPointer",
+        StorageForm.MessageTagRef => "MessageTag",
         StorageForm.TierBWindow => "string",       // a Tier-B window is a string slice (a numeric Tier-B leaf is CharImage)
         StorageForm.DynamicTable dt => StorageElementType(dt.Element),
         StorageForm.DynamicString => "string",      // a DYNAMIC LENGTH item IS a native string (§8.5.1.10)

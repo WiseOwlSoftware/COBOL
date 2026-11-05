@@ -88,7 +88,7 @@ internal sealed class ProcedureHeaderScreen(EditionContext edition, string where
     public void ByValueClass(string written, DataItem item)
     {
         var cls = IntrinsicArgumentRules.ClassOfItem(item);
-        if (cls is null or CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
+        if (cls is null or CobolClass.MessageTag or CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
         edition.Error(DiagnosticCatalog.ByValueFormalClass,
             $"{where}: BY VALUE formal parameter '{written}' is of class {IntrinsicArgumentRules.ClassNameOf(item)}; it shall "
             + "be of class numeric, message-tag, object, or pointer (ISO §14.2.2 SR2)");

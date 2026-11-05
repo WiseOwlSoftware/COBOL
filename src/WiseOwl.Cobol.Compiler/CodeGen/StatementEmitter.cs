@@ -389,6 +389,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundSaveLocale n) { _set.EmitSaveLocale(n); return false; }               // SET … TO LOCALE F12 (T1)
     public bool Visit(BoundSetProgramPointer n) { _set.EmitSetProgramPointer(n); return false; } // SET program-pointer F9 (P10 Step 7)
     public bool Visit(BoundSetFunctionPointer n) { _set.EmitSetFunctionPointer(n); return false; } // SET function-pointer F8 (kb/Work PB452)
+    public bool Visit(BoundSetMessageTag n) { _set.EmitSetMessageTag(n); return false; }         // SET message-tag F17 (kb/Work PB4740)
     public bool Visit(BoundSetFunctionAddress n) { _ptr.EmitSetFunctionAddress(n); return false; } // SET … TO ADDRESS OF FUNCTION (ISO §8.4.3.12)
     public bool Visit(BoundSetEntry n) { _ptr.EmitSetEntry(n); return false; }                   // SET … TO ENTRY (§8.4.3.13)
     public bool Visit(BoundSetPointerUpDown n) { _ptr.EmitSetPointerUpDown(n); return false; }     // SET F10

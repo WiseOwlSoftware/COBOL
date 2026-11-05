@@ -184,7 +184,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable
 
     /// <summary>Whether the host type is a value type, so an OPTIONAL formal's parameter is a <see cref="Nullable{T}"/>.</summary>
     private static bool IsValueType(HostType t) =>
-        t.Kind is HostTypeKind.Group or HostTypeKind.Integer or HostTypeKind.Decimal or HostTypeKind.Dec or HostTypeKind.Float or HostTypeKind.Index
+        t.Kind is HostTypeKind.Group or HostTypeKind.Integer or HostTypeKind.Decimal or HostTypeKind.Dec or HostTypeKind.Float or HostTypeKind.Index or HostTypeKind.MessageTag
         || t is { Kind: HostTypeKind.Pointer, CsType: "ProgramPointer" or "FunctionPointer" };
 
     private void EmitCallBody(BoundUnit unit, List<Item> formals, Item? returning, CodeWriter w)
@@ -286,7 +286,8 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable
             // never a .NET null reference, which the activated program's pointer reads would dereference.
             HostTypeKind.Pointer when pic.Category is PicCategory.Pointer =>
                 $"ManagedPointer<{pic.ClrType}>.Cell({value} ?? ManagedPointer.Null)",
-            HostTypeKind.Float or HostTypeKind.Index or HostTypeKind.Pointer or HostTypeKind.ObjectReference =>
+            HostTypeKind.Float or HostTypeKind.Index or HostTypeKind.Pointer or HostTypeKind.ObjectReference
+                or HostTypeKind.MessageTag =>
                 $"ManagedPointer<{pic.ClrType}>.Cell({value})",
             HostTypeKind.Text when d.IsAnyLength =>
                 $"ManagedPointer<string>.Cell(HostLanding.LandVariable({value}, {RuntimeApi.UnstatedBoundaryLength},{Bool(pic.Category is PicCategory.Boolean)}, {CsLiteral(f.Name)}, {member}))",
@@ -339,7 +340,8 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable
             HostTypeKind.Integer or HostTypeKind.Decimal or HostTypeKind.Dec =>
                 $"ManagedPointer<string>.Cell({RuntimeApi.NumFormatImage("(Int128)0", r.Profile!)})",
             HostTypeKind.Pointer when pic.Category is PicCategory.Pointer => $"ManagedPointer<{pic.ClrType}>.Cell(ManagedPointer.Null)",
-            HostTypeKind.Float or HostTypeKind.Index or HostTypeKind.Pointer or HostTypeKind.ObjectReference =>
+            HostTypeKind.Float or HostTypeKind.Index or HostTypeKind.Pointer or HostTypeKind.ObjectReference
+                or HostTypeKind.MessageTag =>
                 $"ManagedPointer<{pic.ClrType}>.Cell(default!)",
             HostTypeKind.Text when d.IsAnyLength || d.IsDynamicLength => "ManagedPointer<string>.Cell(\"\")",
             HostTypeKind.Text => $"ManagedPointer<string>.Cell(new string('{(pic.Category is PicCategory.Boolean ? '0' : ' ')}', {CallEmitter.BoundaryImageWidth(d)}))",
@@ -394,7 +396,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, GroupAtomTable
     {
         HostTypeKind.Group when PublishedRecordEmitter.HoldsComponents(f.Description) => CallCrossing.VarGroup,
         HostTypeKind.Float or HostTypeKind.Index => CallCrossing.Native,
-        HostTypeKind.Pointer or HostTypeKind.ObjectReference => CallCrossing.Managed,
+        HostTypeKind.Pointer or HostTypeKind.ObjectReference or HostTypeKind.MessageTag => CallCrossing.Managed,
         _ => CallCrossing.Text,
     };
 
