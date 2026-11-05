@@ -1072,6 +1072,15 @@ a constant-name, on the literal §13.10.4 GR1/GR2 substitutes.
   (§13.18.19.4 GR1/GR2) — the length VARIES during execution, minimum zero, maximum the LIMIT phrase:
   `CobolArgAdapt.DynText`, a full-string view whose store carries §8.5.1.10.4's replace-and-truncate rule.
   Fixed — the declared width window (§14.2.3 GR8: the callee touches only its formal's character positions).
+  ⛔ **A VIEW IS NEVER BUILT OVER A VIEW (kb/Work PB4768).** A formal passed on BY REFERENCE is the same storage
+  at every activation (§14.2.3 GR8), so each of the three character views (`TextViews.Window`, `.AnyLength`,
+  `.Dynamic`, the ONE builder, `Control/TextViews.cs`) records what it is (`ManagedPointer<T>.ViewTag`) and the next
+  adaptation builds ITS view over the underlying carrier, composing the windows: a window of width w over a window
+  (Trunc a, Width w1) is one window over the base with Trunc = min(a, w1), reading `Store(Trunc(B, ·), w)` and
+  splicing `min(w, a, w1, |B|)` characters. The depth is one however many activations pass the formal on, so a
+  deep recursion costs O(1) per access and ends in EC-PROGRAM-RESOURCES (§14.9.4.4 GR3 c) rather than a .NET stack
+  overflow. A native numeric cell's image arm is a window over the cell's image carrier, so it composes too.
+  Pinned by `CallAbiViewDepthDriftTests` and the golden `call_by_reference_formal_passed_on`.
   ⚠ The DYNAMIC LENGTH arm is not optional cosmetics: §13.18.19.3 SR1 pins such an item's PICTURE at exactly ONE
   symbol, so falling to the fixed arm delivers a ONE-CHARACTER formal for every such crossing, in both passing
   modes. BY VALUE cannot reach the dynamic arm — §14.2.2 SR2 admits only class numeric, message-tag, object or

@@ -1085,13 +1085,9 @@ public static class CobolArgAdapt
                     (v, received) => vp.Value = CobolVarGroup.OverlayImage(vp.Value ?? CobolVarGroup.Empty, pair.Argument,
                         CobolString.Store(v, width), pair.Formal, received));
             case ManagedPointer<string> sp when width < 0:   // ANY LENGTH (§13.18.2 GR1) — the full-string view
-                return ManagedPointer<string>.OverField(
-                    () => sp.Value ?? "",
-                    v => sp.Value = CobolString.Store(v, sp.Value?.Length ?? 0));
+                return TextViews.AnyLength(sp);
             case ManagedPointer<string> sp:
-                return ManagedPointer<string>.OverField(
-                    () => CobolString.Store(sp.Value, width),
-                    v => sp.Value = CobolString.WindowInto(sp.Value, 1, Math.Min(width, sp.Value?.Length ?? width), v));
+                return TextViews.Window(sp, width);
             case { } np when args[i].Num is { } d && CellImage(np, d) is { } image:
             {
                 // ⛔ THE STORAGE'S OWN IMAGE (kb/Work PB873; §14.2.3 GR8 — "operates as if the formal parameter
@@ -1103,15 +1099,11 @@ public static class CobolArgAdapt
                 // ANY LENGTH (width -1): the view width is the argument's own image width — n follows the
                 // ARGUMENT's description (§13.18.2 GR1), never the formal's one-symbol picture.
                 int viewWidth = width < 0 ? image.Length : width;
-                return ManagedPointer<string>.OverField(
-                    () => CobolString.Store(CellImage(np, d), viewWidth),
-                    // A store touches only the formal's character positions (GR8) — splice into the CURRENT
-                    // image, exactly as the character arm above splices into the caller's string.
-                    v =>
-                    {
-                        string current = CellImage(np, d)!;
-                        WriteCellImage(np, CobolString.WindowInto(current, 1, Math.Min(viewWidth, current.Length), v), d);
-                    });
+                // The cell's image is the UNDERLYING character storage; the formal is the same width window over it as the
+                // character arm above builds, so a formal passed on composes over this base (PB4768). A store touches only
+                // the formal's character positions (GR8) — spliced into the CURRENT image.
+                return TextViews.Window(
+                    ManagedPointer<string>.OverField(() => CellImage(np, d)!, v => WriteCellImage(np, v, d)), viewWidth);
             }
             case { } np when args[i].Num is null && ReadNumericCell(np) is not null:
             {
@@ -1267,9 +1259,7 @@ public static class CobolArgAdapt
         if (!Present(args, i)) return Omitted<string>();
         return args[i].Carrier switch
         {
-            ManagedPointer<string> sp => ManagedPointer<string>.OverField(
-                () => sp.Value ?? "",
-                v => sp.Value = CobolDynString.Store(v, limit)),
+            ManagedPointer<string> sp => TextViews.Dynamic(sp, limit),
             // A numeric carrier reaching a dynamic-length formal is not a crossing to invent: §14.8.2.3.2
             // rule 2 requires the same DYNAMIC LENGTH and PICTURE clauses BY REFERENCE, and §14.8.2.3.3's MOVE
             // rules give a numeric sender an alphanumeric receiver only through its digit image — which is a
