@@ -182,7 +182,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         bool integer = IntrinsicResultType.IsIntegerOperand(c);
         if (integer && use.AsText) return IntegerFunctionValuePic;
         var receivers = use.Receivers;
-        if (IsBinary64Approximation(c)) return Binary64ReturnedValuePic;
+        if (ReturnsBinary64Value(c)) return Binary64ReturnedValuePic;
         if (SharedFloatFormatPic(receivers) is { } floatPic) return floatPic;
         if (FloatingPointNumericSet(receivers)) return WidestFloatEditedPic();
         if (integer) return IntegerIntermediatePic;
@@ -233,11 +233,17 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     }
 
     /// <summary>True when <paramref name="c"/> is a function whose returned value the renderer produces as a binary64
-    /// (<see cref="FunctionValueLane.ReturnsBinary64"/>): always an implementor-defined APPROXIMATION (§15.4.1 last ¶;
-    /// the renderer flags every such value <c>NumX.Approximate</c>), so the intermediate that holds it says so
-    /// (<see cref="DataItem.HoldsApproximation"/>, kb/Work PB1606).</summary>
-    private bool IsBinary64Approximation(BoundOperand c) =>
+    /// (<see cref="FunctionValueLane.ReturnsBinary64"/>): the intermediate that holds it is a binary64 item.</summary>
+    private bool ReturnsBinary64Value(BoundOperand c) =>
         c is BoundComputedOperand { Expr: BoundIntrinsicCall call } && FunctionValueLane.ReturnsBinary64(call, ctx.Options.Arithmetic);
+
+    /// <summary>True when <paramref name="c"/> is a function whose binary64 returned value is an implementor-defined
+    /// APPROXIMATION (<see cref="FunctionValueLane.ReturnsApproximation"/>: §15.4.1 last paragraph; the renderer flags it
+    /// <c>NumX.Approximate</c>), so the intermediate that holds it says so (<see cref="DataItem.HoldsApproximation"/>, kb/Work
+    /// PB1606). A value derived from a float ITEM's content (ABS, MAX, FRACTION-PART ... of it, kb/Work PB4622) is not: its
+    /// intermediate is read as the item it is, by its exact binary value.</summary>
+    private bool ReturnsApproximationValue(BoundOperand c) =>
+        c is BoundComputedOperand { Expr: BoundIntrinsicCall call } && FunctionValueLane.ReturnsApproximation(call, ctx.Options.Arithmetic);
 
     /// <summary>The widest floating-point numeric-edited PICTURE (kb/Work PB370): §13.18.40.3 SR15's 36 significand
     /// digits and §13.18.40.4 GR13 b)'s four exponent digits, the point after the first digit.</summary>
@@ -764,7 +770,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             var pic = IntermediatePic(c, use);
             return new TempModel(
                 new DataItem { Level = 1, CobolName = "__SENDVAL-FN", ClrName = "__sendvalFn", Pic = pic },
-                DynLimit: 0, FunctionValue: true, Approximation: pic.IsFloat && IsBinary64Approximation(c),
+                DynLimit: 0, FunctionValue: true, Approximation: pic.IsFloat && ReturnsApproximationValue(c),
                 DeviceDigits: c.Expr is BoundIntrinsicCall { Sig.DeviceForm: FunctionDeviceForm.FixedDigits } fixedDigits
                     ? fixedDigits.Sig.DeviceDigits : null);
         }

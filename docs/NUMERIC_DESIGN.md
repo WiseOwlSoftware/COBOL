@@ -138,11 +138,13 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   EC-SIZE-TRUNCATION; Infinity ⇒ EC-SIZE-OVERFLOW, NaN ⇒ the invalid-operation EC-DATA-INCOMPATIBLE. The
 >   same value is what a MOVE and a native landing see (PB623), so `COMPUTE D = F`, `COMPUTE D = F + 0` and `MOVE F TO D` store one value; a float item that is the WHOLE
 >   expression is converted at the store (`ArithmeticEmitter.StoreArith`), an operand beside an operator at
->   `DecOperand`. An engine-produced APPROXIMATION (a §15.4.1 function's returned value, a non-integer power) is
+>   `DecOperand`. An engine-produced APPROXIMATION (a floating-math function's returned value, a function of approximations only, a non-integer power) is
 >   not a data item: it enters through `CobolDec.FromApproximation`, its SHORTEST round-trip decimal (at most 17
 >   digits; what a reader of `FUNCTION SIN (1)` expects), and it LANDS into a fixed-point receiver by the same value
 >   (`CobolFloat.ToScaledApproximation*`, `CobolIntrinsics.FromDouble`; `NumX.Approximate` chooses it at every emitted
->   landing, PB4516) while a float item lands by its exact binary value. The renderer routes `Combine`/`Power`/comparisons through
+>   landing, PB4516) while a float item lands by its exact binary value, and so does a value a function derives from a float ITEM's content
+>   (ABS, MAX, MIN, an odd MEDIAN, INTEGER, INTEGER-PART, FRACTION-PART, REM, SUM, MEAN, RANGE, MIDRANGE: `IntrinsicCarrierRules.Binary64ResultIsApproximation`,
+>   asked by `FunctionValueLane.Of` and `IntrinsicRenderer.RenderFloat`; PB4622). The renderer routes `Combine`/`Power`/comparisons through
 >   `CobolDec` when the mode is in effect (`NumX.Dec`; the mode branch runs BEFORE the D16 float branch);
 >   **exponentiation** is `CobolDec.Pow` (§8.8.1.5.4: integer exponents by square-and-multiply over `Mul` —
 >   exactly r2a–r2d for 1–4, the r2e implementor-defined form beyond, r3's `1/(b**|e|)` for negatives, the
@@ -1296,8 +1298,8 @@ clause text and fails if a new member is silently exempted.
    2^126; kb/Work PB2640).
 2. *Does a float operand own this lane?* D16 evaluates an expression in binary64 when an operand is "described with usage
    float-…" (§14.9.2.4 GR4 and §14.9.44.4 GR4 — ADD and SUBTRACT, the other statements' native rule being the implementor's,
-   §8.8.1.3; §14.7.7 r2 lists an intrinsic function and the float / binary usages in separate bullets). A floating-math function's returned value and a non-integer native power are engine-produced approximations,
-   flagged `NumX.Approximate`; `CombineCore` lifts such an operand to the SDIDI (its shortest-round-trip decimal — the same
+   §8.8.1.3; §14.7.7 r2 lists an intrinsic function and the float / binary usages in separate bullets). A floating-math function's returned value, a function of approximations only (ABS (FUNCTION EXP10 (-6))) and a non-integer native power are engine-produced approximations,
+   flagged `NumX.Approximate` (a value a function derives from a float ITEM's content is not: it is `Real` and lands by the item's exact binary value, PB4622); `CombineCore` lifts such an operand to the SDIDI (its shortest-round-trip decimal — the same
    VALUE) unless a float ITEM, a float literal carrier or a float receiver is present (`FloatItemLane`). One value
    across every channel, exact decimal arithmetic beside decimal operands: `13.2 + FUNCTION SQRT(16)` is 17.2, and the
    receiver-less `0.1 + FUNCTION SQRT(0.04) = 0.3` is TRUE.

@@ -148,4 +148,28 @@ public sealed class FunctionValueLaneDriftTests
             + "  in RenderDec only: [" + string.Join(", ", exact.Except(restated)) + "]\n"
             + "  in NativeSdidiBodiesWithExactResult only: [" + string.Join(", ", restated.Except(exact)) + "]");
     }
+
+    /// <summary>⛔ A FUNCTION'S BINARY64 VALUE IS AN APPROXIMATION OR A FLOAT ITEM'S CONTENT BY ONE PREDICATE, ASKED BY THE BINDER AND BY
+    /// THE RENDERER (kb/Work PB4622): the floating-math family and a function of approximations only return an approximation, which
+    /// lands by its shortest round-trip decimal; ABS, MAX, FRACTION-PART, SUM ... over a float ITEM return a value derived from the
+    /// item's exact binary64 (§15.59.4 1) "the content of the argument"), which lands as the item does.</summary>
+    [Theory]
+    [InlineData(true, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    public void Binary64ResultIsApproximation_IsTheFloatFamilyOrAFunctionOfApproximationsOnly(
+        bool floatFamily, bool anyFloatItemArgument, bool approximation) =>
+        Assert.Equal(approximation, IntrinsicCarrierRules.Binary64ResultIsApproximation(floatFamily, anyFloatItemArgument));
+
+    [Fact]
+    public void BinderAndRenderer_AskTheSameApproximationPredicate()
+    {
+        string lane = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding", "Procedure", "FunctionValueLane.cs"));
+        string renderer = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "CodeGen", "Emit", "IntrinsicRenderer.cs"));
+        Assert.Contains("IntrinsicCarrierRules.Binary64ResultIsApproximation(", lane, StringComparison.Ordinal);
+        Assert.Contains("IntrinsicCarrierRules.Binary64ResultIsApproximation(", renderer, StringComparison.Ordinal);
+        // No other site decides it: the renderer flags a binary64 Approximate only from the predicate's answer.
+        Assert.DoesNotContain("Real: true, Approximate: true);", renderer, StringComparison.Ordinal);
+    }
 }

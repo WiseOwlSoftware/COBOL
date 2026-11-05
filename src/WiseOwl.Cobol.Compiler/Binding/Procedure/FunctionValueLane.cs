@@ -85,6 +85,13 @@ internal static class FunctionValueLane
     internal static bool ReturnsBinary64(BoundIntrinsicCall call, ArithmeticMode mode) =>
         !ArithmeticModes.IsDecimalEngine(mode) && Of(call) is CarrierKind.Real or CarrierKind.ApproximateReal;
 
+    /// <summary>True when <paramref name="call"/>'s binary64 returned value is an engine APPROXIMATION
+    /// (<see cref="IntrinsicCarrierRules.Binary64ResultIsApproximation"/>, kb/Work PB4622) and not a float ITEM's content: the
+    /// temporary that holds it says so (<see cref="DataItem.HoldsApproximation"/>), so every read of it lands it as the
+    /// renderer's <c>NumX.Approximate</c> value lands.</summary>
+    internal static bool ReturnsApproximation(BoundIntrinsicCall call, ArithmeticMode mode) =>
+        !ArithmeticModes.IsDecimalEngine(mode) && Of(call) is CarrierKind.ApproximateReal;
+
     /// <summary>The carrier the native renderer returns a numeric function's value on, as far as the kind is concerned.</summary>
     private static CarrierKind Of(BoundIntrinsicCall call)
     {
@@ -120,8 +127,14 @@ internal static class FunctionValueLane
         // A mixed selection list rides the SDIDI too (RenderNum's selection arm).
         if (Selections.Contains(sig.RuntimeMethod) && anyReal && !allReal && sdidiBody) return OnSdidiBody(sig.RuntimeMethod);
         if (sig.Float) return CarrierKind.ApproximateReal;
-        // RenderNum's last dispatch: a binary64 argument at a numeric position moves the whole call onto the float lane.
-        if (anyReal && IntrinsicArgumentRules.ArgumentRunIsAllNumeric(sig.Name, args.Count)) return CarrierKind.ApproximateReal;
+        // RenderNum's last dispatch: a binary64 argument at a numeric position moves the whole call onto the float lane. The value
+        // is an engine APPROXIMATION only when none of those arguments is a float ITEM's content (kb/Work PB4622, the one
+        // predicate RenderNum asks too): ABS / MAX / FRACTION-PART / SUM ... over a float item return a value derived from the
+        // item's exact binary64, which lands as the item does.
+        if (anyReal && IntrinsicArgumentRules.ArgumentRunIsAllNumeric(sig.Name, args.Count))
+            return IntrinsicCarrierRules.Binary64ResultIsApproximation(false, args.Any(a => a.Kind == CarrierKind.Real))
+                ? CarrierKind.ApproximateReal
+                : CarrierKind.Real;
         return CarrierKind.Fixed;
     }
 

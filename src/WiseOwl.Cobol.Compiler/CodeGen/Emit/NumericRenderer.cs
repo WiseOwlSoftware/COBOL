@@ -37,7 +37,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <summary>Does the render take the CHECKED LANDING — the form that refuses a value its receiver cannot hold
     /// (EC-SIZE-TRUNCATION, §14.7.5 no-phrase rule 4) instead of storing its low-order digits? (<see cref="Taken"/>
     /// has <see cref="SizeChecks.Truncation"/>.)</summary>
-    private bool CheckedLanding => LandingTaken(_rcv);
+    internal bool CheckedLanding => LandingTaken(_rcv);
 
     private bool LandingTaken(in ReceiverContext rcv) => (TakenFor(rcv) & SizeChecks.Truncation) != 0;
 
