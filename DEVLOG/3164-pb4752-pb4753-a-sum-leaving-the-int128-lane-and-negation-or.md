@@ -1,4 +1,4 @@
-## PB4752, PB4753: a sum leaving the Int128 lane and negation or an even MEDIAN beside an approximation
+## Entry 3164 — 2026-11-05 15:01 PST — PB4752, PB4753: a sum leaving the Int128 lane and negation or an even MEDIAN beside an approximation
 
 **PB4752.** `COMPUTE R = FUNCTION INTEGER (D) + F` (D = 1000000000000000001, F = 1.01 at V9(30)) ended the run unit with
 EC-SIZE-OVERFLOW, where `D + F` (known bounds, PB4729) was exact. `NumericRenderer.CombineAdditive` took the exact additive only when
@@ -17,3 +17,4 @@ pb4753_negation_and_even_median_beside_a_float_item_land_by_the_binary64 and uni
 `CobolBigExactFormTests.Negate_KeepsTheBinary64OfAnApproximation`.
 
 No inventory row closes (closes_rows empty, with reasons in both notes).
+
