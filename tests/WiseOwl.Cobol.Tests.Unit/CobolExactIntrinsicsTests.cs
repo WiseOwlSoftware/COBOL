@@ -170,9 +170,9 @@ public sealed class CobolExactIntrinsicsTests
         finally { ExceptionState.ArgumentFunctionChecking = saved; }
     }
 
-    /// <summary>⛔ Past the 256-bit wide form each body answers as the SDIDI body over the images (DOC-A.1-123 past 77 digits).</summary>
+    /// <summary>⛔ Past the 256-bit wide form SUM, MEAN, VARIANCE, MOD and PRESENT-VALUE answer the exact value rounded once, MOD past the form as the SDIDI body does (DOC-A.1-123 past 77 digits; VARIANCE and PRESENT-VALUE on the arbitrary-precision form, kb/Work PB4750).</summary>
     [Fact]
-    public void PastTheWideForm_TheBodyIsTheSdidiBodyOverTheImages()
+    public void PastTheWideForm_TheBodyIsTheExactValueRoundedOnce()
     {
         CobolExact tiny = Sdidi("1", -6000), huge = Sdidi("1", 100);
         CobolExact[] list = [Fixed(1), tiny, Fixed(3)];
@@ -181,10 +181,10 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Equal(CobolIntrinsics.MeanDec(Away, images), CobolIntrinsics.MeanExact(Away, list));
         Assert.Equal(CobolIntrinsics.VarianceDec(Away, images), CobolIntrinsics.VarianceExact(Away, list));
         Assert.Equal(CobolIntrinsics.ModDec(Away, D("5"), new CobolDec(1, 100)), CobolIntrinsics.ModExact(Away, Fixed(5), huge));
-        // A rate of 70 places: the powers of 10^70 leave the wide form at two periods.
+        // A rate of 70 places: the powers of 10^70 leave the wide form at two periods, and the value is formed exactly on the
+        // arbitrary-precision form (kb/Work PB4750): 2 / (1 + r) + 3 / (1 + r)^2 = 5 - 8r + ..., rounded away at 34 digits to 5.
         CobolExact rate = CobolExact.From(1, 70);
-        Assert.Equal(CobolIntrinsics.PresentValueDec(Away, new CobolDec(1, -70), D("2"), D("3")),
-            CobolIntrinsics.PresentValueExact(Away, rate, Fixed(2), Fixed(3)));
+        Assert.Equal(0, CobolDec.Compare(D("5"), CobolIntrinsics.PresentValueExact(Away, rate, Fixed(2), Fixed(3))));
         // The ordering never needs the fallback.
         Assert.Equal(2, CobolIntrinsics.OrdMinExact(Fixed(1), tiny, Fixed(3)));
     }

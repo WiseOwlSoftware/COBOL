@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
+using System.Numerics;
 
 namespace WiseOwl.Cobol.Runtime;
 
@@ -46,6 +47,26 @@ public static partial class CobolNum
     {
         NumProfile temporary = ReturnedValueProfile(value, scale, out string digits, out _) with { Signed = signedItem };
         return Compose(value.Sign < 0, digits, temporary, commaMode);
+    }
+
+    /// <summary>The text of a temporary holding an EXACT value of the wide form or past it (<paramref name="signedItem"/> as for
+    /// <see cref="DeviceFunctionText(CobolDec, bool, bool)"/>; kb/Work PB4750): every digit of an arbitrary-precision value, as of a wide one.</summary>
+    internal static string DeviceFunctionText(CobolExact value, bool signedItem, bool commaMode)
+    {
+        NumProfile temporary = ReturnedValueProfile(value, out string digits, out _) with { Signed = signedItem };
+        return Compose(value.Sign < 0, digits, temporary, commaMode);
+    }
+
+    /// <summary>The description of the temporary an EXACT value describes (kb/Work PB4750): the wide value's
+    /// (<see cref="ReturnedValueProfile(CobolWide, int, out string, out int)"/>) or, past the 256-bit form, the arbitrary-precision
+    /// value's own digits under the same rule.</summary>
+    internal static NumProfile ReturnedValueProfile(CobolExact value, out string digits, out int storageBytes)
+    {
+        if (value.TryWide(out CobolWide wide, out int scale)) return ReturnedValueProfile(wide, scale, out digits, out storageBytes);
+        (BigInteger unscaled, int bigScale) = value.BigParts();
+        string magnitude = BigInteger.Abs(unscaled).ToString(CultureInfo.InvariantCulture);
+        if (!unscaled.IsZero && bigScale < 0) magnitude += new string('0', -bigScale);   // trailing P positions are integer digits
+        return ReturnedValueProfile(unscaled.Sign < 0, magnitude, !unscaled.IsZero && bigScale > 0 ? bigScale : 0, out digits, out storageBytes);
     }
 
     /// <summary>

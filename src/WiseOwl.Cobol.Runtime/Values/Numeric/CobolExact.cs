@@ -425,6 +425,10 @@ public readonly struct CobolExact
     /// <summary>FRACTION-PART of an arbitrary-precision value: <c>argument − INTEGER-PART (argument)</c>, at its own scale.</summary>
     internal CobolExact FractionPartBig() => Of(AsBig().FractionPart(), _precision);
 
+    /// <summary>The integer and scale of an arbitrary-precision value (<see cref="IsBig"/>): what a temporary that shows every digit of it
+    /// writes out (<c>FunctionValueField</c>, kb/Work PB4750).</summary>
+    internal (System.Numerics.BigInteger Value, int Scale) BigParts() => (_big.Value, _big.Scale);
+
     /// <summary>Is this the arbitrary-precision form? The consumers with a wide arm and an SDIDI arm ask before they choose.</summary>
     internal bool IsBig => _isBig;
 }

@@ -998,8 +998,8 @@ for that latitude CLAUDE.md rule 1 makes GnuCOBOL the answer, and its argument t
   the Dec bodies stay (§8.8.1.5.2 r1). The SDIDI is the returned-value carrier of such a call, so a value of more than 34 digits
   (`SUM (P, 1, 2.0E0)`) is rounded there once, where GnuCOBOL keeps every digit (kb/Work PB4570's carrier question).
 - **What still takes the image.** `Exp`, `Exp10`, `Sqrt` (a condition number of at most 709 cannot carry a 10^−34 relative error to
-  binary64's last bit), the bounded integer positions, VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE where their work leaves the wide
-  form, and every STANDARD-DECIMAL body. SUM, RANGE, MEAN, MEDIAN, MIDRANGE, MOD and REM past the wide form are exact on the
+  binary64's last bit), the bounded integer positions, and every STANDARD-DECIMAL body. SUM, RANGE, MEAN, MEDIAN, MIDRANGE, MOD, REM, VARIANCE,
+  STANDARD-DEVIATION and PRESENT-VALUE (kb/Work PB4750) past the wide form are exact on the
   arbitrary-precision form (`CobolBig`, kb/Work PB4592), and MAX, MIN and an odd MEDIAN return the selected argument's content
   whole (`CobolExact`, kb/Work PB4730), a float item's content as its exact binary expansion. Under `ARITHMETIC IS STANDARD-DECIMAL` the
   SDIDI is the value and nothing here applies.
@@ -1008,6 +1008,8 @@ Pinned by `conformance:cases/15.4.1-Numeric-and-integer-functions/pb3953_functio
 and the 39-digit ABS, MOD, MAX and MOVE legs), `conformance:cases/15.4.1-Numeric-and-integer-functions/pb4075_wide_argument_consumers`
 (MEAN, SIN, COS, TAN, LOG and ACOS of a wide argument), `conformance:cases/15.4.1-Numeric-and-integer-functions/pb4568_wide_argument_beside_sdidi`
 (ORD-MAX, ORD-MIN, MOD, REM, SUM, RANGE, MEAN, MIDRANGE and MEDIAN of a wide argument beside an SDIDI or binary64 one),
+`conformance:cases/15.4.1-Numeric-and-integer-functions/pb4750_exact_past_the_wide_form_variance_present_value` (VARIANCE, STANDARD-DEVIATION,
+PRESENT-VALUE past the wide form, and the temporary DISPLAY shows of an arbitrary-precision MAX, ABS and MEDIAN),
 `unit:CobolExactIntrinsicsTests` (the `…Exact` bodies and `CobolExact.Compare` against a `BigInteger` and `fractions` oracle, and
 past the wide form), `unit:CobolWideIntrinsicsTests` (each body against a `BigInteger` oracle) and
 `unit:WideArgumentBodiesTests` (the wide binary64 bodies and MEAN against a 400-digit `decimal` oracle).
