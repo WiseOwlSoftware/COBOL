@@ -1408,7 +1408,8 @@ def note_rank(work_dir: pathlib.Path | None = None) -> Callable[[str], tuple[int
     import work  # noqa: PLC0415
     from clusters import harm_weights  # noqa: PLC0415  (scripts/orchestrator: the notes' one weight reading)
     weights = harm_weights()
-    items = {i.get('id'): i for i in (work.load(work_dir) if work_dir else work.load())}
+    # a prerequisite of a harmed note lands as the work it unblocks (work.with_inherited_harm, kb/Work PB4769 review R1-4)
+    items = {i.get('id'): i for i in work.with_inherited_harm(work.load(work_dir) if work_dir else work.load())}
 
     def rank(note: str) -> tuple[int, int]:
         i = items.get(note)
