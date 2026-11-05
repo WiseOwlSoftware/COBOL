@@ -547,8 +547,12 @@ public sealed class ClosedFormatReservedWordTests
     /// there (kb/Work PB4604): the name slot is closed by what is written before the word.</summary>
     [Theory]
     [InlineData("01 W-A PIC X MOVE.", "'MOVE' is not a clause of the data description entry for 'W-A'")]
-    [InlineData("01 W-A MOVE.", "'MOVE' is not a clause of the data description entry")]
-    [InlineData("01 PIC X MOVE.", "'MOVE' is not a clause of the data description entry")]
+    [InlineData("01 W-A MOVE.", "'MOVE' is not a clause of the data description entry for 'W-A'")]
+    [InlineData("01 W-A TO.", "'TO' is not a clause of the data description entry for 'W-A'")]
+    [InlineData("01 W-A PIC X.\n          05 W-B MOVE.", "'MOVE' is not a clause of the data description entry for 'W-B'")]
+    [InlineData("01 FILLER MOVE.", "'MOVE' is not a clause of the data description entry for 'FILLER'")]
+    [InlineData("01 PIC X MOVE.", "'MOVE' is not a clause of the data description entry — ")]
+    [InlineData("01 USAGE DISPLAY MOVE.", "'MOVE' is not a clause of the data description entry — ")]
     [InlineData("01 W-A PIC X TO.", "'TO' is not a clause of the data description entry for 'W-A'")]
     public void ReservedWordAfterANameOrAClause_IsStillNotAClause(string entry, string sentence)
     {
@@ -556,6 +560,27 @@ public sealed class ClosedFormatReservedWordTests
         Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
         Assert.Contains("error COBOL1941: ", errors[0]);
         Assert.Contains(sentence, errors[0]);
+    }
+
+    /// <summary>⛔ A WORD THAT BEGINS WHAT FOLLOWS THE ENTRY IS A MISSING PERIOD, NOT A RESERVED WORD WRITTEN AS ITS NAME (kb/Work
+    /// PB4646). ISO §13.16.2 ends the entry with a separator period; <c>01</c> with its period forgotten and the next
+    /// section's header on the next line draws COBOL0307 at the header word, as it did before the entry-name slot named
+    /// reserved words (PB4604). The word AND the one after it must begin something the grammar lets follow the entry:
+    /// <c>LINKAGE PIC X.</c> is not a header, so the reserved word is a name written and keeps COBOL0901.</summary>
+    [Theory]
+    [InlineData("01\n       LINKAGE SECTION.", "COBOL0307: unexpected 'LINKAGE'. A period may be missing")]
+    [InlineData("01 W-A PIC X.\n       01\n       LINKAGE SECTION.", "COBOL0307: unexpected 'LINKAGE'. A period may be missing")]
+    [InlineData("01\n       REPORT SECTION.", "COBOL0307: unexpected 'REPORT'. A period may be missing")]
+    [InlineData("01 LINKAGE PIC X.", "COBOL0901: 'LINKAGE' is a reserved word in COBOL-")]
+    [InlineData("01 LINKAGE.", "COBOL0901: 'LINKAGE' is a reserved word in COBOL-")]
+    public void DanglingLevelNumberBeforeASectionHeader_IsTheMissingPeriod(string entry, string diagnostic)
+    {
+        foreach (int edition in new[] { 85, 2002, 2014, 2023 })
+        {
+            var errors = Compile(Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       " + entry + "\n" + Proc, edition);
+            Assert.True(errors.Count == 1, $"[{edition}] expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+            Assert.Contains("error " + diagnostic, errors[0]);
+        }
     }
 
     private static IReadOnlyList<string> Compile(string source, int edition = 2023)

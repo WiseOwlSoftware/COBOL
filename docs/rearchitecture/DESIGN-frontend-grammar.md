@@ -1895,7 +1895,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   **The entry-name slot (kb/Work PB4604).** One position is both a clause position and a NAME position: the first word
   after a data description entry's level-number (`dataDescriptionEntry : levelNumber (dataName)? dataDescriptionBody`,
   ISO §13.16.3 SR4: the entry-name clause immediately follows the level-number, and without it the entry is a filler).
-  `OffendingPosition.EntryNameIsDue` asks it of the parse (`ClosedFormats.EntryNameDueAfter`: the entry holds no
+  `OffendingPosition.EntryNameIsDue` asks it of the parse (`ClosedFormats.EntryAwaitingItsName`: the entry holds no
   data-name, and the word before the offending token is its level-number). A reserved word there that §8.9 reserves at
   the edition (`CobolParserCoreBase.ReservedUserWordViolation(token, atAName: true)`, which takes EVERY keyword, where
   elsewhere it takes a verb or a gated word) or that the §4.2.10 register reserves for an extension
@@ -1904,6 +1904,18 @@ joined the table the same way, which is the table doing its job: a tenth format 
   its COBOL0313 sentence (`ExtensionReservationSentence`, shared with the JSON/XML hint). The word after a name or a
   clause is a clause position alone and keeps COBOL1941. Pinned by `ClosedFormatReservedWordTests`
   (`ReservedWordAtTheEntryNameSlot_NamesTheReservation`) and the `pb4604-*` conformance cases.
+  Two more readings of the slot (kb/Work PB4645, PB4646). A dangling level-number whose next line begins what
+  follows the entry (`01` then `LINKAGE SECTION.`) is the entry's missing period, not a reserved word written as its
+  name: `OffendingPosition.EntryNameIsDue` is false when the word and the one after it are taken by a walk from the
+  entry's end in its real context (`BeginsWhatFollows`, `ResimulationWalk.After`), so `ReservedWordUse` stands down
+  and hint 14 reports COBOL0307, as `ClosedFormatResidue` already does for a header word; two tokens, because
+  `01 LINKAGE PIC X.` is no header and keeps COBOL0901. And the refusal of a word AFTER the name names the entry even
+  when the prediction failed ahead of the parser, before the data-name was attached to the entry's context
+  (`01 W-A MOVE.`): `OffendingPosition.OwnerName` falls back to the word written after the level-number when it is
+  a token only the data-name rule begins (`ClosedFormats.EntryNameOnlyWords`: FIRST(dataName) less the clause starts,
+  the error production's opening not counted) and the parser has not passed it. Pinned by
+  `ClosedFormatReservedWordTests` (`DanglingLevelNumberBeforeASectionHeader_IsTheMissingPeriod`,
+  `ReservedWordAfterANameOrAClause_IsStillNotAClause`) and the `pb4645-*`/`pb4646-*` conformance cases.
 - **The production's token set — the run holds every literal but the reserved words; a reserved word never opens
   it, and the data division's form holds no literal that begins with an unsigned integer (kb/Work PB3373,
   PB3390).** `unrecognizedClause : (residueOpening | residueInteger) (residueItem | residueInteger)*` and
