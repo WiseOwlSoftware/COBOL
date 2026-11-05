@@ -838,7 +838,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // kb/Work PB4709: ABS(I2 + 1.0) is Integer by §15.3 item 6 (the expression always results in an integer), and its returned
         // value must then be 4, not 4.0; the type was read from the arguments as written, the value is the same.
         if (IntrinsicResultType.IntegerRowArguments(sig, args) is var scaleZero && !ReferenceEquals(scaleZero, args))
+        {
+            // The argument window keys its entries by the operand AS BOUND (§8.4.3.2.4 GR2, ArgumentOrder): each operand the rewrite
+            // replaced says so, or it is never frozen against a later argument's activation (review R2-1).
+            for (int i = 0; i < args.Count; i++)
+                if (!ReferenceEquals(args[i], scaleZero[i])) host.ArgOrder.Rebind(args[i], scaleZero[i]);
             args = [.. scaleZero];
+        }
 
         // ⚠ SEPARATE CONCERN, DELIBERATELY NOT MERGED ABOVE: which runtime BODY compares the arguments.
         // MAX/MIN/ORD-MAX/ORD-MIN over string arguments dispatch to the string comparison body; ORD-MAX/ORD-MIN
