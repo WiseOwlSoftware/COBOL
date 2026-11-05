@@ -1,4 +1,4 @@
-## PB4706: a header written after a level-number is the missing period, and PROCEDURE names no entry
+## Entry 3154 — 2026-11-05 12:19 PST — PB4706: a header written after a level-number is the missing period, and PROCEDURE names no entry
 
 A dangling level-number before a division or section header named the header's first word as the entry. Fixed at the root, and the sweep found the root was also an under-rejection.
 
@@ -20,3 +20,4 @@ A dangling level-number before a division or section header named the header's f
 
 
 Gate: === BUILD-LOCAL GATE: GREEN — Conformance 22,041/22,041 · Unit 40,166/40,166 · Characterization 37/37 cases ran (skipped 0) (run 000001-20261105T194248Z, worktree-wf_e221b103-63b-2 head 8ca141e74) ===
+
