@@ -14,6 +14,10 @@
       *>
       *> EXPECTED VALUES are the bit strings read as unsigned binary integers (§15.45.4): BB = B"1010" is 10; BT = B"0110" is 6; the
       *> first occurrence of BE = B"0011" is 3; BOOLEAN-OF-INTEGER(2 4) is the 4-bit string 0010, 2; B"1001" is 9.
+      *> CONCAT (review R3-3): §15.3 type 3 ("Boolean. A bit group item, a boolean expression or literal, or an elementary boolean data
+      *> item", cite.py --check OK) and §15.18.3 r1's class boolean admit the enclosed boolean expression (the bare item is the same
+      *> value), so CONCAT((BB) "A") is the characters of BB followed by "A" (§15.18.4 r1): 1010A. The position where it is NOT legal,
+      *> LENGTH, is the refusal pb4635-length-parenthesized-boolean-item.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4635PARENBOOL.
        DATA DIVISION.
@@ -42,5 +46,6 @@
            DISPLAY "LITERAL=" R
            COMPUTE R = FUNCTION INTEGER-OF-BOOLEAN((BB) B-AND BB)
            DISPLAY "AND=" R
+           DISPLAY "CONCAT=" FUNCTION CONCAT((BB) "A")
            STOP RUN.
        END PROGRAM PB4635PARENBOOL.

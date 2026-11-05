@@ -135,7 +135,7 @@ internal enum ArgPredicateKind
     ExactWidth,
     /// <summary>"shall be an integer data item or integer literal" (§15.37.3 r3), "data items or literals" (§15.18.3 r1) and "data
     /// item or literal" (§15.12.3 r1's argument-1) — the SHAPE half, the integer-ness being the class kind's. NARROWER than §15.3 type 6:
-    /// an arithmetic expression (a parenthesized item or literal included) or a boolean expression is barred outright, whatever it
+    /// an arithmetic expression (a parenthesized item or literal included) is barred outright, whatever it
     /// evaluates to; a nested function-identifier is a
     /// data item (<see cref="IntrinsicArgumentRules.IsDataItem"/>, kb/Work PB4507) and its integer-ness is the class
     /// kind's test.</summary>
@@ -1441,8 +1441,10 @@ internal static class IntrinsicArgumentRules
         // is an integer one, §15.2 item 5) and so is admitted here; whether its function is INTEGER is the class
         // kind's integer test, not this predicate's (kb/Work PB4507 — it used to bar the function outright).
         // The position's class kind says INTEGER where the rule does (§15.37.3 r3, §15.12.3 r1's bases) and class numeric, alphanumeric...
-        // where it does not (CONCAT, BASECONVERT argument-1), so the shape verdict names the shape alone.
-        ArgPredicateKind.DataItemOrLiteralOnly when op is (BoundComputedOperand or BoundBoolOperand) && !IsDataItem(op) =>
+        // where it does not (CONCAT, BASECONVERT argument-1), so the shape verdict names the shape alone. A BOOLEAN expression is no
+        // arithmetic one and is not refused here: §15.3 type 3 ("a boolean expression or literal") admits it where the class is boolean,
+        // and CONCAT's class list names boolean (conformance case pb124_boolean_argument_boundary).
+        ArgPredicateKind.DataItemOrLiteralOnly when op is BoundComputedOperand && !IsDataItem(op) =>
             $"is {OperandShapeName(op)}, not a data item or literal, which ISO {p.Clause} requires",
         // §15.48.3 r3 "shall be a data item": the literal that rule was written to exclude, and an arithmetic or
         // boolean expression, are not one; a nested function-identifier IS (§8.4.3.2.4 GR1), kb/Work PB4507.

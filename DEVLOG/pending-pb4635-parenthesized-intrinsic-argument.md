@@ -63,15 +63,17 @@ enclosed-item arm now serves only the class-coercion sites (TRIM, UPPER-CASE). E
 string position, where the numeric class of the wrapper is already refused (`REVERSE((I2))`, `FIND-STRING((I2) ...)`). (R3-3) A parenthesized
 class-boolean item was returned as the field operand "to every reader", so `LENGTH((BB))`, `BYTE-LENGTH((BB))` and `CONCAT((BB) "A")` compiled
 where `LENGTH((I2))` is refused. It is "a boolean expression enclosed in parentheses" (8.8.2), so the argument binder now returns the
-`BoundBoolOperand` (over `BoundBoolRef`) that `BB B-AND BC` binds to; those three positions refuse it as they refuse that, and
-`INTEGER-OF-BOOLEAN((BB))`, `((BB))`, `(BT)`, `(BE(1))` and the ref-mod keep their values (swept over REVERSE, UPPER-CASE, TRIM, ORD, NUMVAL, ABS, MAX,
-MIN, ORD-MAX, NATIONAL-OF, DISPLAY-OF: `(BB)` now answers exactly as `BB B-AND BC` at each). The predicate refuses a boolean expression too
-(CONCAT(BB B-AND BC "A") was accepted before; 15.18.3 r1 admits only data items and literals). (R3-2, answered no change) Under `--permissive`,
+`BoundBoolOperand` (over `BoundBoolRef`) that `BB B-AND BC` binds to; LENGTH and BYTE-LENGTH (15.50.3 r1 and 15.14.3 r1 list no boolean
+expression) refuse it as they refuse that, and `INTEGER-OF-BOOLEAN((BB))`, `((BB))`, `(BT)`, `(BE(1))` and the ref-mod keep their values (swept
+over REVERSE, UPPER-CASE, TRIM, ORD, NUMVAL, ABS, MAX, MIN, ORD-MAX, NATIONAL-OF, DISPLAY-OF: `(BB)` now answers exactly as `BB B-AND BC` at
+each). CONCAT admits a boolean expression (15.3 type 3, the class list of 15.18.3 r1; the PB124 golden `pb124_boolean_argument_boundary` pins
+`CONCAT(WS-A B1 B-AND B0)`), so `CONCAT((BB) "A")` stays legal and prints `1010A`; a first draft of this round refused a boolean expression at the
+CONCAT shape predicate and that golden went red at the gate, so the predicate reads arithmetic (computed) operands only. (R3-2, answered no change) Under `--permissive`,
 `MAX((X9) "A")` differs from `MAX(X9 "A")`: the parenthesized item is the arithmetic expression 8.8.1.1 calls it, whose alphanumeric operand
 the COBOL0844 warning says is digit-decoded, and the second warning (COBOL1627) says the character literal then disagrees in class with a
 numeric first argument. The string-image coercion of round 2 belongs to the positions that read only characters; a selecting function reads
 either, and the strict edition refuses the program, so the warned permissive answer is the documented extension, not a divergence from a
 rule. Goldens: `pb4635_unparenthesized_data_item_arguments` (accept 2023) guards the legal side, and the refusals
-`pb4635-concat-parenthesized-item`, `pb4635-concat-parenthesized-boolean-item`, `pb4635-baseconvert-parenthesized-argument-1` and
-`pb4635-length-parenthesized-boolean-item`; the unit test `AParenthesizedItemAtACharacterReadingPosition_IsAnErrorEvenUnderPermissive` pins the
+`pb4635-concat-parenthesized-item`, `pb4635-baseconvert-parenthesized-argument-1` and
+`pb4635-length-parenthesized-boolean-item`, plus a `CONCAT((BB) "A")` line in `pb4635_parenthesized_boolean_argument`; the unit test `AParenthesizedItemAtACharacterReadingPosition_IsAnErrorEvenUnderPermissive` pins the
 permissive half. Docs: INTRINSICS_DESIGN.md names the three rules the predicate serves and `IsCoercible`.

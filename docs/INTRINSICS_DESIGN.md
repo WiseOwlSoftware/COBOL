@@ -278,7 +278,7 @@ several: the position may also carry `ArgPredicate`s — `MinWidth`/`ExactWidth`
 §15.97.3 / §15.78.3 r1's "at least one character position", §15.70.3 r1's and §15.96.3 r2's "one character",
 decided only on a STATIC width), `DataItemOrLiteralOnly` (§15.37.3 r3's "an integer data item or integer literal", which §15.12.3 r1's integer literals or data items echoes,
 and the SHAPE of §15.18.3 r1's "data items or literals" (the CONCAT tail) and §15.12.3 r1's argument-1; narrower than type 6 — an
-arithmetic expression, a parenthesized item or literal included, or a boolean expression is barred outright; a nested function-identifier is a
+arithmetic expression, a parenthesized item or literal included, is barred outright; a nested function-identifier is a
 data item and stays legal when its function is an integer function; `IsCoercible` says `--permissive` coerces the violation at an integer
 position only, kb/Work PB4635), `DataItemOnly` (§15.48.3 r3's "shall be a data item": a literal,
 a figurative constant or an expression is refused, a data reference or a function-identifier admitted), both asking the

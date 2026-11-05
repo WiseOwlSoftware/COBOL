@@ -54,7 +54,7 @@ public sealed class ParenthesizedIntrinsicArgumentPermissiveTests : WiseOwlCobol
     }
 
     /// <summary>
-    /// ⛔ THE SHAPE RULE OF A CHARACTER-READING POSITION HAS NO <c>--permissive</c> COERCION (kb/Work PB4635, review R3-1 and R3-3).
+    /// ⛔ THE SHAPE RULE OF A CHARACTER-READING POSITION HAS NO <c>--permissive</c> COERCION (kb/Work PB4635, review R3-1; R3-3 for LENGTH).
     /// CONCAT's arguments are "data items or literals" (§15.18.3 r1) and BASECONVERT's argument-1 "a usage display or national data item
     /// or literal" (§15.12.3 r1); a parenthesized item is an arithmetic expression (§8.8.1.1) and a parenthesized boolean item "a boolean
     /// expression enclosed in parentheses" (§8.8.2), neither of them either. The coercion <c>--permissive</c> offers an operand that holds
@@ -66,7 +66,6 @@ public sealed class ParenthesizedIntrinsicArgumentPermissiveTests : WiseOwlCobol
     [InlineData("FUNCTION CONCAT((U2) \"A\")")]
     [InlineData("FUNCTION CONCAT(\"A\" (U2))")]
     [InlineData("FUNCTION BASECONVERT((U2) 10 16)")]
-    [InlineData("FUNCTION CONCAT((BB) \"A\")")]
     [InlineData("FUNCTION LENGTH((BB))")]
     public void AParenthesizedItemAtACharacterReadingPosition_IsAnErrorEvenUnderPermissive(string call)
     {
