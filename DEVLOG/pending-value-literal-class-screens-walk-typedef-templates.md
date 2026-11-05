@@ -22,3 +22,11 @@ passes already reach the templates.
 literal and a condition-name, used through two TYPE clauses) and the refusals `pb4678-typedef-unused-value-oversize-national` (COBOL0898),
 `pb4678-typedef-unused-value-class` and `pb4678-typedef-group-member-condition-class` (COBOL5984). SR-13.18.63.3-5 and -7 stay CONFORMS with
 the new witnesses; no GAP moved.
+
+**Gate.** The first gate was RED on one drift test only, `BinderMemberReadersDriftTests`: the pass now reads `DataBinder.DeclaredForest`
+instead of `State`, and the reader list says so (a new reader is a decision; the list was updated). Re-gate:
+`=== BUILD-LOCAL GATE: GREEN — Conformance 21,718/21,718 · Unit 39,883/39,883 · Characterization 37/37 (run 000002-20261105T021630Z) ===`.
+The 12 pb4678 conformance results (the positive at 2002, 2014 and 2023 and the three refusals at each) all passed in `Conformance.trx`.
+Self-review (architecture, full code, performance, duplication): one walk now serves the item, table and condition-name screens, and the old
+second condition loop is gone; the forest is the existing `DeclaredForest`, not a new enumeration; per-item allocation is the same
+(`Distinct` over the written literals).
