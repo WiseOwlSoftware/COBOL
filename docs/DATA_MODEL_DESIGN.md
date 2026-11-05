@@ -2349,7 +2349,9 @@ character-1 repeated twice or more is a floating string, exactly as `$$$` is. Tw
 `Render` reports WHICH symbol's string stands at a position (`placedBy[i]`, the upper-cased symbol, `'\0'` for none)
 and not merely that one does, because a floating string lands on a simple insertion symbol EMBEDDED in it (rule 6:
 "part of the string"): the landed text is the floating symbol's, never the embedded symbol's own, and `Materialize`
-writes it at the end of the embedded symbol's slot (kb/Work PB4703). `DeEdit` reads that layout back
+writes it at the end of the embedded symbol's slot (kb/Work PB4703); the floating `+` and `-` strings record their
+one-character landing the same way, so a sign landing on a wider embedded symbol is written once, not across the
+slot. `DeEdit` reads that layout back
 (`LandingZones`/`LandedStringAt`, over the one `FloatingZone` extent `FindFloatingPlacement` also reads); a blank
 negative text of a floating FOR string is read as the positive text never landing.
 

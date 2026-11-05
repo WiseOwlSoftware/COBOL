@@ -38,6 +38,14 @@
 *>   De-editing reads the sign from the landed "+" and not from the spaces of the suppressed positions.
 *>   PIC --.T9 EDITING T IS "-": the floating string ends at the decimal point, so the "-" literal of T
 *>   after it is not the sign: 0.5 -> "  .-5" (positive), -0.5 -> " -.-5" (the sign lands before the point).
+*>   PIC LLL9 EDITING L FOR NEGATIVE IS " -" - a literal that BEGINS with a space (SR9 and SR12 limit only a
+*>   literal's kind and width): the landed text is the two characters " -" at the third L, so -5 -> "   -5";
+*>   5 -> the positive text is two spaces (SR12c): "    5". The same literal on PIC LLTLL9 EDITING T IS ":" lands
+*>   on T: -555 -> "   -555", 555 -> "    555", -1555 -> " -1:555".
+*>   PIC --T--9 and PIC ++T++9 with EDITING T IS "::" (an embedded symbol two characters wide, GR14 'es'): rule 6 a)
+*>   places a SINGLE occurrence of the sign into the position preceding the first nonzero digit, here the slot of T,
+*>   whose other character holds the replacement space (docs/CONFORMANCE.md, the embedded-landing determination):
+*>   -555 -> "   -555" in both, 555 -> "    555" (minus string, positive: a space) and "   +555" (plus string).
 identification division.
 program-id. PB4703EMB.
 environment division.
@@ -54,6 +62,10 @@ working-storage section.
 01 cb   pic $$,$$9.
 01 hp   pic LLL9 editing L for positive is "+".
 01 ip   pic --.T9 editing T is "-".
+01 ja   pic LLL9 editing L for negative is " -".
+01 jb   pic LLTLL9 editing L for negative is " -" editing T is ":".
+01 km   pic --T--9 editing T is "::".
+01 kp   pic ++T++9 editing T is "::".
 01 src  pic s9v9.
 01 n    pic s9(5) sign leading separate.
 01 m    pic s9v9 sign leading separate.
@@ -108,4 +120,31 @@ procedure division.
     move src to ip
     move ip to m
     display "H2[" ip "] " m
+    move -5 to ja
+    move ja to n
+    display "J1[" ja "] " n
+    move 5 to ja
+    move ja to n
+    display "J2[" ja "] " n
+    move -555 to jb
+    move jb to n
+    display "J3[" jb "] " n
+    move 555 to jb
+    move jb to n
+    display "J4[" jb "] " n
+    move -1555 to jb
+    move jb to n
+    display "J5[" jb "] " n
+    move -555 to km
+    move km to n
+    display "K1[" km "] " n
+    move 555 to km
+    move km to n
+    display "K2[" km "] " n
+    move 555 to kp
+    move kp to n
+    display "K3[" kp "] " n
+    move -555 to kp
+    move kp to n
+    display "K4[" kp "] " n
     stop run.

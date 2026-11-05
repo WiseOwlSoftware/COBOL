@@ -446,12 +446,12 @@ public static partial class CobolEdit
         if (plusCount > 0 && plusCount + minusCount > 1)
         {
             int pos = FindFloatingPlacement(pattern, output, '+', edits);
-            if (pos >= 0) output[pos] = negative ? '-' : '+';
+            if (pos >= 0) { output[pos] = negative ? '-' : '+'; if (placedBy is not null) placedBy[pos] = '+'; }
         }
         else if (minusCount > 0 && plusCount + minusCount > 1)
         {
             int pos = FindFloatingPlacement(pattern, output, '-', edits);
-            if (pos >= 0) output[pos] = negative ? '-' : ' ';
+            if (pos >= 0) { output[pos] = negative ? '-' : ' '; if (placedBy is not null) placedBy[pos] = '-'; }
         }
         if (currencyCount > 1)
         {
@@ -577,7 +577,10 @@ public static partial class CobolEdit
                     // is told from the landed sign by position (digitSeen above). A character-1 outside the string
                     // (left of its first symbol, or past its end) is never a landing position: its '-' is the
                     // literal (kb/Work PB4621; FloatingZone is the one extent both walks read).
-                    else if (c == '-' && i >= signStart && i < signEnd && (!digitSeen || !Matches(image, phys, e.Pos))) negative = true;
+                    // The landed sign stands at the END of the symbol's slot, the slot's other characters holding the
+                    // replacement space (Materialize; GR14 'es' counts the whole literal width, PB4703).
+                    else if (i >= signStart && i < signEnd && phys + w <= image.Length && image[phys + w - 1] == '-'
+                             && (!digitSeen || !Matches(image, phys, e.Pos))) negative = true;
                     phys += w;
                     continue;
                 }
@@ -730,7 +733,7 @@ public static partial class CobolEdit
                 // the slot's other characters, which GR14 still counts, hold the replacement space
                 // (kb/Work PB4703). DeEdit reads the same layout (LandedStringAt).
                 int slot = RuleFor(pattern[i], edits)?.Width ?? 1;
-                sb.Append(' ', slot - 1).Append(LandedText(by));
+                sb.Append(' ', slot - 1).Append(LandedText(by, logical[i]));
                 continue;
             }
             if (wideCurrency && p == currencyChar)
@@ -751,11 +754,12 @@ public static partial class CobolEdit
         }
         return sb.ToString();
 
-        // The string the symbol `by` renders where it lands: the currency string, or literal-2 / literal-3.
-        string LandedText(char by) =>
+        // The string the symbol `by` renders where it lands: the currency string, literal-2 / literal-3, or the one
+        // character the logical image holds there (a floating '+' / '-' sign, or a one-character currency symbol).
+        string LandedText(char by, char logicalChar) =>
             wideCurrency && by == currencyChar ? currencyString!
             : RuleFor(by, edits) is { } r ? (negative ? r.Neg : r.Pos)
-            : by.ToString();
+            : logicalChar.ToString();
     }
 
     /// <summary>Does the image carry <paramref name="text"/> at <paramref name="at"/>? An empty literal matches
@@ -954,8 +958,7 @@ public static partial class CobolEdit
             int next = phys + run;
             // A nonblank landing follows the run: the suppressed positions before it are one space each and
             // the per-position reads answer, the landing itself included.
-            if ((!IsBlanked(z.Neg) && Matches(image, next, z.Neg)) || (!IsBlanked(z.Pos) && Matches(image, next, z.Pos)))
-                return null;
+            if (LandsAt(image, phys, next, z.Neg) || LandsAt(image, phys, next, z.Pos)) return null;
             // Otherwise the run is the string's whole suppressed prefix, and the LAST of its positions is the
             // landing of the blank text (rule 6 a): every position is one space wide (a symbol embedded in the
             // string, its own width) and the landing takes Width - 1 more. Walk the positions until they sum to it.
@@ -968,6 +971,18 @@ public static partial class CobolEdit
             }
         }
         return null;
+    }
+
+    /// <summary>Does a NONBLANK landed <paramref name="text"/> stand in the image with its first nonspace character
+    /// at <paramref name="next"/>, the first nonspace character after the suppressed run that begins at
+    /// <paramref name="phys"/>? A literal may begin with spaces (<c>" -"</c>, <c>" CR"</c>: SR9 and SR12 limit only a
+    /// literal's kind and width), and those spaces are part of the run, so the text starts that many characters
+    /// BEFORE <paramref name="next"/> (never before the run).</summary>
+    private static bool LandsAt(string image, int phys, int next, string text)
+    {
+        if (IsBlanked(text)) return false;
+        int start = next - text.AsSpan().IndexOfAnyExcept(' ');
+        return start >= phys && Matches(image, start, text);
     }
 
     /// <summary>⛔ DE-EDITING'S HALF OF A LANDING ON AN EMBEDDED SYMBOL: does the image, at the physical offset

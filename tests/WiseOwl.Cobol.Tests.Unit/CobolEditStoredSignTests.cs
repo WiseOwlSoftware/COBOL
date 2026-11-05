@@ -230,6 +230,71 @@ public sealed class CobolEditStoredSignTests
         Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
     }
 
+    // A literal may BEGIN with a space (SR9 and SR12 limit only kind and width): the landed text " -" is two
+    // characters and its leading space is part of the suppressed run before it, so the run is not mistaken for the
+    // blank landing of the other side (PB4703 review R1-1). Both signs, on a string member and on an embedded T.
+    [Theory]
+    [InlineData("LLL9", " -", "  ", -5, "   -5")]
+    [InlineData("LLL9", " -", "  ", 5, "    5")]
+    [InlineData("LLL9", " -", "  ", -123, " -123")]
+    [InlineData("LLL9", " -", "  ", 123, "  123")]
+    [InlineData("LLL9", "  ", " +", 5, "   +5")]
+    [InlineData("LLL9", "  ", " +", -5, "    5")]
+    [InlineData("LLL9", "  ", " +", 123, " +123")]
+    [InlineData("LLL9", "  ", " +", -123, "  123")]
+    [InlineData("LLTLL9", " -", "  ", -555, "   -555")]
+    [InlineData("LLTLL9", " -", "  ", 555, "    555")]
+    [InlineData("LLTLL9", " -", "  ", -1555, " -1:555")]
+    [InlineData("LLTLL9", " -", "  ", 1555, "  1:555")]
+    [InlineData("LLTLL9", "  ", " +", 555, "   +555")]
+    [InlineData("LLTLL9", "  ", " +", -555, "    555")]
+    [InlineData("LLTLL9", " -", " +", -555, "   -555")]
+    [InlineData("LLTLL9", " -", " +", 555, "   +555")]
+    [InlineData("LLTLL9", " -", " +", -1555, " -1:555")]
+    [InlineData("LLTLL9", " -", " +", 1555, " +1:555")]
+    public void DeEdit_FloatingExtendedSignWithLeadingSpaceLiteral_RoundTrips(
+        string mask, string negative, string positive, long value, string image)
+    {
+        CobolEdit.EditRule[] rules =
+        [
+            new CobolEdit.EditRule('L', negative, positive, SimpleInsertion: false, Floating: true),
+            new CobolEdit.EditRule('T', ":", ":", SimpleInsertion: true, Floating: false),
+        ];
+        Assert.Equal(image, CobolEdit.Format(value, 0, mask, edits: rules));
+        Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
+    }
+
+    // §13.18.40.5 rule 6 a): "a single occurrence of the replacement character(s) is (are) placed into the
+    // character position(s) immediately preceding" the first nonzero digit, and GR14 'es' counts an embedded
+    // symbol's whole literal in the size. A floating '+' or '-' landing on an embedded symbol TWO characters wide
+    // therefore writes the sign once, at the end of the slot, the slot's other character holding the replacement
+    // space (docs/CONFORMANCE.md, the embedded-landing determination), as the other floating strings do (PB4703
+    // review R1-2). The literal ":-" ends in the sign character: it is the literal once a digit precedes it.
+    [Theory]
+    [InlineData("--T--9", "::", -555, "   -555")]
+    [InlineData("--T--9", "::", 555, "    555")]
+    [InlineData("++T++9", "::", -555, "   -555")]
+    [InlineData("++T++9", "::", 555, "   +555")]
+    [InlineData("--T--9", "::", -1555, "-1::555")]
+    [InlineData("--T--9", "::", 1555, " 1::555")]
+    [InlineData("++T++9", "::", -1555, "-1::555")]
+    [InlineData("++T++9", "::", 1555, "+1::555")]
+    [InlineData("--T--9", ":-", -555, "   -555")]
+    [InlineData("--T--9", ":-", 555, "    555")]
+    [InlineData("--T--9", ":-", -1555, "-1:-555")]
+    [InlineData("--T--9", ":-", 1555, " 1:-555")]
+    [InlineData("++T++9", ":-", 555, "   +555")]
+    [InlineData("++T++9", ":-", -1555, "-1:-555")]
+    [InlineData("++T++9", ":-", 1555, "+1:-555")]
+    [InlineData("++T++9", "::", 0, "     +0")]
+    public void DeEdit_SignLandedOnEmbeddedWideCharacter1_RendersOneSignAtTheEndOfTheSlot(
+        string mask, string literal, long value, string image)
+    {
+        CobolEdit.EditRule[] rules = [new CobolEdit.EditRule('T', literal, literal, SimpleInsertion: true, Floating: false)];
+        Assert.Equal(image, CobolEdit.Format(value, 0, mask, edits: rules));
+        Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
+    }
+
     [Fact]
     public void Format_FixedExtendedSign_FollowsTheStoredValue()
     {

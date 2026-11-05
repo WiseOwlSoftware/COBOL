@@ -23,3 +23,13 @@ Golden `2023/pb4703_deedit_for_floating_embedded_landing` and the refused-below 
 (COBOL0900); unit rows in `CobolEditStoredSignTests` for each shape, and for R1-2 the masks `--.T9`, `++.T9` and `--.T99`
 (a decimal point ends the string with no digit before T), mutation-checked: dropping `i < signEnd` fails three of the six
 rows. No inventory row is claimed or closed.
+
+The branch review of this change found two more (its R1-1 and R1-2, not the PB4621 pair above). A literal that begins with a
+space (`L FOR NEGATIVE IS " -"`) was never recognised by `BlankLandingRun`, which compared a nonblank landed text at the first
+nonspace character of the suppressed run instead of at the text's own first nonspace character; `PIC LLL9` holding -5 de-edited
+to +5, a regression against the previous tree, and under EC-DATA-INCOMPATIBLE checking ended the run unit on an image `Format`
+itself wrote. `LandsAt` now aligns the text by its leading spaces. And the floating `+`/`-` string, the arm beside the one fixed,
+still wrote its sign across a wider embedded character-1's whole slot (`PIC --T--9 EDITING T IS "::"` holding -555 gave
+`  --555`, two signs where rule 6 a) places "a single occurrence"). `Render` records `placedBy` at the two floating-sign
+placements, `Materialize` writes the one sign at the end of the slot, and `DeEdit` reads it there; the determination in
+docs/CONFORMANCE.md now says it covers every floating symbol. Unit theories and golden lines J1-J5 and K1-K4 cover both.

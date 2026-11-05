@@ -1617,7 +1617,13 @@ of an unsupported facility.
   size and puts the landed text at the END of the slot, immediately before the next position, the slot's other
   characters holding the replacement space (`T IS "::"` with `L FOR NEGATIVE IS "("` gives `   (555`); the choice is
   the implementor's latitude, and no GnuCOBOL or IBM/Micro Focus behaviour for the PICTURE EDITING phrase was
-  consulted (the phrase is a COBOL-2023 introduction, Annex E.3.3 item 19).
+  consulted (the phrase is a COBOL-2023 introduction, Annex E.3.3 item 19). The determination covers EVERY floating
+  symbol, the floating `+` and `-` strings included: rule 6 a) places "a single occurrence" of the sign, so
+  `PIC --T--9 EDITING T IS "::"` holding -555 is `   -555` (one sign at the end of T's two-character slot), not a sign
+  repeated across the slot.
+  A literal of the extended editing sign control symbol may begin with spaces (SR9 and SR12 limit its kind and
+  width): `L FOR NEGATIVE IS " -"` lands the two characters, and the de-edit finds them by their first nonspace
+  character, the leading space belonging to the suppressed run before it.
   A FOR phrase naming only POSITIVE has a blank negative text (SR12c): the sign of a de-edited floating string is
   then read from the positive text landing, since a blank cannot be told from the suppressed positions.
   Witnesses: `conformance:cases/13.18.40.5-Editing-rules/pb4703_deedit_for_floating_embedded_landing`, `CobolEditStoredSignTests`.
