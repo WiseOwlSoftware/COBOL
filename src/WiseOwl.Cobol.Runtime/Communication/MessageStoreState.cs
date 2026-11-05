@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Buffers;
+using System.Collections.Frozen;
 using System.Globalization;
 using System.Text.Json.Nodes;
 
@@ -203,10 +204,10 @@ internal sealed class MessageStoreState
 
     /// <summary>The names Windows reads as a device whatever the extension (<c>NUL.out</c> is the NUL device): the three-letter ones, the console handles, and COM and LPT
     /// followed by a digit or a superscript digit. Compared without case.</summary>
-    private static readonly HashSet<string> ReservedDeviceNames = new(
-        ["CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$",
-         .. from port in new[] { "COM", "LPT" } from digit in "0123456789¹²³" select port + digit],
-        StringComparer.OrdinalIgnoreCase);
+    private static readonly FrozenSet<string> ReservedDeviceNames =
+        (from port in new[] { "COM", "LPT" } from digit in "0123456789¹²³" select port + digit)
+        .Concat(["CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"])
+        .ToFrozenSet(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: a host device name
 
     /// <summary>The part of a name that Windows tests against the device names: up to the first dot, without trailing spaces. The device file <c>&lt;name&gt;.out</c> keeps it.</summary>
     private static string DeviceStem(string name)
