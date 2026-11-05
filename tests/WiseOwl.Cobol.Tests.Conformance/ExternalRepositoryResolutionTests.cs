@@ -199,6 +199,49 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
+    /// <summary>kb/Work PB4708 (review R1-1, R1-2): SET ... ADDRESS OF PROGRAM, the third reader of the declared-word
+    /// question, names the same route as CALL, and a contained program inherits the container's refused literal-3.</summary>
+    [Fact]
+    public void ASpecifierWhoseLiteral3IsRefused_IsDeclaredForSetAddressOfProgramAndInContainedUnits()
+    {
+        WithDirectory("repo-literal3-refused-set", dir =>
+        {
+            const string source = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. R4708S.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    PROGRAM R4708Q AS "".
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 PP USAGE PROGRAM-POINTER.
+                PROCEDURE DIVISION.
+                    SET PP TO ADDRESS OF PROGRAM R4708Q
+                    CALL R4708Q
+                    GOBACK.
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. R4708N.
+                PROCEDURE DIVISION.
+                    CALL R4708Q
+                    GOBACK.
+                END PROGRAM R4708N.
+                END PROGRAM R4708S.
+                """;
+            var r = Compile(dir, "R4708S", source);
+            Assert.False(r.Success);
+            string set = Assert.Single(r.Errors, e => e.Contains("COBOL2157", StringComparison.Ordinal)
+                                                      && e.Contains("ADDRESS OF PROGRAM R4708Q", StringComparison.Ordinal));
+            Assert.Contains("AS literal-3 was refused (ISO §12.3.8.3 SR2)", set, StringComparison.Ordinal);
+            Assert.DoesNotContain("not declared in the REPOSITORY", set, StringComparison.Ordinal);
+            Assert.DoesNotContain("neither declared", set, StringComparison.Ordinal);
+            // Both CALLs: the outer one and the contained program's, which inherits the refused row.
+            Assert.Equal(2, r.Errors.Count(e => e.Contains("COBOL1760", StringComparison.Ordinal)
+                                                && e.Contains("AS literal-3 was refused (ISO §12.3.8.3 SR2)", StringComparison.Ordinal)
+                                                && !e.Contains("neither declared", StringComparison.Ordinal)));
+        });
+    }
+
     [Fact]   // §9.3: a --repository directory is searched instead of the output directory, and a --reference file after it.
     public void TheNamedDirectoriesAndReferences_AreTheSearchSpace()
     {

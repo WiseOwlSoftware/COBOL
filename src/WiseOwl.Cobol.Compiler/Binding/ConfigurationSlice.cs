@@ -267,6 +267,34 @@ public sealed class ConfigurationSlice(Action<Antlr4.Runtime.RuleContext?, strin
     internal bool DeclaresProgramSpecifier(string name) =>
         ProgramSpecifiers.ContainsKey(name) || RefusedProgramSpecifiers.ContainsKey(name);
 
+    /// <summary>WHY <paramref name="name"/> is no program prototype here, the one sentence <c>CallBinder.ResolvePrototype</c>
+    /// (COBOL1760) and the ADDRESS OF PROGRAM operand of <c>SetBinder</c> (COBOL2157) add to their refusals (kb/Work PB4633,
+    /// PB4708). A word a specifier DECLARES is never called "neither declared"; the three routes to a declared word with no
+    /// prototype name three different refusals, and only the first is REPO-1:
+    /// <list type="number">
+    /// <item>no provider answers the specifier (§12.3.8.3 SR14: a program prototype of the group, a program definition
+    /// specified previously, or information in the external repository) and COBOL5962 is reported where it is written;</item>
+    /// <item>the same, but the external repository holds an entry whose own finding refuses it, which suppresses REPO-1
+    /// (<c>RepositoryResolver.ReportUnanswered</c>) — the sentence then names no REPO-1 and no code;</item>
+    /// <item>the specifier's AS literal-3 was refused (§12.3.8.3 SR2), so it registered no row at all.</item>
+    /// </list></summary>
+    internal string WhyNoPrototype(string name)
+    {
+        const string declared = "it is declared by a PROGRAM specifier in the REPOSITORY paragraph (ISO §12.3.8.2), but ";
+        if (ProgramSpecifiers.ContainsKey(name))
+            return RefusedProgramSpecifiers.TryGetValue(name, out var refusal)
+                   && refusal == ProgramSpecifierRefusal.RepositoryFinding
+                ? declared + "the external repository's entry for it was refused by that repository's own finding, so it "
+                  + "registers no program prototype"
+                : declared + "no program prototype and no program definition specified previously in this compilation group "
+                  + "and no information in the external repository answers that specifier (ISO §12.3.8.3 SR14, COBOL5962), "
+                  + "so it registers no program prototype";
+        return DeclaresProgramSpecifier(name)
+            ? declared + "that specifier's AS literal-3 was refused (ISO §12.3.8.3 SR2), so it registers no program prototype"
+            : "it is neither declared by a PROGRAM specifier in the REPOSITORY paragraph (ISO §12.3.8.2) nor the "
+              + "program-name of a containing program definition (§8.4.6.8)";
+    }
+
     /// <summary>The unit's REPOSITORY user-function specifiers (§12.3.8 — <c>FUNCTION function-prototype-name</c>
     /// WITHOUT the INTRINSIC phrase): the precondition for a user-function reference, and per §12.3.8.4 GR12
     /// (:14885) the declaration that makes the name refer to the USER-DEFINED function "and not to an intrinsic
