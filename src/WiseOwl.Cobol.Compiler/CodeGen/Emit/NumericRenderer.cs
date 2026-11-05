@@ -1280,7 +1280,12 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // sum the declared pictures hold and GnuCOBOL's cob_decimal_add (exact, CLAUDE.md rule 1 for §8.8.1.3) gives: COMPUTE R = D + F
         // of 1000000000000000001 and 1.01 is 1000000000000000002. The run-time-scaled exact carrier tries the VALUE on the 256-bit form
         // and leaves it only when the value does (CobolExact.Add), the carrier every sibling arm above hands such a pair.
-        if (digits > ReceiverContext.IntermediateDigits && !_rcv.Real) return ExactBinary(op, a, b);
+        // ONLY WHEN THE ALIGNMENT, NOT THE OPERANDS, LEAVES THE LANE: each operand's own bound is within the 38 digits. An operand that is
+        // itself a 16-byte container (bound 39) leaves the lane at its top, and that sum's size error is the documented one (DOC-A.1-179 (1),
+        // golden pb91_native_overflow_outside_arithmetic: HIGHEST-ALGEBRAIC + 1).
+        if (digits > ReceiverContext.IntermediateDigits && a.Digits <= ReceiverContext.IntermediateDigits
+            && b.Digits <= ReceiverContext.IntermediateDigits && !_rcv.Real)
+            return ExactBinary(op, a, b);
         if (digits > ReceiverContext.IntermediateDigits) digits = 0;
         // Under an ON SIZE ERROR phrase the sum/difference is overflow-checked at the Int128 ENGINE boundary
         // (AddChecked/SubChecked → OverflowException → the size error condition, §14.7.5 case 5). Reachable: HIGHEST-ALGEBRAIC of PIC S9(19) COMP-5 is Int128.MaxValue itself
