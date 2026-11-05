@@ -1,3 +1,4 @@
-## PB4717: a CD record's level-number refusal names a CD entry and cites 2002 13.16.31 SR2
+## Entry 3151 — 2026-11-05 11:34 PST — PB4717: a CD record's level-number refusal names a CD entry and cites 2002 13.16.31 SR2
 
 The re-probe (`--std 2002`, `77 I1` under a CD) reproduced the note: the message said "subordinate to a FD or SD entry" and cited ISO 13.18.33.3 SR2, a 2023 rule that does not name a CD. `LevelNumberRules.Table` now has a fifth arm, `CommunicationRecord`, with the same permitted set (66, 88, 1 through 49) and its own sentence; `Arm.SyntaxRule` became `Arm.Citation`, the edition-qualified printed citation, so each arm owns its whole citation. `Classify` sends `CommunicationDescriptionEntryContext` to the new arm. The 2002 text is not in the repository, so the 13.16.31 SR2 citation could not be run through `cite.py --check`; it is the branch review's, and the note says so. Golden: `pb4717-cd-level-77-message` (refused at 85 and 2002, expects the message substring). Drift test count updated from 4 to 5 arms. Sibling sweep: the other four arms already cite their own 2023 rule; no other site names the FD arm for a CD. closes_rows: none.
+
