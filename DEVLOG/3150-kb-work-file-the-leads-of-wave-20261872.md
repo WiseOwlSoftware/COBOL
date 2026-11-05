@@ -1,4 +1,4 @@
-## kb/Work: file the leads of wave 20261872
+## Entry 3150 — 2026-11-05 11:10 PST — kb/Work: file the leads of wave 20261872
 
 Filed 18 notes from the leads in the wave 20261872 reports (groups a to g; group h had none): PB4750 to PB4767. Defects: PB4750
 (34-digit images in VARIANCE, STANDARD-DEVIATION, PRESENT-VALUE), PB4752 (a sum leaving the Int128 lane ends the run unit),
@@ -14,3 +14,4 @@ report gave one.
 
 Two prose fixes: `kb/Work/PB4703.md` names `CobolEdit.LandsAt` in its Sites paragraph, and
 `docs/manual/user-guide/communication.md` states the Windows device names as examples ("and the rest"), as design section 6 does.
+
