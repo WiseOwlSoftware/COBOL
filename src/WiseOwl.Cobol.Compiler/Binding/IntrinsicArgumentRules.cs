@@ -1754,6 +1754,13 @@ internal static class IntrinsicArgumentRules
                 spine.Net[it] = spine.Net.TryGetValue(it, out var v)
                     ? (v.Coeff + sign, p.Scale, p.IsFloat, v.Opaque) : (sign, p.Scale, p.IsFloat, false);
                 break;
+            // ⛔ A CALL WHOSE VALUE IS ITS ARGUMENT IS THAT ARGUMENT (kb/Work PB4757). The walk below marks every item beneath a call
+            // opaque, which keeps `S2 - FUNCTION ABS (S2)` legal (the term moves with S2) but let `S2 + FUNCTION ABS (S2)` slip past
+            // the screen, although it is 2 × S2. FUNCTION ABS of an item that cannot hold a negative value is that item: §15.7.4
+            // 1) a) "When the value of argument-1 is zero or positive, (argument-1)". The call is read as its argument, so the leaf
+            // arm counts S2 twice and the witness argument stands. A signed argument has no such identity and stays opaque.
+            case BoundIntrinsicCall { Args: [var argument] } call when UnsignedArgumentOfAbs(call, argument) is { } identity:
+                CollectAdditive(identity, sign, spine); break;
             default:
                 if (ExactValue(e) is { } constant)
                     spine.Constant += sign < 0 ? -constant : constant;
@@ -1766,6 +1773,23 @@ internal static class IntrinsicArgumentRules
                 }
                 break;
         }
+    }
+
+    /// <summary>The reference FUNCTION ABS returns unchanged: its argument, when that is a bare (or parenthesized) numeric data item
+    /// described without a sign (an item that cannot hold a negative value, so §15.7.4 1) a) gives <c>(argument-1)</c>); null for
+    /// every other call and argument.</summary>
+    private static BoundNumRef? UnsignedArgumentOfAbs(BoundIntrinsicCall call, BoundOperand argument)
+    {
+        if (!CobolNames.Same(call.Sig.Name, "ABS")) return null;
+        var place = argument switch
+        {
+            BoundFieldOperand f => f.Place,
+            BoundComputedOperand { Expr: BoundNumRef r } => r.Place,
+            _ => null,
+        };
+        return place is { DenotedItem: not null, Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric, Signed: false, IsFloat: false } } }
+            ? new BoundNumRef(place)
+            : null;
     }
 
     /// <summary>Is <paramref name="e"/> an integer for EVERY valuation of the items it references? Sound, not
@@ -1782,7 +1806,13 @@ internal static class IntrinsicArgumentRules
     /// <c>IntrinsicResultType.IsIntegerOperand</c> does (kb/Work PB4709 review R1-3).</para></summary>
     internal static bool ProvablyIntegral(BoundExpr e) => e switch
     {
-        _ when ExactValue(e) is { } v => v.IsInteger,
+        // ⛔ AN INTEGRAL FOLD IS PROOF ONLY WHEN THE ARITHMETIC REPRODUCES IT (kb/Work PB4758). The fold is the ALGEBRAIC value, and the
+        // arithmetic of a statement stores every quotient at a finite number of digits: `1 / 3 * 3` is exactly 1 and the compiler
+        // stores 0.9999, so an argument proved integral by the fold alone was rewritten to the literal 1 (`IntegralForm`) and
+        // `FUNCTION ABS (1 / 3 * 3)` returned 1 where `COMPUTE X = 1 / 3 * 3` stores 0.9999. A quotient whose exact value has a
+        // non-terminating decimal expansion therefore voids the proof (§15.3 6) asks for an expression that "will always result in
+        // an integer value", and that value is the one the arithmetic produces); the argument stays a Numeric one and the caller fails open.
+        _ when ExactValue(e) is { } v => v.IsInteger && QuotientsTerminate(e),
         // Category NUMERIC only: any other operand an extension admits (a de-edited numeric-edited item, say) is
         // not provably integral, and the screen fails open over it.
         BoundNumRef { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } p } }
@@ -1887,6 +1917,21 @@ internal static class IntrinsicArgumentRules
         }
     }
 
+    /// <summary>Does every quotient (and negative-exponent power) in a literal-only subtree have a TERMINATING decimal value (a
+    /// denominator of 2s and 5s only), so that the arithmetic, which keeps a finite number of digits, stores exactly what
+    /// <see cref="ExactValue"/> folded? ⛔ The ONE statement of what makes an exact fold trustworthy as a VALUE (kb/Work PB4758):
+    /// <see cref="ProvablyIntegral"/> reads it, and <see cref="IntegralForm"/>, which rewrites a folded value into a literal, is
+    /// reached only after that proof. False when the subtree cannot be folded.</summary>
+    private static bool QuotientsTerminate(BoundExpr e) => e switch
+    {
+        BoundBinary { Op: '/' } b => ExactValue(b) is { IsTerminating: true } && QuotientsTerminate(b.Left) && QuotientsTerminate(b.Right),
+        BoundBinary b => QuotientsTerminate(b.Left) && QuotientsTerminate(b.Right),
+        BoundNegate n => QuotientsTerminate(n.Operand),
+        BoundPower pw => ExactValue(pw) is { IsTerminating: true } && QuotientsTerminate(pw.Base) && QuotientsTerminate(pw.Exp),
+        BoundNumLiteral => true,
+        _ => false,
+    };
+
     /// <summary>The largest literal exponent <see cref="ExactValue"/> folds — a bound on the fold's work, never on
     /// what the source may say: a larger exponent is left unfolded and the screen fails open.</summary>
     private const int MaxFoldedExponent = 64;
@@ -1916,6 +1961,18 @@ internal static class IntrinsicArgumentRules
             : new(significand, System.Numerics.BigInteger.Pow(10, -exp10));
 
         public bool IsInteger => Denominator.IsOne;
+
+        /// <summary>Is the value a finite decimal: a denominator of 2s and 5s only?</summary>
+        public bool IsTerminating
+        {
+            get
+            {
+                var den = Denominator;
+                while (den.IsEven) den /= 2;
+                while (den % 5 == 0) den /= 5;
+                return den.IsOne;
+            }
+        }
         public int Sign => Numerator.Sign;
 
         public static ExactRational operator -(ExactRational a) => new(-a.Numerator, a.Denominator);
