@@ -1,4 +1,4 @@
-## PB4707 — a bare operand after a boolean relation, a bare boolean operand and a refused abbreviation's object are judged as an IF judges them
+## Entry 3139 — 2026-11-04 22:43 PST — PB4707 — a bare operand after a boolean relation, a bare boolean operand and a refused abbreviation's object are judged as an IF judges them
 
 Group F of wave 20261872 (ConditionBinder), one note: PB4707, both leads of the PB4627 review reproduced on the branch build.
 
@@ -9,3 +9,4 @@ Group F of wave 20261872 (ConditionBinder), one note: PB4707, both leads of the 
 **Fix shape.** `ConditionBinder.BareObjectRoleOf` is the one decision (boolean relation, then insertion, then neither: `AbbreviationAfterBooleanRelation`, `ObjectOfRelation`, `NotACondition`), asked by `BindSoleOperandCondition`, `BindComparison`'s address arm and the walk's address and value arms, so the order cannot differ again. The walk's boolean arm calls `AsCondition`. `RefuseAbbreviationAfterBooleanRelation` takes the binder of the abbreviation's object, and `BindAbbreviatedRelation` binds it before COBOL2552. `docs/CONDITIONS_EXCEPTIONS_DESIGN.md` D5a states the decision.
 
 **Goldens.** `EvaluateObjectOperandFaultTests` gains 15 walk rows and 8 IF rows; five refusal goldens `pb4707-*` (2002, 2014, 2023): value and address-identifier after a boolean relation in a refused pair (COBOL2723), a length-2 boolean operand in a refused pair (COBOL1511), the IF address-identifier after a boolean-expression relation (COBOL2723) and the IF refused abbreviation's undefined object (COBOL1639). No inventory row is claimed or closed.
+
