@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL1555: data item 'T': the SAME AS clause shall not be specified"}
