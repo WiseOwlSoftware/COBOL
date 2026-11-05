@@ -2051,6 +2051,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // non-admitting position still reaches Loud only through a --permissive coercion.
             : admitNumeric && n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Numeric }
                 ? OperandText.AsString(n, owner.Num)
+            // ⛔ A COUNTER REGISTER AS A CHARACTER ARGUMENT (kb/Work PB4766). LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER are "a
+            // temporary unsigned integer data item of class and category numeric" (§8.4.3.14.4 GR1, §8.4.3.15.4 GR1), a DATA ITEM
+            // like the numeric field the field arm above images without asking which position it is at, so CONCAT (§15.18.3 r1) and
+            // BASECONVERT argument-1 (§15.12.3 r1) admit it bare and it compiled clean and died on the loud arm below (the
+            // wrong-stage family). Its image is the unsigned integer item's, the ONE form OperandText.AsString gives a register in a
+            // string context (its digits zero-filled to the register's implicit digit count, AlgebraicRanges.CounterRegisterDigits).
+            // A position that bars a numeric item refuses the register at the binder, as it refuses the field; this arm renders.
+            : OperandText.IsCounterRegister(n)
+                ? OperandText.AsString(n, owner.Num)
             // ⛔ THE --permissive COERCION OF A COMPOUND ARITHMETIC EXPRESSION AT A CHARACTER POSITION (kb/Work PB4710): `TRIM (I2 + 1)`
             // is refused in every strict mode (an arithmetic expression is class numeric where TRIM requires a character class,
             // COBOL1627), and --permissive demotes the refusal to a warning and coerces. An expression holds no characters, so its

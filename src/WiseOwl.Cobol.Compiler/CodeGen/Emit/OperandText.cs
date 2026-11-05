@@ -110,6 +110,11 @@ internal static class OperandText
             ? bo.AtItemWidth ? BooleanRenderer.RenderAtItemWidth(bo.Expr, num, sending) : BooleanRenderer.Render(bo.Expr, num, sending)
             : op.Accept(Visitor(deSign, sending));
 
+    /// <summary>Whether a computed operand IS a counter register (LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER), the shape
+    /// <see cref="AsString"/> images as an unsigned integer item — the ONE test, so a string-argument visitor that renders a
+    /// register asks it here and the Emit layer reads <c>AlgebraicRanges</c> from this class alone (kb/Work PB4766).</summary>
+    public static bool IsCounterRegister(BoundComputedOperand op) => AlgebraicRanges.CounterRegisterDigits(op.Expr) is not null;
+
     /// <summary>The text image of a NUMERIC-result intrinsic (DA2), across all three shapes a numeric
     /// intermediate can take. A FLOAT-valued function renders through the same <c>CobolFloat.Display</c> a float
     /// ITEM does (shortest round-trip, §14.9.11.4 GR1 implementor-defined) — the two must agree, since
