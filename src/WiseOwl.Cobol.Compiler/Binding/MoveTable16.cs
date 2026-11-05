@@ -461,12 +461,10 @@ public static class MoveTable16
     /// user's alphanumeric item with no diagnostic anywhere. A premise about what "cannot reach" a screen is
     /// self-invalidating: it is written while a feature is staged and never revisited when the feature lands,
     /// so the rule is written out in full instead.</para>
-    /// <para>⚠ MESSAGE-TAG has no <see cref="CobolClass"/> member and needs none: the MCS facility is unmodeled
-    /// (docs/CONFORMANCE.md §4) and <c>PictureAnalyzer.ParseUsage</c> refuses the usage by name (COBOL1943),
-    /// so no operand of that class can be bound. <c>MoveOperandClassDriftTests</c> asserts that every usage
-    /// §13.18.60.3 SR4 names — which is exactly the six producing these four classes — is refused here, so the
-    /// moment MESSAGE-TAG or any other gains a bound model the test fails rather than the screen silently
-    /// narrowing.</para>
+    /// <para>MESSAGE-TAG is a <see cref="CobolClass"/> member since kb/Work PB4740, so an operand of that class is refused
+    /// here like the other three. <c>MoveOperandClassDriftTests</c> asserts that every usage §13.18.60.3 SR4 names — which is
+    /// exactly the six producing these four classes — is refused here, so a usage that gains a bound model fails the test
+    /// rather than the screen silently narrowing.</para>
     /// <para>Class POINTER spans THREE categories — data-pointer, function-pointer and program-pointer
     /// (§8.5.2.1 Table 2) — which is why the question is asked of the CLASS: a usage test would have missed
     /// FUNCTION-POINTER exactly as the old one missed the others.</para>
@@ -487,6 +485,10 @@ public static class MoveTable16
             + "a procedure division header, the argument list of an inline invocation of a method, as an "
             + "argument in a function-identifier, in the RETURNING phrase of an ALLOCATE statement, or in a "
             + "FREE statement\", and SR8 says the same of a program-pointer). Use SET to assign a pointer",
+        CobolClass.MessageTag => "a MOVE operand shall not be of class message-tag — §8.5.2.1 Table 2 gives usage "
+            + "MESSAGE-TAG the message-tag category of class message-tag (ISO §14.9.25.3 SR1; §8.4.3.10.3 SR1 b) admits NULL "
+            + "only as a sending operand of an INITIALIZE or a SET statement or in a message-tag relation condition). "
+            + "Use SET to assign a message tag",
         CobolClass.Object => "a MOVE operand shall not be of class object — §8.5.2.1 Table 2 gives usage "
             + "OBJECT REFERENCE the object-reference category of class object (ISO §14.9.25.3 SR1). Use SET to "
             + "assign an object reference",

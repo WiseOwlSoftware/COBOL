@@ -166,6 +166,10 @@
    "lead": "GR26 leaves four things to the implementor and this determinatio"
   },
   {
+   "key": "DOC-A.1-212",
+   "lead": "GR9 leaves the alignment, representation and size of a message-t"
+  },
+  {
    "key": "DOC-A.1-177",
    "lead": "The operational sign is FUSED onto the TRAILING digit position, "
   },
@@ -1119,7 +1123,6 @@
    "COBOL1778",
    "COBOL1802",
    "COBOL1803",
-   "COBOL1943",
    "COBOL1954",
    "COBOL2424"
   ],

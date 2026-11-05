@@ -122,6 +122,14 @@ public abstract record StorageForm
         public override int ImageWidth => 0;
     }
 
+    /// <summary>A message tag (<c>MessageTag</c> — ISO §13.18.60.4 GR9; kb/Work PB4740). Zero character positions, like
+    /// its function-pointer sibling (GR9 leaves the representation implementor-defined, DOC-A.1-212: the managed slot).</summary>
+    public sealed record MessageTagRef : StorageForm
+    {
+        public override bool IsCharacterImage => false;
+        public override int ImageWidth => 0;
+    }
+
     /// <summary>A USAGE INDEX cell (a <c>long</c> occurrence number). Zero character positions.</summary>
     public sealed record IndexCell(int Width) : StorageForm
     {

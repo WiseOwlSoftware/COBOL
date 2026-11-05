@@ -3860,12 +3860,12 @@ public static class DiagnosticCatalog
     /// Covers ISO §14.9.39 (SET Format 1 index-assignment — an index-name receiver; Format 5
     /// object-reference-assignment; Format 7 data-pointer-assignment — SET ADDRESS OF / a pointer receiver),
     /// §8.4.3.11 and §8.4.3.13 (the ADDRESS OF and LENGTH OF special registers as operands), §8.8.4.2.16
-    /// (the pointer relation condition), §14.9.3 (ALLOCATE's RETURNING operand) and Annex D.9.2.2 (the
+    /// and §8.8.4.2.14 (the pointer and message-tag relation conditions), §14.9.39 Format 17 (message-tag-assignment, kb/Work PB4740), §14.9.3 (ALLOCATE's RETURNING operand) and Annex D.9.2.2 (the
     /// restricted data-pointer, whose target type constrains every one of the above).</summary>
     public static readonly DiagnosticDescriptor PointerOperandShape = new(
         "COBOL0869", "pointer-operand-shape", EditionSeverity.Error,
-        "A pointer, address or object-reference OPERAND is not of a shape its statement admits — the SET statement's pointer formats (ISO §14.9.39), the ADDRESS OF / LENGTH OF special registers (§8.4.3.11, §8.4.3.13), the pointer relation condition (§8.8.4.2.16), the ALLOCATE statement's RETURNING operand (§14.9.3), or the target-type restriction a RESTRICTED data-pointer (Annex D.9.2.2) puts on all of them. The site names the rule it caught.",
-        "ISO §14.9.39 / §8.4.3.11 / §8.4.3.13 / §8.8.4.2.16 / §14.9.3 / Annex D.9.2.2");
+        "A pointer, address, object-reference or message-tag OPERAND is not of a shape its statement admits — the SET statement's pointer formats (ISO §14.9.39), the ADDRESS OF / LENGTH OF special registers (§8.4.3.11, §8.4.3.13), the pointer and message-tag relation conditions (§8.8.4.2.16, §8.8.4.2.14), the ALLOCATE statement's RETURNING operand (§14.9.3), or the target-type restriction a RESTRICTED data-pointer (Annex D.9.2.2) puts on all of them. The site names the rule it caught.",
+        "ISO §14.9.39 / §8.4.3.11 / §8.4.3.13 / §8.8.4.2.16 / §8.8.4.2.14 / §14.9.3 / Annex D.9.2.2");
     /// <summary>COBOL0868 — the OBJECT-REFERENCE RELATION band: the fourth bare-string code of the kb/Work
     /// PB175 sweep above, missed because its only site was inside <c>ConditionBinder</c>'s relation arm rather
     /// than a verb binder (kb/Work PB399 moved that site to the ONE relation checkpoint and found it). It is
@@ -4504,25 +4504,8 @@ public static class DiagnosticCatalog
         + "boundary\", with implicit filler bits per §8.5.1.6.3) — so it is refused rather than accepted inert.",
         "ISO §13.18.1.3 SR1");
 
-    /// <summary>COBOL1943 — the MESSAGE-TAG usage, refused by name. It is the DATA half of the same Annex A.3
-    /// item 4 asynchronous-messaging facility whose STATEMENTS are accept-inert under COBOL1578; the data item
-    /// cannot be accept-inert for the same reason COBOL1705's clause cannot be — there is no inert reading, so
-    /// an accepted MESSAGE-TAG item would have to bind as some OTHER class and every reference to it would then
-    /// be a wrong answer.</summary>
-    public static readonly DiagnosticDescriptor MessageTagUsageUnsupported = new(
-        "COBOL1943", "message-tag-usage-unsupported", EditionSeverity.Error,
-        "the MESSAGE-TAG usage (ISO §13.18.60) is the data-item half of the asynchronous messaging facility, a "
-        + "processor-dependent element (§4.2.6; Annex A.3 item 4) that is not supported — see "
-        + "docs/CONFORMANCE.md §4 item 1, where SEND/RECEIVE are accepted inert under COBOL1578. The DATA "
-        + "item is refused instead of accepted inert because there is no inert reading of it: §13.18.60.4 GR9 "
-        + "makes the class and category of a message-tag data item message-tag, so an accepted item would have "
-        + "to bind as some other class and every reference to it — a MOVE, a comparison, a length function — "
-        + "would silently give a wrong answer. MESSAGE-TAG is a COBOL-2023 addition (Annex E.2 item 25); below "
-        + "--std 2023 the word is a user-defined word and the entry draws the ordinary introduction gate. "
-        + "⛔ Both spellings are refused: §13.18.60.2 prints [ USAGE IS ] as OPTIONAL, so bare "
-        + "`01 M MESSAGE-TAG.` is the same clause as `01 M USAGE MESSAGE-TAG.`",
-        "ISO §4.2.6 ¶3 / Annex A.3 item 4 / §13.18.60.4 GR9", RecognizedNotImplemented,
-        Annex: DeclinedAnnex.A3);
+    // COBOL1943 ("message-tag-usage-unsupported") is RETIRED, NEVER REALLOCATE IT: USAGE MESSAGE-TAG is a bound
+    // category since kb/Work PB4740 (the asynchronous messaging facility, DESIGN-message-control.md S1).
 
     /// <summary>COBOL1955 — a PICTURE EDITING phrase's literal is written in the wrong LITERAL CLASS for the
     /// subject of the entry. ISO §13.18.40.3 SR9 binds in BOTH directions, and neither half was asked while
@@ -5772,9 +5755,7 @@ public static class DiagnosticCatalog
 
     /// <summary>A data description entry specifies USAGE MESSAGE-TAG together with another USAGE clause.
     /// §13.18.60.3 SR21: "If MESSAGE-TAG is specified, no other usage clauses shall be specified in the data
-    /// description entry." ⚠ THIS IS A SYNTAX RULE, NOT THE NON-SUPPORT DECLINE: it is raised at every edition
-    /// that has MESSAGE-TAG, ahead of and independently of <see cref="MessageTagUsageUnsupported"/>, so the
-    /// rule has a subject even though the usage itself is declined (Annex A.3 item 4).</summary>
+    /// description entry." It is raised at every edition that has MESSAGE-TAG.</summary>
     public static readonly DiagnosticDescriptor MessageTagUsageExclusive = new(
         "COBOL2158", "message-tag-usage-exclusive", EditionSeverity.Error,
         "USAGE MESSAGE-TAG is specified with another USAGE clause in the same data description entry.",
@@ -6279,34 +6260,8 @@ public static class DiagnosticCatalog
         + "\"If the alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, or class-name-1 "
         + "phrase is specified, identifier-1 shall reference a data-item whose usage is display or national.\"",
         "ISO §8.8.4.4.3 SR3");
-    /// <summary>COBOL2205 — a SET statement selected ISO §14.9.39.2 Format 17 (message-tag), the STATEMENT
-    /// half of the Annex A.3 item-4 asynchronous messaging facility this implementation declines
-    /// (docs/CONFORMANCE.md §4 item 1). §4.2.6 ¶3 makes a compile-time warning mechanism naming the unsupported
-    /// processor-dependent element MANDATORY, and this is Format 17's.
-    /// <para>⛔ IT IS AN ERROR WHERE ITS SEND/RECEIVE SIBLING (COBOL1578) IS A WARNING, and the asymmetry is
-    /// the operands': SEND and RECEIVE are accepted INERT because a statement that performs no message I-O is a
-    /// coherent no-op, while Format 17's operands are message-tag DATA ITEMS whose own entries are already
-    /// refused by name (COBOL1943) for want of any inert reading — §13.18.60.4 GR9 makes their class and
-    /// category message-tag. A statement over items that do not exist cannot be accepted.</para>
-    /// <para>⛔ IT EXISTS BECAUSE THE FORMAT HAD NO ROW, NOT BECAUSE THE VERDICT WAS MISSING (kb/Work PB453).
-    /// <c>SetFormatSelection</c>'s own comment asserted Format 17 "cannot be reached"; it was, and the statement
-    /// fell through to the NEAREST row — so <c>SET MT-A TO NULL</c> drew the §14.9.39.3 SR8 screen (COBOL0867,
-    /// which SAYS "the receiving operand of an object-reference SET shall be a USAGE OBJECT REFERENCE data
-    /// item") and <c>SET MT-A TO MT-B</c> drew the §8.8.1.1 screen (COBOL0844, "of category alphanumeric is
-    /// not a numeric operand"). ⛔ BOTH QUOTATIONS ARE THE DIAGNOSTICS' WORDS, NOT THE STANDARD'S —
-    /// SR8's own text is "Identifier-3 shall be any item of class object that is permitted as a receiving item". Both are true of a statement the
-    /// program did not write, and both name a repair that is not one.</para></summary>
-    public static readonly DiagnosticDescriptor McsMessageTagSetUnsupported = new(
-        "COBOL2205", "mcs-message-tag-set-unsupported", EditionSeverity.Error,
-        "a SET statement whose operand is a message-tag data item is ISO §14.9.39.2 Format 17 (message-tag), "
-        + "the statement half of the asynchronous messaging facility — a processor-dependent element (§4.2.6; "
-        + "Annex A.3 item 4) that is not supported. §14.9.39.3 SR35 makes both of Format 17's operands "
-        + "message-tag data items, and the MESSAGE-TAG usage itself is refused by name (COBOL1943), so the "
-        + "statement is refused rather than accepted inert — unlike SEND/RECEIVE, whose COBOL1578 accepts "
-        + "them inert because a statement that performs no message I-O is still a coherent no-op. See "
-        + "docs/CONFORMANCE.md §4 item 1.",
-        "ISO §4.2.6 ¶3 / Annex A.3 item 4 / §14.9.39.2 Format 17 / §14.9.39.3 SR35",
-        RecognizedNotImplemented, Annex: DeclinedAnnex.A3);
+    // COBOL2205 ("mcs-message-tag-set-unsupported") is RETIRED, NEVER REALLOCATE IT: SET Format 17 (message-tag)
+    // binds since kb/Work PB4740 (SetBinder.BindMessageTagSet).
 
     /// <summary>Two definitions in one compilation group externalize the SAME name to the operating
     /// environment (kb/Work PB660). ISO §8.3.2.2 states the rule as two sentences over one list, so this is one

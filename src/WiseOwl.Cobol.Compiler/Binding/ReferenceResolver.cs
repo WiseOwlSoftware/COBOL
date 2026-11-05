@@ -113,9 +113,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <see cref="Place"/>, no shape screen, no COBOL1639 on a name that identifies nothing. For a caller whose
     /// question is about the DECLARATION (what USAGE does this item carry?) and whose format has a legal reading on
     /// which the name is no data item at all; the SEND statement's TO operand, which is a message-server-name-1 in
-    /// Format 1 and a message-tag data-name-2 in Format 2 (§14.9.38.2), is the one such caller. A MESSAGE-TAG item
-    /// has no <see cref="Place"/> (its profile is the COBOL1943 recovery shape), so <see cref="Probe"/> cannot answer
-    /// the question. Null for a special register, a name nothing declares and an ambiguous reference.</summary>
+    /// Format 1 and a message-tag data-name-2 in Format 2 (§14.9.38.2), is the one such caller. Null for a special register, a name nothing declares and an ambiguous reference.</summary>
     internal DataItem? ProbeDeclaration(Core.DataReferenceContext dref)
     {
         DataReferenceCst written = dref;

@@ -1298,8 +1298,8 @@
   },
   {
    "id": "usage-message-tag-2023",
-   "status": "pending",
-   "description": "PENDING - USAGE MESSAGE-TAG (ISO §13.18.60.2 / §13.18.60.4 GR9), a COBOL-2023 introduction (§8.9 reserves MESSAGE-TAG from 2023; Annex E.2 item 25 = VCR row 32): below 2023 the word is a user-defined word, so the entry draws the ordinary COBOL0900 introduction gate (bound-arm UsageConstructId, the usage-function-pointer-2014 shape) and PictureAnalyzer.ParseUsage's decline does NOT also fire (kb/Work PB916 - COBOL1943 used to fire at 85/2002/2014 against its own message text). The row is pending because no PROGRAM can be accepted at 2023: the data half of the asynchronous messaging facility is declined non-support (Annex A.3 item 4; docs/CONFORMANCE.md 4 item 1), so every conforming spelling is refused COBOL1943 and the active-row matrix cell 'compiles at introducedIn' cannot hold - the initialize-category-2023 precedent. The gate is live and witnessed by the pb916 goldens and MessageTagIntroductionGateTests.",
+   "status": "active",
+   "description": "USAGE MESSAGE-TAG (ISO §13.18.60.2 / §13.18.60.4 GR9), a COBOL-2023 introduction (§8.9 reserves MESSAGE-TAG from 2023; Annex E.2 item 25 = VCR row 32): below 2023 the word is a user-defined word, so the entry draws the ordinary COBOL0900 introduction gate (bound-arm UsageConstructId, the usage-function-pointer-2014 shape). LIVE since kb/Work PB4740: the entry binds the message-tag category (PicCategory.MessageTag, DOC-A.1-212) and a program using the usage and its NULL, SET Format 17, relation, INITIALIZE and BY VALUE forms compiles at 2023.",
    "display": "USAGE MESSAGE-TAG",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §13.18.60.4 GR9 / §8.9 (reserved from 2023)",

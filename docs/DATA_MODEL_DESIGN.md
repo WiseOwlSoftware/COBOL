@@ -2105,33 +2105,19 @@ rejected at the declaration. That is what makes `ComputeTier`'s nested
 pointer/object Tier-D backstop (D5 / `REDEFINES_DESIGN.md`) unreachable-by-construction on conforming
 source; the backstop is kept as the recovery-path guard, never deleted.
 
-**Forward obligations, held by a test rather than by memory.** `Usage.MessageTag` EXISTS as of kb/Work PB487,
-but the usage itself is DECLINED non-support — the data-item half of the Annex A.3 item 4 asynchronous messaging
-facility (`docs/CONFORMANCE.md` §4 item 1), refused BY NAME in `PictureAnalyzer.ParseUsage` with COBOL1943 at
-2023 (below it the usage does not exist, and the COBOL0900 gate `usage-message-tag-2023` is the whole answer — kb/Work
-PB916). The member is there for the FLOAT-BINARY-128 reason: `ParseUsage` must return something and the
-entry is PICTURE-less (§13.16.3 SR8 exempts message-tag), so without it the errored compile carried a null
-`PicInfo` into the emitter — which is exactly the unhandled `NullReferenceException` PB487 measured.
-
-⛔ **A DECLINED USAGE STILL HAS SYNTAX RULES OVER IT, and all three of this one's are now ENFORCED and
-WITNESSED** (kb/Work PB544). The earlier reading here — that because no message-tag item can ever BIND, SR4's
-and SR14's message-tag arms and SR21 were "unreachable rather than unimplementable" — conflated a declined
-SEMANTIC with an unwritten SYNTAX RULE, and it was wrong on the measurement as well: a syntax rule is decided
-on the written entry, ahead of and independently of whether the usage is supported. MEASURED at `--std 2023`:
-`01 CFG CONSTANT RECORD. 05 Q USAGE MESSAGE-TAG.` reports COBOL1726 naming **SR4**;
-`01 G USAGE MESSAGE-TAG. 05 M PIC X(3).` reports COBOL1724 naming **SR14**; and
-`01 M USAGE MESSAGE-TAG USAGE DISPLAY PIC X(3).` reports COBOL2158 naming **SR21** — each beside the
-COBOL1943 decline, never instead of it. SR21's screen is `DataBinder.CheckMessageTagExclusivity`, and the
-reason it could not exist before is structural rather than semantic: `BindEntry` kept a single `usageText`
-that each successive USAGE clause OVERWROTE, so `01 M USAGE MESSAGE-TAG USAGE DISPLAY PIC X(3).` bound as a
-plain DISPLAY item and compiled with NO diagnostic at all. A rule whose subject is the SET of usage clauses
-in an entry cannot be written against a scalar; the entry now keeps the clause LIST.
-`UsageDeclarationPlacementDriftTests` still requires a recorded verdict for every `Usage` member, and the
-verdict recorded for this one is the refusal. The pre-2023 shape of these rules is not derivable
-from the 2023 text (Annex E's scope is 2014→2023 only, so its silence is a missing observation) — the arms ship
-ungated below 2023, recorded as kb/Work PB296; below 2023 the entry ALSO draws the COBOL0900 introduction gate
-(`usage-message-tag-2023`, kb/Work PB916) and the three rules are reported beside it, so PB544's witness sweeps
-all four editions.
+**USAGE MESSAGE-TAG is a bound category** (kb/Work PB4740, slice S1 of `rearchitecture/DESIGN-message-control.md`): the entry binds
+`PicInfo.MessageTagItem` (`PicCategory.MessageTag`, PICTURE-less per §13.16.3 SR8), whose class is `CobolClass.MessageTag` and whose
+carrier is the runtime `MessageTag` struct on a managed slot (`SlotWindow.CarriedBySlot`, 8 positions, DOC-A.1-212). Below 2023 the usage
+does not exist and the COBOL0900 gate `usage-message-tag-2023` is the whole answer (kb/Work PB916). Its former refusal, COBOL1943, and
+the recovery profile `PicInfo.MessageTagRecovery` are deleted. The §13.18.60.3 rules over the usage hold on the written entry, and each has
+a refusal golden: SR4 (`01 CFG CONSTANT RECORD. 05 Q USAGE MESSAGE-TAG.` is COBOL1726), SR14 (`01 G USAGE MESSAGE-TAG. 05 M PIC X(3).` is
+COBOL1724) and SR21 (`01 M USAGE MESSAGE-TAG USAGE DISPLAY PIC X(3).` is COBOL2158, from `DataBinder.CheckMessageTagExclusivity`).
+That screen exists because `BindEntry` once kept a single `usageText` that each successive USAGE clause OVERWROTE, so the entry bound as a
+plain DISPLAY item and compiled with NO diagnostic at all: a rule whose subject is the SET of usage clauses in an entry cannot be written
+against a scalar, and the entry keeps the clause LIST. `UsageDeclarationPlacementDriftTests` requires a recorded verdict for every `Usage`
+member. The pre-2023 shape of these rules is not derivable from the 2023 text (Annex E's scope is 2014 to 2023 only, so its silence is a
+missing observation); the arms ship ungated below 2023 (kb/Work PB296), and below 2023 the entry also draws the COBOL0900 introduction gate
+(`usage-message-tag-2023`, kb/Work PB916), so PB544's witness sweeps all four editions.
 
 **The other half of §13.16.3 SR8 — its SR9 exception — is SYNTHESIZED, not excused** (kb/Work PB504/PB831/PB828;
 mechanism design `docs/rearchitecture/DESIGN-data-model.md` §2.7a). SR9 says the PICTURE clause "may be omitted
