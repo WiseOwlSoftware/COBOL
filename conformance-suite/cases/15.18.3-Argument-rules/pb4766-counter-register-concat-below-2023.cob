@@ -4,7 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4766 (the below-2023 refusal of pb4766_counter_register_concat_baseconvert_argument: CONCAT and BASECONVERT were introduced by 2023, COBOL1502) - ISO §15.18.3 r1: "Argument-1 and argument-2 shall be data items or literals of class alphabetic, alphanumeric,
+      *> PB4766 (the below-2023 refusal of pb4766_counter_register_concat_baseconvert_argument: CONCAT and BASECONVERT were introduced by 2023, COBOL1502).
+      *> ISO §15.18.3 r1: "Argument-1 and argument-2 shall be data items or literals of class alphabetic, alphanumeric,
       *> boolean, numeric or national." and §15.12.3 r1: argument-1 "shall be a usage display or national data item or literal, and,
       *> if the base specified in argument-2 is less than 11, shall also be an unsigned integer data item or literal" (both
       *> cite.py --check OK). LINAGE-COUNTER "references a temporary unsigned integer data item of class and category numeric whose

@@ -2058,7 +2058,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // wrong-stage family). Its image is the unsigned integer item's, the ONE form OperandText.AsString gives a register in a
             // string context (its digits zero-filled to the register's implicit digit count, AlgebraicRanges.CounterRegisterDigits).
             // A position that bars a numeric item refuses the register at the binder, as it refuses the field; this arm renders.
-            : AlgebraicRanges.CounterRegisterDigits(n.Expr) is not null
+            : OperandText.IsCounterRegister(n)
                 ? OperandText.AsString(n, owner.Num)
             // ⛔ THE --permissive COERCION OF A COMPOUND ARITHMETIC EXPRESSION AT A CHARACTER POSITION (kb/Work PB4710): `TRIM (I2 + 1)`
             // is refused in every strict mode (an arithmetic expression is class numeric where TRIM requires a character class,
