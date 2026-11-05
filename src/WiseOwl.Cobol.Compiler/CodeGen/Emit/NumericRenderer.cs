@@ -337,6 +337,13 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // SR1) also reads — one spelling for the two directions (kb/Work PB429).
     public NumX Visit(BoundReportCounterRef n) =>
         new(RuntimeApi.ReportCounterRead(n.Report.CsIndex, n.Depth, n.IsPage), 0);
+
+    /// <summary>A report counter's STORAGE image (CONVERT's ANY source, §15.19.3 r7): the bytes of its implicit description, the 32-bit
+    /// unsigned binary item <see cref="PicInfo.ReportCounterItem"/>, through the profile the report's counter item declares
+    /// (<c>ReportModel.PageCounterRegister</c>, which the receiving place also reads) — the storage codec's one answer for any item of
+    /// that description (kb/Work PB4766 review R1-2).</summary>
+    public string CounterStorageImage(BoundReportCounterRef n) =>
+        RuntimeApi.NumFormatImage(Visit(n).Expr, n.Report.PageCounterRegister.ProfileName);
     // A SUM counter read (ISO §13.18.54.4 GR4 — the counter is its printable entry's source item): an unscaled
     // integer at the counter's PICTURE-derived scale (GR1), engine-sourced.
     // A report VARYING counter read (ISO §13.18.64.4 GR3/GR4): the compose-local integer counter, scale 0.

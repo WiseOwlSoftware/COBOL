@@ -122,7 +122,7 @@ internal static class OperandText
     /// (<c>ReportModel.PageCounterRegister</c>, the one the receiving place reads). So CONVERT of PAGE-COUNTER and CONVERT of a
     /// declared BINARY-LONG UNSIGNED item agree, and FUNCTION BYTE-LENGTH's 4 matches (kb/Work PB4766 review R1-2).</summary>
     public static string CounterRegisterStorageImage(BoundComputedOperand op, NumericRenderer num) => op.Expr is BoundReportCounterRef report
-        ? RuntimeApi.NumFormatImage(num.Render(report, ReceiverContext.None).Expr, report.Report.PageCounterRegister.ProfileName)
+        ? num.CounterStorageImage(report)
         : AsString(op, num);
 
     /// <summary>The text image of a NUMERIC-result intrinsic (DA2), across all three shapes a numeric
