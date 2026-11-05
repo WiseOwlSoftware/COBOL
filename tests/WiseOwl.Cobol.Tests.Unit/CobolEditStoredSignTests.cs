@@ -120,6 +120,116 @@ public sealed class CobolEditStoredSignTests
         Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
     }
 
+    // The upper bound of the floating-string extent (PB4703 R1-2): a character-1 PAST the string's last symbol,
+    // reached with no digit read because a decimal point ends the string, shows its literal and is not the sign.
+    // Without `i < signEnd` the '-' literal of T below would be read as the negative sign of 0.5.
+    [Theory]
+    [InlineData("--.T9", 5, 1, "  .-5")]
+    [InlineData("--.T9", -5, 1, " -.-5")]
+    [InlineData("++.T9", 5, 1, " +.-5")]
+    [InlineData("++.T9", -5, 1, " -.-5")]
+    [InlineData("--.T99", 55, 2, "  .-55")]
+    [InlineData("--.T99", -55, 2, " -.-55")]
+    public void DeEdit_Character1PastTheFloatingStringsDecimalPoint_ShowsItsLiteralAndIsNotTheSign(
+        string mask, long value, int scale, string image)
+    {
+        CobolEdit.EditRule[] rules = [new CobolEdit.EditRule('T', "-", "-", SimpleInsertion: true, Floating: false)];
+        Assert.Equal(image, CobolEdit.Format(value, scale, mask, edits: rules));
+        Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
+    }
+
+    // §13.18.40.5 rule 6: the extended editing sign control symbols are floating insertion symbols too, and the
+    // simple insertion symbol embedded in their string is part of it, so rule 6 a) can land the sign (Table 9)
+    // on it: PIC LLTLL9 EDITING L FOR NEGATIVE IS "-" EDITING T IS ":" holding -555 is "  -555" (PB4703 R1-1).
+    // The de-edit reads it back, as it reads a floating '+' or '-' string's landed sign (PB4514).
+    [Theory]
+    [InlineData("-", "+", ":", 555, "  +555")]
+    [InlineData("-", "+", ":", -555, "  -555")]
+    [InlineData("-", "+", ":", 1555, "+1:555")]
+    [InlineData("-", "+", ":", -1555, "-1:555")]
+    [InlineData("(", "+", ":", -555, "  (555")]
+    [InlineData("(", " ", ":", -555, "  (555")]
+    [InlineData("(", " ", ":", 555, "   555")]
+    [InlineData("(", " ", ":", -1555, "(1:555")]
+    // The literal of T is itself the negative text: told from the landed sign by position (nothing before it).
+    [InlineData("-", "+", "-", -555, "  -555")]
+    [InlineData("-", "+", "-", 1555, "+1-555")]
+    [InlineData("-", "+", "-", -1555, "-1-555")]
+    // A landed text wider than one character: it takes the symbol's slot whole; the other characters of an
+    // embedded symbol wider than one hold replacement spaces (GR14 'es' counts both widths).
+    [InlineData("((", "))", ":", -555, "  ((555")]
+    [InlineData("((", "))", ":", -1555, "((1:555")]
+    [InlineData("((", "))", ":", 555, "  ))555")]
+    [InlineData("(", " ", "::", -555, "   (555")]
+    [InlineData("(", " ", "::", -1555, "(1::555")]
+    public void DeEdit_SignLandedOnEmbeddedCharacter1InForFloatingString_RoundTrips(
+        string negative, string positive, string insertion, long value, string image)
+    {
+        CobolEdit.EditRule[] rules =
+        [
+            new CobolEdit.EditRule('L', negative, positive, SimpleInsertion: false, Floating: true),
+            new CobolEdit.EditRule('T', insertion, insertion, SimpleInsertion: true, Floating: false),
+        ];
+        Assert.Equal(image, CobolEdit.Format(value, 0, "LLTLL9", edits: rules));
+        Assert.Equal((Int128)value, CobolEdit.DeEdit(image, "LLTLL9", edits: rules));
+    }
+
+    // SR12c: a BLANK landing wider than one position (the default for the unspecified side of "((") is a run of
+    // spaces that no single position can claim; the suppressed positions before a landing are one space each, so
+    // the whole run is read as the string's suppressed prefix (PB4703).
+    [Theory]
+    [InlineData("LLTLL9", 555, "    555")]
+    [InlineData("LLTLL9", -555, "  ((555")]
+    [InlineData("LLTLL9", 1555, "  1:555")]
+    [InlineData("LLTLL9", 5, "      5")]
+    [InlineData("LLL99", 5, "    05")]
+    [InlineData("LLL99", -5, "  ((05")]
+    [InlineData("LLL99", 55, "    55")]
+    public void DeEdit_FloatingExtendedSignWithBlankWideText_ReadsTheSuppressedPrefixAsOneRun(string mask, long value, string image)
+    {
+        CobolEdit.EditRule[] rules =
+        [
+            new CobolEdit.EditRule('L', "((", "  ", SimpleInsertion: false, Floating: true),
+            new CobolEdit.EditRule('T', ":", ":", SimpleInsertion: true, Floating: false),
+        ];
+        Assert.Equal(image, CobolEdit.Format(value, 0, mask, edits: rules));
+        Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
+    }
+
+    // §13.18.40.5 rule 6 a) lands the floating currency symbol's STRING (GR14 'cs': the first occurrence adds the
+    // currency string's length to the size) on a simple insertion symbol embedded in its string just as on a
+    // currency position: the string is written whole there, and de-edited back (PB4703).
+    [Theory]
+    [InlineData("$$B$$9", 555, "  USD555")]
+    [InlineData("$$B$$9", 1555, "USD1 555")]
+    [InlineData("$$,$$9", 555, "  USD555")]
+    [InlineData("$$,$$9", 1555, "USD1,555")]
+    [InlineData("$$,$$9", 5, "    USD5")]
+    public void DeEdit_CurrencyStringLandedOnEmbeddedInsertionSymbol_RoundTrips(string mask, long value, string image)
+    {
+        Assert.Equal(image, CobolEdit.Format(value, 0, mask, currencyString: "USD"));
+        Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, currencyString: "USD"));
+    }
+
+    // SR12c: with only POSITIVE specified the negative text is spaces. A blank is no evidence at a position of the
+    // floating string (its suppressed positions are spaces too), so the item is negative exactly when the positive
+    // text never landed; reading the blank at a suppressed position made every positive value negative (PB4703).
+    [Theory]
+    [InlineData("LLL9", 5, "  +5")]
+    [InlineData("LLL9", -5, "   5")]
+    [InlineData("LLL9", 123, "+123")]
+    [InlineData("LLL9", -123, " 123")]
+    [InlineData("LLL9", 0, "  +0")]
+    [InlineData("L999", 5, "+005")]
+    [InlineData("L999", -5, " 005")]
+    public void DeEdit_FloatingExtendedSignWithBlankNegativeText_ReadsTheSignFromTheLandedPositive(
+        string mask, long value, string image)
+    {
+        CobolEdit.EditRule[] rules = [new CobolEdit.EditRule('L', " ", "+", SimpleInsertion: false, Floating: mask.StartsWith("LL"))];
+        Assert.Equal(image, CobolEdit.Format(value, 0, mask, edits: rules));
+        Assert.Equal((Int128)value, CobolEdit.DeEdit(image, mask, edits: rules));
+    }
+
     [Fact]
     public void Format_FixedExtendedSign_FollowsTheStoredValue()
     {
