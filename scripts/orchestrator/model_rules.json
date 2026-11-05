@@ -81,8 +81,7 @@
     "session_hard_stop_pct": 99,
     "session_stop_source": "owner 2026-10-07 09:40 PDT: the session limit is 97 % (the soft stop, where dispatching holds and in-flight agents checkpoint); the hard stop stays two points above it so a hold always precedes a kill; before that 70/90 from the 2026-10-04 design (kb/Work PB1981)",
     "session_window_hours": 5,
-    "day_resume_minutes_after_reset": 5,
-    "meter_max_age_hours": 3
+    "day_resume_minutes_after_reset": 5
   },
   "routing": {
     "allowed": [

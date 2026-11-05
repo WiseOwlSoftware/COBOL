@@ -1,7 +1,8 @@
 #Requires -Version 7.0
 # SELF-TEST-PLATFORM: windows — the orchestrator loop is Windows-hosted: these cases drive Windows Terminal (a fake wt.exe), Win32_Process, USERPROFILE and directory junctions
 # Self-test for orchestrate.ps1 (core), driven by a fake -ClaudeExe (testdata/fake-claude.ps1); no Pester, no real
-# session. Proves: the dry run, one recorded unit, a missing handoff, the STOP file before any unit, a quick done unit.
+# session. Proves: the dry run, one recorded unit, a missing handoff, the STOP file before any unit, a quick done unit,
+# a finished unit's handoff.json archived (never taken for a hand-written orphan), and no unit started with --chrome.
 # One of the parallel parts of the orchestrate.ps1 self-test (testdata/orchestrate_test_lib.ps1 is their harness;
 # kb/Work PB2563). Run: pwsh -NoProfile -File scripts/orchestrator/test_orchestrate_core.ps1, or every
 # self-test at once: python scripts/self_tests.py
@@ -44,8 +45,16 @@ Check 'STOP exit' $r.code 0
 Check 'STOP started nothing' $r.runs 0
 Check 'STOP reported' ($r.out -match 'STOP file present') $true
 
-# 4b. a short unit that hands off `done` is not a fast failure (the meter unit takes about 40 s)
-$r = Run-Orch 'quickdone' 'good' @('-Unit', 'meter', '-MaxUnits', '1', '-FastFailSeconds', '120')
+# 4b. a short unit that hands off `done` is not a fast failure
+$r = Run-Orch 'quickdone' 'good' @('-Unit', 'resume', '-MaxUnits', '1', '-FastFailSeconds', '120')
 Check 'quick done unit not failed' $r.units[0].failed $false
+
+# 5. handoff.json is the running unit's file: a finished unit's is archived beside its log, so the next start finds none
+$r = Run-Orch 'archived' 'good' @('-Unit', 'wave', '-MaxUnits', '2', '-FastFailSeconds', '0')
+Check 'the wave''s handoff names resume and resume runs' (($r.units | ForEach-Object { $_.unit }) -join ' ') 'wave resume'
+Check 'no handoff.json is left to be taken for an orphan' ((Test-Path (Join-Path $r.coord 'handoff.json')) -or ($r.out -match 'no unit of this run wrote')) $false
+Check 'the unit''s handoff is archived beside its log' @(Get-ChildItem (Join-Path $r.coord 'logs') -Filter '*wave.handoff.json').Count 1
+# 6. no unit reads the quota meter through Claude in Chrome (kb/Work PB4748: the status line's cached rate_limits are the meter)
+Check 'no unit was started with --chrome' ((Get-Content (Join-Path $r.coord 'fake-invocations.txt') -Raw) -match '--chrome') $false
 
 Complete-OrchTest 'core'

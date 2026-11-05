@@ -19,7 +19,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Steer')]
 param(
     [Parameter(Mandatory, ParameterSetName = 'Steer')]
-    [ValidateSet('wave', 'campaign', 'enqueue', 'resume', 'meter')]
+    [ValidateSet('wave', 'campaign', 'enqueue', 'resume')]
     [string]$Unit,
     # Why this unit now: it becomes the choice's reason in the supervisor's log and units.jsonl.
     [Parameter(Mandatory, ParameterSetName = 'Steer')]

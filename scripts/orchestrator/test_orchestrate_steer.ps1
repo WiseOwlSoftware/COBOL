@@ -15,7 +15,7 @@ $Here = $PSScriptRoot
 # it is pending, is consumed by the unit it chose (which reads it as its previous handoff), and -Unit goes through it.
 $StopPs = Join-Path $Here 'stop.ps1'
 $SteerPs = Join-Path $Here 'steer.ps1'
-$synth = { param($c) Set-Content -Path (Join-Path $c 'handoff.last.json') -Encoding utf8 -Value '{"schema_version":1,"unit":"meter","outcome":"split","summary":"synthesized for a dead meter unit","next_unit":"resume","synthesized":true}' }
+$synth = { param($c) Set-Content -Path (Join-Path $c 'handoff.last.json') -Encoding utf8 -Value '{"schema_version":1,"unit":"wave","outcome":"split","summary":"synthesized for a dead wave unit","next_unit":"resume","synthesized":true}' }
 $st = Join-Path $Root 'steerscript'
 & pwsh -NoProfile -File $SteerPs -Unit wave -Reason 'run a wave; hold the enqueue' -CoordDir $st | Out-Null
 $sh = Get-Content (Join-Path $st 'handoff.operator.json') -Raw
@@ -59,8 +59,8 @@ $r = Run-Orch 'drystale' 'good' @('-DryRun', '-Unit', 'enqueue') {
     param($c) $dead = & pwsh -NoProfile -Command '$PID'; $d = Join-Path $c "scratch/dryrun-$dead"
     New-Item -ItemType Directory -Force -Path $d | Out-Null; Set-Content -Path (Join-Path $d 'handoff.operator.json') -Value '{"next_unit":"wave"}' }
 Check 'a killed dry run''s directory is reaped, said, and its steer never read' "$($r.out -match "reaped a killed dry run's directory") $($r.out -match "would run unit 'enqueue'") $(& $dryRuns $r.coord)" 'True True 0'
-$r = Run-Orch 'dryopen' 'good' @('-DryRun') { param($c) & $opJson $c 'meter' }
-Check 'a dry run shows a pending steer and does not consume it' "$($r.out -match "would run unit 'meter'") $(Test-Path (Join-Path $r.coord 'handoff.operator.json'))" 'True True'
+$r = Run-Orch 'dryopen' 'good' @('-DryRun') { param($c) & $opJson $c 'resume' }
+Check 'a dry run shows a pending steer and does not consume it' "$($r.out -match "would run unit 'resume'") $(Test-Path (Join-Path $r.coord 'handoff.operator.json'))" 'True True'
 
 # next_unit.py itself: rule 0 outranks rule 1 (an owner question already answered by the steer)
 $nc = Join-Path $Root 'nextunit'
