@@ -337,7 +337,17 @@ internal static class IntrinsicResultType
     /// false, which keeps the numeric row — the fail-soft direction.
     /// </summary>
     private static bool IsIntegerArg(IReadOnlyList<BoundOperand> args, int i) =>
-        i < args.Count && IsIntegerOperand(args[i]);
+        i < args.Count && IsIntegerArgument(args[i]);
+
+    /// <summary>The §15.3 type-6 reading of one ARGUMENT for the result-type rows: <see cref="IsIntegerOperand(BoundOperand)"/>,
+    /// and a PARENTHESIZED item or literal (<c>ABS((I2))</c>, kb/Work PB4635) — the computed operand the intrinsic binder makes of
+    /// it, because it is "an arithmetic expression" (§8.8.1.1) and not the item it encloses — is "an arithmetic expression that
+    /// will always result in an integer value" (§15.3 item 6) exactly when the enclosed integer item or literal is, so the function
+    /// keeps the Integer row it had when the parentheses were dropped. ⚠ NOT folded into <see cref="IsIntegerOperand(BoundOperand)"/>:
+    /// the statement positions that read it (the §8.8.4.2.5 relation screen, PERFORM TIMES) want an integer ITEM or literal, and
+    /// PB1935 keeps a parenthesized one out of them.</summary>
+    private static bool IsIntegerArgument(BoundOperand op) =>
+        op is BoundComputedOperand { Expr: BoundNumRef or BoundNumLiteral } grouped ? IsIntegerOperand(grouped.Expr) : IsIntegerOperand(op);
 
     /// <summary>The ONE "is this operand an integer" classifier (§15.2 type 5 for a function result; a scale-0
     /// numeric elementary item for a data item; a literal without a decimal point) — the §15.x integer-argument
@@ -401,7 +411,7 @@ internal static class IntrinsicResultType
     private static bool AllIntegerArgs(IReadOnlyList<BoundOperand> args)
     {
         foreach (var a in args)
-            if (!IsIntegerOperand(a)) return false;
+            if (!IsIntegerArgument(a)) return false;
         return true;
     }
 }

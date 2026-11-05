@@ -27,6 +27,7 @@
        01 TB.
           05 TE PIC 9 OCCURS 3 VALUE 2.
        01 T    PIC 9(4).
+       01 CNT  PIC 9 VALUE 0.
        PROCEDURE DIVISION.
        MAIN.
            COMPUTE T = FUNCTION FIND-STRING(X9 "ABC" I2)
@@ -37,5 +38,10 @@
                + FUNCTION MAX((I2) (TE(1)))
            DISPLAY "NUMERIC=" T
            DISPLAY "BASES=" FUNCTION BASECONVERT("1A" B16 10)
+           DISPLAY "INTTYPE=" FUNCTION ABS((I2))
+           PERFORM FUNCTION MAX((I2) 1) TIMES
+               ADD 1 TO CNT
+           END-PERFORM
+           DISPLAY "TIMES=" CNT
            STOP RUN.
        END PROGRAM PB4635PARENNUM.

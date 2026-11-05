@@ -14,3 +14,14 @@ is an arithmetic expression.
 
 Goldens: `pb4635_parenthesized_numeric_arguments` (accept 2023), negatives `pb4635-findstr-parenthesized-item` and
 `pb4635-baseconvert-parenthesized-literal`. No inventory row re-verdicted.
+
+Review round 1 found two blockers in the first wrap. (R1-1) It bound the parenthesized item with the function-argument context,
+which suspends the section 8.8.1.1 class screen, so `ABS((X9))` over a PIC X item digit-decoded (and so did a numeric-edited, group,
+index, pointer or boolean item). The binder now binds every argument that is not a sole unparenthesized operand through the screened
+`BindExpr`; the same change refuses the older `ABS(X9 + 1)`, which digit-decoded under STRICT before this branch. (R1-2) The wrapped
+operand answered false to `IsIntegerOperand`, so `ABS((I2))` resolved NUMERIC (`PERFORM FUNCTION MAX((I2) 1) TIMES` became COBOL1646,
+`DISPLAY FUNCTION ABS((I2))` printed 000000002). `IntrinsicResultType.IsIntegerArgument` reads a parenthesized sole integer item or
+literal as the always-integer arithmetic expression it is (section 15.3 item 6); the shared `IsIntegerOperand` is untouched so the
+relation screen and PERFORM TIMES still refuse a parenthesized item (PB1935). Also fixed: the comment quote in the BASECONVERT negative
+and the stale `BindArgOperand` summary. New goldens: `pb4635-abs-parenthesized-alphanumeric`, `pb4635-abs-compound-alphanumeric`, and
+INTTYPE/TIMES lines in `pb4635_parenthesized_numeric_arguments`.
