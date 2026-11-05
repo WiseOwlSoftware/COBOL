@@ -34,11 +34,10 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   and runs fix-lane waves on its own quota. Neither lane plans what the other's dispatch holds (`inflight-groups.json`).
   The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans nothing else on
   `docs/CONFORMANCE.md`.
-- **▶ PRIORITY (owner 2026-10-10, kb/Work PB2911): THE COMPILER AND ZERO GAP COME FIRST.** The loop runs
-  `-Cluster PB2911,PB1086`: the GAP campaign (the 51 open notes holding the inventory's 103 GAP rows, which the fix
-  lane never planned: 34 are analyses and 29 process-only, and GAP had not moved since 2026-10-08) and the §8.13
-  external-repository slices, alternating with the fix lane's defect waves. The Delete program PB2119 and the R2
-  review's batch 3 are HELD until zero GAP (reached 2026-11-05) and zero known compiler defects. Quota: owner 2026-10-10, 100 % of the
+- **▶ PRIORITY (owner 2026-10-10, kb/Work PB2911): THE COMPILER AND ZERO GAP COME FIRST.** Zero GAP was reached on
+  2026-11-05 (kb/Work A11 closed DOC-A.1-17, the last GAP row); the GAP campaign's remaining open notes are named in
+  WHO RUNS WHAT above, and the fix lane's defect waves come first. The Delete program PB2119 and the R2 review's
+  batch 3 are HELD until zero known compiler defects. Quota: owner 2026-10-10, 100 % of the
   weekly allowance (loop `-BorrowDays 6`), never past the 5-hour session limit.
 - **▶ GATE POLICY (owner 2026-10-31, owner decision 1 of PB4323; kb/Work PB4328): THE POPULATION IS THE SELECTION.**
   Every gate of a change a test can read runs the WHOLE Windows Unit, Conformance and Characterization populations

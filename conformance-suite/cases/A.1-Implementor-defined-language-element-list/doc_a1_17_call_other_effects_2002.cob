@@ -19,7 +19,7 @@
       *> USING argument and the RETURNING item keep the values they held
       *> before the CALL, NOT ON EXCEPTION is not executed, and the last
       *> exception status names the condition. This case drives every
-      *> condition GR3 h) 2. reaches for a CALL in 2002 and 2014: the six
+      *> condition GR3 h) 2. reaches for a CALL in 2002 and 2014: the five
       *> EC-PROGRAM conditions. EC-EXTERNAL is a 2023 name; its arm is in
       *> the 2023 twin, doc_a1_17_call_other_effects.
       *> Each declarative ends with RESUME AT NEXT STATEMENT (§14.9.33.4
