@@ -125,7 +125,7 @@ internal sealed class CheckUsageDeclarationsPass : IBindPass
             // reported ONCE, at the entry carrying the clause the programmer must change — not once per leaf.
             // (Screened before arm B so the group's own header, which sheds its synthesized profile in
             // ResolveIndexItems, is not silently skipped by a Pic test that no longer sees the usage.)
-            if (!Sr14Elementary(item) && ItemCategory.Sr14PhraseOf(item.OwnUsage) is { } phraseA)
+            if (!Sr14CopiedMember(item) && !Sr14Elementary(item) && ItemCategory.Sr14PhraseOf(item.OwnUsage) is { } phraseA)
             {
                 binder.Edition.Error(DiagnosticCatalog.UsageDeclarationPlacement, $"data item '{name}' is a GROUP item "
                     + $"described with USAGE {phraseA} — that usage applies to each elementary item in the "
@@ -242,7 +242,7 @@ internal sealed class CheckUsageDeclarationsPass : IBindPass
     /// (kb/Work PB3129: the TYPE spelling escaped it).</summary>
     private static void ScreenSr14ElementaryPlacement(DataBinder binder, DataItem item, string name)
     {
-        if (!Sr14Elementary(item) || Sr14PhraseOf(item) is not { } phrase) return;
+        if (Sr14CopiedMember(item) || !Sr14Elementary(item) || Sr14PhraseOf(item) is not { } phrase) return;
         if (Sr14PermittedLevel(item.Level) || DataBinder.UnderStrongTypeDeclaration(item)) return;
 
         string acquired = item.TypeName is { } typeName ? $" (by TYPE {typeName}, ISO §13.18.57.4 GR1)" : "";
@@ -278,6 +278,17 @@ internal sealed class CheckUsageDeclarationsPass : IBindPass
             + "of a BASED entry shall not be of class object (ISO §13.18.5.3 SR1)");
         return true;
     }
+
+    /// <summary>⛔ A MEMBER A SAME AS COPY REPRODUCED IS JUDGED WHERE IT IS WRITTEN, ONCE (kb/Work PB4705; the TYPE twin is
+    /// the pruning of <see cref="DataBinder.ConformanceForest"/>). §13.18.49.4 GR1 makes the copy "as though the data
+    /// description identified by data-name-1 had been coded in place", and §13.18.49.3 SR7 limits data-name-1 to an
+    /// elementary item or a level 1 group, so a copied member is subordinate to a level-1 group at the source and at the
+    /// copy alike: its SR14 placement verdict is the SOURCE member's, and the source member is an entry of the same forest,
+    /// screened at its own position. Asking the clone too drew one COBOL1724 per copy at that same position for one written
+    /// violation. A source legal under a strong type (<c>01 SV TYPE ST</c>) is copied with its TYPE identity,
+    /// so its copy is pruned like any TYPE composition and stays legal. The SUBJECT of the SAME AS entry is a written entry
+    /// (<c>ClonedFrom</c> null) and is still screened at its own placement.</summary>
+    private static bool Sr14CopiedMember(DataItem d) => d.ClonedFrom is not null;
 
     /// <summary>SR14's subject test — "an ELEMENTARY data item", which §8.5.1.3.2 settles structurally: an entry
     /// with subordinates is a group, one without is elementary.

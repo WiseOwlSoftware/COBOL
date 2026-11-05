@@ -63,4 +63,47 @@ public sealed class UsageDeclarationPlacementMatrixTests
         Assert.True(Reports1724(group),
             $"`01 G USAGE {word}. 05 A PIC X.` violates §13.18.60.3 SR14 (via §13.18.60.4 GR1) and must draw COBOL1724");
     }
+
+    private static int Count1724(string source)
+    {
+        var (_, _, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(source);
+        return detail.Split('\n').Count(l => l.Contains("COBOL1724"));
+    }
+
+    /// <summary>⛔ ONE WRITTEN SR14 VIOLATION DRAWS ONE COBOL1724, THROUGH EVERY COPY OF ITS GROUP (kb/Work PB4705).
+    /// §13.18.49.4 GR1 reproduces a level-1 group's members under each SAME AS subject (§13.18.49.3 SR7 admits only an
+    /// elementary item or a level 1 group), and a copied member carries the position of the member it copies, so a screen
+    /// that asked the clones drew a second COBOL1724 per copy at that one position. The member is judged where it is
+    /// written (in the source group, and for the TYPE spelling in `05 PZ TYPE PT`, §13.18.57.4 GR1); the copies add none.
+    /// The expected count is the count WITHOUT the copies, so a copy of any usage in SR14's population is a row here.</summary>
+    [Theory]
+    [MemberData(nameof(Sr14Usages))]
+    public void ASameAsCopyOfAViolatingGroup_AddsNoSecondReport(Usage usage)
+    {
+        string word = UsageFamilies.UsageWord(usage);
+        string tag = Regex.Replace(word, "[^A-Z0-9]", "");
+        string bare = Program($"P4705B{tag}", $"01 PG.\n    05 PX PIC X.\n    05 PP USAGE {word}.");
+        string copied = Program($"P4705C{tag}",
+            $"01 PG.\n    05 PX PIC X.\n    05 PP USAGE {word}.\n01 PC SAME AS PG.\n01 G.\n    05 Q SAME AS PG.");
+        Assert.Equal(1, Count1724(bare));
+        Assert.Equal(1, Count1724(copied));
+
+        string typeBare = Program($"P4705D{tag}", $"01 PT TYPEDEF USAGE {word}.\n01 PG.\n    05 PX PIC X.\n    05 PZ TYPE PT.");
+        string typeCopied = Program($"P4705E{tag}",
+            $"01 PT TYPEDEF USAGE {word}.\n01 PG.\n    05 PX PIC X.\n    05 PZ TYPE PT.\n01 PC SAME AS PG.\n01 G.\n    05 Q SAME AS PG.");
+        Assert.Equal(1, Count1724(typeBare));
+        Assert.Equal(1, Count1724(typeCopied));
+    }
+
+    /// <summary>The copy of a LEGAL group stays legal: a strong type declaration is where SR14 admits the pointer at level
+    /// 05, and a SAME AS copy of the strongly-typed item carries that TYPE identity (§13.18.49.4 GR1), so skipping the copied
+    /// members costs the legal shape nothing.</summary>
+    [Fact]
+    public void ASameAsCopyOfAStronglyTypedGroup_StaysLegal()
+    {
+        string source = Program("P4705F",
+            "01 ST TYPEDEF STRONG.\n    05 PP USAGE POINTER.\n    05 PX PIC X.\n01 SV TYPE ST.\n01 Q SAME AS SV.");
+        var (ok, _, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(source);
+        Assert.True(ok, detail);
+    }
 }
