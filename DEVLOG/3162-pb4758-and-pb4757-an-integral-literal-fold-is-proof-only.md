@@ -1,4 +1,4 @@
-## PB4758 and PB4757 — an integral literal fold is proof only when the arithmetic reproduces it; the type-6 screen reads ABS of an unsigned item as the item
+## Entry 3162 — 2026-11-05 14:46 PST — PB4758 and PB4757 — an integral literal fold is proof only when the arithmetic reproduces it; the type-6 screen reads ABS of an unsigned item as the item
 
 Two review leftovers of PB4709, both in `IntrinsicArgumentRules`.
 
@@ -11,3 +11,4 @@ Rows re-verdicted: none (AR-15.3-6 already CONFORMS). `docs/INTRINSICS_DESIGN.md
 Branch review round 1 (R1-1): the unsigned-only reading left `G2 + FUNCTION ABS (G2)` over a signed item, and `S2 + FUNCTION ABS (- S2)`, failing open. The screen needs one witness valuation, and ABS of a bare (or negated) item is the item on its non-negative valuations, so `UnsignedArgumentOfAbs` no longer requires an unsigned item and strips negations; `G2 - FUNCTION ABS (G2)` still nets to 0. Goldens `pb4757-abs-signed-sum-non-integral` and `pb4757-abs-negated-sum-non-integral` (COBOL1627 at 2002/2014/2023). The two comments that named `S2 - FUNCTION ABS (S2)` as the walk's guard now name `G2 - FUNCTION ABS (G2 + 0)` (R1-4).
 
 Self-review: architecture (one predicate per mechanism), code (the cited §15.7.4 1) a) reading, sibling arms agree), performance (only literal-only subtrees and ABS calls), duplication (none). It found the long-terminating-quotient gap (R1-2) and the other identity calls (R1-3), both left as leads in the report.
+
