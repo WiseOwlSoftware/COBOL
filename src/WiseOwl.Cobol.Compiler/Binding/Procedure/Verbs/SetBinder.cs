@@ -1176,9 +1176,14 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (host.Expr.ResolveSending(operandRef) is var nameAnswer && nameAnswer.Place is not { } namePlace)
         {
             if (nameAnswer.Outcome == RefOutcome.Deferred) { nameAnswer.PlaceOrReported(ctx.Edition); return null; }   // 0899, reported (kb/Work PB1030)
-            ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
-                $"{site} ADDRESS OF PROGRAM {word}: '{word}' is neither a program-prototype-name declared in "
-                + "the REPOSITORY paragraph (ISO §8.4.3.13.3 SR3) nor a resolvable identifier (SR1)");
+            // A word a PROGRAM specifier declares is never "not declared in the REPOSITORY paragraph": the sentence
+            // names the route that left it with no prototype (kb/Work PB4708), the one CALL and CANCEL give.
+            var configuration = ctx.Data.State.Configuration;
+            ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand, configuration.DeclaresProgramSpecifier(word)
+                ? $"{site} ADDRESS OF PROGRAM {word}: '{word}' is no program-prototype-name here — "
+                  + $"{configuration.WhyNoPrototype(word)} (ISO §8.4.3.13.3 SR3) — and no resolvable identifier (SR1)"
+                : $"{site} ADDRESS OF PROGRAM {word}: '{word}' is neither a program-prototype-name declared in "
+                  + "the REPOSITORY paragraph (ISO §8.4.3.13.3 SR3) nor a resolvable identifier (SR1)");
             return null;
         }
         if (!ScreenAddressName(namePlace, $"{site} ADDRESS OF PROGRAM {word}", word,
