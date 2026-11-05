@@ -3023,9 +3023,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // like `FUNCTION MAX(K-NUM + 1)` is an expression, not a bare literal, and only that path can bind it.
         if (SoleDataReference(a) is { } aliasRef && host.Expr.LiteralAliasOf(aliasRef) is { IsNumeric: false } alias)
             return host.Expr.AliasOperand(alias);
-        // An argument is NOT an §8.8.1.1 arithmetic expression: its legality comes from this function's own §15.x
-        // ARGUMENT RULE, and the string functions admit alphanumeric data. The named entry says so at the call
-        // site — TRIM / SUBSTITUTE / FIND-STRING / CONVERT over a PIC X item are legal (DA6).
+        // A SOLE argument (an unparenthesized item, literal or function-identifier) is NOT an §8.8.1.1 arithmetic expression: its
+        // legality comes from this function's own §15.x ARGUMENT RULE, and the string functions admit alphanumeric data. The named
+        // entry (BindFunctionArgumentExpr) says so at the call site — TRIM / SUBSTITUTE / FIND-STRING / CONVERT over a PIC X item are
+        // legal (DA6). An argument that is not sole IS one, and is screened below (kb/Work PB4635).
         // A function-prototype activation's argument is a literal, an identifier or an arithmetic expression by its WRITTEN
         // shape (§8.4.3.2.4 GR5; kb/Work PB3760), asked of the parse tree: the bound one has lost the parentheses. A sole
         // figurative ZERO keeps the path below (SoleOperand.NumericLiteral answers a written numeric literal only).
@@ -3045,22 +3046,39 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // arithmetic expression" (§8.4.3.2.3 SR8), whose identifiers must reference numeric data items (§8.8.1.1): `ABS(X9 + 1)` digit-decoded
         // an alphanumeric X9 under STRICT, and `ABS((X9))` would have, once the parentheses stopped being dropped to the field operand the
         // per-function class rule screens. A sole operand is asked of the written shape (SoleOperand), as the activation arm above asks it.
-        // GROUPING-PAREN-ONLY: the primary a parenthesized expression reduces to carries its own LPAREN (a function's argument list
-        // is FNARG_LPAREN inside functionCall, a subscript REF_LPAREN inside dataReference).
-        bool soleOperand = WiseOwl.Cobol.Frontend.Expressions.SoleOperand.Primary(written) is { } sole && sole.LPAREN() is null
-            || WiseOwl.Cobol.Frontend.Expressions.SoleOperand.NumericLiteral(written) is not null;
-        var bound = soleOperand ? host.Expr.BindFunctionArgumentExpr(written) : host.Expr.BindExpr(written);
-        // ⛔ A PARENTHESIZED ARGUMENT IS AN ARITHMETIC EXPRESSION, NEVER THE ITEM OR LITERAL IT ENCLOSES (kb/Work PB4635; §8.8.1.2 1)
-        // "the result is treated" as one operand, §8.4.3.2.3 SR8 "an identifier, a literal ... or an arithmetic expression"; the CALL and
-        // activation doors' PB1935 / PB3760). The expression
-        // binder drops grouping parentheses, so (I2) binds to I2's BoundNumRef and (3) to the literal 3; OperandOf then handed back a
-        // field or literal operand, and a "data item or literal" position (FIND-STRING argument-3, §15.37.3 3); BASECONVERT
-        // arguments 2 and 3, §15.12.3 1)) admitted it as if the bare item had been written. Asked of the written shape, as
-        // IsSoleFunctionIdentifier is; every other bound shape is already the computed operand OperandOf makes of it.
+        // ⛔ A PARENTHESIZED SOLE operand, `(BB)`, is ALSO "a boolean expression enclosed in parentheses" (§8.8.2), which the same SR8 admits
+        // as an argument (INTEGER-OF-BOOLEAN((BB)), §15.45.3 r1): it binds under its own context, whose class screen admits class boolean
+        // (OperandContext.GroupedFunctionArgument, review R2-1). A compound argument is no boolean expression and binds as arithmetic.
+        bool soleOperand = IsSoleOperand(written);
+        bool groupedSoleOperand = !soleOperand && WiseOwl.Cobol.Frontend.Expressions.SoleOperand.Unparenthesized(written) is { } enclosed
+            && !ReferenceEquals(enclosed, written) && IsSoleOperand(enclosed);
+        var bound = soleOperand ? host.Expr.BindFunctionArgumentExpr(written)
+            : groupedSoleOperand ? host.Expr.BindGroupedFunctionArgumentExpr(written)
+            : host.Expr.BindExpr(written);
+        // ⛔ A PARENTHESIZED ARGUMENT IS AN ARITHMETIC EXPRESSION, NEVER THE ITEM OR LITERAL IT ENCLOSES (kb/Work PB4635; §8.4.3.2.3 SR8
+        // "an identifier, a literal, a boolean expression, or an arithmetic expression", §8.8.1.1 "an arithmetic expression enclosed in
+        // parentheses"; the CALL and activation doors' PB1935 / PB3760). The expression binder drops grouping parentheses, so (I2) binds
+        // to I2's BoundNumRef and (3) to the literal 3; OperandOf then handed back a field or literal operand, and a "data item or
+        // literal" position (FIND-STRING argument-3, §15.37.3 3); BASECONVERT arguments 2 and 3, §15.12.3 1)) admitted it as if the bare
+        // item had been written. Asked of the written shape, as IsSoleFunctionIdentifier is; every other bound shape is already the
+        // computed operand OperandOf makes of it. A class-BOOLEAN item is the boolean expression it encloses (§8.8.2), not an arithmetic
+        // one, and is the item to every reader (INTEGER-OF-BOOLEAN((BB)), review R2-1).
         if (!soleOperand && bound is BoundNumRef or BoundNumLiteral)
-            return new BoundComputedOperand(bound);
+        {
+            var enclosedOperand = OperandOf(bound, functionValue: false);
+            return IntrinsicArgumentRules.ClassOf(enclosedOperand) is CobolClass.Boolean ? enclosedOperand : new BoundComputedOperand(bound);
+        }
         return OperandOf(bound, functionValue: IsSoleFunctionIdentifier(written, bound));
     }
+
+    /// <summary>Is this argument expression, as WRITTEN, a single unparenthesized operand - one primary, or one numeric literal with the sign
+    /// that abuts it (<see cref="WiseOwl.Cobol.Frontend.Expressions.SoleOperand"/>)? The boundary between an argument whose legality is its
+    /// function's own §15.x rule and an arithmetic expression (§8.4.3.2.3 SR8).
+    /// GROUPING-PAREN-ONLY: the primary a parenthesized expression reduces to carries its own LPAREN (a function's argument list
+    /// is FNARG_LPAREN inside functionCall, a subscript REF_LPAREN inside dataReference).</summary>
+    private static bool IsSoleOperand(Core.ArithmeticExpressionContext? written) =>
+        WiseOwl.Cobol.Frontend.Expressions.SoleOperand.Primary(written) is { } sole && sole.LPAREN() is null
+        || WiseOwl.Cobol.Frontend.Expressions.SoleOperand.NumericLiteral(written) is not null;
 
     /// <summary>⛔ THE BINDER'S STATEMENT THAT AN ARGUMENT IS A FUNCTION-IDENTIFIER, ASKED OF THE WRITTEN SHAPE AND NEVER OF THE
     /// BOUND TREE'S (kb/Work PB4507 review R1-1, PB3678's doctrine for <see cref="BoundComputedOperand.IsNumericFunctionValue"/>).

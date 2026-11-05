@@ -347,7 +347,7 @@ internal static class IntrinsicResultType
     /// the statement positions that read it (the §8.8.4.2.5 relation screen, PERFORM TIMES) want an integer ITEM or literal, and
     /// PB1935 keeps a parenthesized one out of them.</summary>
     private static bool IsIntegerArgument(BoundOperand op) =>
-        op is BoundComputedOperand { Expr: BoundNumRef or BoundNumLiteral } grouped ? IsIntegerOperand(grouped.Expr) : IsIntegerOperand(op);
+        op is BoundComputedOperand { EnclosedOperand: { } enclosed } ? IsIntegerOperand(enclosed) : IsIntegerOperand(op);
 
     /// <summary>The ONE "is this operand an integer" classifier (§15.2 type 5 for a function result; a scale-0
     /// numeric elementary item for a data item; a literal without a decimal point) — the §15.x integer-argument

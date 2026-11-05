@@ -296,7 +296,9 @@ internal sealed record ArgSchema(ArgRule[] Positions, ArgRule? Tail, CrossArgRul
 /// <para>
 /// ⚠ <c>OperandContext.FunctionArgument</c> is NOT the bug and is unchanged. Its doc comment always said "the
 /// function's own §15.x argument rule governs, so an alphanumeric operand may be perfectly legal here" — which is
-/// correct, and is exactly why the §8.8.1.1 arithmetic screen must stay suppressed for arguments. The design was
+/// correct, and is exactly why the §8.8.1.1 arithmetic screen must stay suppressed for a SOLE argument (an argument that is
+/// an arithmetic expression by its written shape is screened: <c>OperandContext.Arithmetic</c> and
+/// <c>GroupedFunctionArgument</c>, kb/Work PB4635). The design was
 /// right; the per-function rule it promised was the missing half. This is that half.
 /// </para>
 /// <para>

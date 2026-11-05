@@ -144,6 +144,13 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
         {
             case BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } nested }:
                 return CallField(nested);
+            // ⛔ A PARENTHESIZED ITEM OR LITERAL IS DESCRIBED AS THE ITEM OR LITERAL (kb/Work PB4635 review R2-2). The binder makes (I2) a
+            // computed operand (an arithmetic expression, §8.8.1.1, whose position rules refuse it where a data item is required), but
+            // the description of the returned value's temporary is implementor-defined (§15.4.1), CLAUDE.md rule 1 gives it to GnuCOBOL
+            // 3.2.0 (DOC-A.1-92), and its parser makes `(I2)` the identifier I2: ABS((I3)) shows +03 as ABS(I3) does, not the 9-digit
+            // image of an expression such as I3 + 0.
+            case BoundComputedOperand { EnclosedOperand: { } enclosed }:
+                return Field(enclosed);
             // A call the binder folded that GnuCOBOL does not fold (the ALGEBRAIC family) is a function's returned value, described
             // by its value exactly as Of() describes it at top level; one GnuCOBOL folds (LENGTH) is the literal it folded to.
             case BoundNumericLiteral { FunctionValue: true } lit when IsUnfoldedByGnuCobol(lit):

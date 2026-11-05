@@ -621,6 +621,18 @@ public sealed record BoundComputedOperand(BoundExpr Expr) : BoundOperand
     /// LENGTH(VG))</c>, whose tree is a <see cref="BoundBinary"/>, was refused. Only the category is read from the call: a
     /// function-identifier of another class is no numeric value.</para></summary>
     public bool IsNumericFunctionValue => FunctionValue && Expr is not BoundIntrinsicCall { ResultCategory: not PicCategory.Numeric };
+
+    /// <summary>⛔ THE ITEM OR LITERAL A PARENTHESIZED SOLE ITEM OR LITERAL ENCLOSES (kb/Work PB4635), or null for every other expression.
+    /// The intrinsic binder wraps <c>(I2)</c> / <c>(3)</c> as a computed operand because it is "an arithmetic expression" (§8.8.1.1) and so
+    /// no "data item or literal" (<c>FIND-STRING</c> argument-3, <c>BASECONVERT</c>'s bases); the expression binder dropped the
+    /// parentheses, so <see cref="Expr"/> is the item's <see cref="BoundNumRef"/> or the literal's <see cref="BoundNumLiteral"/>, and this is
+    /// the operand a bare spelling of it binds to. It is the ONE answer every reader that treats the parentheses as transparent asks:
+    /// the §15.3 item 6 integer reading of the argument (<c>IntrinsicResultType.IsIntegerArgument</c>), the description DISPLAY shows for a
+    /// selecting function's returned value (<c>FunctionDeviceText.Field</c>: GnuCOBOL's parser makes <c>(N)</c> the identifier <c>N</c>,
+    /// and DOC-A.1-92 gives the implementor-defined image to GnuCOBOL), and the <c>--permissive</c> coercion of such an argument at a
+    /// character position (<c>IntrinsicRenderer</c>'s string-argument visitor).</summary>
+    public BoundOperand? EnclosedOperand =>
+        Expr is BoundNumRef or BoundNumLiteral ? Procedure.IntrinsicBinder.OperandOf(Expr, functionValue: false) : null;
 }
 
 /// <summary>A figurative constant operand (ISO §8.3.3.6). <paramref name="Kind"/> ∈ {Z=ZERO, S=SPACE, H=HIGH-VALUE,
