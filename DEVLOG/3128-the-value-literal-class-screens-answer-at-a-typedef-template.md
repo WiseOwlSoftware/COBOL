@@ -1,4 +1,4 @@
-## The VALUE literal class screens answer at a TYPEDEF template, once, instead of at each TYPE user
+## Entry 3128 — 2026-11-04 18:39 PST — The VALUE literal class screens answer at a TYPEDEF template, once, instead of at each TYPE user
 
 **PB4678.** `CheckValueLiteralClassesPass` walked `Forest.Roots` and the condition index, never `Forest.TypeDecls`. An oversize national
 literal on a USAGE NATIONAL numeric-edited TYPEDEF (`01 T1 TYPEDEF PIC 99B99 USAGE NATIONAL VALUE N"ABCDEFGHIJ".`, ISO 13.18.63.3 SR5
@@ -30,3 +30,4 @@ The 12 pb4678 conformance results (the positive at 2002, 2014 and 2023 and the t
 Self-review (architecture, full code, performance, duplication): one walk now serves the item, table and condition-name screens, and the old
 second condition loop is gone; the forest is the existing `DeclaredForest`, not a new enumeration; per-item allocation is the same
 (`Distinct` over the written literals).
+
