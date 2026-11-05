@@ -104,8 +104,8 @@ says "ask again", and a lost, late, duplicated or spurious ring costs latency an
 
 `SidecarLockFiles.LockDirectoryOf` names the lock directory inside the file's own parent directory, from the file's name alone, so every
 spelling of the MCS directory reaches one lock directory and one store mutex. With no `mcs.json`, every symbolic name is unknown and no
-store is created. The 2023 facility adds only `servers/`, the logs of the servers it starts (DESIGN-message-control.md
-§5.4.5). The bells live in the socket directory (§6 "The RECEIVE wait"), outside the MCS directory, because an AF_UNIX path has
+store is created. The 2023 facility adds only `servers/`, the logs of the servers it starts (DESIGN-message-control.md,
+server activation). The bells live in the socket directory (§6 "The RECEIVE wait"), outside the MCS directory, because an AF_UNIX path has
 a length limit and a user's MCS directory can be arbitrarily deep.
 
 ```json
