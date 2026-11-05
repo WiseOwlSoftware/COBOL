@@ -88,6 +88,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);
             if (op.Item.Pic?.Category is not PicCategory.ObjectReference)
             {
+                using var atOperand = ctx.Edition.At(oref);   // SR2 is about identifier-1 (kb/Work PB4722, as EcBindRaising)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.RaiseOperandRule,
                     $"RAISE '{oref.GetText()}': identifier-1 shall be a USAGE OBJECT REFERENCE data item "
                     + "(ISO §14.9.29.3 SR2)");
@@ -95,7 +96,10 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             return new BoundRaiseObject(op);
         }
 
-        if (EcResolveLevel3(ecWord.GetText(), EcRaiseSite.Raise) is not { } info)
+        EcInfo? level3;
+        using (ctx.Edition.At(ecWord))   // the exception-name refusals are about that word (kb/Work PB4722, as EcBindRaising)
+            level3 = EcResolveLevel3(ecWord.GetText(), EcRaiseSite.Raise);
+        if (level3 is not { } info)
             return BoundRejected.Reported(ctx.Edition);   // diagnosed — fail the compile, bind a placeholder
         ctx.EcState.Raise = true;
         int line = r.Start.Line;
@@ -236,6 +240,9 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // STATICALLY true in v1 (D-EO5: a typed reference only ever holds a conforming object, no
             // universal identifier-1 exists, and factory objects cannot enter a typed reference).
             if (raising.objectReference() is not { } oref) return null;
+            // Every refusal below is about identifier-1 (or the NULL / SUPER word standing in its place), so the
+            // diagnostic cursor sits ON it, not on the GOBACK / EXIT keyword (kb/Work PB4722, the PB4652 habit).
+            using var atOperand = ctx.Edition.At(oref);
             bool isNull = oref.objectReferenceAtom()?.objectReferenceTerm()?.predefinedNull() is not null;
             Place? op = isNull ? null : RaisingObjectOperand(oref, site);
             if (!isNull && op is null) return null;   // reported
@@ -271,6 +278,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             return new BoundRaising(null, IsLast: false, Fatal: false, ObjectSource: op);
         }
 
+        using var atName = ctx.Edition.At(ecWord);   // the exception-name refusals are about that word (kb/Work PB4722)
         if (EcResolveLevel3(ecWord.GetText(), site) is not { } info)
             return new BoundRaising("EC-RAISING-IMP", false, false);   // diagnosed; placeholder
         // The level-3 rule's SECOND paragraph (GOBACK §14.9.18.3 SR2 / EXIT §14.9.14.3 SR3): an EC-USER name
