@@ -108,6 +108,7 @@ reservedGatedWord
       | B_SHIFT_R
       | B_SHIFT_RC
       | B_XOR
+      | CD
       | CLASS_ID
       | CLOCK_UNITS
       | COL
@@ -115,6 +116,7 @@ reservedGatedWord
       | COLUMN
       | COLUMNS
       | COMMIT
+      | COMMUNICATION
       | CONDITION
       | CONSTANT
       | CRT
@@ -125,14 +127,19 @@ reservedGatedWord
       | DEBUGGING
       | DEFAULT
       | DESTINATION
+      | DISABLE
       | EC
       | EDITING
+      | EGI
+      | EMI
+      | ENABLE
       | END_ACCEPT
       | END_DISPLAY
       | END_RECEIVE
       | END_SEND
       | ENTER
       | EO
+      | ESI
       | EVERY
       | EXCLUSIVE_OR
       | FACTORY
@@ -189,6 +196,8 @@ reservedGatedWord
       | PROGRAM_POINTER
       | PROPERTY
       | PROTOTYPE
+      | PURGE
+      | QUEUE
       | RAISE
       | RAISING
       | RECEIVE
@@ -202,12 +211,18 @@ reservedGatedWord
       | ROLLBACK
       | SCREEN
       | SECURITY
+      | SEGMENT
       | SELF
       | SEND
       | SHARING
       | SOURCES
+      | SUB_QUEUE_1
+      | SUB_QUEUE_2
+      | SUB_QUEUE_3
       | SUPER
       | TAPE
+      | TERMINAL
+      | TEXT
       | TYPEDEF
       | UNIVERSAL
       | UNLOCK

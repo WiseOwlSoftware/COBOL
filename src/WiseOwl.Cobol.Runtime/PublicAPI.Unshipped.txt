@@ -920,3 +920,42 @@ static WiseOwl.Cobol.Runtime.UniversalGroupCarrier.WriteBackVariable(object? box
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+WiseOwl.Cobol.Runtime.Communication.CommunicationFormat
+WiseOwl.Cobol.Runtime.Communication.CommunicationFormat.Input = 0 -> WiseOwl.Cobol.Runtime.Communication.CommunicationFormat
+WiseOwl.Cobol.Runtime.Communication.CommunicationFormat.InputOutput = 2 -> WiseOwl.Cobol.Runtime.Communication.CommunicationFormat
+WiseOwl.Cobol.Runtime.Communication.CommunicationFormat.Output = 1 -> WiseOwl.Cobol.Runtime.Communication.CommunicationFormat
+WiseOwl.Cobol.Runtime.Communication.CommunicationPath
+WiseOwl.Cobol.Runtime.Communication.CommunicationPath.Input = 0 -> WiseOwl.Cobol.Runtime.Communication.CommunicationPath
+WiseOwl.Cobol.Runtime.Communication.CommunicationPath.InputOutputTerminal = 2 -> WiseOwl.Cobol.Runtime.Communication.CommunicationPath
+WiseOwl.Cobol.Runtime.Communication.CommunicationPath.InputTerminal = 1 -> WiseOwl.Cobol.Runtime.Communication.CommunicationPath
+WiseOwl.Cobol.Runtime.Communication.CommunicationPath.Output = 3 -> WiseOwl.Cobol.Runtime.Communication.CommunicationPath
+WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt
+WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.Area.get -> string!
+WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.Area.init -> void
+WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.CommunicationReceipt() -> void
+WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.CommunicationReceipt(string! Area, string! Into, bool DataAvailable) -> void
+WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.DataAvailable.get -> bool
+WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.DataAvailable.init -> void
+WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.Deconstruct(out string! Area, out string! Into, out bool DataAvailable) -> void
+WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.Equals(WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt other) -> bool
+WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.Into.get -> string!
+WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.Into.init -> void
+WiseOwl.Cobol.Runtime.Communication.MessageControl
+WiseOwl.Cobol.Runtime.Communication.SendIndicator
+WiseOwl.Cobol.Runtime.Communication.SendIndicator.EndOfGroup = 3 -> WiseOwl.Cobol.Runtime.Communication.SendIndicator
+WiseOwl.Cobol.Runtime.Communication.SendIndicator.EndOfMessage = 2 -> WiseOwl.Cobol.Runtime.Communication.SendIndicator
+WiseOwl.Cobol.Runtime.Communication.SendIndicator.EndOfSegment = 1 -> WiseOwl.Cobol.Runtime.Communication.SendIndicator
+WiseOwl.Cobol.Runtime.Communication.SendIndicator.None = 0 -> WiseOwl.Cobol.Runtime.Communication.SendIndicator
+override WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.GetHashCode() -> int
+static WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.operator !=(WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt left, WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt right) -> bool
+static WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.operator ==(WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt left, WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt right) -> bool
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.AcceptMessageCount(string! area) -> string!
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.Disable(string! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, WiseOwl.Cobol.Runtime.Communication.CommunicationPath path, string! area, string? key) -> string!
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.Enable(string! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, WiseOwl.Cobol.Runtime.Communication.CommunicationPath path, string! area, string? key) -> string!
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.IndicatorOf(string! image) -> WiseOwl.Cobol.Runtime.Communication.SendIndicator
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.InitialArea(string! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, string! area) -> string!
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.Purge(string! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, string! area) -> string!
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.Receive(string! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, string! area, bool segment, string! into, bool noDataPhrase) -> WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt
+static WiseOwl.Cobol.Runtime.Communication.MessageControl.Send(string! cd, WiseOwl.Cobol.Runtime.Communication.CommunicationFormat format, string! area, string? text, WiseOwl.Cobol.Runtime.Communication.SendIndicator indicator) -> string!
+~override WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.Equals(object obj) -> bool
+~override WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.ToString() -> string

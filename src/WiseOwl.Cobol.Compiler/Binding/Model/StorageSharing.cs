@@ -68,6 +68,7 @@ internal static class StorageSharing
         if (ReferenceEquals(x, y)) return true;
         if (x.Class is { } c && ReferenceEquals(c, y.Class)) return true;
         if (x.Section == EntrySection.File && y.Section == EntrySection.File) return true;
+        if (x.Section == EntrySection.Communication && y.Section == EntrySection.Communication) return true;
         return Aliasable(x) || Aliasable(y);
     }
 

@@ -45,6 +45,9 @@ public sealed class DataBindState
     /// <summary>The files the unit declares (<see cref="FileSlice"/>); a container's GLOBAL files are <see cref="Inherited"/>'s.</summary>
     public FileSlice Files { get; } = new();
 
+    /// <summary>The communication description entries this source element declares (ISO/IEC 1989:2002 Annex A.1; kb/Work PB4677).</summary>
+    public CommunicationSlice Communication { get; } = new();
+
     /// <summary>What the entry walk recorded about the clauses each entry wrote (<see cref="ClauseFacts"/>).</summary>
     public ClauseFacts Clauses { get; } = new();
 

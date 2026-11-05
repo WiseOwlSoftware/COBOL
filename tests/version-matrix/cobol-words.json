@@ -206,6 +206,12 @@
    "note": "ISO 8.10 context-sensitive word (context: OCCURS clause) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
   },
   {
+   "token": "CD",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "CD (A.1.2.1 communication description entry, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
+  },
+  {
    "token": "CENTER",
    "nameSlot": true,
    "subscriptTrigger": true,
@@ -252,6 +258,12 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "commit/rollback facility. USER WORD at 85/2002/2014; reserved 2023 only. The nameSlot alternative is RESERVATION-GATED (kb/Work PB137): the generator emits `{!reservedHere(...)}?` so at 2023 no operand list can absorb the bare facility verb (the statement arms parse everywhere), while below 2023 the word stays an ordinary user word. Declarations at 2023 re-admit through dataName's predicated alternatives so the 8.9 funnel (COBOL0901) still NAMES the word; the negative fixture conformance-suite/cases/_unassigned/user-word-commit.cob pins the declaration screen."
+  },
+  {
+   "token": "COMMUNICATION",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "COMMUNICATION (A.1.1 communication section, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
   },
   {
    "token": "CONDITION",
@@ -326,6 +338,12 @@
    "note": "DESTINATION clause (13.18.18) of the declined A.4.14 VALIDATE facility: 8.9-reserved at EVERY edition, yet name-slot-admitted so `01 DESTINATION PIC X.` keeps the named COBOL0901 funnel diagnostic (the COLUMN/LENGTH class)"
   },
   {
+   "token": "DISABLE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "DISABLE (A.2.2 DISABLE statement, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
+  },
+  {
    "token": "DISPLAY",
    "nameSlot": false,
    "subscriptTrigger": true,
@@ -344,6 +362,24 @@
    "note": "PICTURE EDITING phrase (ISO 13.18.40.2; new-in-2023 reserved word, Annex E.2 item 25). USER WORD at 85/2002/2014; reserved 2023 only. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for PICTURE EDITING does not break its legal user-word use below 2023 (the COMMIT/VALIDATE precedent)."
   },
   {
+   "token": "EGI",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "EGI (A.2.6.1 SEND Format 2, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
+  },
+  {
+   "token": "EMI",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "EMI (A.2.6.1 SEND Format 2, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
+  },
+  {
+   "token": "ENABLE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ENABLE (A.2.3 ENABLE statement, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
+  },
+  {
    "token": "END_ACCEPT",
    "nameSlot": true,
    "subscriptTrigger": true,
@@ -359,7 +395,7 @@
    "token": "END_RECEIVE",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "MCS scope terminator. NON-MONOTONIC: reserved 85, USER WORD 2002/2014, re-reserved 2023. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+   "note": "MCS scope terminator. NON-MONOTONIC: reserved 85 and 2002, USER WORD 2014, re-reserved 2023. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
   },
   {
    "token": "END_SEND",
@@ -402,6 +438,12 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "screen ERASE: a legal data-name in non-screen contexts"
+  },
+  {
+   "token": "ESI",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ESI (A.2.6.1 SEND Format 2, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
   },
   {
    "token": "EVERY",
@@ -911,6 +953,18 @@
    "note": "FUNCTION-ID IS PROTOTYPE (11.5, 2002+): a user word at 85, funnel-0901'd >=2002"
   },
   {
+   "token": "PURGE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "PURGE (A.2.4 PURGE statement, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
+  },
+  {
+   "token": "QUEUE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "QUEUE (A.1.2.1 SYMBOLIC QUEUE clause, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
+  },
+  {
    "token": "RAISE",
    "nameSlot": true,
    "subscriptTrigger": true,
@@ -932,7 +986,7 @@
    "token": "RECEIVE",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "MCS RECEIVE (ISO 14.9.31). NON-MONOTONIC reservation: reserved 85, USER WORD 2002/2014, re-reserved 2023 (Annex E.2 item 25). nameSlot keeps `01 RECEIVE PIC X.` legal at 2002/2014. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+   "note": "MCS RECEIVE (ISO 14.9.31) and the communication facility's (ISO/IEC 1989:2002 A.2.5). NON-MONOTONIC reservation: reserved 85 and 2002, USER WORD 2014, re-reserved 2023 (Annex E.2 item 25). nameSlot keeps `01 RECEIVE PIC X.` legal at 2014. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
   },
   {
    "token": "RECURSIVE",
@@ -1055,6 +1109,12 @@
    "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
+   "token": "SEGMENT",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "SEGMENT (A.2.5.1 RECEIVE SEGMENT, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
+  },
+  {
    "token": "SELF",
    "nameSlot": true,
    "subscriptTrigger": true,
@@ -1064,7 +1124,7 @@
    "token": "SEND",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "MCS SEND (ISO 14.9.38). NON-MONOTONIC: reserved 85, USER WORD 2002/2014, re-reserved 2023. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+   "note": "MCS SEND (ISO 14.9.38) and the communication facility's (ISO/IEC 1989:2002 A.2.6). NON-MONOTONIC: reserved 85 and 2002, USER WORD 2014, re-reserved 2023. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
   },
   {
    "token": "SHARING",
@@ -1121,6 +1181,24 @@
    "note": "ISO 8.10 context-sensitive word (context: TYPEDEF clause) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
   },
   {
+   "token": "SUB_QUEUE_1",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "SUB-QUEUE-1 (A.1.2.1 SYMBOLIC SUB-QUEUE-1 clause, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
+  },
+  {
+   "token": "SUB_QUEUE_2",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "SUB-QUEUE-2 (A.1.2.1 SYMBOLIC SUB-QUEUE-2 clause, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
+  },
+  {
+   "token": "SUB_QUEUE_3",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "SUB-QUEUE-3 (A.1.2.1 SYMBOLIC SUB-QUEUE-3 clause, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
+  },
+  {
    "token": "SUM",
    "nameSlot": false,
    "subscriptTrigger": true,
@@ -1137,6 +1215,18 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "TERMINAL",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "TERMINAL (A.1.2.1 SYMBOLIC TERMINAL clause; A.2.2, A.2.3, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
+  },
+  {
+   "token": "TEXT",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "TEXT (A.1.2.1 TEXT LENGTH clause, kb/Work PB4677): the communication facility, which ISO/IEC 1989:2002 Annex A prints and 2014 deleted. 8.9 reserves it at 85 and 2002 only, so it is a legal user-defined word at 2014 and 2023: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), the RECEIVE and SEND precedent."
   },
   {
    "token": "TOWARD_GREATER",

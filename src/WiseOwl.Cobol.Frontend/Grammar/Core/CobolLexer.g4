@@ -932,7 +932,7 @@ EO          : 'EO' ;         // USE AFTER EO ≡ EXCEPTION OBJECT (ISO §14.9.49
 EC          : 'EC' ;         // USE AFTER EC ≡ EXCEPTION CONDITION (ISO §14.9.49.3 SR12); maximal munch keeps
                              // EC-I-O-AT-END etc. one IDENTIFIER (the longer match wins)
 RANDOM      : 'RANDOM' ;
-RECEIVE     : 'RECEIVE' ;      // MCS RECEIVE (ISO 14.9.31) - recognized-not-supported (4.2.6, A.3 item 4)
+RECEIVE     : 'RECEIVE' ;      // MCS RECEIVE (ISO 14.9.31, 2023) and the communication facility's (ISO/IEC 1989:2002 A.2.5)
 RECORD      : 'RECORD' ;
 RECORDS     : 'RECORDS' ;
 REEL        : 'REEL' ;
@@ -962,7 +962,25 @@ SORT_MERGE  : 'SORT-MERGE' ;
 MULTIPLE    : 'MULTIPLE' ;
 TAPE        : 'TAPE' ;
 POSITION    : 'POSITION' ;
-SEND        : 'SEND' ;         // MCS SEND (ISO 14.9.38) - recognized-not-supported (4.2.6, A.3 item 4)
+// ── The communication facility (ISO/IEC 1989:2002 Annex A; COBOL-85's communication module; kb/Work PB4677). §8.9 reserves
+//    each word at 85 and 2002 only, so each is a nameSlot row of cobol-words.json, gated by the reservation table; a '-'
+//    word's maximal munch keeps SUB-QUEUE-1 one token. ──
+COMMUNICATION : 'COMMUNICATION' ;
+CD            : 'CD' ;
+DISABLE       : 'DISABLE' ;
+EGI           : 'EGI' ;
+EMI           : 'EMI' ;
+ENABLE        : 'ENABLE' ;
+ESI           : 'ESI' ;
+PURGE         : 'PURGE' ;
+QUEUE         : 'QUEUE' ;
+SEGMENT       : 'SEGMENT' ;
+SUB_QUEUE_1   : 'SUB-QUEUE-1' ;
+SUB_QUEUE_2   : 'SUB-QUEUE-2' ;
+SUB_QUEUE_3   : 'SUB-QUEUE-3' ;
+TERMINAL      : 'TERMINAL' ;
+TEXT          : 'TEXT' ;
+SEND        : 'SEND' ;         // MCS SEND (ISO 14.9.38, 2023) and the communication facility's (ISO/IEC 1989:2002 A.2.6)
 SECURE      : 'SECURE' ;
 SECURITY    : 'SECURITY' ;
 SELECT      : 'SELECT' ;

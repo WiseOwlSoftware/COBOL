@@ -35,6 +35,7 @@ internal static class BackendContract
             "Model.BoundUnit.ExternalizedName", "Model.BoundUnit.Name",
             "Model.CollatingKeyOperand.Name", "Model.CollatingKeyOperand.Qualifiers",
             "Model.Condition88.Alphabet", "Model.Condition88.Name",
+            "Model.CommunicationDescription.Name",
             "Model.DataItem.CobolName", "Model.DataItem.ExternalizedAs", "Model.DataItem.IndexNames",
             "Model.DataItem.RedefinesTargetName", "Model.DataItem.SameAsName", "Model.DataItem.SameAsQualifiers",
             "Model.DataItem.TypeName", "Model.DataItem.TypeRefName", "Model.DataItem.WrittenTypeName",
@@ -89,6 +90,7 @@ internal static class BackendContract
             "Model.ForestSlice.ScreenNames", "Model.ForestSlice._screenNames", "Model.ForestSlice.TypeDecls",
             "Model.ForestSlice._typeDecls", "Model.ForestSlice.TypeDeclsOf()", "Model.FileSlice.FilesByName",
             "Model.FileSlice._filesByName", "Model.DataBindResult.RangeCollations",
+            "Model.CommunicationSlice.ByName", "Model.CommunicationSlice._byName",
         ]),
         new(NeutralKind.ClrName,
         [
@@ -159,7 +161,7 @@ internal static class BackendContract
             "Bound.BoundRaising.EcName", "Bound.BoundRaising.Location", "Bound.BoundRaising.PdRaising",
             "Bound.BoundRaising.StatementName", "Bound.BoundWhenOperand.Ec",
             "Bound.EcStatementInfo.Enabled", "Bound.EcStatementInfo.Location", "Bound.EcStatementInfo.StatementName",
-            "Model.BoundUnit.RegistryKey", "Model.FileModel.AssignTarget", "Model.FileModel.ExternalName",
+            "Model.BoundUnit.RegistryKey", "Model.CommunicationDescription.Key", "Model.FileModel.AssignTarget", "Model.FileModel.ExternalName",
             "Model.LocalePhrase.Tag", "Model.LocaleRef.Tag", "Model.LocaleSymbol.External", "Model.LocaleSymbol.Tag",
             "Model.ObjectRefDescriptor.Spelled", "Model.LocaleEditRecord.External",
             // the assemblies an expansion is imported from or written to: file paths the backend references (kb/Work PB2104)

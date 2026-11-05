@@ -40,6 +40,9 @@ public sealed class Table12StatementNameDriftTests
     private static readonly Dictionary<string, string> NonTable12 = new(StringComparer.Ordinal)
     {
         ["ALTER"] = "COBOL-85 element deleted from the standard before Table 12's 2023 edition",
+        ["ENABLE"] = "the communication facility, deleted at 2014 (ISO/IEC 1989:2002 A.2.3, kb/Work PB4677); it raises no exception, so no EXCEPTION-STATEMENT names it",
+        ["DISABLE"] = "the communication facility, deleted at 2014 (ISO/IEC 1989:2002 A.2.2, kb/Work PB4677); it raises no exception, so no EXCEPTION-STATEMENT names it",
+        ["PURGE"] = "the communication facility, deleted at 2014 (ISO/IEC 1989:2002 A.2.4, kb/Work PB4677); it raises no exception, so no EXCEPTION-STATEMENT names it",
         ["ENTRY"] = "a non-ISO extension statement the grammar carries; no Table 12 row at any edition",
         ["ENTER"] = "COBOL-85 obsolete element deleted from the standard before 2023",
         ["USE"] = "a declaratives header the grammar routes through `statement`; not a procedural statement",

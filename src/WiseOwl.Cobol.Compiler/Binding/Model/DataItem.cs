@@ -13,6 +13,7 @@ public enum EntrySection
     LocalStorage,
     Linkage,
     File,
+    Communication,
 }
 
 /// <summary>The deferred declaration verdict <see cref="DataItem.Pending"/> carries between entry bind and the
@@ -752,9 +753,9 @@ public sealed class DataItem
     public static DataItem? RedefinedEntry(IReadOnlyList<DataItem> precedingSameNamed) =>
         precedingSameNamed.LastOrDefault(s => s.RedefinesTargetName is null) ?? precedingSameNamed.LastOrDefault();
 
-    /// <summary>True when the item shares its storage area by one of the file section's IMPLICIT redefinitions
-    /// (§13.18.33.4 GR3 / §12.4.6.4.4 GR2) rather than by a written REDEFINES clause.</summary>
-    public bool RedefinesImplicitly => RedefinesKind is RedefinitionKind.ImplicitFileRecord or RedefinitionKind.SameRecordArea;
+    /// <summary>True when the item shares its storage area by an IMPLICIT redefinition (§13.18.33.4 GR3 / §12.4.6.4.4 GR2 / ISO/IEC 1989:2002
+    /// A.1.2.2 SR5) rather than by a written REDEFINES clause.</summary>
+    public bool RedefinesImplicitly => RedefinesKind is RedefinitionKind.ImplicitFileRecord or RedefinitionKind.SameRecordArea or RedefinitionKind.ImplicitCommunicationRecord;
 
     /// <summary>The level-66 RENAMES descriptor (ISO §13.18.45), or null unless this is a level-66 entry.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,

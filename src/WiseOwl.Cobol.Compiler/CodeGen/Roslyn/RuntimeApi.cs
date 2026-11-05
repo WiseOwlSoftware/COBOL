@@ -1988,6 +1988,38 @@ internal static class RuntimeApi
     /// <summary>Retire the element instance's clause (canceled, or an INITIAL program returned) — <c>CobolFile.RetireApplyCommit</c>.</summary>
     public static string RetireApplyCommit() => $"{TransactionFacade}.{nameof(CobolFile.RetireApplyCommit)}(this)";
 
+    // ── The communication facility (ISO/IEC 1989:2002 Annex A.2; kb/Work PB4677). ──
+
+    private static string MessageControlFacade =>
+        $"global::{typeof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl).FullName}";
+
+    /// <summary>A value of a run-time enumeration of the facility, spelled so a rename breaks here.</summary>
+    public static string CommunicationEnum<T>(T value) where T : struct, System.Enum => $"global::{typeof(T).FullName}.{value}";
+
+    public static string McsAcceptMessageCount(string area) =>
+        $"{MessageControlFacade}.{nameof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl.AcceptMessageCount)}({area})";
+
+    public static string McsEnable(string cd, string format, string path, string area, string key) =>
+        $"{MessageControlFacade}.{nameof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl.Enable)}({cd}, {format}, {path}, {area}, {key})";
+
+    public static string McsDisable(string cd, string format, string path, string area, string key) =>
+        $"{MessageControlFacade}.{nameof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl.Disable)}({cd}, {format}, {path}, {area}, {key})";
+
+    public static string McsPurge(string cd, string format, string area) =>
+        $"{MessageControlFacade}.{nameof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl.Purge)}({cd}, {format}, {area})";
+
+    public static string McsSend(string cd, string format, string area, string text, string indicator) =>
+        $"{MessageControlFacade}.{nameof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl.Send)}({cd}, {format}, {area}, {text}, {indicator})";
+
+    public static string McsIndicatorOf(string image) =>
+        $"{MessageControlFacade}.{nameof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl.IndicatorOf)}({image})";
+
+    public static string McsReceive(string cd, string format, string area, bool segment, string into, bool noData) =>
+        $"{MessageControlFacade}.{nameof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl.Receive)}({cd}, {format}, {area}, {(segment ? "true" : "false")}, {into}, {(noData ? "true" : "false")})";
+
+    public static string McsInitialArea(string cd, string format, string area) =>
+        $"{MessageControlFacade}.{nameof(global::WiseOwl.Cobol.Runtime.Communication.MessageControl.InitialArea)}({cd}, {format}, {area})";
+
     /// <summary>The COMMIT statement — <c>CobolFile.Commit</c>; the refused file's connector name or null.</summary>
     public static string Commit() => $"{TransactionFacade}.{nameof(CobolFile.Commit)}()";
 

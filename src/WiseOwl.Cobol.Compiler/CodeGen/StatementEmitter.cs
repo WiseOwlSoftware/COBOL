@@ -40,6 +40,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     private readonly SequentialIoEmitter _seqIo;
     private readonly SortEmitter _sort;
     private readonly TransactionEmitter _transactions;
+    private readonly CommunicationEmitter _communication;
     private readonly ReportWriterEmitter _reportWriter;
     private readonly ControlFlowEmitter _controlFlow;
     private readonly CallEmitter _call;
@@ -68,6 +69,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         _seqIo = u.SeqIo;
         _sort = u.Sort;
         _transactions = u.Transactions;
+        _communication = u.Communication;
         _reportWriter = u.ReportWriter;
         _controlFlow = u.ControlFlow;
         _call = u.Call;
@@ -205,6 +207,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     // COMMIT/ROLLBACK (ISO §14.9.7, §14.9.36; kb/Work PB3338): the run unit's commit control — GR1's CONTINUE when no
     // clause is active is the runtime's answer, because a clause of ANY element of the run unit makes it act.
     public bool Visit(BoundCommitRollback n) { _transactions.EmitStatement(n); return false; }
+    public bool Visit(BoundCommunicationStatement n) { _communication.Emit(n); return false; }
     /// <summary>⛔ THE CONTINUE AFTER SUSPENSION CALL, ONE ARM PER CARRIER (kb/Work PB1529). §14.9.9.4 GR1: the sign
     /// test (GR1a/GR1b: a fractional (-1,0) still sets the EC) and the m=0 truncation (the implicit COMPUTE without
     /// ROUNDED) are taken by <c>CobolTiming.ContinueAfter</c> from the value in ITS OWN DOMAIN, which then clamps to

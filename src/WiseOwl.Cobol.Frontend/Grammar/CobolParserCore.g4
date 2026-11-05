@@ -15,7 +15,7 @@ options {
 // token before the parse (kb/Work PB4341): see embeddedBlockStatement. No lexer rule emits either token.
 tokens { ZERO_ARITH, EMBEDDED_BLOCK }
 
-import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolOO, CobolScreen, CobolDeclined, CobolWords;
+import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolOO, CobolScreen, CobolDeclined, CobolCommunication, CobolWords;
 
 // ==========================================
 // CONTEXT-SENSITIVE KEYWORDS
@@ -932,7 +932,8 @@ procedureName
 // ==========================================
 
 statement
-    : acceptStatement
+    : acceptMessageCountStatement   // ISO/IEC 1989:2002 A.2.1; the communication facility (CobolCommunication.g4)
+    | acceptStatement
     | addStatement
     | alterStatement
     | useStatement
@@ -990,13 +991,13 @@ statement
     //    records, and a generic parse error there is a wrong ANSWER to the user rather than a non-conformance.
     //    Each arm is KEYWORD-TOKEN-LED (an IDENTIFIER-led arm would poison the ALL(*) DFA, DEVLOG 903).
     //    ⛔ RECEIVE AND SEND ARE THE UNION GRAMMAR, GATED ON INTRODUCTION, NOT ON RESERVATION (kb/Work PB374).
-    //    Both words are NON-MONOTONIC in §8.9: reserved at COBOL-85 (the '85 communication module's verbs), user
-    //    words at 2002/2014, reserved again at 2023. A reservation predicate therefore recognized the 2023-only
+    //    Both words are NON-MONOTONIC in §8.9: reserved at COBOL-85 and 2002 (the communication facility's verbs), user
+    //    words at 2014, reserved again at 2023. A reservation predicate therefore recognized the 2023-only
     //    §14.9.31.2 / §14.9.38.2 formats at --std 85 and warned COBOL1578 naming a 2023 facility, while
     //    2002/2014 answered a raw parse error. The arm fires wherever the token spells the verb (wordAhead, so a
     //    >>COBOL-WORDS UNDEFINE still removes it), and the edition pass names the introduction
     //    (VersionConformancePass VisitMcs*Statement → async-messaging-2023 → COBOL0900). No legal program of
-    //    any edition loses a reading: at 2002/2014 a user-defined word RECEIVE or SEND cannot begin a statement,
+    //    any edition loses a reading: at 2014 a user-defined word RECEIVE or SEND cannot begin a statement,
     //    and the operand-list keyword choice for an undeclared one is keywordContinuesHere's (kb/Work PB805).
     //    ⛔ VALIDATE IS THE UNION GRAMMAR TOO, GATED ON INTRODUCTION (kb/Work PB3148). Its reservation does start at
     //    its 2002 introduction and never lapses, but a reservation predicate turned `VALIDATE WS-A.` at --std 85 into
@@ -1009,7 +1010,16 @@ statement
     //    COMMIT / ROLLBACK (reserved from 2023, their introduction) keep facilityWord: the statement is the bare verb,
     //    so `COMMIT.` at 2014, where COMMIT is a user word, IS a paragraph header and no parse can tell otherwise. ──
     | {wordAhead("RECEIVE")}?     mcsReceiveStatement
-    | {wordAhead("SEND")}?        mcsSendStatement
+    | {wordAhead("SEND") && !communicationNameFollows()}? mcsSendStatement
+    //    ⛔ THE COMMUNICATION FACILITY'S STATEMENTS ARE THE UNION GRAMMAR TOO (kb/Work PB4677; CobolCommunication.g4), keyword-led
+    //    like the arms above, and gated on recognition (communication-facility-removed-2014). RECEIVE parts itself from the 2023
+    //    format by the word after its operand. `SEND x FROM y` is the shape of both SENDs, so a declared cd-name decides, which
+    //    only the predicate above can read; a SEND that writes an indicator fails the 2023 arm and arrives here whatever x is.
+    | {wordAhead("RECEIVE")}?     communicationReceiveStatement
+    | {wordAhead("SEND")}?        communicationSendStatement
+    | {wordAhead("ENABLE")}?      enableStatement
+    | {wordAhead("DISABLE")}?     disableStatement
+    | {wordAhead("PURGE")}?       purgeStatement
     | {wordAhead("VALIDATE")}?    validateFacilityStatement
     | {facilityWord("COMMIT")}?   commitFacilityStatement
     | {facilityWord("ROLLBACK")}? rollbackFacilityStatement

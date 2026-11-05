@@ -479,6 +479,7 @@ internal sealed class ProgramEmitter
                     Current.Transactions.EmitRetire(w);   // a canceled or returned-INITIAL element's APPLY COMMIT clause (kb/Work PB3338)
                 }
             Current.Transactions.EmitMembers(w);
+            Current.Communication.EmitMembers(w);
             using (w.Block("public void CloseFiles()"))   // CANCEL §14.9.5 GR9 / run-unit close §14.6.11
                 foreach (var file in data.Files.Declared)
                     // CANCEL closes INTERNAL connectors only (§14.9.5 GR9); an EXTERNAL connector persists

@@ -25,7 +25,7 @@ using Core = CobolParserCore;
 /// <para>The exception map carries only rules whose NAME differs from their Table 12 row: finer-grained formats
 /// (§14.9.10.1 — DELETE FILE is a format of the DELETE statement; §14.9.37 — SEARCH ALL is Format 2 of the
 /// SEARCH statement) and the Wave-H facility arms, whose rule names carry disambiguating prefixes/suffixes the
-/// statement name does not. Rules with no 2023 Table 12 row at all (ALTER · ENTRY · ENTER · USE · NEXT SENTENCE
+/// statement name does not. Rules with no 2023 Table 12 row at all (ALTER · ENABLE · DISABLE · PURGE · ENTRY · ENTER · USE · NEXT SENTENCE
 /// · the 2023 inline method invocation) keep their projected names as this implementation's DOCUMENTED answer —
 /// strictly-conforming source cannot observe them (&gt;&gt;TURN is 2002+ and those statements were removed in
 /// 2002, never raise, or bind loud), and a name is strictly better than a wrong sibling's name if one ever
@@ -57,6 +57,9 @@ internal static class Table12StatementNames
     /// <see cref="NameOfRule"/> and compares against the scraped table).</summary>
     private static readonly FrozenDictionary<string, string> Irregular = new Dictionary<string, string>
     {
+        ["acceptMessageCount"] = "ACCEPT",  // ISO/IEC 1989:2002 A.2.1 — the communication facility's format of ACCEPT
+        ["communicationReceive"] = "RECEIVE", // ISO/IEC 1989:2002 A.2.5
+        ["communicationSend"] = "SEND",     // ISO/IEC 1989:2002 A.2.6
         ["deleteFile"] = "DELETE",          // §14.9.10.1 — the DELETE FILE format of the DELETE statement
         ["searchAll"] = "SEARCH",           // §14.9.37 — SEARCH Format 2 (binary search) of the SEARCH statement
         ["mcsReceive"] = "RECEIVE",         // Wave-H facility arms: the mcs/facility affixes disambiguate the

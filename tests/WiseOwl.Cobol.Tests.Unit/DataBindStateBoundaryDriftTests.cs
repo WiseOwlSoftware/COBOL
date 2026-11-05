@@ -157,7 +157,10 @@ public sealed class DataBindStateBoundaryDriftTests
         {
             ("ForestSlice (the type forest and its name tables)",
                 new(@"\.Forest\.(AddRoot|AddWorkingStorageRoots|AddLocalStorageRoots|DeclareName|DeclareCondition|DeclareIndex|TryDeclareType|AddScreenNames|Inherit|AddCapacityRegister)\("),
-                ["/Binding/DataBinder*.cs", "/Binding/FileControlBinder.FileSection.cs", "/Binding/Passes/DynamicResolvePass.cs"]),
+                ["/Binding/DataBinder*.cs", "/Binding/FileControlBinder.FileSection.cs", "/Binding/CommunicationSectionBinder.cs", "/Binding/Passes/DynamicResolvePass.cs"]),
+            ("CommunicationSlice (the communication description entries the unit declares)",
+                new(@"\.Communication\.Declare\("),
+                ["/Binding/CommunicationSectionBinder.cs"]),
             // The LATE doors (design §8.3 (1)): the PROCEDURE binders mint compiler temporaries after every data phase, so a slice
             // that takes them is frozen only when those binders are done. Each door has the one caller that names its phase.
             ("ForestSlice's late door (a compiler temporary's root, procedure phase)",

@@ -64,6 +64,10 @@ public sealed class RunUnit
     /// COMMIT and ROLLBACK statements over them and <see cref="Files"/>.</summary>
     internal TransactionControl Transactions { get; }
 
+    /// <summary>The run unit's dialogue with the message control system (ISO/IEC 1989:2002 Annex A.2; kb/Work PB4677): the portions of messages
+    /// it has begun to send or receive, which ISO/IEC 1989:2002 14.5.10 rule 2 eliminates when the run unit ends.</summary>
+    internal Communication.MessageControlSession MessageControl { get; } = new();
+
     /// <summary>The run unit's sort-merge file stores (ISO §14.9.40 / §14.9.24; kb/Work PB1570) — the in-memory SD
     /// buffers of the SORT/MERGE statements this run unit executes, which no other run unit can see or mutate.</summary>
     public SortFileTable SortFiles { get; } = new();
