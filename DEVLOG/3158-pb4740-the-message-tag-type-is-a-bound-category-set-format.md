@@ -1,4 +1,4 @@
-## PB4740: the message-tag type is a bound category, SET Format 17 and the message-tag relation run, COBOL1943 and COBOL2205 retire
+## Entry 3158 — 2026-11-05 13:09 PST — PB4740: the message-tag type is a bound category, SET Format 17 and the message-tag relation run, COBOL1943 and COBOL2205 retire
 
 Slice S1 of the asynchronous messaging design (`docs/rearchitecture/DESIGN-message-control.md`, approved 2026-11-04). The re-probe on a
 fresh build before the change: `01 T USAGE MESSAGE-TAG` was refused (COBOL1943), `SET T TO NULL` was refused (COBOL2205) and
@@ -50,3 +50,4 @@ inventory notes are rewritten (record_verdicts batches 4 to 6). The two leads (a
 **Not done here, on purpose.** `DataItem.ElementImageCapable` is unchanged, so a group holding a tag has the one-way transfer image an object
 reference's group has; the two-way image SEND and RECEIVE need is S4's, with its emitter (design §4.2 now says so). The unequal-tags case of 8.8.4.2.14
 needs a live party. The 8.8.4.2.14 prose gap note is a registrar lead in the implementer's report.
+
