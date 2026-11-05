@@ -998,11 +998,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // (kb/Work PB1935 binds each as the expression it is) — would answer from its decoded value instead of the
         // item's characters. ⛔ ASKED OF THE BINDER'S STATEMENT, NEVER THE TREE'S SHAPE (kb/Work PB4763, PB4712): the
         // expression binder drops grouping parentheses, so the tree of `(FUNCTION ABS(N))` is the function-identifier's
-        // own. A function-identifier and a counter register written SOLE are identifiers whose value is computed
+        // own. A function-identifier (also one folded at bind time, BoundNumericLiteral { FunctionValue: true }) and a counter register written SOLE are identifiers whose value is computed
         // (§8.5.2.12 items 3-7; kb/Work PB1401) and stay admitted. A literal or figurative constant is no identifier either
         // (review R1-2: `IF 5 IS NUMERIC` compiled and aborted at run time), and a boolean operand enclosed in parentheses is
         // an expression too (§8.8.2; EnclosedBooleanOperand).
-        if (op is { ExpressionAsWritten: true } or BoundStringLiteral or BoundNumericLiteral or BoundFigurative or BoundAllLiteral)
+        if (op is { ExpressionAsWritten: true } or BoundStringLiteral or BoundNumericLiteral { FunctionValue: false } or BoundFigurative or BoundAllLiteral)
         {
             ctx.Edition.Error(DiagnosticCatalog.ClassConditionSubjectNotIdentifier,
                 "a class condition's subject shall be identifier-1, not an expression or a literal (ISO §8.8.4.4.2)");

@@ -525,8 +525,8 @@ public abstract record BoundOperand
     /// parentheses, so <c>(FUNCTION ABS(I2))</c> and <c>(LINAGE-COUNTER)</c> carry the same tree as the function-identifier and the
     /// register written sole, and <c>(B1)</c> the same field operand as <c>B1</c>; a screen that must tell identifier-1 from an
     /// expression (a class condition's subject, §8.8.4.4.2) asks THIS, never the tree's shape. Set only by
-    /// <c>ConditionBinder.CompoundOperand</c> and <c>ConditionBinder.EnclosedBooleanOperand</c>, the two wrappers of an expression
-    /// operand.</summary>
+    /// <c>ConditionBinder.CompoundOperand</c>, <c>ConditionBinder.EnclosedBooleanOperand</c> and EVALUATE's boolean-expression
+    /// subject (<c>EvaluateBinder.BindSubjectValue</c>), the wrappers of an expression operand.</summary>
     public bool ExpressionAsWritten { get; init; }
 }
 

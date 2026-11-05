@@ -672,8 +672,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // NEAREST-TO-ZERO / IN-ARITHMETIC-RANGE dereferenced a null field (a compiler crash), while
         // `FUNCTION NUMVAL("1.5") IS NUMERIC` applied n) 2.'s all-digits test to the text "1.5" and answered FALSE.
         bool numericCategory = StringCategoryOf(c.Operand) is PicCategory.Numeric;
-        if (numericCategory && c.Operand is BoundComputedOperand computed)
-            return RenderComputedNumericClass(computed, c.ClassKind, c.Negated);
+        if (numericCategory && c.Operand is BoundComputedOperand or BoundNumericLiteral { FunctionValue: true })
+            return RenderComputedNumericClass(c.Operand, c.ClassKind, c.Negated);
         var fld = c.Operand as BoundFieldOperand;
         // Total over the operand kinds: a numeric-category operand is a data item or a computed one (above). No
         // other shape reaches identifier-1 with that category, and one that ever did is loud here, never a null
@@ -844,7 +844,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// </list>
     /// The other alternatives cannot reach here: §8.8.4.4.3 SR3–SR5 and SR7 refuse a numeric operand for each of
     /// them at bind (<see cref="ClassConditionModel"/>), and an arm that is reached anyway is loud.</summary>
-    private string RenderComputedNumericClass(BoundComputedOperand op, char kind, bool negated)
+    private string RenderComputedNumericClass(BoundOperand op, char kind, bool negated)
     {
         // §14.6.13.2 dash-1 of rules 1–3: a class condition's operand is exempt from the checked sending reads.
         NumX v = num.AsNum(op, ReceiverContext.None, SendingRef.ClassCondition);
@@ -880,12 +880,13 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     /// <summary>§8.8.4.4.4 GR3 g) / m) over a computed operand's decimal value — its extremes read from the data item
     /// the operand references (the either-direction reading <see cref="RenderExtremeClass"/> documents).</summary>
-    private string ComputedExtremeTest(BoundComputedOperand op, NumX v, string dec, bool farthest)
+    private string ComputedExtremeTest(BoundOperand op, NumX v, string dec, bool farthest)
     {
-        AlgebraicRange? described = AlgebraicRanges.OfCounterRegister(op.Expr)
-            ?? (op.Expr is BoundIntrinsicCall
+        // A function-identifier folded at bind time (BoundNumericLiteral { FunctionValue: true }) is the same function value.
+        AlgebraicRange? described = (op as BoundComputedOperand) is { } computed && AlgebraicRanges.OfCounterRegister(computed.Expr) is { } register ? register
+            : op is BoundComputedOperand { Expr: BoundIntrinsicCall } or BoundNumericLiteral { FunctionValue: true }
                 ? AlgebraicRanges.OfFunctionReturnedValue(IntrinsicResultType.IsIntegerOperand(op), v.Dec)
-                : null);
+                : null;
         if (described is not { } range || range.Nearest is null)
             return EmitText.LoudValue("bool", $"{(farthest ? "FARTHEST-FROM-ZERO" : "NEAREST-TO-ZERO")} over a computed operand with no described capacity");
         string positive = farthest ? range.Farthest : range.Nearest;

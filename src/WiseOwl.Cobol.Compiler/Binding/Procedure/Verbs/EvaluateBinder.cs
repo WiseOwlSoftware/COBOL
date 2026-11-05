@@ -952,12 +952,13 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // describe (positionless, or a run-time function length) stays un-held, as ArgumentOrder.StoreAt leaves it.
         if (BooleanOperatorBearing(subject) is not null && slot.Bare.Boolean is { } boolean)
         {
-            var written = inPlace = new BoundBoolOperand(boolean);
+            // ExpressionAsWritten: an operator-bearing boolean expression is not identifier-1 of a class partial (§8.8.4.4.2; kb/Work PB4763).
+            var written = inPlace = new BoundBoolOperand(boolean) { ExpressionAsWritten = true };
             int? positions = ConditionBinder.BoolResultLength(boolean);
             if (!slot.NeedsIntermediate || positions is not > 0
                 || host.SendingValue.MaterializeBoolean(boolean, positions.Value, "evaluate") is not { } held)
                 return written;
-            return new BoundFieldOperand(held);
+            return new BoundFieldOperand(held) { ExpressionAsWritten = true };
         }
         BoundOperand value;
         // An address-identifier subject (kb/Work PB1060) is a VALUE subject of class pointer, through the ONE
