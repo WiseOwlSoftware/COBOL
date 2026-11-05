@@ -34,7 +34,7 @@ records the map in units.jsonl) and `starved` (the leads whose ready note has wa
 unit since their own last campaign wave, measured from that record). Without --cluster the output is the fix lane's,
 byte for byte.
 (No unit reads the quota meter: budget.py anchors on the status line's cached rate_limits, kb/Work PB4505, and the
-usage page is never opened, kb/Work PB4748. A stale ledger page is NOT a reason for a unit either: a headless unit cannot publish, so the supervisor announces an owed
+usage page is never opened, kb/Work PB4749. A stale ledger page is NOT a reason for a unit either: a headless unit cannot publish, so the supervisor announces an owed
 publish through ledger_state.py and the attended session publishes.)
 """
 from __future__ import annotations
@@ -158,7 +158,7 @@ def starved(lanes: dict[str, dict], history: list[dict], now: dt.datetime) -> li
 def enqueue_chains(history: list[dict]) -> list[dict]:
     """The drift measure of kb/Work PB4180: every run of two or more consecutive `enqueue` units in units.jsonl, oldest
     first, each {units, started_at, hours (the units' own durations summed), reasons}. A `meter` line between two is
-    invisible (the retired read-only unit, kb/Work PB4748, whose lines the history still holds: it was no part of the
+    invisible (the retired read-only unit, kb/Work PB4749, whose lines the history still holds: it was no part of the
     work chain), any other unit ends the run. A chain is the
     footprint of a handoff that named `enqueue` for work the lanes own; the choice above no longer starts one, so a
     chain that starts after the fix is a regression."""

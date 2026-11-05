@@ -54,7 +54,7 @@ $r = Run-Orch 'archived' 'good' @('-Unit', 'wave', '-MaxUnits', '2', '-FastFailS
 Check 'the wave''s handoff names resume and resume runs' (($r.units | ForEach-Object { $_.unit }) -join ' ') 'wave resume'
 Check 'no handoff.json is left to be taken for an orphan' ((Test-Path (Join-Path $r.coord 'handoff.json')) -or ($r.out -match 'no unit of this run wrote')) $false
 Check 'the unit''s handoff is archived beside its log' @(Get-ChildItem (Join-Path $r.coord 'logs') -Filter '*wave.handoff.json').Count 1
-# 6. no unit reads the quota meter through Claude in Chrome (kb/Work PB4748: the status line's cached rate_limits are the meter)
+# 6. no unit reads the quota meter through Claude in Chrome (kb/Work PB4749: the status line's cached rate_limits are the meter)
 Check 'no unit was started with --chrome' ((Get-Content (Join-Path $r.coord 'fake-invocations.txt') -Raw) -match '--chrome') $false
 
 Complete-OrchTest 'core'

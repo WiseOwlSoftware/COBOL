@@ -2,7 +2,7 @@
 """Self-test for next_unit.py's choice of the next unit.
 
 Proves, against a coordination directory built from units.jsonl lines:
-  - no meter unit is ever chosen (kb/Work PB4748): budget.py anchors on the status line's cached rate_limits, so a
+  - no meter unit is ever chosen (kb/Work PB4749): budget.py anchors on the status line's cached rate_limits, so a
     coordination directory with no reading at all, or a days-old one, still chooses the work's own unit;
   - rule 5 and the REVIEW LANE (kb/Work PB3608): a branch WAITING FOR REVIEW is the review lane's while it ticks, and
     the enqueue unit starts only for its holds or while it is not ticking;
@@ -61,7 +61,7 @@ def choose(cdir, handoff=None, operator=None):
     return next_unit.choose(handoff, cdir, REPO, NOW, False, None, operator=operator)
 
 
-# no meter unit, whatever the readings say (kb/Work PB4748)
+# no meter unit, whatever the readings say (kb/Work PB4749)
 c = choose(coord("no-readings", []))
 check("no reading at all: the work's own unit, never a meter", c["unit"], "wave")
 old = [{"account": "account2", "noted_at": (NOW - dt.timedelta(hours=54)).isoformat(), "weekly_pct": 10, "session_pct": 0}]

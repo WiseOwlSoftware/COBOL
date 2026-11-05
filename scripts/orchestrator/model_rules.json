@@ -54,7 +54,7 @@
       }
     ],
     "seed": {
-      "_doc": "What a named account's config dir carries (kb/Work PB2480): scripts/account-profile.ps1 makes it so, account.py --seed-check (and tooling_check.py at every session start) verifies it. `copy`: taken from the default account's dir when missing (a directory: each missing child); `junction`: the default account's folder, linked so both accounts share it ({repo_key} = the main checkout's projects key); `flags`: non-secret feature flags set in the account's .claude.json (Claude in Chrome on: the meter unit reads the usage page through it). `never`: credentials are never copied, the owner signs the account in (/login).",
+      "_doc": "What a named account's config dir carries (kb/Work PB2480): scripts/account-profile.ps1 makes it so, account.py --seed-check (and tooling_check.py at every session start) verifies it. `copy`: taken from the default account's dir when missing (a directory: each missing child); `junction`: the default account's folder, linked so both accounts share it ({repo_key} = the main checkout's projects key); `flags`: non-secret feature flags set in the account's .claude.json (Claude in Chrome on, so the account's attended sessions have the browser tools; no unit reads the quota through them, kb/Work PB4749). `never`: credentials are never copied, the owner signs the account in (/login).",
       "copy": [
         "settings.json",
         "config.json",

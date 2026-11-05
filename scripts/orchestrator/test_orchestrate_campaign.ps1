@@ -40,7 +40,7 @@ $nc = Join-Path $Root 'nextunit'
 New-Item -ItemType Directory -Force -Path $nc | Out-Null
 & $fresh $nc
 Check 'the fix lane''s choice is unchanged without -Cluster (byte for byte)' (Next-Unit $nc @()) '{"unit": "wave", "reason": "nothing pending"}'
-# no reading at all chooses no meter unit (kb/Work PB4748: the status line's cached rate_limits are the meter)
+# no reading at all chooses no meter unit (kb/Work PB4749: the status line's cached rate_limits are the meter)
 $other = Join-Path $Root 'nextunit-other'
 New-Item -ItemType Directory -Force -Path $other | Out-Null
 Check 'a coordination directory with no reading still chooses the work''s unit' ((Next-Unit $other @()) | ConvertFrom-Json).unit 'wave'
