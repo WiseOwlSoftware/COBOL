@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Buffers;
 using System.Globalization;
 using System.Text.Json.Nodes;
 
@@ -189,8 +190,29 @@ internal sealed class MessageStoreState
     {
         string name = MessageJson.Text(o["name"]);
         if (name.Length is 0 or > CommunicationArea.NameLength) throw new FormatException($"'{name}' is no symbolic name of 1 to 12 characters");
-        if (name.Contains('/') || name.Contains('\\')) throw new FormatException($"the symbolic name '{name}' holds a path separator");
+        if (name.AsSpan().ContainsAny(NotInAFileName)) throw new FormatException($"the symbolic name '{name}' holds a character no file name may hold");
+        if (ReservedDeviceNames.Contains(DeviceStem(name))) throw new FormatException($"the symbolic name '{name}' is a device name of the host");
         return name;
+    }
+
+    /// <summary>The characters no host lets a file name hold: the union of <see cref="Path.GetInvalidFileNameChars"/> and the Windows set (the control characters
+    /// and <c>" * / : &lt; &gt; ? \ |</c>, Microsoft "Naming Files, Paths, and Namespaces"), so a definition file that is usable on one OS is usable on the other. The colon
+    /// is the one the host call omits on Linux and the one that names an NTFS alternate stream on Windows.</summary>
+    private static readonly SearchValues<char> NotInAFileName = SearchValues.Create(
+        [.. Path.GetInvalidFileNameChars(), .. Enumerable.Range(0, 32).Select(c => (char)c), .. "\"*/:<>?\\|"]);
+
+    /// <summary>The names Windows reads as a device whatever the extension (<c>NUL.out</c> is the NUL device): the three-letter ones, the console handles, and COM and LPT
+    /// followed by a digit or a superscript digit. Compared without case.</summary>
+    private static readonly HashSet<string> ReservedDeviceNames = new(
+        ["CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$",
+         .. from port in new[] { "COM", "LPT" } from digit in "0123456789¹²³" select port + digit],
+        StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The part of a name that Windows tests against the device names: up to the first dot, without trailing spaces. The device file <c>&lt;name&gt;.out</c> keeps it.</summary>
+    private static string DeviceStem(string name)
+    {
+        int dot = name.IndexOf('.');
+        return (dot < 0 ? name : name[..dot]).TrimEnd(' ');
     }
 
     private static string? KeyOf(JsonObject o) => o["key"]?.GetValue<string>();
