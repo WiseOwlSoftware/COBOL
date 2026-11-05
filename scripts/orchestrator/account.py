@@ -110,7 +110,7 @@ class Account:
 
     @property
     def email(self) -> str | None:
-        """The signed-in account's email: what the `meter` unit matches against the usage page it reads."""
+        """The signed-in account's email (`--field email`), the account's identity for the scripts that report it."""
         return self._oauth().get("emailAddress") or None
 
     def project_dir(self, repo: pathlib.Path | str) -> pathlib.Path:

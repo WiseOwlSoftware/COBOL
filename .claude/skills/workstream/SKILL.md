@@ -27,7 +27,7 @@ description: Use BEFORE dispatching any fleet, finisher, implementer or adjudica
 > practice is added THERE, with its reason and measurement, and to `check_practices.py` — nowhere else.
 
 > ⭐ **THE DEFAULT WAY TO RUN THE FIX LANE IS THE ORCHESTRATOR LOOP** (owner 2026-10-04: it "appears to better handle
-> autonomous progress towards the compiler"). `pwsh scripts/orchestrator/orchestrate.ps1 [-BorrowDays N] [-MaxUnits N] [-Unit meter|resume|land|wave|campaign] [-Cluster <lead>] [-DryRun]
+> autonomous progress towards the compiler"). `pwsh scripts/orchestrator/orchestrate.ps1 [-BorrowDays N] [-MaxUnits N] [-Unit wave|campaign|enqueue|resume] [-Cluster <lead>] [-DryRun]
 > [-Watch]` runs one bounded unit per fresh `claude -p` session, chosen by `next_unit.py` from the last handoff and the
 > disk; each unit loads THIS skill and follows `scripts/orchestrator/units/*.md`. Design:
 > `docs/rearchitecture/DESIGN-orchestrator-loop.md` (kb/Work PB1981). What it already does, so no session hand-rolls it:

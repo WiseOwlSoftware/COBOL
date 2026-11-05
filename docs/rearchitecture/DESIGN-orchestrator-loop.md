@@ -218,7 +218,7 @@ every wave-type choice, from rule 2 or rule 6: `campaign` when a lead's cluster 
 alternate with fix-lane waves; otherwise `wave`. Among several ready leads the one whose own last `campaign` line is
 oldest (never run counts as oldest; ties in `-Cluster` order) takes the turn, and the JSON names it in `cluster`. A
 wave-type choice also carries `campaign` for the lane as a whole: `run`, `between`, `waiting` (no lead has a ready
-note), `landed` (every lead's cluster is landed or retired) or `unknown`. An `enqueue` choice (rule 2 or 6) stays `enqueue`
+note), `landed` (every lead's cluster is landed or retired) or `unknown`. An `enqueue` choice (rule 2 or 5) stays `enqueue`
 in the campaign lane too. With `--cluster` EVERY choice but an owner
 question carries `campaigns` (`{lead: ready | waiting | landed | unknown}`; the supervisor ends a lead's lane at
 `landed`, runs the fix lane alone once no lead is left, and records the map in that unit's `units.jsonl` line) and
