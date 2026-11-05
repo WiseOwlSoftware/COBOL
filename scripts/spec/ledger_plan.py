@@ -130,7 +130,8 @@ def register_counts(items: list[dict], gap_rows: set[str]) -> dict | None:
     a GAP row (None when no note of that tree carries `inventory_rows` yet). None when the tree has no register."""
     if not items:
         return None
-    comp = [i for i in live(items) if not i.get("process_only")]
+    owed = work.inherited_harm(items)  # a prerequisite is compiler work, as the planner reads it (kb/Work PB4769)
+    comp = [i for i in live(items) if not i.get("process_only") or i.get("id") in owed]
     holders = (sum(1 for i in live(items) if set(i.get("inventory_rows") or []) & gap_rows)
                if any("inventory_rows" in i for i in items) else None)
     return {"compiler_open": len(comp), "defects": sum(1 for i in comp if i.get("kind") == "defect"),
@@ -142,11 +143,18 @@ REGISTER_KEYS = ("compiler_open", "defects", "wrong_answer", "crashes", "gap_hol
 
 
 def remaining(items: list[dict], rows: list[dict], gap: int, fleet: tuple[str, tuple[str, ...]]) -> dict:
-    """The buckets of what remains to v1.0, each with its notes, harm, states and lanes."""
+    """The buckets of what remains to v1.0, each with its notes, harm, states and lanes. A note's LANE is read as the
+    planner reads it (work.with_inherited_harm, as clusters.ready_notes_view does), so a prerequisite of a harmed note
+    is fix-lane compiler work here too (kb/Work PB4769 review R1-1); its harm counts stay its own, because the buckets
+    count what each defect does, not what it unblocks."""
     by_id = {i.get("id"): i for i in items}
     open_items = live(items)
     gap_rows = {r["rule-id"]: r for r in rows if r["state"] == "GAP"}
-    lanes = {str(i.get("id")): lanes_of(i, fleet) for i in open_items}
+    owed = {str(i.get("id")): i for i in work.with_inherited_harm(open_items) if i.get("harm_inherited")}
+    lanes = {str(i.get("id")): lanes_of(owed.get(str(i.get("id")), i), fleet) for i in open_items}
+
+    def compiler_work(i: dict) -> bool:
+        return not i.get("process_only") or str(i.get("id")) in owed
 
     def bucket(notes: list[dict]) -> dict:
         ids = [str(i.get("id")) for i in notes]
@@ -155,9 +163,9 @@ def remaining(items: list[dict], rows: list[dict], gap: int, fleet: tuple[str, t
                 "states": collections.Counter(note_state(i, by_id) for i in notes), "lanes": lane_n,
                 "no_lane": [nid for nid in ids if not lanes[nid]],
                 "no_lane_kind": collections.Counter(str(i.get("kind")) for i in notes if not lanes[str(i.get("id"))]),
-                "process_only": sum(1 for i in notes if i.get("process_only"))}
+                "process_only": sum(1 for i in notes if not compiler_work(i))}
 
-    comp = [i for i in open_items if not i.get("process_only")]
+    comp = [i for i in open_items if compiler_work(i)]
     compiler = bucket(comp)
     compiler["harm"] = collections.Counter(f for i in comp for f in (*work.HARM_FLAGS, "silent") if i.get(f))
     compiler["defect_harm"] = collections.Counter(f for i in comp if i.get("kind") == "defect"
@@ -432,6 +440,12 @@ def self_test() -> int:
     check("register_counts", rem["counts"],
           {"compiler_open": 4, "defects": 3, "wrong_answer": 1, "crashes": 1, "gap_holders": 2})
     check("register_counts of a tree with no register", register_counts([], set()), None)
+    # a process_only prerequisite of a harmed note is fix-lane compiler work, with no harm of its own (kb/Work PB4769)
+    pre = [*good, note("PB9020", kind="defect", process_only=True), note("PB9021", kind="defect", crashes=True, blocked_by=["PB9020"])]
+    rp = remaining(pre, rows, 3, fleet)
+    check("a prerequisite of a harmed note has the fix lane and is compiler work, its harm counts its own",
+          ("PB9020" in rp["compiler"]["ids"], rp["compiler"]["lanes"][FIX] - rem["compiler"]["lanes"][FIX],
+           rp["compiler"]["harm"]["crashes"] - rem["compiler"]["harm"]["crashes"]), (True, 2, 1))
     check("register_counts before inventory_rows existed",
           register_counts([{"id": "PB1", "status": "open", "kind": "defect"}], {"R-1"})["gap_holders"], None)
 
