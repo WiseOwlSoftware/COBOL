@@ -1,4 +1,4 @@
-## PB4635: a parenthesized item or literal is an arithmetic expression to the intrinsic argument screens
+## Entry 3130 — 2026-11-04 19:35 PST — PB4635: a parenthesized item or literal is an arithmetic expression to the intrinsic argument screens
 
 `FUNCTION FIND-STRING(X9 "ABC" (I2))` compiled and printed 0007, although §15.37.3 3) asks argument-3 for "an integer data item or
 integer literal" and `(I2)` is an arithmetic expression enclosed in parentheses (§8.8.1.1, §8.8.1.2 1)). Re-probe on this build
@@ -89,3 +89,4 @@ the clerk, both pre-existing and unchanged on main: a boolean expression is admi
 and a parenthesized numeric or boolean function-identifier passes LENGTH and BYTE-LENGTH.
 
 Finish review round 2 (R2-1). The same wrapper hid the item from the renderer's CONVERT ANY storage channel: `IntrinsicRenderer.StorageArg` had no arm for `BoundBoolOperand(BoundBoolRef)`, so `CONVERT((BT) ANY ANUM HEX)` sent the item's '0'/'1' text (31303130) where the bare spelling sends its storage (A0); the national item (0031003000310030), the bit group, a table element (30) and a reference-modified item (80) were wrong the same way, with no diagnostic. The arm now reads the item's storage image through `OperandText.AsStorageImage`, the one channel the bare field takes; a compound boolean expression keeps its text. Sweep: LENGTH and BYTE-LENGTH refuse the parenthesized boolean item strict and permissive (COBOL1627), so they have no storage arm to miss; every other string position reads the '0'/'1' image for the bare item too. Golden: `pb4635-convert-any-parenthesized-boolean-item` (accept 2023, A0 / 0031003000310030 / A0 / 30 / 80, bare and parenthesized equal). The lead R2-2 (the CONCAT refusal goldens tagged r1 for r2) is fixed.
+
