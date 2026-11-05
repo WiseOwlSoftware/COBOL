@@ -976,21 +976,21 @@ internal static class RuntimeApi
     public static string ExactFromDecWithPrecision(string withPrecision) =>
         $"{nameof(CobolExact)}.{nameof(CobolExact.FromDec)}({withPrecision})";
 
-    /// <summary>The native sum, difference or product of two exact values (<c>CobolExact.Add</c> / <c>Sub</c> / <c>Mul</c>) at the
-    /// INTERMEDIATE ROUNDING mode the SDIDI step past the wide form takes.</summary>
-    public static string ExactOperation(char op, string left, string right, string modeExpr) =>
+    /// <summary>The native sum, difference or product of two exact values (<c>CobolExact.Add</c> / <c>Sub</c> / <c>Mul</c>): exact on
+    /// the wide form and, past it, on the arbitrary-precision one (kb/Work PB4592) - no intermediate rounding is left to take.</summary>
+    public static string ExactOperation(char op, string left, string right) =>
         $"{nameof(CobolExact)}.{op switch
         {
             '+' => nameof(CobolExact.Add),
             '-' => nameof(CobolExact.Sub),
             '*' => nameof(CobolExact.Mul),
             _ => throw new ArgumentOutOfRangeException(nameof(op), op, "an exact operation is +, - or *"),
-        }}({left}, {right}, {modeExpr})";
+        }}({left}, {right})";
 
     /// <summary>The NESTED native quotient of two exact values (<c>CobolExact.DivTruncated</c>): truncated at the working scale the
     /// run time derives from <paramref name="receiverScale"/> and the precision the values carry.</summary>
-    public static string ExactDivTruncated(string left, string right, int receiverScale, string modeExpr) =>
-        $"{nameof(CobolExact)}.{nameof(CobolExact.DivTruncated)}({left}, {right}, {receiverScale}, {modeExpr})";
+    public static string ExactDivTruncated(string left, string right, int receiverScale) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.DivTruncated)}({left}, {right}, {receiverScale})";
 
     /// <summary>The FINAL-TRANSFER native quotient of two exact values, the SDIDI of the exact quotient's round-to-odd 34 digits
     /// (<c>CobolExact.DivToOdd</c>, kb/Work PB4599), screened by <paramref name="modeExpr"/> when it is PROHIBITED.</summary>
@@ -999,16 +999,25 @@ internal static class RuntimeApi
 
     /// <summary>The SUBSIDIARY quotient of a native <c>DIVIDE ... REMAINDER</c> over exact values (<c>CobolExact.SubsidiaryQuotient</c>,
     /// kb/Work PB4640): the exact quotient truncated at identifier-3's <paramref name="scale"/>.</summary>
-    public static string ExactSubsidiaryQuotient(string left, string right, int scale, string modeExpr) =>
-        $"{nameof(CobolExact)}.{nameof(CobolExact.SubsidiaryQuotient)}({left}, {right}, {scale}, {modeExpr})";
+    public static string ExactSubsidiaryQuotient(string left, string right, int scale) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.SubsidiaryQuotient)}({left}, {right}, {scale})";
+
+    /// <summary>The FINAL TRANSFER of a native quotient of two exact values into a fixed-point resultant, landed from the exact quotient
+    /// rounded once at <paramref name="scale"/> in <paramref name="mode"/> (<c>CobolExact.QuotientAtScale</c>, kb/Work PB4701).</summary>
+    public static string ExactQuotientAtScale(string left, string right, int scale, CobolRounding mode, bool checkedTransfer) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.QuotientAtScale)}({left}, {right}, {scale}, {RoundingText(mode)}, {(checkedTransfer ? "true" : "false")})";
 
     /// <summary>The negation of an exact value (<c>CobolExact.Negate</c>).</summary>
     public static string ExactNegate(string exact) => $"{nameof(CobolExact)}.{nameof(CobolExact.Negate)}({exact})";
 
-    /// <summary>An exact value raised to an <c>Int128</c> integer exponent (<c>CobolExact.Pow</c>) at the INTERMEDIATE ROUNDING mode
-    /// the SDIDI step past the wide form takes.</summary>
-    public static string ExactPow(string exact, string int128Exponent, string modeExpr) =>
-        $"{nameof(CobolExact)}.{nameof(CobolExact.Pow)}({exact}, {int128Exponent}, {modeExpr})";
+    /// <summary>An exact value raised to an <c>Int128</c> integer exponent (<c>CobolExact.Pow</c>): the exact power, reduced once
+    /// wherever a consumer lowers it (kb/Work PB4587).</summary>
+    public static string ExactPow(string exact, string int128Exponent) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.Pow)}({exact}, {int128Exponent})";
+
+    /// <summary>A float ITEM's content as an exact value, every digit of its binary expansion (<c>CobolExact.FromBinary64</c>, kb/Work PB4730).</summary>
+    public static string ExactFromBinary64(string doubleExpr) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.FromBinary64)}({doubleExpr})";
 
     /// <summary>The FINAL TRANSFER of an exact value (<c>CobolExact.ToUnscaled</c>), as <see cref="WideToUnscaled"/>.</summary>
     public static string ExactToUnscaled(string exact, int toScale, CobolRounding mode, bool checkedTransfer) =>

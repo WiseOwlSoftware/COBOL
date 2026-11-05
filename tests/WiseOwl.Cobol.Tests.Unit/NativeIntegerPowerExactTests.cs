@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB4569 - a native INTEGER base raised to an integer exponent is the exact power (<c>CobolExact.Pow</c>: exact on the
-/// 256-bit wide form while the VALUE fits its 77 digits, <c>CobolIntrinsics.PowNativeDec</c>'s round-to-odd chain past it),
+/// 256-bit wide form while the VALUE fits its 77 digits, <c>CobolBig</c>'s exact power past it, kb/Work PB4587),
 /// never the binary64 fallback the former <c>PowNativeIntDec</c> took past the <see cref="Int128"/> carrier (NUMERIC_DESIGN D19
 /// (a), superseded by the owner on 2026-11-04). §8.8.1.3 leaves native evaluation to the implementor, so CLAUDE.md rule 1 sends
 /// it to GnuCOBOL, whose run-time power is an exact <c>mpz_pow_ui</c>. Expected values are <see cref="BigInteger"/> powers, an
@@ -34,11 +34,11 @@ public sealed class NativeIntegerPowerExactTests
             chunks.Push((Int128)chunk);
         } while (!magnitude.IsZero);
         foreach (Int128 chunk in chunks)
-            acc = CobolExact.Add(CobolExact.Mul(acc, radix, CobolRounding.Truncation), CobolExact.From(chunk, 0), CobolRounding.Truncation);
+            acc = CobolExact.Add(CobolExact.Mul(acc, radix), CobolExact.From(chunk, 0));
         return v.Sign < 0 ? CobolExact.Negate(acc) : acc;
     }
 
-    private static CobolExact Pow(Int128 b, Int128 e) => CobolExact.Pow(CobolExact.From(b, 0), e, CobolRounding.Truncation);
+    private static CobolExact Pow(Int128 b, Int128 e) => CobolExact.Pow(CobolExact.From(b, 0), e);
 
     [Theory]
     [InlineData(1, 999999999999999999, 1)]

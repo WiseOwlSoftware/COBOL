@@ -48,8 +48,10 @@ public sealed class FunctionValueLaneDriftTests
             if (!m.Success) continue;
             // `"Sqrt" when num.StandardDecimal` / `"Factorial" when num.StandardDecimal` are standard-mode arms: a NATIVE
             // call to either keeps the float / exact lane (IntrinsicRenderer: "an unguarded arm would flip native float
-            // SQRT onto the Dec lane").
-            if (m.Groups["guard"].Value.Contains("num.StandardDecimal", StringComparison.Ordinal)) continue;
+            // SQRT onto the Dec lane"). A `when !num.StandardDecimal` arm is the NATIVE one and stays (kb/Work PB4730: the native
+            // selections return their exact value, not an SDIDI).
+            string guard = m.Groups["guard"].Value;
+            if (guard.Contains("num.StandardDecimal", StringComparison.Ordinal) && !guard.Contains("!num.StandardDecimal", StringComparison.Ordinal)) continue;
             string body = m.Groups["body"].Value.Trim();
             if (body.Length == 0 && i + 1 < lines.Length) body = lines[i + 1].Trim();
             bool sdidi = body.StartsWith("Dec(", StringComparison.Ordinal);
@@ -147,5 +149,29 @@ public sealed class FunctionValueLaneDriftTests
             "FunctionValueLane.NativeSdidiBodiesWithExactResult must be exactly RenderDec's native arms not built by Dec(...).\n"
             + "  in RenderDec only: [" + string.Join(", ", exact.Except(restated)) + "]\n"
             + "  in NativeSdidiBodiesWithExactResult only: [" + string.Join(", ", restated.Except(exact)) + "]");
+    }
+
+    /// <summary>⛔ A FUNCTION'S BINARY64 VALUE IS AN APPROXIMATION OR A FLOAT ITEM'S CONTENT BY ONE PREDICATE, ASKED BY THE BINDER AND BY
+    /// THE RENDERER (kb/Work PB4622): the floating-math family and a function of approximations only return an approximation, which
+    /// lands by its shortest round-trip decimal; ABS, MAX, FRACTION-PART, SUM ... over a float ITEM return a value derived from the
+    /// item's exact binary64 (§15.59.4 1) "the content of the argument"), which lands as the item does.</summary>
+    [Theory]
+    [InlineData(true, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    public void Binary64ResultIsApproximation_IsTheFloatFamilyOrAFunctionOfApproximationsOnly(
+        bool floatFamily, bool anyFloatItemArgument, bool approximation) =>
+        Assert.Equal(approximation, IntrinsicCarrierRules.Binary64ResultIsApproximation(floatFamily, anyFloatItemArgument));
+
+    [Fact]
+    public void BinderAndRenderer_AskTheSameApproximationPredicate()
+    {
+        string lane = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding", "Procedure", "FunctionValueLane.cs"));
+        string renderer = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "CodeGen", "Emit", "IntrinsicRenderer.cs"));
+        Assert.Contains("IntrinsicCarrierRules.Binary64ResultIsApproximation(", lane, StringComparison.Ordinal);
+        Assert.Contains("IntrinsicCarrierRules.Binary64ResultIsApproximation(", renderer, StringComparison.Ordinal);
+        // No other site decides it: the renderer flags a binary64 Approximate only from the predicate's answer.
+        Assert.DoesNotContain("Real: true, Approximate: true);", renderer, StringComparison.Ordinal);
     }
 }

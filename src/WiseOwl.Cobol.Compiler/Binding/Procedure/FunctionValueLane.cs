@@ -53,15 +53,16 @@ internal static class FunctionValueLane
         "MedianScaled", "MidrangeScaled", "Variance", "StandardDeviation", "Annuity", "PresentValue",
     }.ToFrozenSet(StringComparer.Ordinal);
 
-    /// <summary>The native SDIDI bodies whose value <c>IntrinsicRenderer.RenderDec</c> returns as an EXACT scale-0 value
-    /// rather than on the SDIDI: SIGN reads an SDIDI argument and returns +1, 0 or -1 (§15.81.1), and ORD-MAX / ORD-MIN
+    /// <summary>The native SDIDI bodies whose value <c>IntrinsicRenderer.RenderDec</c> returns as an EXACT value
+    /// rather than on the SDIDI: SIGN reads an SDIDI argument and returns +1, 0 or -1 (§15.81.1), ORD-MAX / ORD-MIN
     /// compare on the SDIDI and return "the ordinal number that corresponds to the position of the argument-1 having the
-    /// greatest [least] value" (§15.71.4 r1 / §15.72.4 r1). Every other member of <see cref="NativeSdidiBodies"/> returns
-    /// the SDIDI. <c>FunctionValueLaneDriftTests</c> derives this set from the renderer's switch as well (the native arms
+    /// greatest [least] value" (§15.71.4 r1 / §15.72.4 r1), and MAX / MIN / MEDIAN return "the content of the argument" selected
+    /// (§15.59.4 r1 / §15.63.4 r1 / §15.61.1) as the exact value it is, whole (kb/Work PB4730). Every other member of
+    /// <see cref="NativeSdidiBodies"/> returns the SDIDI. <c>FunctionValueLaneDriftTests</c> derives this set from the renderer's switch as well (the native arms
     /// not wrapped in its <c>Dec(...)</c>).</summary>
     internal static readonly FrozenSet<string> NativeSdidiBodiesWithExactResult = new[]
     {
-        "SignOf", "OrdMax", "OrdMin",
+        "SignOf", "OrdMax", "OrdMin", "MaxScaled", "MinScaled", "MedianScaled",
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>The pure selections, which a MIXED list takes onto the SDIDI under native arithmetic so the compared and
@@ -84,6 +85,13 @@ internal static class FunctionValueLane
     /// review R1-1).</summary>
     internal static bool ReturnsBinary64(BoundIntrinsicCall call, ArithmeticMode mode) =>
         !ArithmeticModes.IsDecimalEngine(mode) && Of(call) is CarrierKind.Real or CarrierKind.ApproximateReal;
+
+    /// <summary>True when <paramref name="call"/>'s binary64 returned value is an engine APPROXIMATION
+    /// (<see cref="IntrinsicCarrierRules.Binary64ResultIsApproximation"/>, kb/Work PB4622) and not a float ITEM's content: the
+    /// temporary that holds it says so (<see cref="DataItem.HoldsApproximation"/>), so every read of it lands it as the
+    /// renderer's <c>NumX.Approximate</c> value lands.</summary>
+    internal static bool ReturnsApproximation(BoundIntrinsicCall call, ArithmeticMode mode) =>
+        !ArithmeticModes.IsDecimalEngine(mode) && Of(call) is CarrierKind.ApproximateReal;
 
     /// <summary>The carrier the native renderer returns a numeric function's value on, as far as the kind is concerned.</summary>
     private static CarrierKind Of(BoundIntrinsicCall call)
@@ -120,8 +128,14 @@ internal static class FunctionValueLane
         // A mixed selection list rides the SDIDI too (RenderNum's selection arm).
         if (Selections.Contains(sig.RuntimeMethod) && anyReal && !allReal && sdidiBody) return OnSdidiBody(sig.RuntimeMethod);
         if (sig.Float) return CarrierKind.ApproximateReal;
-        // RenderNum's last dispatch: a binary64 argument at a numeric position moves the whole call onto the float lane.
-        if (anyReal && IntrinsicArgumentRules.ArgumentRunIsAllNumeric(sig.Name, args.Count)) return CarrierKind.ApproximateReal;
+        // RenderNum's last dispatch: a binary64 argument at a numeric position moves the whole call onto the float lane. The value
+        // is an engine APPROXIMATION only when none of those arguments is a float ITEM's content (kb/Work PB4622, the one
+        // predicate RenderNum asks too): ABS / MAX / FRACTION-PART / SUM ... over a float item return a value derived from the
+        // item's exact binary64, which lands as the item does.
+        if (anyReal && IntrinsicArgumentRules.ArgumentRunIsAllNumeric(sig.Name, args.Count))
+            return IntrinsicCarrierRules.Binary64ResultIsApproximation(false, args.Any(a => a.Kind == CarrierKind.Real))
+                ? CarrierKind.ApproximateReal
+                : CarrierKind.Real;
         return CarrierKind.Fixed;
     }
 

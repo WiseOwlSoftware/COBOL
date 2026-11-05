@@ -102,6 +102,7 @@ public sealed class NestedQuotientPrecisionDriftTests
                      ("CobolNum.Divide(", 6, 4), ("CobolWide.DivTruncated(", 5, 4),
                      ("CobolDec.DivTruncatedToOdd(", 3, 2),
                      ("CobolDecWithPrecision.DivTruncatedToOdd(", 3, 2),   // its third argument is the receiver scale
+                     ("CobolExact.DivTruncated(", 3, 2),   // the run-time-scaled exact quotient: the receiver scale (the run time adds the guard digits)
                  })
             for (int at = cs.IndexOf(call, StringComparison.Ordinal); at >= 0; at = cs.IndexOf(call, at + 1, StringComparison.Ordinal))
             {
@@ -193,9 +194,11 @@ public sealed class NestedQuotientPrecisionDriftTests
         Assert.Contains("CobolDec.DivTruncatedToOdd(", cs);
         Assert.DoesNotContain("CobolDec.DivToOdd(", cs);
         Assert.DoesNotContain("CobolDec.Div(", cs);
-        // Receiver scale 4 + 14 guard digits; the relation has no receiver, so 0 + 14.
-        Assert.True(DivisionScales(cs).SetEquals(new[] { 14, 18 }),
-            $"nested quotient scales {{{string.Join(", ", DivisionScales(cs))}}}, where every lane owes 18 (receiver) and 14 (relation)");
+        // The float literal's SDIDI quotient is 4 + 14 guard digits; a product of two intrinsic values whose bound passes 77 digits is
+        // the run-time-scaled exact carrier's (kb/Work PB4729: a bound is not a value), which is asked for the receiver's 4 and the
+        // relation's 0 and adds the 14 guard digits at run time (CobolNum.NestedQuotientScale), so its calls carry 4 and 0.
+        Assert.True(DivisionScales(cs).SetEquals(new[] { 0, 4, 18 }),
+            $"nested quotient scales {{{string.Join(", ", DivisionScales(cs))}}}, where the SDIDI lane owes 18 and the exact carrier the receiver's 4 and the relation's 0");
     }
 
     /// <summary>⛔ AN SDIDI OPERAND IS NEVER GIVEN THE PRECISION 0 (review finding R3-1), AND ITS PRECISION IS ITS WRITTEN SCALE

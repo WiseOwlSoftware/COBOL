@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Runtime;
 /// floating-point literal, a power), an argument expression the exact wide lane could not take, a binary64 beside an exact
 /// selection — and VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE in every native call. Each takes its arguments as their EXACT
 /// values (<see cref="CobolExact"/>), forms the value of the function's equivalent arithmetic expression from them on the 256-bit
-/// wide form, and rounds it ONCE into the returned-value carrier; a selection compares the exact values
-/// (<see cref="CobolExact.Compare"/>).
+/// wide form and, where a step leaves it, on the arbitrary-precision form (kb/Work PB4592), and rounds it ONCE into the returned-value
+/// carrier; a selection compares the exact values (<see cref="CobolExact.Compare"/>) and returns the selected one, whole.
 /// <para>WHY. Under native arithmetic the method of evaluating "all integer and numeric functions" is the implementor's (ISO/IEC
 /// 1989:2023 §8.8.1.3), and §15.4.1 makes the value of a function with an equivalent arithmetic expression "an implementor-defined
 /// approximation of the value of that expression". CLAUDE.md rule 1 sends that latitude to GnuCOBOL, which evaluates these
@@ -18,9 +18,11 @@ namespace WiseOwl.Cobol.Runtime;
 /// and rounded each step — a 34-digit mean is no approximation of a variance at all, since a mean off by δ adds exactly δ² — and
 /// stay the STANDARD-DECIMAL bodies, where §15.4.1 1) makes the 34-digit SDIDI evaluation the value.</para>
 /// <para>WHAT IS ROUNDED, ONCE. A computed value (a sum, a difference, a remainder, a quotient) is rounded to the SDIDI's 34 digits in
-/// the native intermediate rounding mode; a selection returns the content of the selected argument (<see cref="CobolExact.ToDec"/>);
-/// an ordinal is exact. Where the arguments cannot be aligned on the wide form, or a step of the work leaves its 77 digits, the body
-/// evaluates the SDIDI images with the SDIDI body instead — DOC-A.1-123's determination for an intermediate past 77 digits.</para>
+/// the native intermediate rounding mode; a selection returns the content of the selected argument itself, every digit of it
+/// (§15.59.4 1), §15.63.4 1), §15.61.1: a float item's 41-digit expansion included, kb/Work PB4730); an ordinal is exact. The SUM,
+/// RANGE, MEAN, MIDRANGE, MEDIAN, MOD and REM bodies are exact at any size the arbitrary-precision form holds (|value| &lt; 10^6145);
+/// VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE evaluate the SDIDI images with the SDIDI body where their work leaves the wide form
+/// (INTRINSICS_DESIGN "What still takes the image").</para>
 /// </summary>
 public static partial class CobolIntrinsics
 {
@@ -49,20 +51,20 @@ public static partial class CobolIntrinsics
     public static long OrdMinExact(params CobolExact[] xs) => SelectExact(xs, greatest: false, "ORD-MIN") + 1;
 
     /// <summary>MAX (§15.59.4): the content of the argument having the greatest value.</summary>
-    public static CobolDec MaxExact(CobolRounding mode, params CobolExact[] xs) => xs[SelectExact(xs, greatest: true, "MAX")].ToDec(mode);
+    public static CobolExact MaxExact(params CobolExact[] xs) => xs[SelectExact(xs, greatest: true, "MAX")];
 
     /// <summary>MIN (§15.63.4): the content of the argument having the least value.</summary>
-    public static CobolDec MinExact(CobolRounding mode, params CobolExact[] xs) => xs[SelectExact(xs, greatest: false, "MIN")].ToDec(mode);
+    public static CobolExact MinExact(params CobolExact[] xs) => xs[SelectExact(xs, greatest: false, "MIN")];
 
     /// <summary>MEDIAN (§15.61.4): the middle value in sorted order for an odd count, the mean of the two middle values for an even
     /// one.</summary>
-    public static CobolDec MedianExact(CobolRounding mode, params CobolExact[] xs)
+    public static CobolExact MedianExact(CobolRounding mode, params CobolExact[] xs)
     {
         RequireArguments(xs.Length, "MEDIAN");
         var sorted = (CobolExact[])xs.Clone();
         Array.Sort(sorted, CobolExact.Compare);
         int mid = sorted.Length / 2;
-        return sorted.Length % 2 != 0 ? sorted[mid].ToDec(mode) : HalfSum(sorted[mid - 1], sorted[mid], mode);
+        return sorted.Length % 2 != 0 ? sorted[mid] : CobolExact.FromDec(HalfSum(sorted[mid - 1], sorted[mid], mode));
     }
 
     /// <summary>MIDRANGE (§15.62.4): <c>(FUNCTION MAX + FUNCTION MIN) / 2</c>.</summary>
@@ -71,35 +73,28 @@ public static partial class CobolIntrinsics
 
     /// <summary>(<paramref name="a"/> + <paramref name="b"/>) / 2 at the two values' common scale, rounded once.</summary>
     private static CobolDec HalfSum(CobolExact a, CobolExact b, CobolRounding mode) =>
-        CobolExact.TryAlign([a, b], out CobolWide[] v, out int s) && CobolWide.TryAdd(v[0], v[1], out CobolWide sum)
-            ? sum.QuotientDec(s, 2, mode)
-            : CobolDec.Div(CobolDec.Add(a.Image, b.Image, mode), CobolDec.From(2, 0), mode);
+        CobolExact.Quotient(CobolExact.Add(a, b), CobolExact.From(2, 0), mode, jam: false);
 
-    /// <summary>The exact sum of the aligned values, or false past the wide form.</summary>
-    private static bool TrySum(CobolWide[] aligned, out CobolWide sum)
+    /// <summary>The exact sum of the values at their common scale, on the wide form and, past it, the arbitrary-precision one.</summary>
+    private static CobolExact Total(CobolExact[] xs)
     {
-        sum = default;
-        foreach (CobolWide x in aligned)
-            if (!CobolWide.TryAdd(sum, x, out sum)) return false;
-        return true;
+        CobolExact sum = xs[0];
+        for (int i = 1; i < xs.Length; i++) sum = CobolExact.Add(sum, xs[i]);
+        return sum;
     }
 
     /// <summary>SUM (§15.88.4): the exact sum of the arguments at their common scale, rounded once.</summary>
     public static CobolDec SumExact(CobolRounding mode, params CobolExact[] xs)
     {
         RequireArguments(xs.Length, "SUM");
-        return CobolExact.TryAlign(xs, out CobolWide[] v, out int s) && TrySum(v, out CobolWide sum)
-            ? sum.ToDecRounded(s, mode)
-            : SumDec(mode, Images(xs));
+        return Total(xs).ToDecRounded(mode);
     }
 
     /// <summary>RANGE (§15.76.4): <c>FUNCTION MAX − FUNCTION MIN</c>, at the two values' common scale, rounded once.</summary>
     public static CobolDec RangeExact(CobolRounding mode, params CobolExact[] xs)
     {
         CobolExact max = xs[SelectExact(xs, greatest: true, "RANGE")], min = xs[SelectExact(xs, greatest: false, "RANGE")];
-        return CobolExact.TryAlign([max, min], out CobolWide[] v, out int s) && CobolWide.TryAdd(v[0], CobolWide.Negate(v[1]), out CobolWide range)
-            ? range.ToDecRounded(s, mode)
-            : CobolDec.Sub(max.Image, min.Image, mode);
+        return CobolExact.Sub(max, min).ToDecRounded(mode);
     }
 
     /// <summary>MEAN (§15.60.4 1): <c>(argument-11 + … + argument-1n) / n</c>, the exact sum divided ONCE — the SDIDI quotient every
@@ -107,9 +102,7 @@ public static partial class CobolIntrinsics
     public static CobolDec MeanExact(CobolRounding mode, params CobolExact[] xs)
     {
         RequireArguments(xs.Length, "MEAN");
-        return CobolExact.TryAlign(xs, out CobolWide[] v, out int s) && TrySum(v, out CobolWide sum)
-            ? sum.QuotientDec(s, xs.Length, mode)
-            : MeanDec(mode, Images(xs));
+        return CobolExact.Quotient(Total(xs), CobolExact.From(xs.Length, 0), mode, jam: false);
     }
 
     /// <summary>MOD (§15.64.4): <c>argument-1 − argument-2 × FUNCTION INTEGER (argument-1 / argument-2)</c>, the floored modulus of the
@@ -120,7 +113,7 @@ public static partial class CobolIntrinsics
         if (b.Sign == 0) return CobolDec.From(ModZeroDivisor(), 0);
         return CobolExact.TryAlign([a, b], out CobolWide[] v, out int s)
             ? ModWide(v[0], v[1]).ToDecRounded(s, mode)
-            : ModDec(mode, a.Image, b.Image);
+            : CobolExact.Remainder(a, b, floored: true).ToDecRounded(mode);
     }
 
     /// <summary>REM (§15.77.4): <c>argument-1 − argument-2 × FUNCTION INTEGER-PART (argument-1 / argument-2)</c>, the truncated
@@ -131,7 +124,7 @@ public static partial class CobolIntrinsics
         if (b.Sign == 0) return CobolDec.From(RemZeroDivisor(), 0);
         return CobolExact.TryAlign([a, b], out CobolWide[] v, out int s)
             ? RemWide(v[0], v[1]).ToDecRounded(s, mode)
-            : RemDec(mode, a.Image, b.Image);
+            : CobolExact.Remainder(a, b, floored: false).ToDecRounded(mode);
     }
 
     /// <summary>⛔ VARIANCE (§15.98.4 1) OF THE EXACT ARGUMENTS, DIVIDED ONCE (kb/Work PB4111): the mean of the squared deviations from

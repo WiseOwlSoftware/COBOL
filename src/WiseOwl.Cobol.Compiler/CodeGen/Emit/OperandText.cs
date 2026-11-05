@@ -87,8 +87,10 @@ internal static class OperandText
         // A function-identifier the binder FOLDED into an arithmetic sum — FUNCTION LENGTH / BYTE-LENGTH of a
         // variable-length group is §15.50.4 r7's fixed-plus-dynamic-leaves sum (kb/Work PB61): still a numeric
         // function's returned value in a string position, rendered in the same item-92 literal form. No general
-        // format admits a bare arithmetic expression here, so nothing else can reach this arm.
-        : op is BoundComputedOperand { Expr: BoundBinary } sum
+        // format admits a bare arithmetic expression here, so the only other way to reach this arm is the --permissive
+        // coercion of one at a character position of a string function (`TRIM (I2 + 1)`, kb/Work PB4710), whose text is
+        // the value's, in the same form (an arithmetic expression is a negation, a power or a binary operation).
+        : op is BoundComputedOperand { Expr: BoundBinary or BoundNegate or BoundPower } sum
             ? NumericExprText(num, sum.Expr, deSign)
         // A bare figurative (HIGH-VALUE/LOW-VALUE/SPACE/…) in a DISPLAY/STRING/STOP value position is an
         // alphanumeric value (§8.3.3.6.4 GR1) of one character (GR3b). Materialize it through the declared collating

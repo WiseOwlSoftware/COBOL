@@ -690,6 +690,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private NumX RenderFloat(BoundIntrinsicCall ic, string method)
     {
         string call = FloatBody(ic, method);
+        // ⛔ THE KIND OF THE BINARY64 IS ASKED ONCE, BY THE RULE THE BIND-TIME PREDICTION ASKS TOO (kb/Work PB4622): an engine
+        // APPROXIMATION (the floating-math family, or a function of approximations only) lands by its shortest round-trip decimal;
+        // a value derived from a float ITEM's content (ABS, MAX, FRACTION-PART, SUM ... of it) lands by its exact binary value, as
+        // the item itself does (§15.59.4 1) "the content of the argument", §15.4.1).
+        bool approximation = IntrinsicCarrierRules.Binary64ResultIsApproximation(ic.Sig.Float, AnyFloatItemArgument(ic));
         // ⛔ THE ARITHMETIC MODE IS TESTED BEFORE THE RECEIVER SHAPE, AND THE COMMENT BELOW SAYS WHY EACH ARM IS
         // WHERE IT IS (kb/Work PB253). §15.4.1: "When standard-decimal arithmetic or standard-binary arithmetic is
         // in effect, the returned value for numeric and integer functions is contained in a temporary standard data
@@ -732,16 +737,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // — the defect this shape closes was exactly an arm sitting one line too high. `num.StandardDecimal` is
         // read HERE and nowhere below (StandardModeReturnedValueContainerDriftTests proves the property over every
         // Float: true catalog row, so a new float function inherits it without anyone remembering to).
+        // The standard-mode lift is the ONE operand lift (NumericRenderer.DecOperand): an approximation enters by its shortest
+        // round-trip decimal, a value derived from a float ITEM by §8.8.1.5.1's conversion of the item (CobolDec.FromBinary64).
         return num.StandardDecimal
-            ? new NumX(RuntimeApi.DecFromApproximation(RuntimeApi.Intrinsic("RealResult", call)), 0, Dec: true)
-            : RenderFloatNative(call);
+            ? new NumX(num.DecOperand(new NumX(RuntimeApi.Intrinsic("RealResult", call), 0, Real: true, Approximate: approximation)), 0, Dec: true)
+            : RenderFloatNative(call, approximation);
     }
 
     /// <summary>The §15.4.1 float family under NATIVE arithmetic — the receiver-shape arms, and ONLY those.
     /// <para>⛔ It is a separate method so the arithmetic mode is settled before any of this runs: the container
     /// question belongs to <see cref="RenderFloat"/>, this one answers the D16 quantization question. Deliberately
     /// mode-blind (kb/Work PB253).</para></summary>
-    private NumX RenderFloatNative(string call)
+    private NumX RenderFloatNative(string call, bool approximation)
     {
         // ⛔ WHETHER THIS VALUE LANDS AT ALL, AND AT WHAT SCALE AND MODE, IS ONE DECISION TAKEN ONCE ON
         // ReceiverContext (kb/Work PB647, then PB653 — ReceiverContext.FloatLanding carries the derivation):
@@ -800,8 +807,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // Approximate, and NumericRenderer.CombineCore — the one place the lane is chosen — lifts it to the SDIDI
         // (its shortest-round-trip decimal) beside fixed-point operands, so `13.2 + FUNCTION SQRT(16)` is 17.2 and not
         // the 17.1 a truncating store of 13.199999999999999 + 4.0 gives.
+        var value = new NumX(RuntimeApi.Intrinsic("RealResult", call), 0, Real: true, Approximate: approximation);
         if (!landing.Quantize)
-            return new NumX(RuntimeApi.Intrinsic("RealResult", call), 0, Real: true, Approximate: true);
+            return value;
         // ⛔ ONE LANDING FOR EVERY FUNCTION OF THE FAMILY, WITH NO CODOMAIN CLAMP (kb/Work PB3829, overturning PB65's
         // clamp). A §15.x.4 bound (ACOS's [0, π], ASIN's and ATAN's ±π/2, RANDOM's [0, 1)) is a rule on the RETURNED
         // value, which the binary64 already satisfies; the value the resultant identifier receives is the returned
@@ -816,6 +824,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // as the `Approximate: true` NumX of the keep-the-binary64 arm above does when a store or an alignment lands it
         // (NumericRenderer.StoreArgs / EditedLanding / Align read NumX.Approximate). Landing the binary EXPANSION stored
         // 0.000000 for `COMPUTE R = FUNCTION EXP10(-6)` and 0.000001 for `COMPUTE R = 0 + FUNCTION EXP10(-6)`.
+        // ⛔ A VALUE DERIVED FROM A FLOAT ITEM LANDS BY THE ITEM'S EXACT BINARY VALUE (kb/Work PB4622), through the landing `COMPUTE R = F`
+        // and `MOVE F` take: ABS (DN) of -2.5E+40 stores 73792 in its low five digits, not the 00000 of its 17-digit shortest decimal.
+        // RealResult keeps the NaN screen FromDouble owns.
+        if (!value.Approximate)
+            return new NumX(RuntimeApi.FloatToScaled(value.Expr, value.Approximate, $"{landing.Scale}", landing.Mode, num.CheckedLanding), landing.Scale);
         return new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {landing.Scale}, {RuntimeApi.RoundingText(landing.Mode)}{CheckedFlag}"), landing.Scale);
     }
 
@@ -1324,12 +1337,16 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "RemScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RemExact", $"{mode}, {ExactValueArg(ic, 0)}, {ExactValueArg(ic, 1)}")),
             "OrdMax" when !num.StandardDecimal => new NumX(RuntimeApi.Intrinsic("OrdMaxExact", ExactValueArgList(ic)), 0),
             "OrdMin" when !num.StandardDecimal => new NumX(RuntimeApi.Intrinsic("OrdMinExact", ExactValueArgList(ic)), 0),
-            "MaxScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MaxExact", $"{mode}, {ExactValueArgList(ic)}")),
-            "MinScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MinExact", $"{mode}, {ExactValueArgList(ic)}")),
+            // ⛔ A SELECTION RETURNS THE SELECTED ARGUMENT'S CONTENT, WHOLE (kb/Work PB4730): §15.59.4 1) "the content of the argument-1
+            // having the greatest value", §15.63.4 1), §15.61.1. The selected value is an EXACT value (NumX.Exact), not an SDIDI
+            // content: a float item's expansion (DP = 2.5E+40 is 25000000000000000155002161260194579873792) keeps all 41 digits to its
+            // receiver, where the SDIDI's 34 stored 00000 for 73792.
+            "MaxScaled" when !num.StandardDecimal => Exact("MaxExact", ExactValueArgList(ic), null),
+            "MinScaled" when !num.StandardDecimal => Exact("MinExact", ExactValueArgList(ic), null),
             "SumScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SumExact", $"{mode}, {ExactValueArgList(ic)}")),
             "RangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RangeExact", $"{mode}, {ExactValueArgList(ic)}")),
             "MeanScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MeanExact", $"{mode}, {ExactValueArgList(ic)}")),
-            "MedianScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MedianExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "MedianScaled" when !num.StandardDecimal => Exact("MedianExact", $"{mode}, {ExactValueArgList(ic)}", null),
             "MidrangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MidrangeExact", $"{mode}, {ExactValueArgList(ic)}")),
             "Variance" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("VarianceExact", $"{mode}, {ExactValueArgList(ic)}")),
             "StandardDeviation" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("StdDevExact", $"{mode}, {ExactValueArgList(ic)}")),
@@ -1491,6 +1508,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the LANDED operand, as its sibling does.</remarks>
     private bool AllRealArguments(BoundIntrinsicCall ic) =>
         Operands(ic).All(x => Landed(x).Real);
+
+    /// <summary>Is any binary64 argument a float ITEM's content (<c>Real</c> and not <see cref="NumX.Approximate"/>), the fact
+    /// <see cref="IntrinsicCarrierRules.Binary64ResultIsApproximation"/> keys the kind of a function's binary64 value on
+    /// (kb/Work PB4622)? The bind-time prediction reads the same fact off the bound tree (<c>FunctionValueLane.Of</c>).</summary>
+    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the LANDED operand, as its siblings do.</remarks>
+    private bool AnyFloatItemArgument(BoundIntrinsicCall ic) =>
+        Operands(ic).Any(x => Landed(x) is { Real: true, Approximate: false });
 
     /// <summary>A numeric argument as a C# double (the float family's §15.4.1 carrier). ⛔ Converts the RAW
     /// operand (fix-queue PB56): routing through the <see cref="Landed"/> unscaled truncation first turned a
@@ -2018,6 +2042,16 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // argument renders beside it. The binder bars every other numeric/integer function here (SR11/SR12), so a
             // non-admitting position still reaches Loud only through a --permissive coercion.
             : admitNumeric && n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Numeric }
+                ? OperandText.AsString(n, owner.Num)
+            // ⛔ THE --permissive COERCION OF A COMPOUND ARITHMETIC EXPRESSION AT A CHARACTER POSITION (kb/Work PB4710): `TRIM (I2 + 1)`
+            // is refused in every strict mode (an arithmetic expression is class numeric where TRIM requires a character class,
+            // COBOL1627), and --permissive demotes the refusal to a warning and coerces. An expression holds no characters, so its
+            // image is its VALUE's text, the one form a numeric function's returned value has at a character position
+            // (OperandText.AsString, DOC-A.1-92): TRIM (I2 + 1) of I2 = 2 is "3". It used to reach the loud arm below and die at run
+            // time with NotImplementedCobolFeatureException on legal-shaped, warned source (the wrong-stage family). A parenthesized
+            // item or literal is the enclosed operand's own image (above); the positions that read characters keep the error
+            // (IntrinsicArgumentRules.IsCoercible), so this arm never serves them.
+            : n.Expr is BoundBinary or BoundNegate or BoundPower
                 ? OperandText.AsString(n, owner.Num)
                 : Loud(n);
         public string Visit(BoundOperandError n) => EmitText.LoudValue("string", n.Feature);

@@ -52,6 +52,13 @@ public readonly struct CobolWide
 
     private bool IsZero => _hi == 0 && _lo == 0;
 
+    /// <summary>The magnitude's high and low 128 bits and the sign: the parts <see cref="CobolBig"/> (the arbitrary-precision form
+    /// past this one, kb/Work PB4592) converts through, so this file holds no arbitrary-precision integer.</summary>
+    internal (bool Negative, UInt128 High, UInt128 Low) Parts => (_negative, _hi, _lo);
+
+    /// <summary>The wide value of the given sign and magnitude parts (<see cref="Parts"/>).</summary>
+    internal static CobolWide FromParts(bool negative, UInt128 hi, UInt128 lo) => new(negative, hi, lo);
+
     /// <summary>The algebraic sign of the value: −1, 0 or +1.</summary>
     internal int Sign => IsZero ? 0 : _negative ? -1 : 1;
 

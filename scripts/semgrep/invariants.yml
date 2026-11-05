@@ -61,11 +61,15 @@ rules:
     message: >-
       DESIGN §1.2 invariant 2 — `BigInteger` is banned in the runtime value model. 19-38 digit fixed-point
       uses Int128. If a value genuinely exceeds Int128, that is a spec question (§8.8.1 arithmetic bounds) to answer
-      with a citation, not a wider type.
+      with a citation, not a wider type. ONE file is exempt, by the owner's decision of 2026-11-04 (kb/Work PB4592,
+      "Exact, lift the ban"): CobolBig.cs, the arbitrary-precision form of the exact native intermediate past the 256-bit
+      CobolWide, reached only through CobolExact.
     paths:
       include:
         - "src/WiseOwl.Cobol.Runtime/**"
         - "src/WiseOwl.Cobol.Compiler/Binding/Model/**"
+      exclude:
+        - "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolBig.cs"
     # A bare `pattern: BigInteger` does not match a TYPE position in semgrep's C# grammar (verified: it matched
     # nothing). Regex is the reliable form for a banned type name.
     pattern-regex: '(?<![A-Za-z0-9_])BigInteger\b'
