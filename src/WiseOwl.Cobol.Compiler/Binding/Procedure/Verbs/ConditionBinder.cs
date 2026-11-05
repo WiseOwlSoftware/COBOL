@@ -599,58 +599,125 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// SR2 breach never had a pair for (kb/Work PB4446). SR8's rewrite needs the subject, and a refused pair has
     /// none to splice, so the relation checkpoint (SR7 a) and the shapes that read the subject's content stay
     /// out; what this reports is each operand's reference and expression faults (§8.4.2.1, §8.4.2.3.3 SR2,
-    /// §8.8.1.1 …), which violate the general formats and syntax rules whatever the pair is (ISO §4.2.2). It walks
-    /// the same spine <see cref="BindCondition(IParseTree, AbbrevCarry)"/> does, so a tier the grammar adds is
-    /// reached through its parent: a relational operator's object, an abbreviated relation's object in a
-    /// succeeding position, and every complete condition a connective joins (bound as written, in a fresh
-    /// abbreviation scope). A class or sign shape without its identifier has no operand, and a bare operand binds
-    /// as <see cref="BindBareOperandStandalone"/> says: a plain value is the object of the inserted subject's
-    /// relation and is bound as that object, while a class-name has no operand to bind.</summary>
+    /// §8.8.1.1 …) and the faults of the written CONDITION (§8.8.4.2.1, §8.8.4.12), which violate the general
+    /// formats and syntax rules whatever the pair is (ISO §4.2.2). It walks the same spine
+    /// <see cref="BindCondition(IParseTree, AbbrevCarry)"/> does, so a tier the grammar adds is reached through its
+    /// parent: a relational operator's object, an abbreviated relation's object in a succeeding position, and every
+    /// complete condition a connective joins (bound as written, in a fresh abbreviation scope). A class or sign
+    /// shape without its identifier has no operand.
+    /// <para>⛔ THE INSERTION OF §8.8.4.12.4 GR1 IS TRACKED THROUGH THE WALK (<see cref="StandaloneInsertion"/>, kb/Work
+    /// PB4627): the leading relational shape starts it, a stated relation restarts it, and a complete simple
+    /// condition that is not a relation ends it, so a succeeding abbreviated relation or bare operand is judged as
+    /// <see cref="BindCondition(IParseTree, AbbrevCarry)"/> judges it: an object of the carried relation while the
+    /// insertion lasts, COBOL2552 / COBOL2723 / COBOL2318 once it has ended.</para></summary>
     /// <param name="pe">A <c>partialExpression</c>, or a <c>condition</c> whose leftmost leaf is a bare class-name
     /// (<see cref="LeadingBareClassWord"/>).</param>
-    public void BindPartialOperandsStandalone(ParserRuleContext pe)
+    public void BindPartialOperandsStandalone(ParserRuleContext pe) =>
+        BindPartialOperandsStandalone(pe, new StandaloneInsertion { ClassWordMayLead = pe is Core.ConditionContext });
+
+    /// <summary>The state of §8.8.4.12.4 GR1's insertion along <see cref="BindPartialOperandsStandalone"/>'s walk — the
+    /// part of <see cref="AbbrevCarry"/> a walk that builds no relation can keep. There is no subject OPERAND to carry
+    /// (a refused pair has none), so what is tracked is whether one WOULD be carried: <see cref="Active"/> is
+    /// <c>AbbrevCarry.Subject is not null</c>, <see cref="BooleanRelation"/> is its §8.8.4.12.3 SR1 flag.</summary>
+    private sealed class StandaloneInsertion
+    {
+        /// <summary>A subject (and relational operator) is inserted into a succeeding abbreviated relation.</summary>
+        public bool Active;
+        /// <summary>The relation the insertion inherits from is a boolean relation (§8.8.4.12.3 SR1).</summary>
+        public bool BooleanRelation;
+        /// <summary>The walk has not met its first simple condition yet and the object is a <c>condition</c> whose
+        /// leftmost leaf may be the bare class-name of §14.9.13.3 SR5's "class condition without the identifier".</summary>
+        public bool ClassWordMayLead;
+        public void End() { Active = false; BooleanRelation = false; }
+    }
+
+    private void BindPartialOperandsStandalone(ParserRuleContext pe, StandaloneInsertion ins)
     {
         switch (pe)
         {
             case Core.PartialComparisonContext pc:
-                if (pc.abbreviatedRelation() is { } leading) _ = ComparisonOperand(leading.comparisonOperand());
+                // The LEADING shape (§14.9.13.3 SR5): a relational one starts the insertion (SR8: the spliced
+                // relation IS relation-condition-1), a class or sign one is a complete simple condition.
+                if (pc.abbreviatedRelation() is { } leading)
+                {
+                    _ = ComparisonOperand(leading.comparisonOperand());
+                    ins.Active = true;
+                }
+                else ins.End();
                 return;
             case Core.AbbreviatedRelationContext ar:
+                if (ins.BooleanRelation) _ = RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(ar));
+                else if (!ins.Active) ReportAbbreviatedRelationWithoutSubject(ar);
                 _ = ComparisonOperand(ar.comparisonOperand());
                 return;
             case Core.UnaryLogicalExpressionContext u:
-                BindPartialOperandsStandalone(u.primaryCondition());
+                BindPartialOperandsStandalone(u.primaryCondition(), ins);
                 return;
             case Core.PrimaryConditionContext p when p.booleanLiteral() is not null:
-                return;   // a truth word is no condition at all, and has no operand
+                ReportTruthWordAsCondition(p.booleanLiteral());   // a truth word is no condition, and has no operand
+                ins.ClassWordMayLead = false;
+                return;
             case Core.PrimaryConditionContext p when p.comparisonExpression() is { ChildCount: 1 } bare:
-                BindBareOperandStandalone(bare.comparisonOperand(0));
+                BindBareOperandStandalone(bare.comparisonOperand(0), ins);
+                ins.ClassWordMayLead = false;
                 return;
             case Core.PrimaryConditionContext p:
-                _ = BindCondition(p, new AbbrevCarry());
+                // A complete simple condition written in full: bound as written, in a fresh scope. A stated relation
+                // leaves its subject carried (GR1), every other shape and a parenthesized group ends the insertion.
+                var scope = new AbbrevCarry();
+                _ = BindCondition(p, scope);
+                ins.Active = scope.Subject is not null;
+                ins.BooleanRelation = scope.BooleanRelation;
+                ins.ClassWordMayLead = false;
                 return;
             default:
                 // The spine's tiers (leading and succeeding) and the condition root: each child is one element.
                 for (int i = 0; i < pe.ChildCount; i++)
                     if (pe.GetChild(i) is ParserRuleContext child and not Core.XorOperatorContext)
-                        BindPartialOperandsStandalone(child);
+                        BindPartialOperandsStandalone(child, ins);
                 return;
         }
     }
 
-    /// <summary>A BARE operand of <see cref="BindPartialOperandsStandalone"/>'s walk — <c>UNDEFX</c> in <c>WHEN &gt; 1
-    /// AND UNDEFX</c> (kb/Work PB4606), bound the way <see cref="BindSoleOperandCondition"/> binds it minus the one
-    /// thing that needs the pair. It is classified first, by the ONE bare-operand analysis, because a level-88
-    /// condition-name, a switch-status condition-name and a boolean operand are conditions or operands of their own
-    /// that the analysis has already bound, and a class-name has no operand (it tests the selection subject the
-    /// refused pair has none to give); only a plain VALUE is then bound as the comparison operand the inserted
-    /// subject's relation would have read (§8.8.4.12.4 GR1), which is where its reference faults (§8.4.2.1,
-    /// §8.4.2.3.3 SR2 and SR5, §8.8.1.1) are reported. The relation itself is not built: it needs the subject.</summary>
-    private void BindBareOperandStandalone(Core.ComparisonOperandContext operand)
+    /// <summary>A BARE operand of <see cref="BindPartialOperandsStandalone(ParserRuleContext)"/>'s walk — <c>UNDEFX</c> in
+    /// <c>WHEN &gt; 1 AND UNDEFX</c> (kb/Work PB4606) — judged as <see cref="BindComparison"/> and
+    /// <see cref="BindSoleOperandCondition"/> judge it, minus what needs the subject. It is classified first, by the
+    /// ONE bare-operand analysis, because a level-88 condition-name, a switch-status condition-name and a boolean
+    /// operand are complete simple conditions that end the insertion (§8.8.4.12.4 GR1) and that the analysis has
+    /// already bound, and a bare class-name is the identifier-less class condition of the leading position or, anywhere
+    /// else, no condition. Only a plain VALUE (or an address-identifier) is an operand, and only WHILE THE INSERTION
+    /// LASTS is it the object of the carried relation (§8.8.4.12.4 GR1), where its reference faults (§8.4.2.1,
+    /// §8.4.2.3.3 SR2 and SR5, §8.8.1.1) are reported; after a complete simple condition it is no object and no
+    /// condition either, and is refused as every written condition's bare operand is (COBOL2318, §8.8.4.2.1;
+    /// kb/Work PB4627). The relation itself is not built: it needs the subject.</summary>
+    private void BindBareOperandStandalone(Core.ComparisonOperandContext operand, StandaloneInsertion ins)
     {
-        if (operand.addressIdentifier() is not null) { _ = ComparisonOperand(operand); return; }
+        if (operand.addressIdentifier() is { } address)
+        {
+            if (ins.Active) _ = ComparisonOperand(operand);
+            else { ReportAddressIdentifierAsCondition(address); ins.End(); }
+            return;
+        }
         var vo = operand.valueOperand();
-        if (AnalyzeBareOperand(vo).Form is BareOperandForm.Value) _ = ComparisonOperandOf(vo);
+        var analysis = AnalyzeBareOperand(vo);
+        switch (analysis.Form)
+        {
+            case BareOperandForm.ClassName when ins.ClassWordMayLead:
+                ins.End();   // the leading class condition without its identifier (§14.9.13.3 SR5), a complete simple condition
+                return;
+            // A class-name is no operand, but as the object of a carried relation it is read as one, as
+            // BindSoleOperandCondition reads it: the operand binder refuses the word (COBOL1639).
+            case BareOperandForm.Value or BareOperandForm.ClassName when ins.Active:
+                if (ins.BooleanRelation) _ = RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(vo!));
+                else _ = ComparisonOperandOf(vo);
+                return;
+            case BareOperandForm.Value or BareOperandForm.ClassName:
+                _ = RefuseNonCondition(vo);
+                return;
+            default:
+                ins.End();   // a condition-name, a switch-status or a boolean operand: a complete simple condition
+                return;
+        }
     }
 
     private BoundCondition BindCondition(IParseTree node, AbbrevCarry carry) => node switch
@@ -775,10 +842,18 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // EVALUATE decides its own TRUE/FALSE pairs by Table 15 and never binds one as a condition
         // (EvaluateBinder.BindWhenItem), so a word that reaches here is in an IF, a PERFORM UNTIL, a SEARCH WHEN or
         // an operand of NOT / AND / OR / XOR, where the standard has no meaning for it (kb/Work PB1668).
-        var truthWord = p.booleanLiteral().GetText().ToUpperInvariant();
+        return Refused($"condition '{ReportTruthWordAsCondition(p.booleanLiteral())}'");
+    }
+
+    /// <summary>The ONE report of a truth word written where a condition is (COBOL2318): BindPrimary's refusal, and
+    /// the standalone walk of a refused or surplus EVALUATE object, which has no pair to hide it behind
+    /// (kb/Work PB4627). Returns the word, upper-cased.</summary>
+    private string ReportTruthWordAsCondition(Core.BooleanLiteralContext literal)
+    {
+        var truthWord = literal.GetText().ToUpperInvariant();
         ReportNotACondition(truthWord, $"the word {truthWord}, which is written only as an EVALUATE selection subject or "
             + "selection object (ISO §14.9.13.3 SR7 b)");
-        return Refused($"condition '{truthWord}'");
+        return truthWord;
     }
 
     /// <summary>An abbreviated relation with the subject omitted (<c>comparisonOperator comparisonOperand</c>): the
@@ -791,16 +866,22 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (carry.BooleanRelation) return RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(ar));
         if (carry.Subject is not { } subject)
         {
-            ctx.Edition.Error(DiagnosticCatalog.AbbreviatedRelationWithoutSubject,
-                $"'{DataBinder.WrittenText(ar)}' omits the subject of its relation, but no subject precedes it to insert: the "
-                + "insertion of an omitted subject terminates at a complete simple condition that is not a relation, and "
-                + "does not cross a parenthesis (ISO §8.8.4.12.1; §8.8.4.12.4 GR1)");
+            ReportAbbreviatedRelationWithoutSubject(ar);
             return Refused("abbreviated relation with no preceding relation subject");
         }
         string op = MapOperator(ar.comparisonOperator().GetText());
         carry.Op = op;
         return WrittenRelational(subject, op, ComparisonOperand(ar.comparisonOperand()));
     }
+
+    /// <summary>The ONE report of an abbreviated relation with no subject to insert (COBOL2552, kb/Work PB1390):
+    /// <see cref="BindAbbreviatedRelation"/>'s, and the standalone walk of a refused or surplus EVALUATE object's
+    /// (kb/Work PB4627).</summary>
+    private void ReportAbbreviatedRelationWithoutSubject(Core.AbbreviatedRelationContext ar) =>
+        ctx.Edition.Error(DiagnosticCatalog.AbbreviatedRelationWithoutSubject,
+            $"'{DataBinder.WrittenText(ar)}' omits the subject of its relation, but no subject precedes it to insert: the "
+            + "insertion of an omitted subject terminates at a complete simple condition that is not a relation, and "
+            + "does not cross a parenthesis (ISO §8.8.4.12.1; §8.8.4.12.4 GR1)");
 
     /// <summary>⛔ ISO §8.8.4.12.3 SR1 — a succeeding relation that omits its subject (or its subject and operator)
     /// after a BOOLEAN relation condition (<see cref="AbbrevCarry.BooleanRelation"/>). Both consumers of the carry —
@@ -1145,8 +1226,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (operands[0].addressIdentifier() is { } bareAddr && carry is not { Subject: not null, Op: not null })
             {
                 carry.Reset();
-                ReportNotACondition(DataBinder.WrittenText(bareAddr), "an address-identifier — a data item of class "
-                    + "pointer (ISO §8.4.3.11.4 GR1 / §8.4.3.13.4 GR1)");
+                ReportAddressIdentifierAsCondition(bareAddr);
                 return Refused($"condition '{DataBinder.WrittenText(bareAddr)}'");
             }
             return BindSoleOperandCondition(operands[0].valueOperand(), () => ComparisonOperand(operands[0]), carry);
@@ -1154,6 +1234,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
         return Refused($"condition '{DataBinder.WrittenText(cmp)}'");
     }
+
+    /// <summary>The ONE report of a bare address-identifier written where a condition is (COBOL2318, kb/Work PB1021):
+    /// <see cref="BindComparison"/>'s, and the standalone walk of a refused or surplus EVALUATE object's
+    /// (kb/Work PB4627).</summary>
+    private void ReportAddressIdentifierAsCondition(Core.AddressIdentifierContext address) =>
+        ReportNotACondition(DataBinder.WrittenText(address), "an address-identifier — a data item of class "
+            + "pointer (ISO §8.4.3.11.4 GR1 / §8.4.3.13.4 GR1)");
 
     /// <summary>A bare single operand is either a level-88 condition-name (a complete simple condition —
     /// terminates the abbreviation), a switch-status condition-name (§8.8.4.6), a SIMPLE BOOLEAN CONDITION over
