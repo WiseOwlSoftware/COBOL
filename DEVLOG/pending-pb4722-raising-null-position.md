@@ -1,0 +1,3 @@
+## PB4722 - GOBACK / EXIT ... RAISING NULL is refused at the word, not at the statement
+
+Re-probe: `GOBACK RAISING NULL` and `EXIT PROGRAM RAISING NULL` reported COBOL4211 at the statement keyword (column 12) with NULL at 27 and 33, the same habit PB4652 fixed for RAISE and SET. `EcBinder.EcBindRaising` now opens `ctx.Edition.At(...)` over the identifier arm (every refusal there is about identifier-1: NULL, non-object operand, universal reference, SR4 a-c) and over the exception-name arm (COBOL0717). Goldens `pb4722-goback-raising-null-position` and `pb4722-exit-program-raising-null-position` pin (17,27) and (17,33) at 2002, 2014 and 2023. No inventory row closed. Gate: see the branch report.

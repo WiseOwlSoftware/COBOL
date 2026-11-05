@@ -236,6 +236,9 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // STATICALLY true in v1 (D-EO5: a typed reference only ever holds a conforming object, no
             // universal identifier-1 exists, and factory objects cannot enter a typed reference).
             if (raising.objectReference() is not { } oref) return null;
+            // Every refusal below is about identifier-1 (or the NULL / SUPER word standing in its place), so the
+            // diagnostic cursor sits ON it, not on the GOBACK / EXIT keyword (kb/Work PB4722, the PB4652 habit).
+            using var atOperand = ctx.Edition.At(oref);
             bool isNull = oref.objectReferenceAtom()?.objectReferenceTerm()?.predefinedNull() is not null;
             Place? op = isNull ? null : RaisingObjectOperand(oref, site);
             if (!isNull && op is null) return null;   // reported
@@ -271,6 +274,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             return new BoundRaising(null, IsLast: false, Fatal: false, ObjectSource: op);
         }
 
+        using var atName = ctx.Edition.At(ecWord);   // the exception-name refusals are about that word (kb/Work PB4722)
         if (EcResolveLevel3(ecWord.GetText(), site) is not { } info)
             return new BoundRaising("EC-RAISING-IMP", false, false);   // diagnosed; placeholder
         // The level-3 rule's SECOND paragraph (GOBACK §14.9.18.3 SR2 / EXIT §14.9.14.3 SR3): an EC-USER name
