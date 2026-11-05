@@ -40,16 +40,14 @@ $nc = Join-Path $Root 'nextunit'
 New-Item -ItemType Directory -Force -Path $nc | Out-Null
 & $fresh $nc
 Check 'the fix lane''s choice is unchanged without -Cluster (byte for byte)' (Next-Unit $nc @()) '{"unit": "wave", "reason": "nothing pending"}'
-# another account's fresh reading is not this account's meter: the next unit reads the meter
+# no reading at all chooses no meter unit (kb/Work PB4749: the status line's cached rate_limits are the meter)
 $other = Join-Path $Root 'nextunit-other'
 New-Item -ItemType Directory -Force -Path $other | Out-Null
-Set-Content -Path (Join-Path $other 'readings.json') -Encoding utf8 -Value (ConvertTo-Json -Compress @(@{
-    noted_at = (Get-Date).ToUniversalTime().ToString('o'); account = 'some-other-account'; weekly_pct = 1; session_pct = 1; session_reset = $null }))
-Check 'another account''s reading leaves this account''s meter unread' ((Next-Unit $other @()) | ConvertFrom-Json).unit 'meter'
+Check 'a coordination directory with no reading still chooses the work''s unit' ((Next-Unit $other @()) | ConvertFrom-Json).unit 'wave'
 $c1 = Next-Unit $nc @('--cluster', 'CAMP', '--work', $fxWork) | ConvertFrom-Json
 Check 'a cluster with a ready note gets a campaign wave' "$($c1.unit) $($c1.campaign)" 'campaign run'
 Check 'the campaign reason names the ready note' ($c1.reason -match 'PB901') $true
-Set-Content -Path (Join-Path $nc 'units.jsonl') -Encoding utf8 -Value '{"unit":"campaign"}', '{"unit":"meter"}'
+Set-Content -Path (Join-Path $nc 'units.jsonl') -Encoding utf8 -Value '{"unit":"campaign"}', '{"unit":"resume"}'
 $c2 = Next-Unit $nc @('--cluster', 'CAMP', '--work', $fxWork) | ConvertFrom-Json
 Check 'after a campaign wave, a fix-lane wave' "$($c2.unit) $($c2.campaign)" 'wave between'
 Add-Content -Path (Join-Path $nc 'units.jsonl') -Encoding utf8 -Value '{"unit":"wave"}'

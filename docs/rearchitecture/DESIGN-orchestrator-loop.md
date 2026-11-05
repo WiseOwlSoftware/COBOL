@@ -54,7 +54,7 @@ the tools it runs). Contents:
 |---|---|---|
 | `alloc.json` | `alloc.py` | the highest value reserved so far per kind |
 | `alloc.lock` | `alloc.py` (through `coord.locked`) | the allocator's lock (atomic create; stale after 60 s) |
-| `readings.json` | the `meter` unit (via `budget.py --record`) | owner-meter readings, a list of `{noted_at, account, weekly_pct, session_pct, session_reset}`; each account reads only its own (section 8) |
+| `readings.json` | `budget.py --record` (the owner, by hand) | owner-meter readings, a list of `{noted_at, account, weekly_pct, session_pct, session_reset}`; each account reads only its own (section 8) |
 | `orchestrate.lock` | the supervisor | one instance only: `{pid, started_at, host}` |
 | `STOP` | the owner (`stop.ps1`) | closes work down as soon as possible without losing any: a running unit is wound down (below), then the loop ends; `stop.ps1 -Clear` removes it |
 | `checkpoint.json` | the supervisor (`checkpoint.py`) | the running unit's frequent handoff (section 5.1); moved to `logs\` when the unit ends, so a survivor means the supervisor died |
@@ -63,7 +63,7 @@ the tools it runs). Contents:
 | `scratch\STOP-loop` | the supervisor | the LOOP's fleet stop (section 4.6), created with `STOP-UNIT` for `STOP` and for the HARD context cap only, never for the soft cap (section 4.3): every implementer and lander the loop dispatched checkpoints, commits and returns `SPLIT`; removed at the start of the next unit. The landing lane starts no attempt while it exists (section 4.9) |
 | `scratch\STOP` | the owner (`stop.ps1 -Global`) | the GLOBAL stop (section 4.6): every agent of every session obeys it, and the loop ends; nothing but the owner's `stop.ps1 -Clear -Global` removes it |
 | `handoff.json` | the running unit | its handoff (section 5); the supervisor archives it beside the unit's log (`logs\<time>-<unit>.handoff.json`, or `.handoff.invalid.json`) and REMOVES it when the unit ends (kb/Work PB2665: it was left in place, so the next unit's start archived every finished handoff as a hand-written orphan, 31 false lines in one log). One present when a unit STARTS was written by no unit of this run (a hand edit): the supervisor archives it as `logs\<time>-<unit>.handoff.orphan.json` and says so; it steers nothing (section 4.8) |
-| `handoff.last.json` | the supervisor | the newest VALID handoff of the WORK chain, which the next unit reads and `next_unit.py` decides from: a unit's own, one the supervisor synthesized for a dead unit (section 5.1), or the operator's steer once its unit starts (section 4.8). A read-only unit (the meter, section 4.5) never replaces it: it only spends the `next_unit` the handoff named it by |
+| `handoff.last.json` | the supervisor | the newest VALID handoff of the WORK chain, which the next unit reads and `next_unit.py` decides from: a unit's own, one the supervisor synthesized for a dead unit (section 5.1), or the operator's steer once its unit starts (section 4.8). |
 | `handoff.operator.json` | the operator (`steer.ps1`) | the operator's pending steer (section 4.8): validated against `handoff.schema.json`, it wins the next choice over every other handoff and is consumed (archived beside the unit's log, copied to `handoff.last.json`) when its unit starts |
 | `scratch\dryrun-<pid>\` | the supervisor under `-DryRun -Unit` | that dry run's own steer (`handoff.operator.json`, section 4.8), never in the machine-wide TEMP (kb/Work PB2922); removed when the run ends, and one a killed run left is reaped by the next supervisor start |
 | `scratch\` | the units and their fleets | the fleet scratch directory (`{SCRATCH}`): specs, `groups.json`, the Workflow args, and `reports\`, which `plan_wave.py` reads for finishers; it persists across units |
@@ -96,8 +96,9 @@ every coordination tool, never an assumption:
   default account's; the Claude in Chrome flags in its `.claude.json`; never the credentials).
   `scripts/account-profile.ps1 -ConfigDir <dir>` carries out `account.py --seed-plan` idempotently, and
   `account.py --seed-check` (run by `tooling_check.py` at every session start) says what is missing. The Chrome bridge
-  is the named pipe `claude-mcp-browser-bridge-<Windows user>`, per Windows user, so one pairing serves either account;
-  the page it reads is whichever claude.ai account the browser is signed into, which the `meter` unit checks.
+  is the named pipe `claude-mcp-browser-bridge-<Windows user>`, per Windows user, so one pairing serves either account.
+  No unit reads the quota through it: the meter is the status line's cached `rate_limits` (section 8, kb/Work PB4505,
+  PB4749).
 - **The auto-memory index is capped** (kb/Work PB3779). `<config dir>/projects/<main checkout's repo key>/memory/MEMORY.md`
   is in the turn-1 request of every agent and re-read on every turn of every session, so it holds only the anchors, the
   START HERE lines (`start-session.ps1` restarts read them) and the standing rules, under 6,000 chars; each dated
@@ -119,9 +120,8 @@ one session.
 |---|---|---|---|
 | `wave` | Opus (the orchestrator's judgment; the implementers are routed per group by `model_rules.json`) | nothing pending to land or resume and the budget says `go` | its Workflow returned (it starts no lander: the landing lane lands each DONE branch reviewed CLEAN while the wave runs, section 4.9), the ledger refreshed (`python scripts/spec/gen_ledger.py`, `references/landing.md`) and the handoff written |
 | `campaign` | Opus | only with `-Cluster <lead>[,<lead>...]`: a wave-type unit is due (a handoff named `wave` or `campaign`, or nothing else fired), a lead's cluster has a ready note and the last wave-type unit was not a `campaign`; the ready leads take turns (section 3.2, section 9.1) | as `wave`; its prompt is `units/wave.md` with `--cluster <lead>` on the `plan_wave.py` call |
-| `enqueue` | Opus | there is agent work (section 3.2 rule 6: a branch WAITING FOR REVIEW or BOUNCED, a landing lane attempt STOPPED or ENQUEUED and not yet collected), or finished branches while the lane has no current survey (a handoff that says `next_unit: enqueue` starts it only while one of these holds, kb/Work PB4180) | every STOPPED lane attempt has its finisher or reviewer dispatched and every ENQUEUED one its leads filed, both collected (`land_lane.py collect`), the leads filed, `prune_worktrees.py --apply` run and the ledger rendered to `{COORD}\ledger.html` (section 14). First it dispatches one read-only `cobol-reviewer` for each branch `prune_worktrees.py` lists WAITING FOR REVIEW (kb/Work PB3027); its prompt is `units/enqueue.md` (kb/Work PB3023) |
+| `enqueue` | Opus | there is agent work (section 3.2 rule 5: a branch WAITING FOR REVIEW or BOUNCED, a landing lane attempt STOPPED or ENQUEUED and not yet collected), or finished branches while the lane has no current survey (a handoff that says `next_unit: enqueue` starts it only while one of these holds, kb/Work PB4180) | every STOPPED lane attempt has its finisher or reviewer dispatched and every ENQUEUED one its leads filed, both collected (`land_lane.py collect`), the leads filed, `prune_worktrees.py --apply` run and the ledger rendered to `{COORD}\ledger.html` (section 14). First it dispatches one read-only `cobol-reviewer` for each branch `prune_worktrees.py` lists WAITING FOR REVIEW (kb/Work PB3027); its prompt is `units/enqueue.md` (kb/Work PB3023) |
 | `resume` | Opus | the previous unit died, timed out, was stopped with a Workflow in flight, or handed off `split` | it has classified every pending branch and report (finish, land, re-plan) and handed off the next unit |
-| `meter` | Sonnet, with `--chrome` | the newest reading in `readings.json` is older than 3 hours | the reading is appended (`budget.py --record`) and the handoff written |
 | `owner-question` | none | a handoff carries `owner_question` | immediately: the supervisor appends the question to `OWNER-QUESTIONS.md` and STOPS; it never guesses and never starts a session for it |
 
 Fable is never selected: the supervisor refuses any model name other than `opus` and `sonnet` (owner 2026-10-02:
@@ -181,35 +181,22 @@ lost agent work exceeds that cost. Open decision D3.
    so a model that wrote `wave` in every handoff starved a ready campaign note indefinitely: PB2151, the legacy
    retirement's last note, sat ready and undispatched 2026-10-07 05:40–14:31 PDT through eight units (three of them
    fix-lane waves) while every supervisor start logged `campaign lane: cluster PB2108, 1 open note(s), 1 ready`. The alternation is the
-   supervisor's rule, not the model's. A handoff's `resume` or `meter`, and an owner question (rule 1), still
+   supervisor's rule, not the model's. A handoff's `resume`, and an owner question (rule 1), still
    outrank the campaign. A handoff's `enqueue` is a REQUEST, not an order (kb/Work PB4180): the landing lane lands
    and the review lane reviews beside every unit, so `enqueue` is the one unit whose work the lanes own, and rule 2
-   runs it only while rule 6 finds agent work (the choice's reason then names both the handoff and the work).
-   Otherwise the handoff's `enqueue` is declined and the choice falls through to rules 3 to 7, its reason saying so.
+   runs it only while rule 5 finds agent work (the choice's reason then names both the handoff and the work).
+   Otherwise the handoff's `enqueue` is declined and the choice falls through to rules 3 to 6, its reason saying so.
    Before this a handoff that named `enqueue` to wait for a merge ("f7f-29 lands once #811 merges") started an
    enqueue unit whose handoff named it again: 28 chains, 75 units and 49.6 hours of the one supervisor between
    2026-10-01 and 2026-10-30, while ready campaign notes and fix-lane waves waited. `next_unit.py --enqueue-chains`
    is the drift measure: it prints every run of two or more consecutive `enqueue` units in `units.jsonl` (a
-   `meter` unit between two is invisible), so a chain that starts after the fix is a regression.
-3. The newest meter reading is older than 3 hours (`quota.meter_max_age_hours`), or there is none → `meter`, unless
-   the meter is UNREADABLE (kb/Work PB2665): `METER_ATTEMPTS` (3) meter units of this account in a row ended without a
-   reading (`units.jsonl` lines of unit `meter` with `environment_failure`; a unit of any other type between them
-   neither extends nor breaks the run) and the newest attempt is younger than the maximum age. The rule then falls
-   through to the units below and the choice carries `meter_unreadable` (`failures`, `since`, `retry_at`): the
-   supervisor tells the owner once per streak (`since`, the streak's first attempt, is the marker written into the
-   question) and the next attempt waits until `retry_at`, a maximum age after the newest one, so a page that cannot be
-   read is tried once per reading age and no longer once per loop iteration (39 of 53 meter units failed 2026-10-12 to
-   2026-10-24, 36 on "Browser extension is not connected"). A handoff or steer that NAMES `meter` (rules 0 and 2)
-   still runs it: the gate stops only the automatic retry. The loop meanwhile runs on `budget.py`'s estimate.
-4. The repository is dirty (ignoring `.claude/settings.local.json`) or has unpushed commits → `resume`.
-5. The last unit failed (as the breaker counts it) or ended `split`, or a branch that `prune_worktrees.classify`
+   line of the retired `meter` unit between two is invisible), so a chain that starts after the fix is a regression.
+3. The repository is dirty (ignoring `.claude/settings.local.json`) or has unpushed commits → `resume`.
+4. The last unit failed (as the breaker counts it) or ended `split`, or a branch that `prune_worktrees.classify`
    calls `UNLANDED` received a commit after the last unit started (an agent of a unit that died) → `resume`.
    Older unlanded branches do not trigger it, so an abandoned branch cannot cause a `resume` loop; `plan_wave.py`
-   still sees them. A `meter` unit is invisible here (it reads one page and touches no branch): it replaces neither
-   the last handoff nor the last-failed flag nor the last-started time (section 4.5), so its failure no longer sends
-   a `resume` to re-derive a state it never changed (2026-10-08 03:02 to 03:19: three `resume` units, $1.58, $0.77 and
-   $0.56, each found the same unchanged branch heads).
-6. AGENT WORK for the enqueue unit → `enqueue` (`land_lane.agent_work`, kb/Work PB3103): the landing lane's survey
+   still sees them.
+5. AGENT WORK for the enqueue unit → `enqueue` (`land_lane.agent_work`, kb/Work PB3103): the landing lane's survey
    (younger than `land_lane.SURVEY_MAX_AGE_MIN`, 30 min) lists a branch WAITING FOR REVIEW, or BOUNCED while the lane
    is neither landing it nor re-armed to (its finisher resolved it with no commit), or a lane attempt STOPPED or
    ENQUEUED is not yet collected (its finisher or reviewer, its leads, its landing record). A row the survey reads
@@ -217,16 +204,21 @@ lost agent work exceeds that cost. Open decision D3.
    lane lands every WAITING TO LAND branch itself (section 4.9), so a handoff's `DONE` branches alone start no enqueue
    unit, unless the lane has no current survey (it is not ticking; the enqueue unit's step 3 ticks it)
    (`test_orchestrate_campaign.ps1` 8f). No landing waits for another: GitHub's merge queue orders main (section 4.7).
-7. Otherwise → `wave`. (A stale ledger page is not a reason for a unit: a headless unit cannot publish it, section 14.
-   The earlier rule 7 compared a repo file that never existed, so it sent every idle loop to `land`, the unit `enqueue` replaced.)
+6. Otherwise → `wave`. (A stale ledger page is not a reason for a unit: a headless unit cannot publish it, section 14.
+   An earlier rule compared a repo file that never existed, so it sent every idle loop to `land`, the unit `enqueue` replaced.)
+
+No rule chooses a unit to read the quota meter (kb/Work PB4749). The loop had a `meter` unit, which opened the claude.ai
+usage page through Claude in Chrome whenever `readings.json` held no reading of the account younger than 3 hours. Since
+kb/Work PB4505 `budget.py` anchors on the status line's cached `rate_limits` (section 8), and the owner ruled out the
+usage page, so the unit, its rule, its read-only handling in the supervisor and its `--chrome` launch were removed.
 
 **The campaign rule** (`--cluster <lead>`, repeatable: the supervisor's `-Cluster`, section 9.1) decides the lane of
-every wave-type choice, from rule 2 or rule 7: `campaign` when a lead's cluster has a ready note (`work.py`'s
+every wave-type choice, from rule 2 or rule 6: `campaign` when a lead's cluster has a ready note (`work.py`'s
 `cluster_order`) and the newest `wave` or `campaign` line of `units.jsonl` is not a `campaign`, so campaign waves
 alternate with fix-lane waves; otherwise `wave`. Among several ready leads the one whose own last `campaign` line is
 oldest (never run counts as oldest; ties in `-Cluster` order) takes the turn, and the JSON names it in `cluster`. A
 wave-type choice also carries `campaign` for the lane as a whole: `run`, `between`, `waiting` (no lead has a ready
-note), `landed` (every lead's cluster is landed or retired) or `unknown`. An `enqueue` choice (rule 2 or 6) stays `enqueue`
+note), `landed` (every lead's cluster is landed or retired) or `unknown`. An `enqueue` choice (rule 2 or 5) stays `enqueue`
 in the campaign lane too. With `--cluster` EVERY choice but an owner
 question carries `campaigns` (`{lead: ready | waiting | landed | unknown}`; the supervisor ends a lead's lane at
 `landed`, runs the fix lane alone once no lead is left, and records the map in that unit's `units.jsonl` line) and
@@ -265,10 +257,6 @@ Each iteration, in this order:
 3. **Circuit breaker.** Three consecutive units that end in under two minutes or with a nonzero exit or an invalid
    handoff stop the loop (exit 4) and write `logs\BREAKER-<time>.md` plus an `OWNER-QUESTIONS.md` entry naming the
    three units and their logs. Between failures the loop backs off 1, 2, 4 minutes (exponential, capped at 30).
-   The breaker counts the WORK: a READ-ONLY unit (`$ReadOnlyUnit`, the meter) that ends without a `done` handoff is an
-   ENVIRONMENT failure (`environment_failure` in its `units.jsonl` line, `failed` false), which moves none of the
-   breaker's state, neither up nor back to zero, and waits one base backoff; `next_unit.py` counts it per unit type
-   (rule 3, section 3.2).
 4. **Budget.** `python scripts/orchestrator/budget.py --json` decides: `go` continues; `hold-session` sleeps until
    the session reset it reports; `hold-day` sleeps until the next pacing day, 5 minutes after the account's weekly reset time of day (account 1 10:05 UTC, account 2 17:05 UTC; kb/Work PB4746); `stop-week` ends the
    loop. Sleeps wake every minute to honour `STOP`.
@@ -276,8 +264,7 @@ Each iteration, in this order:
    `logs\<time>-handoff.operator.invalid.json` and said, never ignored in silence), then the last handoff and the
    deterministic checks.
 6. **Run it**: `claude -p <prompt> --model <unit model> --permission-mode <mode> --permission-prompts none
-   --output-format stream-json --verbose --session-id <fresh GUID>` from the repository root (plus `--chrome` for
-   `meter`). The prompt is `units/common.md` followed by `units/<unit>.md` (`units/wave.md` for a `campaign` unit), with the substitutions `{COORD}`,
+   --output-format stream-json --verbose --session-id <fresh GUID>` from the repository root. The prompt is `units/common.md` followed by `units/<unit>.md` (`units/wave.md` for a `campaign` unit), with the substitutions `{COORD}`,
    `{HANDOFF}`, `{STOP_UNIT}`, `{PREV_HANDOFF}`, `{SCRATCH}`, `{FLEET_STOP}`, `{GLOBAL_STOP}` (section 4.6), `{TASKS_DIR}`, `{CLUSTER_ARG}` (` --cluster <lead>` for a `campaign` unit, empty otherwise) and `{BORROW_DAYS}` (the supervisor's `-BorrowDays`, so the
    `wave` unit's `plan_wave.py --from-budget` sees the same allowance the supervisor's gate used). The stream goes to `logs\<time>-<unit>.jsonl`,
    stderr to `logs\<time>-<unit>.stderr.txt`.
@@ -305,10 +292,9 @@ Each iteration, in this order:
    just after its list empties, so the close waits). `units/wave.md` also tells the model to wait with foreground
    calls on the Workflow's task-output file (`{TASKS_DIR}`), a second line of defence, never the only one.
 7. **Validate the handoff** against `handoff.schema.json` (`Test-Json -SchemaFile`). Missing or invalid counts as a
-   failure for the breaker, and the next unit is `resume`; for a read-only unit it is an environment failure (section
-   4.5) and no `resume` is synthesized.
+   failure for the breaker, and the next unit is `resume`.
 8. **Record** one line in `units.jsonl`: `{unit, reason, model, session_id, started_at, ended_at, duration_s,
-   exit_code, handoff_outcome, next_unit, failed, environment_failure, log, calls, input, output, cache_read, cache_creation,
+   exit_code, handoff_outcome, next_unit, failed, log, calls, input, output, cache_read, cache_creation,
    peak_context, peak_subagent_context, cost_usd, stop_unit_sent, fleet_stop_sent, wind_down (null, context-soft,
    time-soft, context-hard or stop), fleet_at_wind_down, killed}`, plus, with `-Cluster`, `cluster` (the lead a `campaign` unit ran)
    and `campaigns` (each lead's lane state at this choice), which `next_unit.py` reads back for the campaign turns and
@@ -389,7 +375,7 @@ The numbers, measured from `units.jsonl` and the unit logs on 2026-10-08 (the un
   117,318 and 118,732 the same day as prompts and skills grew), land units at most 120,303; two wave units of
   2026-10-04 and 2026-10-05 reached 152,067 and 164,175 and still completed their fleets;
 - growth while and after supervising a fleet: up to about 94,000 (wave 2026-10-05 02:12, 70,337 to 164,175);
-- a fresh unit starts at about 55,000 to 66,000 (the meter units' peaks), and the model's context window is 1,000,000
+- a fresh unit starts at about 55,000 to 66,000 (measured on the short units of 2026-10), and the model's context window is 1,000,000
   (`modelUsage.contextWindow` in every unit's `result` event).
 So the soft cap is 200,000, about 1.45 times the largest normal peak (headroom for the trend), and the hard cap is
 500,000: three times the largest peak ever measured, half the window, leaving room for a wind-down; a fleet launched just
@@ -434,7 +420,6 @@ registered by this change (open decision D2).
 | two supervisors run at once | double dispatch, id collisions, two landing lanes landing one branch | `orchestrate.lock` with a live-PID check |
 | a unit crashes at start (auth, a bad flag, a hook refusing everything) | the loop spins and burns quota | the circuit breaker: three fast or failed units stop the loop and write an owner note |
 | a unit ends without a handoff | the next unit starts blind | schema validation; an invalid handoff is a failure and the next unit is `resume`, which rebuilds state from disk |
-| the meter cannot be read (the Claude in Chrome extension is not connected, or is signed into the other account): an ENVIRONMENT cause, read as a failure of the work | the loop re-ran the meter every few minutes (39 of 53 meter units failed 2026-10-12 to 2026-10-24), its synthesized handoff named a `resume` that re-derived an unchanged state ($0.56 to $1.58 each, 20 minutes of no work on 2026-10-08), the interleaved `resume` reset the breaker's count so the failure never reached 3 and no question ever asked for the fix, and one trip stopped the loop and its landing lane for about 352 minutes | `$ReadOnlyUnit` (`orchestrate.ps1`): a read-only unit is invisible to the work chain (it never replaces `handoff.last.json`, is never synthesized for, moves no breaker count) and its failure is `environment_failure`; `next_unit.py` rule 3 closes the meter after three in a row, whatever ran between them, retries once per reading age and the supervisor asks the owner once per streak (kb/Work PB2665; the same pattern, an environment cause read as a work failure, is PB3673 and PB3674) |
 | a unit's context grows without bound | each call costs more than a fresh start | `STOP-UNIT` at the soft cap `-MaxContextTokens` of the unit's own messages (not its subagents'); the fleet stop and, after the grace period, a kill only at the hard cap `-HardContextTokens` (section 4.3) |
 | a wind-down throws away a fleet the unit just launched | a whole fleet's launch cost for nothing (wave 1038: eight implementers SPLIT before any work) | the soft cap sends no fleet stop; `dispatch_guard.py` refuses a fleet launch from a loop unit after `STOP-UNIT`; the wave unit launches before any side work (section 4.3) |
 | the operator's instruction is ignored | the loop runs a unit the operator ruled out (2026-10-07 23:53: a `resume`, then a `land` that would have raced an attended landing) | one steering path, `steer.ps1`, validated, outranking every handoff; a hand-written `handoff.json` is archived and said (section 4.8) |
@@ -507,7 +492,7 @@ a question, a plan the owner changed. On 2026-10-07 at 23:50 it wrote its instru
 which still held the synthesized handoff of a failed `meter` unit, so the 23:53 restart ran `resume`, whose handoff named
 a `land` unit that would have raced the operator's R2 lander for main. There is now ONE steering path:
 
-- **`pwsh scripts/orchestrator/steer.ps1 -Unit <wave|campaign|land|resume|meter> -Reason "<why>" [-Summary "<instruction>"]`**
+- **`pwsh scripts/orchestrator/steer.ps1 -Unit <wave|campaign|enqueue|resume> -Reason "<why>" [-Summary "<instruction>"]`**
   writes `handoff.operator.json`: `{unit: operator, outcome: done, next_unit, next_unit_reason, summary}`, validated
   against `handoff.schema.json` (which requires `next_unit` and its reason for unit `operator`) before it lands, written
   atomically. `-Show` prints the pending steer, `-Withdraw` removes it, and `stop.ps1 -Status` shows it.
@@ -676,7 +661,7 @@ finisher (step 4; a CONFLICT one is the review lane's) or a reviewer (exit 11), 
 the lane never relaunches a stopped or queued head by itself, so the unit re-arms it, `land_lane.py rearm <branch>
 --why <cause>`: a bounce or a red its finisher attributes to infrastructure, load timing or main (once main carries the
 fix), or an UNREVIEWED exit 11 whose tip step 2's reviewer has since stamped CLEAN (kb/Work PB3103 review R1-1). When
-`status` says the survey is stale, the unit runs one `land_lane.py tick` itself. `next_unit.py` starts an enqueue unit only for that agent work (section 3.2 rule 6).
+`status` says the survey is stale, the unit runs one `land_lane.py tick` itself. `next_unit.py` starts an enqueue unit only for that agent work (section 3.2 rule 5).
 
 **The landing runs no gate** (kb/Work PB4331): it reads the branch's own gate record, and the merge group is the first
 run of the merged tree. **Every merge-queue red is classified** before anyone is blamed (kb/Work PB4271): the queue
@@ -755,7 +740,7 @@ the ENQUEUED one, whose leads and landing record stay the unit's); the landing l
 bounces to it. A finisher that ends with the head unchanged is a HOLD. The finisher's commits make the branch
 WAITING FOR REVIEW, so the same lane reviews the new tip and the landing lane lands it.
 
-**What stays with the enqueue unit.** `review_lane.agent_work` is `next_unit.py`'s second reader (rule 6): the lane's
+**What stays with the enqueue unit.** `review_lane.agent_work` is `next_unit.py`'s second reader (rule 5): the lane's
 uncollected HOLDS (each names the findings file a hand-dispatched reviewer records in), and, while the lane has not ticked in 30 minutes, the branches that wait for it (the unit ticks it
 once, as it ticks the landing lane). `review_lane.py collect <branch>` clears a hold. Everything else the unit did
 about reviews is gone from units/enqueue.md step 2; the finishers of every other stop (GATE RED, UNTESTED, a
@@ -842,8 +827,7 @@ requires `next_unit` and `next_unit_reason`), `outcome` (`done` · `split` · `f
 Optional: `next_unit` (one of the unit types, or null to let the deterministic checks choose) with
 `next_unit_reason`; `branches_pending` (`{branch, worktree, report, status}`, status one of the rolling wave's
 `DONE` · `SPLIT` · `DISCHARGED` · `BLOCKED`); `workflow` (`{run_id, state}` with state `landed` · `stopped` ·
-`none`); `landed` (`{commits, gap_before, gap_after, devlog_entry}`); `meter_reading` (the reading appended, for
-the `meter` unit); `owner_question` (`{question, context}`), required exactly when `outcome` is `owner-question`;
+`none`); `landed` (`{commits, gap_before, gap_after, devlog_entry}`); `owner_question` (`{question, context}`), required exactly when `outcome` is `owner-question`;
 `notes_touched` (kb/Work ids); `synthesized` (true when the supervisor, not the unit's model, wrote it) and
 `checkpoint` (the path of the checkpoint it was built from). Additional properties are refused, so a misspelled key
 fails validation instead of being ignored.
@@ -873,9 +857,7 @@ mechanisms, in order of how little they trust the model:
    milestones and the worktrees AS THEY ARE NOW: `outcome: split`, `next_unit: resume`, `synthesized: true`,
    `branches_pending` for every worktree that holds work or that git could not measure (`ahead_of_main` or `uncommitted`
    null: an unknown state is never read as clean, and the summary names those branches; kb/Work PB3715). The unit still counts as failed for the breaker, and
-   `units.jsonl` records `synthesized (<what was wrong>)`. A READ-ONLY unit (the meter) gets none: it touched no
-   branch, so the synthesized `resume` could only re-derive what the work chain's last handoff already holds, and
-   `units.jsonl` records `missing` or `invalid` with `environment_failure` (section 4.5). If the SUPERVISOR dies mid-unit (a reboot), `checkpoint.json`
+   `units.jsonl` records `synthesized (<what was wrong>)`. If the SUPERVISOR dies mid-unit (a reboot), `checkpoint.json`
    is still on disk at the next start (a finished unit's checkpoint is moved to `logs\`, never left), and the supervisor
    turns it into the missing handoff before choosing the first unit.
 Every unit's checkpoint and milestones are kept beside its log: `logs\<time>-<unit>.checkpoint.json` and
@@ -947,7 +929,8 @@ D5), because it changes the landing contract.
   `model_rules.json` (fixed instants, kept in UTC: account 1 Sunday 10:00 UTC, 03:00 Pacific in daylight saving time and 02:00
   outside it; account 2 Saturday 17:00 UTC, 10:00 and 09:00 Pacific; kb/Work PB4746) and its quota is the shared `quota` with the row's overrides. `--record` stamps
   the reading with the account.
-- **Anchor.** That account's newest reading in `readings.json` (owner-meter values read by the `meter` unit). Readings
+- **Anchor.** That account's newest reading: the status line's cached `rate_limits` when measured in the last 30 minutes
+  (`budget.live_reading`, kb/Work PB4505), else `readings.json` (values the owner records with `--record`). Readings
   from before the account's current week's reset anchor nothing; the weekly base is then 0 from the reset. A reading
   with no `account` (written before 2026-10-07) is ambiguous: it anchors nothing, and the output counts it
   (`unstamped_readings`) so a fresh `--record` replaces it.
@@ -978,7 +961,7 @@ D5), because it changes the landing contract.
 - Output: `{weekly_est_pct, allowance_pct, headroom_pct, session_est_pct, decision, resume_at, week_start, day,
   account, telemetry_account, unstamped_readings, anchor, spend}`.
 
-The estimate drifts from the meter between readings; the 3-hour `meter` unit re-anchors it. A reading refits nothing
+The estimate drifts from the meter between readings; each status line measurement re-anchors it. A reading refits nothing
 automatically: the constants change only by an explicit edit of `model_rules.json` with its date and source (open
 decision D6). **The calibration was refit to telemetry on 2026-10-07** (kb/Work PB2478): the 2026-10-04 constants
 were fitted to the subagent tokens the Workflow tool reports, and against telemetry (input, output and cache-write
@@ -1336,7 +1319,7 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   `plan_wave.py#inflight_file_sets`) waits.
 - **The handoff names a wave, the supervisor names its lane** (kb/Work PB2522). A unit's handoff is written by the
   model from what it sees, so it may name `wave` every time; the campaign rule therefore applies to a handoff's `wave`
-  (or `campaign`) as it does to rule 7, and a ready lead that has waited through more than one wave-type unit is logged
+  (or `campaign`) as it does to rule 6, and a ready lead that has waited through more than one wave-type unit is logged
   `campaign <lead> ready for N h` at every choice until its turn comes.
 - **The fix lane is unchanged** without `--cluster`: `test_plan_wave.py` check 8 compares the whole fixture plan with a
   golden that the planner wrote before this lane existed, and `test_orchestrate_campaign.ps1` (8b) compares `next_unit.py`'s
@@ -1355,7 +1338,7 @@ Built: everything in section 2, with tests. Not built: the separate-process agen
 Task Scheduler entry (4.4), the ratchet's wiring into the lander brief and CI (7), the hook shapes for the WSL
 lifecycle commands (4.5), automatic refit of the calibration (8), an in-unit action on the session hard stop (8),
 and the terminals mode (13.2). The prototype has never run a real session; the owner's first run is `-DryRun`, then
-`-MaxUnits 1 -Unit meter`, then `-MaxUnits 1`.
+`-MaxUnits 1 -Unit resume`, then `-MaxUnits 1`.
 
 ## 10a. Starting at logon
 
@@ -1415,7 +1398,7 @@ unit's fleet launch refused after `STOP-UNIT`, an attended session's not), `test
 marked, owed again after an input-touching commit, not after an unrelated one; per account, the first mark needs `--url`;
 a landing pushed from another clone is owed while the checkout is behind, and the mark refuses until it is fast-forwarded),
 `account.py --self-test`, `mailbox.py --self-test` (section 15), `test_checkpoint.py` (real linked worktrees: committed, dirty, clean, unreadable; a synthesized handoff checked
-against the schema's required and permitted keys), `test_next_unit.py` (rule 3's unreadable-meter gate on planted `units.jsonl` lines: the run counts only meter units, other units between them neither extend nor break it, a read breaks it, another account's attempts never count, the gate reopens a maximum age after the newest attempt, and an explicit name outranks it; kb/Work PB2665; and, kb/Work PB4180, a handoff naming `enqueue` runs the unit only while rule 6 finds agent work, whatever lane-owned rows the survey holds, and `enqueue_chains` finds the runs of consecutive enqueue units), `test_plan_wave.py` (fixture notes, clusters and reports in a temp directory, rendered through the
+against the schema's required and permitted keys), `test_next_unit.py` (no meter unit is chosen, with no reading, an old one, or the history's retired meter lines, kb/Work PB4749; rule 5 and the review lane; and, kb/Work PB4180, a handoff naming `enqueue` runs the unit only while rule 5 finds agent work, whatever lane-owned rows the survey holds, and `enqueue_chains` finds the runs of consecutive enqueue units), `test_plan_wave.py` (fixture notes, clusters and reports in a temp directory, rendered through the
 real dispatch-spec template and `check_practices.py`'s same-file rule; the fix lane's whole plan against a golden the pre-campaign planner wrote; the campaign lane's selection, `blocked_by` order, `after:` derivation and waits, and `work.py check`'s topology rules, section 9.1), `test_watch_agent.py` (a transcript with a
 partial last line), `landing_measure.py --self-test` (the per-pull-request landing record, its completion from GitHub and the summary
 against the retired train records, kb/Work PB3028; `landing_rules.py --self-test` keeps the retired train writer out), `landing_check.py
@@ -1435,7 +1418,7 @@ and retried once; an exit 8 stops every attempt and names the operator until `cl
 global stop start nothing, and STOP-UNIT alone (the soft cap) does not stop it; the agent work `next_unit.py` reads; a real detached runner records its outcome; on
 Windows a spawned runner owns a console with no visible window). The
 supervisor's self-test is fifteen parallel parts,
-`scripts/orchestrator/test_orchestrate_*.ps1` (adoption and the in-place restart, section 4.10: `test_orchestrate_adopt.ps1`; the read-only meter unit, section 4.5: three failed meters close the meter and ask the owner once, none replaces the work chain's handoff or moves the breaker, and a finished unit's `handoff.json` is archived and not taken for an orphan, `test_orchestrate_meter.ps1`), sharing the harness `testdata/orchestrate_test_lib.ps1`: they drive the
+`scripts/orchestrator/test_orchestrate_*.ps1` (adoption and the in-place restart, section 4.10: `test_orchestrate_adopt.ps1`; a finished unit's `handoff.json` archived and not taken for an orphan, and no unit started with `--chrome`, `test_orchestrate_core.ps1`), sharing the harness `testdata/orchestrate_test_lib.ps1`: they drive the
 loop with a fake `-ClaudeExe` (`testdata/fake-claude.ps1`) and `open-watchers.ps1` with a fake `wt.exe`
 (`testdata/fake-wt.ps1`), and also cover `start-session.ps1 -ConfigDir`, `stop.ps1`, `steer.ps1` (section 4.8: validation,
 precedence over a synthesized handoff, a steer written while a unit runs, consumption, an orphan `handoff.json`,

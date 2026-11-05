@@ -4,8 +4,6 @@
 #   nohandoff  one call, exit 0, no handoff
 #   bigcontext one call whose context exceeds any small -MaxContextTokens, then waits for STOP-UNIT and hands off split
 #   bigsubagent a subagent's calls exceed the cap while the unit's own context stays small; hands off done
-#   meterfail  a METER unit (its prompt says `UNIT: meter`) hands off a valid `outcome: failed` (the page cannot be read);
-#              any other unit crashes: exit 1, no handoff (kb/Work PB2665)
 #   owner      a valid handoff carrying an owner question
 #   wakes      ends a turn with a background task running, is woken when it finishes, then hands off done
 #   softcap    passes a small soft cap while its Workflow runs: records whether the fleet stop exists (it must not) and
@@ -71,14 +69,6 @@ Emit @{ type = 'system'; subtype = 'init'; session_id = $sid }
 switch ($env:FAKE_CLAUDE_MODE) {
     'fastfail' { exit 1 }
     'nohandoff' { Call 'msg_1' 5000; exit 0 }
-    'meterfail' {
-        Call 'msg_1' 5000
-        if ($firstLine -notmatch 'UNIT: meter') { exit 1 }
-        Hand @{ schema_version = 1; unit = 'meter'; outcome = 'failed'; summary = 'the Chrome extension is not connected'; next_unit = $null }
-        Emit @{ type = 'result'; subtype = 'success'; session_id = $sid }
-        WaitEof
-        exit 0
-    }
     'bigcontext' {
         Call 'msg_1' 900000
         WaitStopUnit
@@ -157,7 +147,7 @@ switch ($env:FAKE_CLAUDE_MODE) {
         Emit @{ type = 'system'; subtype = 'background_tasks_changed'; tasks = @(); session_id = $sid }
         Emit @{ type = 'system'; subtype = 'task_notification'; task_id = 'wf1'; status = 'completed'; session_id = $sid }
         Call 'msg_2' 7000
-        Hand @{ schema_version = 1; unit = 'wave'; outcome = 'done'; summary = 'woken by the task completion'; next_unit = 'meter' }
+        Hand @{ schema_version = 1; unit = 'wave'; outcome = 'done'; summary = 'woken by the task completion'; next_unit = 'resume' }
         Emit @{ type = 'result'; subtype = 'success'; total_cost_usd = 0.42; session_id = $sid }
         WaitEof
         exit 0
@@ -165,7 +155,7 @@ switch ($env:FAKE_CLAUDE_MODE) {
     default {
         Call 'msg_1' 5000
         Call 'msg_2' 7000
-        Hand @{ schema_version = 1; unit = 'wave'; outcome = 'done'; summary = 'fake unit done'; next_unit = 'meter' }
+        Hand @{ schema_version = 1; unit = 'wave'; outcome = 'done'; summary = 'fake unit done'; next_unit = 'resume' }
         Emit @{ type = 'result'; subtype = 'success'; total_cost_usd = 0.42; session_id = $sid }
         WaitEof
         exit 0

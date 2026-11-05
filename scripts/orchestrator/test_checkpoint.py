@@ -69,7 +69,7 @@ check("branch statuses are schema values", {b["status"] for b in h["branches_pen
 
 (COORD / "checkpoint.json").unlink()
 (COORD / "milestones.jsonl").unlink()
-run("synthesize", "--unit", "meter", "--out", str(out))
+run("synthesize", "--unit", "resume", "--out", str(out))
 h = json.loads(out.read_text(encoding="utf-8"))
 check("with no checkpoint and no milestones it still synthesizes", ("no checkpoint" in h["summary"], h["next_unit"]), (True, "resume"))
 

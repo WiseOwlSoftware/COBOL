@@ -138,5 +138,5 @@ leads, the records and the ledger.
    wait behind it (28 such chains, 75 units, 49.6 hours, 2026-10-01 to 2026-10-30). Name a successor only for work no
    lane owns: a STOPPED, BOUNCED or DECISION row a finisher or the operator must resolve, an uncollected lane attempt,
    or leads still to file. Write what the lanes are waiting on in the `summary` and the pending branches, with
-   `next_unit` null. `next_unit.py` runs a handoff's `enqueue` only while it finds that agent work (rule 6), so a
-   named `enqueue` with none is not run: the next unit is the meter, a resume, a wave or a campaign.
+   `next_unit` null. `next_unit.py` runs a handoff's `enqueue` only while it finds that agent work (rule 5), so a
+   named `enqueue` with none is not run: the next unit is a resume, a wave or a campaign.

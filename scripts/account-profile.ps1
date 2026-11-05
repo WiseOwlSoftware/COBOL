@@ -23,8 +23,8 @@
   bridge it serves is the named pipe \\.\pipe\claude-mcp-browser-bridge-<Windows user name>: keyed by the WINDOWS USER,
   not by the Claude account or config dir. So one pairing serves a session of either account once its .claude.json has
   the flags above. What the browser shows is the claude.ai account the BROWSER is signed into, which may be the other
-  account: the meter unit (units/meter.md) refuses a usage page whose email is not this session's
-  (`account.py --field email`). Fallback when the tools are absent: `/usage` in that account's own terminal.
+  account. No unit reads the quota through the browser (kb/Work PB4749): the meter is the status line's cached
+  rate_limits, read by budget.py.
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/account-profile.ps1 -ConfigDir C:\Users\brent\.claude-acct2

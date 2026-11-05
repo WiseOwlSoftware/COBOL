@@ -185,8 +185,6 @@ def skills_block(source: str, lane: str) -> str:
     head = "SKILLS (owner 2026-10-08: every session start and resume loads them)."
     if lane.startswith("loop:"):
         unit = lane.split(":", 1)[1]
-        if unit == "meter":
-            return f"{head} Loop unit `meter`: your unit prompt skips `session-start`; follow it.\n\n"
         if unit in LANE_AGENT_UNITS:
             return (f"{head} Loop lane agent `{unit}`: your prompt and your role's definition are your whole task; invoke "
                     "no skill (kb/Work PB3780: no dispatched agent loads one). Arm no inbox watcher.\n\n")
@@ -216,7 +214,6 @@ def _self_test() -> int:
     check("the Mythos lane names its approval rule and its watcher", "approval line" in my and "watcher" in my)
     cp = skills_block("compact", "operator")
     check("a compaction keeps the loaded skills instead of restarting", "stay in force" in cp and "NOW" not in cp)
-    check("a meter unit skips session-start, as its prompt says", "skips `session-start`" in skills_block("startup", "loop:meter"))
     wave = skills_block("startup", "loop:wave")
     check("a wave unit loads session-start then workstream, and arms no watcher",
           "`session-start` first" in wave and "`workstream`" in wave and "Arm no inbox watcher" in wave)
