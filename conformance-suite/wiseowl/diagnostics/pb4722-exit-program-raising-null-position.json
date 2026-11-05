@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "(17,33): error COBOL4211: EXIT PROGRAM RAISING NULL"}
