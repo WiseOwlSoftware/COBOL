@@ -341,14 +341,55 @@ internal static class IntrinsicResultType
 
     /// <summary>The §15.3 type-6 reading of one ARGUMENT for the result-type rows: <see cref="IsIntegerOperand(BoundOperand)"/>,
     /// and any ARITHMETIC EXPRESSION the intrinsic binder makes a computed operand of (<c>ABS((I2))</c> kb/Work PB4635,
-    /// <c>ABS(I2 + 1)</c>, <c>ABS(- I2)</c>, <c>MAX(I2 + 1 1)</c> kb/Work PB4709) — "an arithmetic expression that will always
-    /// result in an integer value" (§15.3 item 6) — when <see cref="IntrinsicArgumentRules.ProvablyIntegral"/>, the ONE reading of
-    /// "always", proves it, so the function keeps the Integer row it has when the argument is a bare integer item or literal
-    /// (§15.7.1, Table 21 "Both Int and Num are listed in the arguments column when the type of the argument determines the type of
-    /// the function"). ⚠ NOT folded into <see cref="IsIntegerOperand(BoundOperand)"/>: the statement positions that read it (the
-    /// §8.8.4.2.5 relation screen, PERFORM TIMES) want an integer ITEM or literal, and PB1935 keeps a parenthesized one out of them.</summary>
+    /// <c>ABS(I2 + 1)</c>, <c>ABS(- I2)</c>, <c>MAX(I2 + 1 1)</c> kb/Work PB4709) and any numeric literal the program wrote
+    /// (<c>ABS(1.0)</c>) — "an arithmetic expression that will always result in an integer value" (§15.3 item 6; a literal is an
+    /// arithmetic expression, §8.8.1.1) — when <see cref="IntrinsicArgumentRules.ProvablyIntegral"/>, the ONE reading of "always",
+    /// proves it, so the function keeps the Integer row it has when the argument is a bare integer item or literal (the
+    /// per-function tables of §15.7.1 and its siblings, summarized by §15.6 Table 21: "Both Int and Num are listed in the arguments
+    /// column when the type of the argument determines the type of the function"). The bare spelling <c>1.0</c> and the
+    /// parenthesized one <c>(1.0)</c> are the same expression, so they take the same row (kb/Work PB4709 review R1-2).
+    /// ⚠ NOT folded into <see cref="IsIntegerOperand(BoundOperand)"/>: the statement positions that read it (the §8.8.4.2.5
+    /// relation screen, PERFORM TIMES) want an integer ITEM or literal by FORM (§8.3.3.3.2), and PB1935 keeps a parenthesized one
+    /// out of them.</summary>
     private static bool IsIntegerArgument(BoundOperand op) =>
-        IsIntegerOperand(op) || op is BoundComputedOperand { Expr: var expr } && IntrinsicArgumentRules.ProvablyIntegral(expr);
+        IsIntegerOperand(op) || op switch
+        {
+            BoundComputedOperand { Expr: var expr } => IntrinsicArgumentRules.ProvablyIntegral(expr),
+            // A folded function's value keeps its function's type (§8.4.3.2.3 SR11); only a literal the program wrote is read by value.
+            BoundNumericLiteral { FunctionValue: false } literal => IntrinsicArgumentRules.ProvablyIntegral(new BoundNumLiteral(literal.Text)),
+            _ => false,
+        };
+
+    /// <summary>⛔ THE ARGUMENTS OF A CALL THAT RESOLVED TO THE INTEGER ROW, IN THE SCALE-0 FORM THAT ROW'S VALUE NEEDS (kb/Work PB4709,
+    /// review R1-1). An integer function "has an operational sign and no digits to the right of the decimal point" (§15.2 5)), and ABS,
+    /// MAX, MIN, RANGE and SUM return their argument's value at the argument's own scale; an argument integral by VALUE but written
+    /// with fraction digits (<c>I2 + 1.0</c>) is Integer through <see cref="IsIntegerArgument"/> (§15.3 item 6) and so must reach the
+    /// function without the digits (<see cref="IntrinsicArgumentRules.IntegralForm"/>), or <c>MOVE FUNCTION ABS(I2 + 1.0) TO A10</c>
+    /// stores <c>4.0</c>. The type is read from the arguments as WRITTEN and is unchanged by the rewrite (the value is the same).</summary>
+    public static IReadOnlyList<BoundOperand> IntegerRowArguments(in IntrinsicSig sig, IReadOnlyList<BoundOperand> args)
+    {
+        // A row DECLARED Integer takes type-6 arguments, which the renderer's intake already reads as their integers (FACTORIAL, MOD);
+        // a row that RESOLVES to Integer (ABS, MAX, MIN, RANGE, SUM) takes its type-10 arguments at their own scale.
+        if (sig.Type is IntrinsicType.Integer || Resolve(sig, args) is not IntrinsicType.Integer)
+            return args;
+        BoundOperand[]? rewritten = null;
+        for (int i = 0; i < args.Count; i++)
+        {
+            BoundOperand scaleZero = args[i] switch
+            {
+                BoundComputedOperand { Expr: var expr } c when IntrinsicArgumentRules.IntegralForm(expr) is var form && !ReferenceEquals(form, expr)
+                    => c with { Expr = form },
+                BoundNumericLiteral { FunctionValue: false } literal when !IsIntegerOperand(literal)
+                    && IntrinsicArgumentRules.IntegralForm(new BoundNumLiteral(literal.Text)) is BoundNumLiteral { Text: var text }
+                    => literal with { Text = text },
+                var other => other,
+            };
+            if (ReferenceEquals(scaleZero, args[i])) continue;
+            rewritten ??= [.. args];
+            rewritten[i] = scaleZero;
+        }
+        return rewritten ?? args;
+    }
 
     /// <summary>The ONE "is this operand an integer" classifier (§15.2 type 5 for a function result; a scale-0
     /// numeric elementary item for a data item; a literal without a decimal point) — the §15.x integer-argument

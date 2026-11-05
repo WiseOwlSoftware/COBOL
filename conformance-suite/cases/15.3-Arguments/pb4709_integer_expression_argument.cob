@@ -12,7 +12,7 @@
       *> arguments) - are INTEGER functions, and an integer position may hold them. FACTORIAL's argument-1 "shall be an integer greater
       *> than or equal to zero" (§15.36.3 1), cite.py --check 15.36.3 OK), and §8.4.3.2.3 SR11 bars a NUMERIC function from such a
       *> position even when a particular reference would yield an integer; PERFORM ... TIMES asks the same of its count (§14.9.28.3 SR2).
-      *> The refusal that bounds the admission is negative/pb4709-abs-non-integral-expression: S2 + 1 is not always an integer.
+      *> The refusal that bounds the admission is pb4709-abs-non-integral-expression (this folder): S2 + 1 is not always an integer.
       *>
       *> EXPECTED VALUES, I2 = 3 and S2 = 2.5. I2 + 1 = 4, so FACTORIAL(ABS(4)) = 24; - I2 = -3, ABS = 3, FACTORIAL = 6; MAX(I2 + 1, 1)
       *> = 4, so the PERFORM body runs 4 times; MIN(I2 * 2 - 1, I2 + 7) = MIN(5, 10) = 5, FACTORIAL(5) = 120; INTEGER(2.5) is the

@@ -1776,10 +1776,11 @@ internal static class IntrinsicArgumentRules
     /// then fails open.
     /// <para>It is also the ONE reading of §15.3 type 6's "arithmetic expression that will always result in an integer
     /// value" for the result-type rows (<c>IntrinsicResultType.IsIntegerArgument</c>, kb/Work PB4709): an argument that
-    /// is such an expression keeps ABS, MAX and MIN on their Integer row (§15.7.1, Table 21).</para>
-    /// <para>⛔ It must agree with <see cref="NonIntegralItemsBeneath"/>: a subtree that returns true here has no
-    /// item beneath it that admits a non-integral value, which is why <see cref="CollectAdditive"/> may skip the
-    /// opaque marking for it.</para></summary>
+    /// is such an expression keeps ABS, MAX, MIN, RANGE and SUM on their Integer row (the per-function result tables of
+    /// §15.7.1 and its siblings, summarized by Table 21 in §15.6), and <see cref="IntegralForm"/> then rewrites it to the
+    /// scale-0 form that row's value needs.</para>
+    /// <para>A COUNTER REGISTER is an unsigned integer data item (§8.4.3.14.4 GR1, §8.4.3.15.4 GR1), so it answers true as
+    /// <c>IntrinsicResultType.IsIntegerOperand</c> does (kb/Work PB4709 review R1-3).</para></summary>
     internal static bool ProvablyIntegral(BoundExpr e) => e switch
     {
         _ when ExactValue(e) is { } v => v.IsInteger,
@@ -1791,11 +1792,35 @@ internal static class IntrinsicArgumentRules
         BoundNegate n => ProvablyIntegral(n.Operand),
         // An INTEGER-TYPE function-identifier is an integer for every reference (§15.2 type 5 - its value is an integer by the
         // function's TYPE, never by this reference's value), so a sum, product or negation over one is always integral. The
-        // ARGUMENTS beneath the call are the call's business: NonIntegralItemsBeneath does not walk into a call either.
+        // ARGUMENTS beneath the call are the call's business, not terms of this sum.
         BoundIntrinsicCall { ResultType: IntrinsicType.Integer } => true,
+        _ when AlgebraicRanges.IsCounterRegister(e) => true,
         BoundPower { Exp: var x } pw => ProvablyIntegral(pw.Base) && ExactValue(x) is { IsInteger: true, Sign: >= 0 },
         _ => false,
     };
+
+    /// <summary>⛔ THE SCALE-0 FORM OF AN ARGUMENT THAT <see cref="ProvablyIntegral"/> PROVED INTEGRAL (kb/Work PB4709, review R1-1).
+    /// An integer function "has an operational sign and no digits to the right of the decimal point" (§15.2 5)), and ABS, MAX, MIN,
+    /// RANGE and SUM return their argument's value at the argument's own scale, so an argument integral by VALUE but written with
+    /// fraction digits (<c>I2 + 1.0</c>, <c>1.5 + 0.5</c>, <c>4 / 2</c>) would return <c>4.0</c> from a function whose type says it has
+    /// none: <c>MOVE FUNCTION ABS(I2 + 1.0) TO A10</c> stored <c>4.0</c>. The rewrite replaces every integral-valued subtree by the
+    /// integer literal of its exact value (the folds <see cref="ExactValue"/> makes, the very folds the proof read) and walks the
+    /// remaining +, −, ×, unary − and ** spine, so the value is the same and every carrier it reaches is at scale 0. A subtree
+    /// that is already an integer-form literal, an item, a register or an integer function is returned as it is.</summary>
+    internal static BoundExpr IntegralForm(BoundExpr e)
+    {
+        if (e is BoundNumLiteral { Carrier: null } literal && WiseOwl.Cobol.Common.NumericLiteral.IsIntegerLiteralForm(literal.Text))
+            return e;
+        if (ExactValue(e) is { IsInteger: true } value)
+            return new BoundNumLiteral(value.Numerator.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        return e switch
+        {
+            BoundBinary b => b with { Left = IntegralForm(b.Left), Right = IntegralForm(b.Right) },
+            BoundNegate n => n with { Operand = IntegralForm(n.Operand) },
+            BoundPower pw => pw with { Base = IntegralForm(pw.Base), Exp = IntegralForm(pw.Exp) },
+            _ => e,
+        };
+    }
 
     /// <summary>The EXACT algebraic value of a literal-only subtree (numeric literals under +, −, ×, ÷, unary −
     /// and an integral literal exponent of modest magnitude), or null when the subtree references anything else,
@@ -1915,6 +1940,29 @@ internal static class IntrinsicArgumentRules
             case BoundPower p2:
                 foreach (var x in NonIntegralItemsBeneath(p2.Base)) yield return x;
                 foreach (var x in NonIntegralItemsBeneath(p2.Exp)) yield return x;
+                break;
+            // ⛔ A CALL MOVES WITH THE ITEMS IN ITS ARGUMENTS (kb/Work PB4709, review R1-4): in `S2 - FUNCTION ABS(S2)` the term
+            // ABS(S2) equals S2 for every value of an unsigned S2, so the sum is 0 and always an integer, but the walk saw no item
+            // beneath the call, left S2's additive witness standing, and the screen refused legal source. The witness argument
+            // (hold every other leaf constant and step the item) fails for the same reason it fails under `F * 1`: the term moves
+            // with the item, so the item is marked opaque and the screen fails open.
+            case BoundIntrinsicCall call:
+                foreach (var argument in call.Args)
+                    foreach (var x in NonIntegralItemsBeneath(argument)) yield return x;
+                break;
+        }
+    }
+
+    /// <summary>The items an intrinsic ARGUMENT references (<see cref="NonIntegralItemsBeneath(BoundExpr)"/>'s operand-side twin): a
+    /// data item named as the argument, or an arithmetic expression over them.</summary>
+    private static IEnumerable<(DataItem Item, int Scale, bool Float)> NonIntegralItemsBeneath(BoundOperand argument)
+    {
+        switch (argument)
+        {
+            case BoundFieldOperand { Place.Item: { IsGroup: false, Pic: { } p } and { } it } when AdmitsNonIntegralValue(p):
+                yield return (it, p.Scale, p.IsFloat); break;
+            case BoundComputedOperand { Expr: var inner }:
+                foreach (var x in NonIntegralItemsBeneath(inner)) yield return x;
                 break;
         }
     }
