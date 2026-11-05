@@ -1,4 +1,4 @@
-## PB4712 - a parenthesized numeric or boolean function is no data item to FUNCTION LENGTH and BYTE-LENGTH
+## Entry 3143 — 2026-11-04 23:33 PST — PB4712 - a parenthesized numeric or boolean function is no data item to FUNCTION LENGTH and BYTE-LENGTH
 
 **What the re-probe showed.** On the wave's build `LENGTH((FUNCTION ABS(I2)))`, `BYTE-LENGTH((FUNCTION ABS(I2)))` and
 `LENGTH((FUNCTION BOOLEAN-OF-INTEGER(5 4)))` compiled and printed 0004 each, while `LENGTH((FUNCTION TRIM(X9)))` and `LENGTH((X9))` were
@@ -42,3 +42,4 @@ Left as a lead (R1-2, outside the group): the class-condition subject screen `Co
 **Gate.** === BUILD-LOCAL GATE: GREEN — Conformance 21,891/21,891 · Unit 39,974/39,974 · Characterization 37/37 (run 000001-20261105T064224Z, head f7bfaf20f). The four new cases ran and Passed in Conformance.trx.
 
 **Gate after review round 1.** === BUILD-LOCAL GATE: GREEN — Conformance 21,943/21,943 · Unit 39,974/39,974 · Characterization 37/37 (run 000001-20261105T071724Z, head f7c9f8c2d). The four new refusals and the new accept Passed in Conformance.trx.
+
