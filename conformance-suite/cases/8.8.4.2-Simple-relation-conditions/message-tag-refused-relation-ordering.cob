@@ -5,7 +5,9 @@
 *> portable: unverified
 *>---
       *> kb/Work PB4740 - a message tag (USAGE MESSAGE-TAG, ISO 13.18.60.4 GR9: class and category message-tag) in a position its rules refuse.
-      *> ISO 8.8.4.2.2 Format 3 (message-tag-object-or-pointer-reference) prints only the equality operators, so an ordering relation over message tags is a format violation; 8.8.4.2.14: "An operand of class message-tag may be compared with another operand of class message-tag" for equality only.
+      *> ISO 8.8.4.2.2 Format 3 (message-tag-object-or-pointer-reference) prints only the equality operators, so
+      *> an ordering relation over message tags is a format violation; 8.8.4.2.14: "An operand of class message-
+      *> tag may be compared with another operand of class message-tag" for equality only.
       *> The relation T > NULL is refused.
       *> Refused at 2023, where USAGE MESSAGE-TAG exists (8.9; Annex E.2 item 25); below it the entry draws the COBOL0900 introduction gate (pb916-message-tag-introduction).
        IDENTIFICATION DIVISION.

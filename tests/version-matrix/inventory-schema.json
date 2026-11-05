@@ -816,7 +816,9 @@
         "adjudicated CONFORMS rows, so a text arm that selected them by 'class message-tag' would hold them at a",
         "verdict the tree no longer has.",
         "",
-        "MEASURED 2026-11-05: 20 selected — 14 by the statement clauses, 6 by text."
+        "The null message-tag content (GR-8.4.3.10.4-4) names a message server in passing and is excluded by its own words.",
+        "",
+        "MEASURED 2026-11-05: see TheMcsSelector_IsStillSharp for the floor."
       ],
       "arms": [
         {
@@ -833,6 +835,9 @@
             "FMT"
           ]
         }
+      ],
+      "excludes-patterns": [
+        "\\bnull content\\b"
       ]
     },
     "float-formats-not-provided": {

@@ -5,7 +5,8 @@
 *> portable: unverified
 *>---
       *> kb/Work PB4740 - a message tag (USAGE MESSAGE-TAG, ISO 13.18.60.4 GR9: class and category message-tag) in a position its rules refuse.
-      *> ISO 14.9.39.3 SR35: "Data-name-4 and data-name-5 shall be message-tag data items." (cite.py --check 14.9.39.3 OK, SR 35.)
+      *> ISO 14.9.39.3 SR35: "Data-name-4 and data-name-5 shall be message-tag data items." (cite.py --check
+      *> 14.9.39.3 OK, SR 35.)
       *> The sender data-name-5 is a numeric item.
       *> Refused at 2023, where USAGE MESSAGE-TAG exists (8.9; Annex E.2 item 25); below it the entry draws the COBOL0900 introduction gate (pb916-message-tag-introduction).
        IDENTIFICATION DIVISION.

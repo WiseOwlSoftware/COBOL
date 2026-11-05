@@ -5,7 +5,8 @@
 *> portable: unverified
 *>---
       *> kb/Work PB4740 - a message tag (USAGE MESSAGE-TAG, ISO 13.18.60.4 GR9: class and category message-tag) in a position its rules refuse.
-      *> ISO 13.18.44.3 SR12: "The REDEFINES clause shall not be specified for a data item of class object, message-tag, or pointer or a strongly-typed group item." (cite.py --check 13.18.44.3 OK, SR 12.)
+      *> ISO 13.18.44.3 SR12: "The REDEFINES clause shall not be specified for a data item of class object,
+      *> message-tag, or pointer or a strongly-typed group item." (cite.py --check 13.18.44.3 OK, SR 12.)
       *> The subject of the REDEFINES entry is a message tag.
       *> Refused at 2023, where USAGE MESSAGE-TAG exists (8.9; Annex E.2 item 25); below it the entry draws the COBOL0900 introduction gate (pb916-message-tag-introduction).
        IDENTIFICATION DIVISION.

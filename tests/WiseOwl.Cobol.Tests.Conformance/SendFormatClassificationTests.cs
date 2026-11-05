@@ -19,7 +19,6 @@ public sealed class SendFormatClassificationTests
 {
     private const string FormatRequiredPhraseOmitted = "COBOL1850";
     private const string PhrasesOfTwoFormats = "COBOL5488";
-    private const string MessageTagUsageRefused = "COBOL1943";
     private const string Undefined = "COBOL1639";
     private const string NotANameShape = "COBOL2024";
 
@@ -46,8 +45,8 @@ public sealed class SendFormatClassificationTests
 
         """;
 
-    /// <summary>A message-tag TO name is Format 2's (SR4), so it needs no RETURNING: the only diagnostic the program
-    /// draws is the refusal of the item itself. Before the format was classified, a name was never asked.</summary>
+    /// <summary>A message-tag TO name is Format 2's (SR4), so it needs no RETURNING: the program draws none of the
+    /// classification refusals below. Before the format was classified, a name was never asked.</summary>
     [Theory]
     [InlineData("PB4090A1", "SEND TO MT FROM WS-MSG END-SEND.")]
     [InlineData("PB4090A2", "SEND MT FROM WS-MSG END-SEND.")]
@@ -55,7 +54,6 @@ public sealed class SendFormatClassificationTests
     public void AMessageTagToName_IsFormat2_AndNeedsNoReturning(string pid, string send)
     {
         var diagnostics = EditionHarness.GetDiagnostics(Prog(pid, send, messageTag: true), 2023);
-        EditionHarness.AssertHasDiagnostic(diagnostics, MessageTagUsageRefused);
         EditionHarness.AssertNoDiagnostic(diagnostics, FormatRequiredPhraseOmitted);
         EditionHarness.AssertNoDiagnostic(diagnostics, PhrasesOfTwoFormats);
         EditionHarness.AssertNoDiagnostic(diagnostics, Undefined);
