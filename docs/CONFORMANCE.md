@@ -3185,7 +3185,7 @@ draws the obsolete-element warning COBOL0903; from 2014 it is removed, COBOL0902
 
 | Item | Determination |
 |---|---|
-| The message control system (E.5.1) | The runtime is the MCS: the directory `WISEOWL_COBOL_MCS`, else the current directory, holds the user's definitions in `mcs.json` and the MCS's state in `mcs-state.json`, so run units on one machine communicate through it. With no `mcs.json`, every symbolic name is unknown. Two device-bearing names (destinations that deliver to no queue, terminals) that differ only in case would be one device file on a case-folding host, so the definition file is refused (status 91) on every host |
+| The message control system (E.5.1) | The runtime is the MCS: the directory `WISEOWL_COBOL_MCS`, else the current directory, holds the user's definitions in `mcs.json` and the MCS's state in `mcs-state.json`, so run units on one machine communicate through it. With no `mcs.json`, every symbolic name is unknown. Two device-bearing names (destinations that deliver to no queue, terminals) that are identical or differ only in case would be one device file on a case-folding host, so the definition file is refused (status 91) on every host |
 | A program scheduled by the MCS (A.1.2.3 GR6, GR28) | A process acting for the MCS sets `WISEOWL_COBOL_MCS_SCHEDULED`, the queue's levels separated by `/` or the terminal's name. WiseOwl COBOL itself starts no program. Unset, the names are spaces |
 | RECEIVE: when data is not available (2002 B.1 item 116) | The designated structure holds no complete message. Without NO DATA the run unit waits, polling the store |
 | The choice among unnamed levels (E.5.5.3, E.5.5.4) | Alphabetical by symbolic name, each level first in, first out |

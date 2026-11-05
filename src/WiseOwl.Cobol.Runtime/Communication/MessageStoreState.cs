@@ -142,7 +142,8 @@ internal sealed class MessageStoreState
 
     /// <summary>Build the state the definitions describe, refusing one that cannot be used: a name no CD could hold (a symbolic name is at most
     /// 12 characters, A.1.2.3 GR2), a name that would address a directory (a queue path and a device file are built from names), a name defined
-    /// twice, or a <c>deliverTo</c> that names nothing.</summary>
+    /// twice, a <c>deliverTo</c> that names nothing, or two device-bearing names (a destination without <c>deliverTo</c>, a terminal) that
+    /// would share one device file because they are equal ignoring case.</summary>
     internal static MessageStoreState FromDefinitions(JsonObject definitions, DateTimeOffset now)
     {
         var state = new MessageStoreState();
