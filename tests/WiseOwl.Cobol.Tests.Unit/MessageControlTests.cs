@@ -113,6 +113,10 @@ public sealed class MessageControlTests : IDisposable
     [InlineData("""{ "queues": [ { "name": "A", "subQueues": [ { "name": "NUL" } ] } ] }""")]
     [InlineData("""{ "sources": [ { "name": "S:1" } ] }""")]
     [InlineData("""{ "terminals": [ { "name": "COM3" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "D1" }, { "name": "d1" } ] }""")]
+    [InlineData("""{ "terminals": [ { "name": "T1" }, { "name": "t1" } ] }""")]
+    [InlineData("""{ "terminals": [ { "name": "X" } ], "destinations": [ { "name": "x" } ] }""")]
+    [InlineData("""{ "terminals": [ { "name": "X" } ], "destinations": [ { "name": "X" } ] }""")]
     public void UnusableDefinitionFile_IsStatus91_OnEveryStatement(string definitions)
     {
         var session = Session(definitions);
@@ -142,6 +146,16 @@ public sealed class MessageControlTests : IDisposable
     {
         var session = Session($$"""{ "queues": [ { "name": "{{name}}" } ] }""");
         Assert.Equal("00", InputStatus(session.AcceptMessageCount(InputArea(name))));
+    }
+
+    /// <summary>Only a device file can be shared: a destination that feeds a queue has none, and a queue, a source and a device may hold names that differ only in case.</summary>
+    [Theory]
+    [InlineData("""{ "queues": [ { "name": "Q" } ], "destinations": [ { "name": "D1" }, { "name": "d1", "deliverTo": "Q" } ] }""")]
+    [InlineData("""{ "queues": [ { "name": "d1" } ], "sources": [ { "name": "D1" } ], "destinations": [ { "name": "D1" } ] }""")]
+    public void NamesThatShareNoDeviceFile_DifferingOnlyInCaseAreDefined(string definitions)
+    {
+        var session = Session(definitions);
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D1"), "A", SendIndicator.EndOfMessage)));
     }
 
     [Fact]
