@@ -77,3 +77,13 @@ rule. Goldens: `pb4635_unparenthesized_data_item_arguments` (accept 2023) guards
 `pb4635-concat-parenthesized-item`, `pb4635-baseconvert-parenthesized-argument-1` and
 `pb4635-length-parenthesized-boolean-item`, plus a `CONCAT((BB) "A")` line in `pb4635_parenthesized_boolean_argument`; the unit test `AParenthesizedItemAtACharacterReadingPosition_IsAnErrorEvenUnderPermissive` pins the
 permissive half. Docs: INTRINSICS_DESIGN.md names the three rules the predicate serves and `IsCoercible`.
+
+Finish review round 1 (R1-1, R1-2). Making the parenthesized boolean item a `BoundBoolOperand` (R3-3) hid it from `IntrinsicArgumentRules.StaticUsageOf`,
+which answered null, and the three usage screens read null as "leave it to the runtime": `CONCAT((BT) "A")` and `CONCAT((BB) N"A")` (15.18.3 r2),
+`BASECONVERT((BT) 10 16)` (15.12.3 r1) and `CONVERT((BT) ANUM NAT)`, `CONVERT((BB) NAT ANUM)` (15.19.3 r5, r6) compiled and printed where the bare spellings
+are COBOL1627, COBOL1642 and COBOL1514. It was R3-1's shape again, a wrapper hiding the item from a rule that asks about the item. The fix is at the one
+reader: `StaticUsageOf` answers the usage of the item a `BoundBoolRef` names, so every screen that rides it (and the codegen readers `RepresentationOfText`
+and `RepresentationDiffersFromText`, which ask the same question of the same operand) sees it; a compound boolean expression still answers null. Under
+`--permissive` the new refusals demote to the same COBOL1627 warning as the bare spelling. Five refusal goldens (one per probe above, 2023). Leads left for
+the clerk, both pre-existing and unchanged on main: a boolean expression is admitted at CONCAT and BASECONVERT argument-1 though neither rule lists one,
+and a parenthesized numeric or boolean function-identifier passes LENGTH and BYTE-LENGTH.

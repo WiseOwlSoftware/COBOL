@@ -736,6 +736,12 @@ internal static class IntrinsicArgumentRules
         // answers differ for exactly one shape and the divergence is stated here so neither is mistaken for a
         // duplicate of the other.
         BoundFieldOperand { Place.Item.OperandPic: { } pic } => pic.Usage,
+        // ⛔ A PARENTHESIZED CLASS-BOOLEAN ITEM, `(BB)`, IS THE BOUND BOOLEAN OPERAND OF §8.8.2 ("a boolean expression enclosed in
+        // parentheses"), NOT THE FIELD OPERAND (IntrinsicBinder.OperandOfWritten, kb/Work PB4635 review R3-3), yet it holds the
+        // item's own bits or characters: it answers the item's usage, so the usage screens (CONCAT §15.18.3 r2, BASECONVERT
+        // §15.12.3 r1, CONVERT §15.19.3 r5/r6) refuse `(BT)` as they refuse `BT` (review R1-1, R1-2). A compound boolean
+        // expression (`BB B-AND BC`) states no representation and answers null below, as before.
+        BoundBoolOperand { Expr: BoundBoolRef { Place.Item.OperandPic: { } pic } } => pic.Usage,
         BoundStringLiteral { Category: PicCategory.National } => Usage.National,
         BoundStringLiteral => Usage.Display,
         // An ADDRESS-IDENTIFIER "creates a unique data item of class pointer" of category data-pointer
