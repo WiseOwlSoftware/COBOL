@@ -33,6 +33,7 @@ public sealed class StrongGroupClassScreenDriftTests
         ("Procedure/Verbs/ParameterConformance.cs", "the class a figurative constant or an ALL literal crosses BY VALUE as"),
         ("Procedure/Verbs/StringUnstringBinder.cs", "the all-or-nothing national rule; a strongly-typed group is screened beside it (Sr1Offence, PB244)"),
         ("Procedure/Verbs/InspectBinder.cs", "INSPECT SR4's governing national class; identifier-1 and the phrase operands are screened elementary (PB856)"),
+        ("Procedure/Verbs/CommunicationBinder.cs", "SEND identifier-1, worded \"of class alphanumeric\" (ISO/IEC 1989:2002 A.2.6.2 SR2), the lattice's own question"),
         ("RelationComparability.cs", "the §8.8.4.2 class pair of a relation; a strongly-typed group meets the relation checkpoint's own rule (§8.8.4.2.3 SR1)"),
     ];
 

@@ -53,7 +53,7 @@ cdClause
     | STATUS KEY IS? dataName
     | messageKeyword? COUNT IS? dataName
     | DESTINATION COUNT IS? dataName
-    | DESTINATION TABLE OCCURS integerLiteral TIMES? (INDEXED BY? indexNameList)?
+    | DESTINATION TABLE OCCURS integerOperand TIMES? (INDEXED BY? indexNameList)?
     | ERROR KEY IS? dataName
     | SYMBOLIC? DESTINATION IS? dataName
     ;

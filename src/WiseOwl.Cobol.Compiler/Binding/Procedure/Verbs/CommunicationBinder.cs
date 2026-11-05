@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Communication;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
@@ -27,7 +28,7 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
     private static readonly CdRule SendRule = new("SEND", "A.2.6.2 SR1", "Cd-name-1 shall reference an output CD or input-output CD.", [CommunicationFormat.Output, CommunicationFormat.InputOutput]);
 
     /// <summary>The cd-name a statement writes, or null after reporting it. A name that is no cd-name and a cd-name of the wrong format are the same code, each quoting the rule.</summary>
-    private CommunicationDescription? ResolveCd(Core.CobolWordContext word, CdRule rule)
+    private CommunicationDescription? ResolveCommunicationCd(Core.CobolWordContext word, CdRule rule)
     {
         using var _ = ctx.Edition.At(word);
         string name = word.GetText();
@@ -43,13 +44,13 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
     }
 
     /// <summary>The place of the CD's implicit description, which <see cref="CommunicationSectionBinder"/> always builds.</summary>
-    private Place AreaOf(CommunicationDescription cd) =>
+    private Place CommunicationAreaOf(CommunicationDescription cd) =>
         ctx.Refs.Places.ResolveItem(cd.Area) ?? throw new InvalidOperationException($"CD '{cd.Name}' has no place for its record area");
 
     /// <summary>A.2.1: <c>ACCEPT cd-name-1 MESSAGE COUNT</c>.</summary>
     internal BoundStatement BindAcceptMessageCount(Core.AcceptMessageCountStatementContext s) =>
-        ResolveCd(s.cobolWord(), AcceptRule) is { } cd
-            ? new BoundCommunicationStatement(CommunicationVerb.AcceptMessageCount, cd, AreaOf(cd))
+        ResolveCommunicationCd(s.cobolWord(), AcceptRule) is { } cd
+            ? new BoundCommunicationStatement(CommunicationVerb.AcceptMessageCount, cd, CommunicationAreaOf(cd))
             : BoundRejected.Reported(ctx.Edition);
 
     /// <summary>A.2.3: the ENABLE statement.</summary>
@@ -68,32 +69,32 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
             ? (CommunicationPath.InputOutputTerminal, new CdRule(statement, $"{clause} SR2", "Cd-name-1 shall reference an input-output CD when the I-O TERMINAL phrase is specified.", [CommunicationFormat.InputOutput]))
             : (written.TERMINAL() is not null ? CommunicationPath.InputTerminal : CommunicationPath.Input,
                new CdRule(statement, $"{clause} SR1", "Cd-name-1 shall reference an input CD when the INPUT phrase is specified.", [CommunicationFormat.Input]));
-        if (ResolveCd(word, rule) is not { } cd) return BoundRejected.Reported(ctx.Edition);
+        if (ResolveCommunicationCd(word, rule) is not { } cd) return BoundRejected.Reported(ctx.Edition);
         BoundOperand? keyOperand = key?.literal() is { } literal ? host.Expr.LiteralOperand(literal)
             : key?.dataReference() is { } item ? host.Expr.FieldOperand(item)
             : null;
-        return new BoundCommunicationStatement(verb, cd, AreaOf(cd)) { Path = path, Key = keyOperand };
+        return new BoundCommunicationStatement(verb, cd, CommunicationAreaOf(cd)) { Path = path, Key = keyOperand };
     }
 
     /// <summary>A.2.4: <c>PURGE cd-name-1</c>.</summary>
     internal BoundStatement BindPurge(Core.PurgeStatementContext s) =>
-        ResolveCd(s.cobolWord(), PurgeRule) is { } cd
-            ? new BoundCommunicationStatement(CommunicationVerb.Purge, cd, AreaOf(cd))
+        ResolveCommunicationCd(s.cobolWord(), PurgeRule) is { } cd
+            ? new BoundCommunicationStatement(CommunicationVerb.Purge, cd, CommunicationAreaOf(cd))
             : BoundRejected.Reported(ctx.Edition);
 
     /// <summary>A.2.5: the RECEIVE statement. SR2: "Identifier-1 shall reference a data item of category alphanumeric", which a group is unless its usage says otherwise.</summary>
     internal BoundStatement BindReceive(Core.CommunicationReceiveStatementContext s)
     {
-        var cd = ResolveCd(s.cobolWord(), ReceiveRule);
+        var cd = ResolveCommunicationCd(s.cobolWord(), ReceiveRule);
         if (host.Expr.ResolveReceiving(s.receivingIdentifier()) is not { } into) return BoundRejected.Reported(ctx.Edition);
-        if (!IsAlphanumericArea(into.Item))
+        if (!IsCommunicationAlphanumericArea(into.Item))
             using (ctx.Edition.At(s.receivingIdentifier()))
                 ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"RECEIVE INTO {DataBinder.WrittenText(s.receivingIdentifier())}: the item is not of category alphanumeric; "
                     + "ISO/IEC 1989:2002 A.2.5.2 SR2: \"Identifier-1 shall reference a data item of category alphanumeric.\"");
         var noData = s.receiveNoDataPhrase() is { } no ? host.BindBlocks([no.statementBlock()]) : null;
         var withData = s.receiveWithDataPhrase() is { } yes ? host.BindBlocks([yes.statementBlock()]) : null;
         if (cd is null) return BoundRejected.Reported(ctx.Edition);
-        return new BoundCommunicationStatement(CommunicationVerb.Receive, cd, AreaOf(cd))
+        return new BoundCommunicationStatement(CommunicationVerb.Receive, cd, CommunicationAreaOf(cd))
         {
             Segment = s.SEGMENT() is not null,
             Into = into,
@@ -102,17 +103,17 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
         };
     }
 
-    private static bool IsAlphanumericArea(DataItem item) =>
-        item.IsGroup ? item.GroupUsage is GroupUsage.None : item.Pic is { Category: PicCategory.Alphanumeric };
+    private static bool IsCommunicationAlphanumericArea(DataItem item) =>
+        item.IsGroup ? item.GroupUsage is GroupUsage.None : item.Pic is { Category: PicCategory.Alphanumeric, IsAlphabetic: false };
 
     /// <summary>A.2.6: the SEND statement.</summary>
     internal BoundStatement BindSend(Core.CommunicationSendStatementContext s)
     {
-        var cd = ResolveCd(s.cobolWord(), SendRule);
+        var cd = ResolveCommunicationCd(s.cobolWord(), SendRule);
         BoundOperand? text = s.sendText() is { } written
             ? written.functionCall() is { } call ? host.Intrinsic.IntrinsicOperand(call) : host.Expr.FieldOperand(written.dataReference())
             : null;
-        if (text is not null && IntrinsicArgumentRules.ClassOf(text) is not (null or CobolClass.Alphanumeric or CobolClass.Alphabetic))
+        if (text is not null && IntrinsicArgumentRules.ClassOf(text) is not (null or CobolClass.Alphanumeric))
             using (ctx.Edition.At(s.sendText()))
                 ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND FROM {DataBinder.WrittenText(s.sendText())}: the operand is not of class alphanumeric; "
                     + "ISO/IEC 1989:2002 A.2.6.2 SR2: \"Identifier-1 shall reference a data item of class alphanumeric\", and SR7 asks a function-identifier the same.");
@@ -132,9 +133,9 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
                             + "ISO/IEC 1989:2002 A.2.6.2 SR3: \"Identifier-2 shall reference a one-character integer without an operational sign.\"");
             }
         }
-        if (s.sendAdvancingPhrase() is { } advancing) ScreenAdvancing(advancing);
+        if (s.sendAdvancingPhrase() is { } advancing) ScreenSendAdvancing(advancing);
         if (cd is null) return BoundRejected.Reported(ctx.Edition);
-        return new BoundCommunicationStatement(CommunicationVerb.Send, cd, AreaOf(cd))
+        return new BoundCommunicationStatement(CommunicationVerb.Send, cd, CommunicationAreaOf(cd))
         {
             Text = text,
             Indicator = indicator,
@@ -144,10 +145,9 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
 
     /// <summary>The ADVANCING phrase's operands (SR4, SR5). This MCS's devices are oriented to variable-length messages, so vertical positioning "is not applicable" and "the MCS
     /// will ignore" it (A.2.6.3 GR12; docs/CONFORMANCE.md); the statement still has to be a legal one, so its operands are asked and nothing of them is kept.</summary>
-    private void ScreenAdvancing(Core.SendAdvancingPhraseContext advancing)
+    private void ScreenSendAdvancing(Core.SendAdvancingPhraseContext advancing)
     {
-        if (advancing.literal() is { } literal && !string.Equals(literal.GetText(), "ZERO", StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(literal.GetText(), "ZEROS", StringComparison.OrdinalIgnoreCase) && !string.Equals(literal.GetText(), "ZEROES", StringComparison.OrdinalIgnoreCase))
+        if (advancing.literal() is { } literal && !(CobolNames.Same(literal.GetText(), "ZERO") || CobolNames.Same(literal.GetText(), "ZEROS") || CobolNames.Same(literal.GetText(), "ZEROES")))
             using (ctx.Edition.At(literal))
                 ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND ADVANCING {literal.GetText()}: ISO/IEC 1989:2002 A.2.6.1 prints integer-1 here, and A.2.6.2 SR6 says it may be zero.");
         if (advancing.dataReference() is not { } operand) return;

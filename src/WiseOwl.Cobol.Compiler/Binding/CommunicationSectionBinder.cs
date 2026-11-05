@@ -207,8 +207,8 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
             }
             else
             {
-                // integer-1 is an integer of the general format: IntegerOperandPass refuses a zero and a value past the host's limit.
-                if (int.TryParse(clause.integerLiteral().GetText(), out int size) && size >= 1) destinationTable = size;
+                // integer-1: IntegerOperandValue and IntegerOperandPass refuse a zero and a value past the host's limit.
+                if (host.Constants.IntegerOperandValue(clause.integerOperand(), $"CD '{cdName}' DESTINATION TABLE OCCURS") is { } size and >= 1) destinationTable = size;
                 if (clause.indexNameList() is { } list)
                     foreach (var word in list.cobolWord())
                     {

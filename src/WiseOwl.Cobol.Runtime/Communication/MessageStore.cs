@@ -20,6 +20,12 @@ namespace WiseOwl.Cobol.Runtime.Communication;
 /// </summary>
 internal sealed class MessageStore
 {
+    /// <summary>The environment variable that names the MCS directory.</summary>
+    internal const string DirectoryVariable = "WISEOWL_COBOL_MCS";
+
+    /// <summary>The environment variable that says what the MCS scheduled the run unit for (ISO/IEC 1989:2002 A.1.2.3 GR6, GR28).</summary>
+    internal const string ScheduledVariable = "WISEOWL_COBOL_MCS_SCHEDULED";
+
     private const string DefinitionFile = "mcs.json", StateFile = "mcs-state.json", LockFile = "mcs.lock";
     internal const string UnreadableDefinitions = "91", StoreRefused = "92";
     private static readonly TimeSpan LockRetry = TimeSpan.FromMilliseconds(20);
@@ -43,8 +49,8 @@ internal sealed class MessageStore
     /// <summary>The store this run unit's environment names: the directory <c>WISEOWL_COBOL_MCS</c>, else the current one, and the levels of
     /// <c>WISEOWL_COBOL_MCS_SCHEDULED</c> separated by '/'.</summary>
     internal static MessageStore Open() => OpenAt(
-        Environment.GetEnvironmentVariable("WISEOWL_COBOL_MCS") is { Length: > 0 } named ? named : Directory.GetCurrentDirectory(),
-        Environment.GetEnvironmentVariable("WISEOWL_COBOL_MCS_SCHEDULED") is { Length: > 0 } scheduled ? scheduled.Split('/') : []);
+        Environment.GetEnvironmentVariable(DirectoryVariable) is { Length: > 0 } named ? named : Directory.GetCurrentDirectory(),
+        Environment.GetEnvironmentVariable(ScheduledVariable) is { Length: > 0 } scheduled ? scheduled.Split('/') : []);
 
     /// <summary>The store of one MCS directory. The definition file is read once: it is defined "prior to the execution".</summary>
     internal static MessageStore OpenAt(string root, string[] scheduled)

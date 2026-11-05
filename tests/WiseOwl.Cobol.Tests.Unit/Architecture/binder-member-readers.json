@@ -61,6 +61,7 @@
       "WiseOwl.Cobol.Binding.DataBinder"
     ],
     "WiseOwl.Cobol.Binding.ConstantEntryBinder::IntegerOperandValue": [
+      "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
@@ -130,6 +131,7 @@
       "WiseOwl.Cobol.Compiler.Oo.OoDriver"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::BindEntries": [
+      "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.LinkageBinder",
       "WiseOwl.Cobol.Binding.OoDataBinder"
@@ -199,6 +201,9 @@
       "WiseOwl.Cobol.Compiler.Oo.OoDriver",
       "WiseOwl.Cobol.Compiler.Oo.OoExpansion"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::Communication": [
+      "WiseOwl.Cobol.Binding.Passes.CheckCommunicationRecordsPass"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::CompilationVariables": [
       "WiseOwl.Cobol.Binding.BinderDriver",
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
@@ -252,6 +257,7 @@
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::Constants": [
+      "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.InheritStep",
       "WiseOwl.Cobol.Binding.LiteralEnvironment",
@@ -279,6 +285,7 @@
       "WiseOwl.Cobol.Binding.ConstantEntryBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::DeclareUserWord": [
+      "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.OoDataBinder",
@@ -305,6 +312,7 @@
     "WiseOwl.Cobol.Binding.DataBinder::Edition": [
       "WiseOwl.Cobol.Binding.BinderDriver",
       "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+      "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
       "WiseOwl.Cobol.Binding.CounterResolver",
       "WiseOwl.Cobol.Binding.LinkageBinder",
@@ -593,6 +601,9 @@
       "WiseOwl.Cobol.Binding.RefModBinder",
       "WiseOwl.Cobol.Compiler.Oo.OoDriver"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::RegisterImpliedName": [
+      "WiseOwl.Cobol.Binding.CommunicationSectionBinder"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::RenamesOwners": [
       "WiseOwl.Cobol.Binding.Passes.CheckStrongTypeDeclarationsPass",
       "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass"
@@ -708,6 +719,7 @@
     "WiseOwl.Cobol.Binding.DataBinder::State": [
       "WiseOwl.Cobol.Binding.BinderDriver",
       "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+      "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.CompilerTemps",
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
       "WiseOwl.Cobol.Binding.CounterResolver",
@@ -741,6 +753,7 @@
       "WiseOwl.Cobol.Binding.Procedure.AcceptDisplayBinder",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.Procedure.CallBinder",
+      "WiseOwl.Cobol.Binding.Procedure.CommunicationBinder",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
       "WiseOwl.Cobol.Binding.Procedure.EcBinder",
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
@@ -787,9 +800,11 @@
       "WiseOwl.Cobol.Validation.FlagConformancePass"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::TakeFillerOrdinal": [
+      "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.FileControlBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::TakeUid": [
+      "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.CompilerTemps",
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
@@ -837,6 +852,7 @@
     ],
     "WiseOwl.Cobol.Binding.DataBinder::UnitIsFunction": [
       "WiseOwl.Cobol.Binding.BinderDriver",
+      "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.LinkageBinder",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass"
@@ -891,6 +907,7 @@
       "WiseOwl.Cobol.Binding.Procedure.AddressOfOperandScreen",
       "WiseOwl.Cobol.Binding.Procedure.ArithmeticBinder",
       "WiseOwl.Cobol.Binding.Procedure.CallBinder",
+      "WiseOwl.Cobol.Binding.Procedure.CommunicationBinder",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
       "WiseOwl.Cobol.Binding.Procedure.ControlFlowBinder",
       "WiseOwl.Cobol.Binding.Procedure.DeclinedFacilityBinder",
