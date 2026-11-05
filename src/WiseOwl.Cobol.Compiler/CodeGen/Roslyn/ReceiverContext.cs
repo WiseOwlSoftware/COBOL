@@ -40,9 +40,14 @@ namespace WiseOwl.Cobol.CodeGen;
 /// mask's significand scale only as a working-scale hint (<c>RuntimeApi.ReceiverScaleOf</c>) and is NOT the
 /// scale a final transfer rounds at. <see cref="FloatLanding"/> is the one reader.
 /// </param>
+/// <param name="Single">
+/// True when the resultant identifier is a BINARY32 item (COMP-1, FLOAT-SHORT): the final transfer of an exact value rounds ONCE into it
+/// (<c>FloatResultant.FromExact</c>, kb/Work PB4730), never through a binary64 first. A SET of resultants carries no single answer and
+/// leaves it false; each receiver's own final transfer is rendered by <see cref="Of"/>.
+/// </param>
 internal readonly record struct ReceiverContext(
     int Scale, bool Real, CobolRounding Rounding, SizeChecks Checks, int IntegerDigits = 0,
-    bool Receiverless = false, bool FloatEdited = false)
+    bool Receiverless = false, bool FloatEdited = false, bool Single = false)
 {
     /// <summary>The receiver-less context: scale 0, no capacity, not floating, TRUNCATION, no size-error checking.</summary>
     public static readonly ReceiverContext None =
@@ -64,7 +69,8 @@ internal readonly record struct ReceiverContext(
     {
         int scale = pic?.ReceiverScale() ?? 0;
         return new ReceiverContext(scale, pic is { IsFloat: true }, rounding, checks,
-            pic is null ? 0 : Math.Max(0, pic.DigitPositions - scale), FloatEdited: pic is { IsFloatEdited: true });
+            pic is null ? 0 : Math.Max(0, pic.DigitPositions - scale), FloatEdited: pic is { IsFloatEdited: true },
+            Single: pic is { IsFloat: true, IsSingle: true });
     }
 
     /// <summary>⛔ THE ONE RULE FOR "THE CONTEXT OF A SET OF RESULTANTS" (kb/Work PB2694): the context a statement with
@@ -251,6 +257,12 @@ internal readonly record struct ReceiverContext(
     /// <c>COMPUTE FE = A * A</c> (A = 10^20) carried at its hint scale and wrapped to 0, and <c>1 / 3000000</c> truncated
     /// to 3.3E-07 (train 1039b review of kb/Work PB1900; golden 2023/pb1900_float_edited_resultant_scale).</summary>
     public bool RoundsAtItsScale => !Receiverless && !Real && !FloatEdited;
+
+    /// <summary>⛔ THE ONE PREDICATE "A FINAL TRANSFER INTO THIS RESULTANT LANDS IN A BINARY64 (OR BINARY32) ITEM" (kb/Work PB4730): the
+    /// float receiver that is neither receiver-less nor floating-point EDITED (whose store rounds a significand to the mask,
+    /// <see cref="FloatEdited"/>). The exact value a final transfer settles into it lands from its own digits
+    /// (<c>FloatResultant.FromExact</c>), not from the 34-digit image the SDIDI would give it.</summary>
+    public bool LandsAsBinary64 => !Receiverless && Real && !FloatEdited;
 }
 
 /// <summary>

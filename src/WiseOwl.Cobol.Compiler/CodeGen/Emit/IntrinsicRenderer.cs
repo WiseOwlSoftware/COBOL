@@ -211,7 +211,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // statistical family (SUM / MEAN / RANGE / MIDRANGE — equivalent arithmetic expressions) keeps the D16
         // native float lane a float operand selects.
         if (sig.RuntimeMethod is "MaxScaled" or "MinScaled" or "OrdMax" or "OrdMin" or "MedianScaled"
-            && AnyRealArgument(ic) && !AllRealArguments(ic) && RenderDec(ic) is { } decSelection)
+            && IntrinsicCarrierRules.SelectionNeedsExactLane(AnyRealArgument(ic), AllRealArguments(ic),
+                AnyFloatItemArgument(ic), AnyApproximateArgument(ic))
+            && RenderDec(ic) is { } decSelection)
             return decSelection;
         // ⛔ A SELECTION THE RECEIVER'S INT128 HEADROOM WOULD CUT RIDES THE SDIDI TOO (kb/Work PB3839, review R1-1). MAX/MIN
         // land the selected value at the receiver-bound working scale, which ReceiverContext.WorkingScale caps at
@@ -1515,6 +1517,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the LANDED operand, as its siblings do.</remarks>
     private bool AnyFloatItemArgument(BoundIntrinsicCall ic) =>
         Operands(ic).Any(x => Landed(x) is { Real: true, Approximate: false });
+
+    /// <summary>Is any binary64 argument an engine's APPROXIMATION (<see cref="NumX.Approximate"/>), the other kind
+    /// <see cref="IntrinsicCarrierRules.SelectionNeedsExactLane"/> tells from a float item's content (kb/Work PB4622)?</summary>
+    /// <remarks>INTAKE(PREDICATE) - renders only to ASK a question - of the LANDED operand, as its siblings do.</remarks>
+    private bool AnyApproximateArgument(BoundIntrinsicCall ic) =>
+        Operands(ic).Any(x => Landed(x) is { Real: true, Approximate: true });
 
     /// <summary>A numeric argument as a C# double (the float family's §15.4.1 carrier). ⛔ Converts the RAW
     /// operand (fix-queue PB56): routing through the <see cref="Landed"/> unscaled truncation first turned a

@@ -1019,6 +1019,18 @@ internal static class RuntimeApi
     public static string ExactFromBinary64(string doubleExpr) =>
         $"{nameof(CobolExact)}.{nameof(CobolExact.FromBinary64)}({doubleExpr})";
 
+    /// <summary>An engine's approximation (a function's binary64 returned value) on the exact lane: its shortest round-trip decimal,
+    /// remembering the binary64 (<c>CobolExact.FromApproximation</c>, kb/Work PB4730).</summary>
+    public static string ExactFromApproximation(string doubleExpr) =>
+        $"{nameof(CobolExact)}.{nameof(CobolExact.FromApproximation)}({doubleExpr})";
+
+    /// <summary>The FINAL TRANSFER of an exact value into a FLOAT receiver (<c>FloatResultant.FromExact</c>, kb/Work PB4730): rounded ONCE
+    /// into the binary64 (<paramref name="single"/>: binary32) item by <paramref name="mode"/> from every digit of the value; a checked
+    /// transfer raises the size error a value past the format's range is (<c>FromExactOrRaise</c>).</summary>
+    public static string ExactToBinary64(string exact, CobolRounding mode, bool single, bool checkedTransfer) =>
+        $"{nameof(FloatResultant)}.{(checkedTransfer ? nameof(FloatResultant.FromExactOrRaise) : nameof(FloatResultant.FromExact))}"
+        + $"({exact}, {RoundingText(mode)}, {(single ? "true" : "false")})";
+
     /// <summary>The FINAL TRANSFER of an exact value (<c>CobolExact.ToUnscaled</c>), as <see cref="WideToUnscaled"/>.</summary>
     public static string ExactToUnscaled(string exact, int toScale, CobolRounding mode, bool checkedTransfer) =>
         $"({exact}).{nameof(CobolExact.ToUnscaled)}({toScale}, {RoundingText(mode)}, {(checkedTransfer ? "true" : "false")})";

@@ -151,7 +151,11 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         neither receiver-less nor floating-point) — the exact value is rounded ONCE, at that resultant's scale and
     ///         with its mode (<c>CobolWide.ToUnscaled</c>, the kernel <c>CobolDec.MulAtScale</c> shares): §14.7.7 rule 3 NOTE 1 gives
     ///         ROUNDED to the final transfer only, and the receiver's own rounding must see every digit.</item>
-    ///   <item><b>Anything else</b> (a receiver-less render, a float receiver, an intermediate with no transfer) — it is
+    ///   <item><b>The final transfer to a FLOAT receiver</b> (<paramref name="outermost"/>, <see cref="ReceiverContext.LandsAsBinary64"/>,
+    ///         kb/Work PB4730) - the exact value is rounded ONCE into the binary64 or binary32 item by the receiver's mode, from ALL
+    ///         its digits (<c>FloatResultant.FromExact</c>): a float item's content selected by MAX keeps its 41-digit expansion to
+    ///         the item, where the SDIDI's 34 digits (truncated) sat one binary64 below it.</item>
+    ///   <item><b>Anything else</b> (a receiver-less render, a float-edited receiver, an intermediate with no transfer) - it is
     ///         lowered to the SDIDI by ROUND-TO-ODD (<see cref="LowerWide"/>), exactly the intermediate a nested product
     ///         was before the wide form existed, so whatever consumes it next rounds it in any mode as the exact value.</item>
     /// </list>
@@ -163,6 +167,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     public NumX Settle(NumX x, in ReceiverContext rcv, bool outermost) =>
         !x.Wide && !x.Exact ? x
         : outermost && rcv.RoundsAtItsScale ? TransferWide(x, rcv.Scale, rcv.Rounding, LandingTaken(rcv))
+        : outermost && rcv.LandsAsBinary64
+            ? new NumX(RuntimeApi.ExactToBinary64(ExactOperand(x), rcv.Rounding, rcv.Single, LandingTaken(rcv)), 0, Real: true)
         : LowerWide(x);
 
     /// <summary>⛔ THE TRANSFER OF AN EXACT WIDE VALUE INTO ONE FIXED-POINT RECEIVER (kb/Work PB1900, PB3953): the value moved to the
@@ -204,7 +210,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         : x.Wide ? RuntimeApi.ExactFromWide(x.Expr, x.Scale, x.FractionPrecision)
         : x.U ? RuntimeApi.ExactFromUnsigned(x.Expr, x.Scale)
         : x is { Real: true, Approximate: false } ? RuntimeApi.ExactFromBinary64(x.Expr)   // a float ITEM's content, every digit (PB4730)
-        : x.Real ? RuntimeApi.ExactFromDec(DecOperand(x))                                 // an engine's approximation: its shortest decimal
+        : x.Real ? RuntimeApi.ExactFromApproximation(x.Expr)                              // an engine's approximation: its shortest decimal, remembering the binary64
         : x.Dec ? x.WithPrecision is { } withPrecision
             ? RuntimeApi.ExactFromDecWithPrecision(withPrecision)
             : RuntimeApi.ExactFromDec(x.Expr, x.Precision)

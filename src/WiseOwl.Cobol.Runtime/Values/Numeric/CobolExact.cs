@@ -41,10 +41,6 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public readonly struct CobolExact
 {
-    /// <summary>The widest significand the native Dec lane carries EXACTLY: below 10^38 (the compiler's
-    /// <c>NumericRenderer.NativeDecExactDigits</c>, <c>CobolDec.AddSigned</c>'s wide scratch).</summary>
-    private static readonly Int128 ExactDecLimit = Pow10.AsWide(38);
-
     private readonly CobolWide _wide;
     private readonly int _scale;
     private readonly CobolDec _dec;
@@ -52,10 +48,15 @@ public readonly struct CobolExact
     private readonly CobolBig _big;
     private readonly bool _isBig;
     private readonly int _precision;
+    private readonly double _approximation;
+    private readonly bool _isApproximation;
 
     private CobolExact(CobolWide wide, int scale, int precision) => (_wide, _scale, _precision) = (wide, scale, precision);
 
     private CobolExact(CobolDec dec, int precision) => (_dec, _sdidi, _precision) = (dec, true, precision);
+
+    private CobolExact(CobolDec dec, int precision, double approximation) =>
+        (_dec, _sdidi, _precision, _approximation, _isApproximation) = (dec, true, precision, approximation, true);
 
     private CobolExact(CobolBig big, int precision) => (_big, _isBig, _precision) = (big, true, precision);
 
@@ -100,6 +101,27 @@ public readonly struct CobolExact
         CobolBig big = CobolBig.FromBinary64(value);
         return Of(big, Math.Max(0, big.Scale));
     }
+
+    /// <summary>⛔ AN ENGINE'S APPROXIMATION ON THE EXACT LANE (kb/Work PB4622, PB4730): a function's binary64 returned value (EXP10 (-6)) beside
+    /// a float item in a selection list. Its value is its shortest round-trip decimal (<see cref="CobolDec.FromApproximation"/>, the value a
+    /// fixed-point receiver lands, D16), and the exact value REMEMBERS the binary64 it came from, so a binary64 receiver lands that double
+    /// and not the truncation of its decimal (0.1 truncated sits one binary64 below the double that spelled it). Only a selection returns it
+    /// whole; every operation forms a new value without the memory.</summary>
+    public static CobolExact FromApproximation(double value)
+    {
+        CobolDec dec = CobolDec.FromApproximation(value);
+        return new(dec, CobolDec.FractionDigits(dec), value);
+    }
+
+    /// <summary>The binary64 this value is the approximation of, when it is one (<see cref="FromApproximation"/>).</summary>
+    internal bool TryApproximation(out double approximation)
+    {
+        approximation = _approximation;
+        return _isApproximation;
+    }
+
+    /// <summary>The exact magnitude's binary64-rounding questions (<see cref="FloatResultant.FromExact"/>), on the arbitrary-precision form.</summary>
+    internal CobolBig.Binary64Magnitude BinaryMagnitude() => AsBig().Magnitude();
 
     /// <summary>The algebraic sign: −1, 0 or +1.</summary>
     internal int Sign => _isBig ? _big.Sign : _sdidi ? Int128.Sign(_dec.Sig) : _wide.Sign;
@@ -274,7 +296,7 @@ public readonly struct CobolExact
 
     /// <summary>This value with the fraction digits <paramref name="precision"/> (an integer function's value is held at 0).</summary>
     internal CobolExact WithPrecision(int precision) =>
-        _isBig ? new(_big, precision) : _sdidi ? new(_dec, precision) : new(_wide, _scale, precision);
+        _isBig ? new(_big, precision) : _isApproximation ? new(_dec, precision, _approximation) : _sdidi ? new(_dec, precision) : new(_wide, _scale, precision);
 
     /// <summary>⛔ THE FINAL TRANSFER (kb/Work PB1900, PB4575, PB4592): this value moved to the receiver's <paramref name="toScale"/> and
     /// rounded ONCE with the receiver's <paramref name="mode"/>, through <see cref="CobolWide.ToUnscaled"/> for the wide form (an SDIDI
@@ -344,15 +366,6 @@ public readonly struct CobolExact
             : -Int128.Sign(dec._dec.Sig);   // the SDIDI value is past every wide value: its sign orders the pair
         return aWide ? order : -order;
     }
-
-    /// <summary>The value as an SDIDI CONTENT — what a selection returns, and the operand an operation past the wide form takes: an
-    /// SDIDI as itself; a wide value exactly when its significand fits the native Dec lane's 38-digit exact operand
-    /// (<c>CobolDec.From</c>), and otherwise rounded ONCE to 34 digits in <paramref name="mode"/>.</summary>
-    internal CobolDec ToDec(CobolRounding mode) =>
-        _isBig ? _big.ToDec(mode, jam: false)
-        : _sdidi ? _dec
-        : _wide.TryToInt128(out Int128 narrow) && Int128.Abs(narrow) < ExactDecLimit ? CobolDec.From(narrow, _scale)
-        : _wide.ToDecRounded(_scale, mode);
 
     /// <summary>A COMPUTED value (a sum, a difference, a remainder) rounded ONCE to the SDIDI's 34 digits in <paramref name="mode"/>, where
     /// <see cref="Image"/>'s round-to-odd is the lowering of an operand that something else rounds next: an SDIDI as itself.</summary>

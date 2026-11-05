@@ -126,7 +126,10 @@ internal static class FunctionValueLane
         // PB3860 arm); a list with one keeps the float lane below, as there.
         if (IntrinsicCarrierRules.ReturnsSdidiQuotient(sig.Name) && !anyReal) return OnSdidiBody(sig.RuntimeMethod);
         // A mixed selection list rides the SDIDI too (RenderNum's selection arm).
-        if (Selections.Contains(sig.RuntimeMethod) && anyReal && !allReal && sdidiBody) return OnSdidiBody(sig.RuntimeMethod);
+        if (Selections.Contains(sig.RuntimeMethod) && sdidiBody
+            && IntrinsicCarrierRules.SelectionNeedsExactLane(anyReal, allReal,
+                args.Any(a => a.Kind == CarrierKind.Real), args.Any(a => a.Kind == CarrierKind.ApproximateReal)))
+            return OnSdidiBody(sig.RuntimeMethod);
         if (sig.Float) return CarrierKind.ApproximateReal;
         // RenderNum's last dispatch: a binary64 argument at a numeric position moves the whole call onto the float lane. The value
         // is an engine APPROXIMATION only when none of those arguments is a float ITEM's content (kb/Work PB4622, the one

@@ -960,5 +960,9 @@ static WiseOwl.Cobol.Runtime.Communication.MessageControl.Send(string! cd, WiseO
 ~override WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.ToString() -> string
 static WiseOwl.Cobol.Runtime.CobolExact.FromBinary64(double value) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolExact.FromApproximation(double value) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.FloatResultant.FromExact(WiseOwl.Cobol.Runtime.CobolExact v, WiseOwl.Cobol.Runtime.CobolRounding mode, bool single) -> double
+static WiseOwl.Cobol.Runtime.FloatResultant.FromExactOrRaise(WiseOwl.Cobol.Runtime.CobolExact v, WiseOwl.Cobol.Runtime.CobolRounding mode, bool single) -> double
+static WiseOwl.Cobol.Runtime.FloatResultant.TryFromExact(WiseOwl.Cobol.Runtime.CobolExact v, WiseOwl.Cobol.Runtime.CobolRounding mode, bool single, out double landed) -> bool
 static WiseOwl.Cobol.Runtime.CobolExact.QuotientAtScale(WiseOwl.Cobol.Runtime.CobolExact a, WiseOwl.Cobol.Runtime.CobolExact b, int toScale, WiseOwl.Cobol.Runtime.CobolRounding mode, bool checkedTransfer) -> System.Int128
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeDec(WiseOwl.Cobol.Runtime.CobolDec b, System.Int128 e) -> WiseOwl.Cobol.Runtime.CobolDec

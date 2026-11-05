@@ -127,6 +127,24 @@ internal static class IntrinsicCarrierRules
     internal static bool Binary64ResultIsApproximation(bool floatFamily, bool anyFloatItemArgument) =>
         floatFamily || !anyFloatItemArgument;
 
+    /// <summary>
+    /// ⛔ DOES A SELECTION LIST (MAX, MIN, ORD-MAX, ORD-MIN, an odd MEDIAN) NEED THE EXACT LANE TO DELIVER THE SELECTED ARGUMENT FROM ITS OWN
+    /// CARRIER (kb/Work PB65 RV-15.59.4-1 D2, PB4622)? Asked by <c>IntrinsicRenderer.RenderNum</c> and <c>FunctionValueLane.Of</c> alike.
+    /// §15.59.4 1), §15.63.4 1) and §15.61.1 return "the content of the argument" selected, so the value is the selected argument's own:
+    /// <list type="bullet">
+    ///   <item>a list that mixes a binary64 with a fixed-point item (<paramref name="allBinary64"/> false), as the PB65 finding found;</item>
+    ///   <item>a list whose binary64 arguments are of TWO KINDS (<paramref name="anyFloatItem"/> and <paramref name="anyApproximation"/>):
+    ///         a float ITEM's content lands by its exact binary value, an engine's APPROXIMATION by its shortest decimal (D16), and
+    ///         which argument is selected is a run-time fact, so the double the float lane would return cannot say which landing it is
+    ///         owed (<c>MAX (ZF FUNCTION EXP10 (-6))</c> into <c>PIC 9V9(6)</c> stored 0.000000, the exact binary expansion of the
+    ///         approximation, where its decimal is 0.000001). On the exact lane each argument enters as its own kind
+    ///         (<c>CobolExact.FromBinary64</c>, <c>CobolExact.FromApproximation</c>) and the selected one lands as that kind.</item>
+    /// </list>
+    /// A list of one kind of binary64 stays on the float lane: its content IS the double.
+    /// </summary>
+    internal static bool SelectionNeedsExactLane(bool anyBinary64, bool allBinary64, bool anyFloatItem, bool anyApproximation) =>
+        anyBinary64 && (!allBinary64 || (anyFloatItem && anyApproximation));
+
     /// <summary>The functions <see cref="ReturnsExactParse"/> answers true for, as a set so that
     /// <c>ReceiverShapeReaderDriftTests</c> can hold each member's runtime body against the renderer (no <c>RenderNum</c>
     /// arm of its own, an SDIDI arm in <c>RenderDec</c>) instead of restating the list.</summary>

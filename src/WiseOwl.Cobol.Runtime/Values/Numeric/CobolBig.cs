@@ -270,6 +270,70 @@ internal readonly struct CobolBig
         return BigInteger.Compare(left, right);
     }
 
+    // ── landing in a binary64 ───────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>The magnitude of this value, for <see cref="FloatResultant"/>'s binary64 rounding (kb/Work PB4730).</summary>
+    internal Binary64Magnitude Magnitude() => new(BigInteger.Abs(Value), Scale);
+
+    /// <summary>⛔ THE EXACT MAGNITUDE <c>Mag × 10^-Scale</c> AND THE FOUR QUESTIONS THE BINARY64 ROUNDING ASKS OF IT, answered in integer
+    /// arithmetic (<see cref="IBinary64Magnitude"/>; the 128-bit carrier's twin is <c>FloatResultant.ExactMagnitude</c>): every comparison is
+    /// <c>m × 2^e</c> against the value with both sides cleared of their negative powers, so no step rounds.</summary>
+    internal readonly struct Binary64Magnitude(BigInteger magnitude, int scale) : IBinary64Magnitude
+    {
+        /// <summary>The correctly rounded (ties-to-even) binary64: .NET's parse is IEEE-correct for any digit count and exponent, and
+        /// returns the infinity a magnitude past the range rounds to.</summary>
+        public double NearestBinary64() => double.Parse(
+            magnitude.ToString(System.Globalization.CultureInfo.InvariantCulture) + "E" + (-(long)scale).ToString(System.Globalization.CultureInfo.InvariantCulture),
+            System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture);
+
+        /// <summary>sign(m × 2^e − V): <c>m × 2^e × 10^scale</c> against <c>Mag</c>, each side multiplied up until neither has a negative power.</summary>
+        private int SignOfDyadicMinusValue(BigInteger m, int e)
+        {
+            BigInteger left = m, right = magnitude;
+            if (e > 0) left <<= e; else if (e < 0) right <<= -e;
+            if (scale > 0) left *= Pow10(Guard(scale)); else if (scale < 0) right *= Pow10(Guard(-(long)scale));
+            return left.CompareTo(right);
+        }
+
+        /// <summary>sign(c − V) for a finite binary64 <paramref name="c"/> ≥ 0, read as its integer significand and binary exponent.</summary>
+        public int SignAgainst(double c)
+        {
+            (BigInteger m, int e) = Decompose(c);
+            return SignOfDyadicMinusValue(m, e);
+        }
+
+        public bool AtLeastTwoTo1024() => SignOfDyadicMinusValue(BigInteger.One, 1024) <= 0;
+
+        /// <summary>V is a midpoint exactly when it equals <c>(a + b) / 2</c> for two adjacent binary64 values a &lt; b: each is an integer multiple
+        /// of 2^-1074, so <c>(A + B) × 2^-1075</c> with A and B their integers is the midpoint, and the nearest binary64 is one of its two ends.
+        /// MaxValue and the virtual 2^1024 have the midpoint <c>(2^54 - 1) × 2^970</c>.</summary>
+        public bool IsBinary64Tie()
+        {
+            double near = NearestBinary64();
+            if (double.IsPositiveInfinity(near))
+                return SignOfDyadicMinusValue((BigInteger.One << 54) - 1, 970) == 0;
+            BigInteger nearUnits = Units(near);
+            if (near < double.MaxValue && SignOfDyadicMinusValue(nearUnits + Units(Math.BitIncrement(near)), -1075) == 0) return true;
+            return near > 0 && SignOfDyadicMinusValue(nearUnits + Units(Math.BitDecrement(near)), -1075) == 0;
+        }
+
+        /// <summary>A finite binary64 of at least 0 as an integer count of its least unit, 2^-1074.</summary>
+        private static BigInteger Units(double c)
+        {
+            (BigInteger m, int e) = Decompose(c);
+            return m << (e + 1074);
+        }
+
+        /// <summary>A finite binary64 of at least 0 as <c>m × 2^e</c>: the significand with its hidden bit, and its exponent (-1074 for a subnormal).</summary>
+        private static (BigInteger Significand, int Exponent) Decompose(double c)
+        {
+            long bits = BitConverter.DoubleToInt64Bits(c);
+            int exponent = (int)((bits >> 52) & 0x7FF);
+            long fraction = bits & 0xFFFFFFFFFFFFFL;
+            return exponent == 0 ? (fraction, -1074) : (fraction | (1L << 52), exponent - 1075);
+        }
+    }
+
     // ── settling ────────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>The value reduced to the SDIDI's 34 significant digits once: ROUND-TO-ODD with <paramref name="jam"/> (the lowering a
@@ -281,11 +345,13 @@ internal readonly struct CobolBig
         int digits = Digits(magnitude);
         bool sticky = false;
         long exp = -(long)Scale;
-        if (digits > 34)
+        // 35 digits are kept — the 34 of the image and the ROUND DIGIT — because CobolDec.Round34Wide reads the round digit from the one
+        // digit it drops itself: cut to exactly 34 here, the digit is gone and a nearest mode never rounds up (review R1-1).
+        if (digits > 35)
         {
-            magnitude = BigInteger.DivRem(magnitude, Pow10(digits - 34), out BigInteger dropped);
+            magnitude = BigInteger.DivRem(magnitude, Pow10(digits - 35), out BigInteger dropped);
             sticky = !dropped.IsZero;
-            exp += digits - 34;
+            exp += digits - 35;
         }
         return CobolDec.Round34Wide(0, (UInt128)magnitude, Value.Sign < 0, (int)Math.Clamp(exp, int.MinValue, int.MaxValue), mode, sticky, jam);
     }
