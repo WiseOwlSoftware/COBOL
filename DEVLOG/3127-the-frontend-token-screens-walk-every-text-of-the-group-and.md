@@ -1,4 +1,4 @@
-## The frontend token screens walk every text of the group, and position a report by the token's region (PB4649)
+## Entry 3127 — 2026-11-04 18:34 PST — The frontend token screens walk every text of the group, and position a report by the token's region (PB4649)
 
 PB4649 was a lead from PB4483's review: a COBOL-2023 word-character removal (COBOL0902, a warning under `--permissive`) in a
 repository skeleton printed when its expansion was placed in an assembly of its own and never when it was placed in the group's.
@@ -28,3 +28,4 @@ which are not text of an expansion; `LiteralScreen.Run` and `WordCharacterScreen
 `DiagnosticRegionTests.AFrontendTokenScreen_AttributesADiagnosticOfAnExpansionsText_ToItsRegion` (both screens, an error and a withdrawn
 warning), and two guards in `GroupTextScreenDriftTests` (the screen calls take `text`; no `sink.At(token.Line, token.Column)`).
 No inventory row is owned (`closes_rows: []` with its reason).
+
