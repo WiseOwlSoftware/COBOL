@@ -1741,6 +1741,13 @@ public sealed record BoundSetEntry(IReadOnlyList<Place> Targets, string? NameLit
 /// <see cref="BoundSetFunctionAddress"/>, whose sender names a function at RUN time.</para></summary>
 public sealed record BoundSetFunctionPointer(IReadOnlyList<Place> Targets, Place? Source, bool ToNull) : BoundStatement;
 
+/// <summary><c>SET message-tag TO {NULL | message-tag}</c> (ISO §14.9.39.2 Format 17; SR35 — "Data-name-4 and
+/// data-name-5 shall be message-tag data items"; kb/Work PB4740): a straight carrier copy, the Format-9 twin over the
+/// <c>MessageTag</c> struct. <paramref name="Target"/> is data-name-4, the receiver in BOTH rules (the owner-approved
+/// reading of GR40's "moved to data-name-5" and GR41's "the content of data-name-5", docs/CONFORMANCE.md D-SET17);
+/// <paramref name="Source"/> is data-name-5, null with <paramref name="ToNull"/> (the null content).</summary>
+public sealed record BoundSetMessageTag(Place Target, Place? Source, bool ToNull) : BoundStatement;
+
 /// <summary><c>SET function-pointer… TO ADDRESS OF FUNCTION {function-prototype-name-1 | identifier-1}</c>
 /// (ISO §14.9.39.2 Format 8 with the §8.4.3.12 function-address-identifier sender): resolve the named function
 /// through the run-unit ProgramTable at statement time (§8.4.3.12.4 GR2 — the externalized function-name).

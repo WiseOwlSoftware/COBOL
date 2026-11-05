@@ -1872,7 +1872,7 @@ internal sealed class StatementValidation(DataBinder data)
             // element by element (§8.8.4.2.12 — ConditionBinder.CheckedRelational lowers it; kb/Work PB1469
             // retired the signed-leaf stage that stood here while the relation was a whole-group image).
             else if (op is not ("==" or "!=") && (ContainsNonOrderableLeaf(sl) || ContainsNonOrderableLeaf(sr)))
-                data.Edition.Error(DiagnosticCatalog.StrongCompareOrdering, "a strongly-typed group containing a boolean, object-reference, "
+                data.Edition.Error(DiagnosticCatalog.StrongCompareOrdering, "a strongly-typed group containing a boolean, message-tag, object-reference, "
                     + "or pointer element may be compared only for equality or inequality "
                     + "(ISO §8.8.4.2.3 SR4 — no ordering relation is defined for such a group)");
         }
@@ -1977,7 +1977,7 @@ internal sealed class StatementValidation(DataBinder data)
         // operand answered "not a pointer" and the whole band stayed silent on it. The lattice also folds a
         // bit / national GROUP onto its §13.18.29.4 as-if picture and reports an INDEX item as class index
         // rather than its storage category, neither of which raw `Pic` could see.
-        static bool IsFormat3(CobolClass? c) => c is CobolClass.Object or CobolClass.Pointer;
+        static bool IsFormat3(CobolClass? c) => c is CobolClass.MessageTag or CobolClass.Object or CobolClass.Pointer;
         static bool IsNull(BoundOperand o) => o is BoundPredefinedNull;
         // NULL's class opposite `other`: the other side's Format-3 class, class pointer opposite any other decidable
         // operand, and "undecidable" (abstain) opposite an operand whose binding already failed (kb/Work PB960).
@@ -2013,16 +2013,12 @@ internal sealed class StatementValidation(DataBinder data)
         var lc = NullReading(left, right);
         var rc = NullReading(right, left);
         if (!IsFormat3(lc) && !IsFormat3(rc)) return;   // a general-relation or boolean condition — not this band
-        // ⚠ CLASS MESSAGE-TAG — Format 3's third class — has no lattice member, because USAGE MESSAGE-TAG is
-        // DECLINED non-support (COBOL1943, Annex A.3 item 4) and `ParseUsage` refuses it BY NAME at every
-        // edition, so no message-tag operand can reach a bound relation on a compile that is not already
-        // errored. The rule below is written over the classes the lattice can present; the day the usage lands,
-        // the lattice gains its member and this screen sees it without a change here.
         // COBOL0868 is the object-reference band, COBOL0869 the pointer/address one (whose descriptor
-        // names object references too); a relation that mentions class object reports under 0868.
+        // names object references and message tags too); a relation that mentions class object reports under 0868.
         bool obj = lc is CobolClass.Object || rc is CobolClass.Object;
         string code = obj ? DiagnosticCatalog.ObjectRelationShape.Code : DiagnosticCatalog.PointerOperandShape.Code;
-        string band = obj ? "an object-reference" : "a data-pointer";
+        string band = obj ? "an object-reference"
+            : lc is CobolClass.MessageTag || rc is CobolClass.MessageTag ? "a message-tag" : "a data-pointer";
         if (op is not ("==" or "!="))
         {
             data.Edition.Error(code, $"{band} relation admits only [NOT] EQUAL / '=' / '<>' — ISO §8.8.4.2.2 "
@@ -2033,9 +2029,14 @@ internal sealed class StatementValidation(DataBinder data)
         // §8.8.4.2.3 SR5's two halves, asked of the pair. An operand whose class is not statically decidable
         // (an already-reported error node, a figurative whose class the context picks) abstains rather than
         // drawing a second diagnostic about something the binder has already spoken about.
+        // ⛔ A FIGURATIVE CONSTANT IS DECIDED, NOT UNDECIDABLE (kb/Work PB4740 review R1-4): its class set (§8.3.3.6.4) holds
+        // no Format 3 class, and identifier-3 / identifier-4 are data items, with NULL the one predefined operand
+        // (§8.4.3.10.3 SR1), so `IF T = SPACE` against a message tag, pointer or object is the SR5 violation. It used to
+        // abstain with the already-reported nodes (ClassOf answers null for its plural set) and rendered as NULL.
+        static bool Decided(BoundOperand o, CobolClass? c) => c is not null || o is BoundFigurative or BoundAllLiteral;
         if (!IsFormat3(lc) || !IsFormat3(rc))
         {
-            if (lc is not null && rc is not null)
+            if (Decided(left, lc) && Decided(right, rc))
                 data.Edition.Error(code, $"both operands of {band} relation shall be of class message-tag, "
                     + "object or pointer — a data item of one of those classes, or the predefined NULL "
                     + "(ISO §8.8.4.2.3 SR5; §8.4.3.10.3 SR1)");
@@ -2060,12 +2061,12 @@ internal sealed class StatementValidation(DataBinder data)
     /// never of a local category list (kb/Work PB1469): the list that stood here named three CATEGORIES —
     /// boolean, object-reference and data-pointer — and so missed PROGRAM-POINTER and FUNCTION-POINTER, the other
     /// two categories Table 2 gathers into class pointer; `IF T1 &gt; T2` over a strong group with a
-    /// program-pointer leaf compiled clean. (Class message-tag has no lattice member because USAGE MESSAGE-TAG is
-    /// declined non-support, COBOL1943; the day it lands, the lattice gains it and this sees it unchanged.)</summary>
+    /// program-pointer leaf compiled clean. Class message-tag is a lattice member since kb/Work PB4740.</summary>
     private static bool ContainsNonOrderableLeaf(DataItem item)
     {
         if (item.IsElementary)
-            return IntrinsicArgumentRules.ClassOfItem(item) is CobolClass.Boolean or CobolClass.Object or CobolClass.Pointer;
+            return IntrinsicArgumentRules.ClassOfItem(item) is CobolClass.Boolean or CobolClass.MessageTag
+                or CobolClass.Object or CobolClass.Pointer;
         foreach (var c in item.Children)
             if (ContainsNonOrderableLeaf(c)) return true;
         return false;

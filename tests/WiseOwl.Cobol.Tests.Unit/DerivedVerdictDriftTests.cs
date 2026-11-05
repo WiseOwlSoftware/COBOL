@@ -564,16 +564,16 @@ public sealed class DerivedVerdictDriftTests
     public void TheMcsSelector_IsStillSharp()
     {
         var (ids, _) = Select("mcs-only");
-        Assert.InRange(ids.Count, 20, 40);   // 28 when it landed (kb/Work R43)
+        Assert.InRange(ids.Count, 12, 40);   // 28 when it landed (kb/Work R43); slice S1 (PB4740) took the message-tag class out
         // Both statements, general formats included — §4.2.6 ¶3 releases the declined syntax.
         foreach (string id in (string[])["FMT-14.9.31.2", "FMT-14.9.38.2", "SR-14.9.31.3-3", "GR-14.9.38.4-8"])
             Assert.Contains(id, ids);
-        // The message-tag class and protocol stated from elsewhere.
-        foreach (string id in (string[])["GR-8.4.3.10.4-4", "GR-8.8.4.2.1-9", "GR-14.6.11-7", "DOC-A.1-212"])
-            Assert.Contains(id, ids);
-        // ⛔ THE CLASS LIST. Message-tag inside an enumeration of classes constrains the others too, which are
-        // live: SR-8.8.4.2.3-5's object/pointer halves are verified, GR-13.18.63.4-4 initializes every class.
-        foreach (string id in (string[])["SR-8.8.4.2.3-5", "GR-13.18.63.4-4", "SR-13.16.3-10", "SR-14.9.11.3-1"])
+        // The message server protocol stated from elsewhere.
+        Assert.Contains("GR-14.6.11-7", ids);
+        // ⛔ THE MESSAGE-TAG TYPE IS IMPLEMENTED (kb/Work PB4740): its rows are adjudicated CONFORMS, so the selector must not hold them at
+        // DOCUMENTED-NON-SUPPORT. Message-tag inside an enumeration of classes constrains the others too, which are live.
+        foreach (string id in (string[])["GR-8.4.3.10.4-4", "GR-8.8.4.2.1-9", "DOC-A.1-212", "GR-13.18.60.4-9", "SR-14.9.39.3-35",
+                                         "SR-8.8.4.2.3-5", "GR-13.18.63.4-4", "SR-13.16.3-10", "SR-14.9.11.3-1"])
             Assert.DoesNotContain(id, ids);
         // A text arm never takes a general format: USAGE's and INITIALIZE's formats list MESSAGE-TAG among others.
         Assert.DoesNotContain("FMT-13.18.60.2", ids);

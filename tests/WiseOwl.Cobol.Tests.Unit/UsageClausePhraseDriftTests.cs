@@ -76,8 +76,7 @@ public sealed class UsageClausePhraseDriftTests : WiseOwlCobolTestBase
         ["BINARY"] = [],
         ["PACKED_DECIMAL"] = [UsagePhrase.NoSign],
         ["INDEX"] = [],
-        // USAGE MESSAGE-TAG (kb/Work PB487): the printed line is the bare word; the usage is DECLINED non-support
-        // (Annex A.3 item 4) and refused by name, COBOL1943.
+        // USAGE MESSAGE-TAG (kb/Work PB487): the printed line is the bare word; the usage binds since kb/Work PB4740.
         ["MESSAGE_TAG"] = [],
         ["NATIONAL"] = [],
         ["BIT"] = [],

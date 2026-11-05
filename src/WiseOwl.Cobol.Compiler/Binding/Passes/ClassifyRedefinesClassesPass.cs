@@ -300,9 +300,8 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
     // definition of "variable-length group" — and its SELF half is the narrowed `m.IsDynamicTable` test at the
     // COBOL1525 arm. Two spellings of one walk collapsed into the predicate the standard actually defines.)
 
-    /// <summary>The §13.18.44.3 SR12/SR14 class test (kb/Work PB179): object/pointer classes occupy no
-    /// character positions and can neither overlay nor be overlaid. Message-tag has no bound model (declined
-    /// non-support, COBOL1943), so it is never of a class here.
+    /// <summary>The §13.18.44.3 SR12/SR14 class test (kb/Work PB179): object, message-tag and pointer classes occupy no
+    /// character positions and can neither overlay nor be overlaid.
     /// <para>⛔ CLASS INDEX IS NOT HERE and must never be added: §13.18.60.3 SR4 is the rule whose list includes
     /// INDEX, and it has its own predicate. §13.18.60.3 SR14's declaration-placement screen
     /// (<c>DataBinder.UsageDeclaration.cs</c>) does NOT ask this CLASS question: SR14 is written over the five USAGE
@@ -312,7 +311,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
     /// </para>
     /// <para>⛔ AND IT IS NOW THE STORAGE PREDICATE TOO. <see cref="SlotWindow.CarriedBySlot"/> — "does this
     /// member ride the storage area's MANAGED SLOTS rather than its bytes?" (kb/Work PB231, the pointer third)
-    /// — is the same population for the same reason: a class object/pointer item holds a managed reference and
+    /// — is the same population for the same reason: a class object, message-tag or pointer item holds a managed reference and
     /// no bytes. It is the DEFINITION and this is the delegation, so the third spelling cannot drift from the
     /// first two either.</para></summary>
     private static bool PointerObjectClass(DataItem d) => SlotWindow.CarriedBySlot(d);
@@ -338,13 +337,13 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
     {
         if (PointerObjectClass(subject))
             return $"'{subject.CobolName ?? subject.ClrName}' is the subject of a REDEFINES entry but is of "
-                + "class object/pointer (ISO §13.18.44.3 SR12)";
+                + "class object, message-tag, or pointer (ISO §13.18.44.3 SR12)";
         if (StrongTypeModel.IsStrongGroup(subject))
             return $"'{subject.CobolName ?? subject.ClrName}' is the subject of a REDEFINES entry but is a "
                 + "strongly-typed group item (ISO §13.18.44.3 SR12)";
         if (PointerObjectClass(target))
             return $"'{target.CobolName ?? target.ClrName}' is redefined (data-name-2) but is of class "
-                + "object/pointer (ISO §13.18.44.3 SR14)";
+                + "object, message-tag, or pointer (ISO §13.18.44.3 SR14)";
         if (StrongTypeModel.IsStrongGroup(target))
             return $"'{target.CobolName ?? target.ClrName}' is redefined (data-name-2) but is a strongly-typed "
                 + "group item (ISO §13.18.44.3 SR14)";

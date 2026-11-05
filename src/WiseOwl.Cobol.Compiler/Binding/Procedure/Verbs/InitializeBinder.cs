@@ -556,9 +556,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// item is consequently NOT a receiving operand under the VALUE phrase alone (SR9 denies it GR5c1b and GR5c1c
     /// too); it is still one under REPLACING (GR5c2), DEFAULT (GR5c3) and the bare form (GR5c4), where GR6c gives
     /// it the predefined address NULL. Do not "even up" this list — the rule is quoted, not paraphrased.</para>
-    /// <para>MESSAGE-TAG is in the rule and is named here for fidelity, but no elementary item can reach this test
-    /// with that category: no <see cref="PicCategory"/> carries message-tag (the owner-declined MCS facility,
-    /// docs/CONFORMANCE.md §4), so the DATA DIVISION refuses such an item before any statement sees it.</para></summary>
+    /// <para>MESSAGE-TAG is in the rule and a message-tag item reaches this test (kb/Work PB4740): <c>INITIALIZE m ALL TO
+    /// VALUE</c> sets it to the null content.</para></summary>
     private static bool QualifiesCategorically(InitializeCategory cat) =>
         cat is InitializeCategory.DataPointer or InitializeCategory.MessageTag
             or InitializeCategory.ObjectReference or InitializeCategory.ProgramPointer;
@@ -838,6 +837,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         { Category: PicCategory.ProgramPointer } => InitializeCategory.ProgramPointer,
         { Category: PicCategory.FunctionPointer } => InitializeCategory.FunctionPointer,
         { Category: PicCategory.ObjectReference } => InitializeCategory.ObjectReference,
+        { Category: PicCategory.MessageTag } => InitializeCategory.MessageTag,   // GR4/GR6c: message-tag → NULL (kb/Work PB4740)
         _ => null,
     };
 

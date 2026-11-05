@@ -51,7 +51,7 @@ public sealed class UsageInheritanceDriftTests
     /// <para>Some members are excluded because the compiler refuses the KEYWORD before any picture rule is
     /// reached, so neither spelling is evidence about SR8: FLOAT-BINARY-128 and FLOAT-DECIMAL-16/-34 are
     /// documented processor-dependent non-support (COBOL1564, Annex A.3 items 17/19), and the five pointer/object
-    /// phrases (MESSAGE-TAG, declined non-support COBOL1943, Annex A.3 item 4, kb/Work PB487, among them) are
+    /// phrases (MESSAGE-TAG, a bound usage since kb/Work PB4740, among them) are
     /// refused by §13.18.60.3 SR14 at level 05 whatever the picture — which they are on BOTH spellings since
     /// kb/Work PB819 made the elementary arm read the phrase, so no carve-out for a refused keyword remains in the
     /// GR1 equivalence above. They are named by PREDICATE — the 1564 test and the 1724 test — never by list, so a

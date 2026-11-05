@@ -55,13 +55,9 @@ internal enum SetOperandKind
 /// shared — and so must be told apart semantically — appear here; the formats a reserved word already
 /// discriminates (3 switch, 4 condition, 6 attribute, 11/12 locale, 13 last-exception, 15 content) are chosen in
 /// <c>SetBinder.BindSet</c> by their own alternative.
-/// <para>⛔ FORMAT 17 IS ONE OF THEM, AND THIS COMMENT USED TO SAY IT "CANNOT BE REACHED" (kb/Work PB453).
-/// The MESSAGE-TAG entry is refused by name at the data description entry (COBOL1943) — but a refused entry
-/// still produces a symbol, the statement still binds, and <c>SET MT-A TO MT-B</c> / <c>SET MT-A TO NULL</c>
-/// therefore DID reach this selection and fell through to §14.9.39.3 SR8's object-reference screen and
-/// §8.8.1.1's arithmetic screen. The user was told their message-tag item "shall be a USAGE OBJECT REFERENCE
-/// data item" — a rule about a format their program is not, naming a fix that would not be one. The format is
-/// a row in the table now, and it names the declined FACILITY.</para></summary>
+/// <para>⛔ FORMAT 17 IS ONE OF THEM (kb/Work PB453, PB4740): <c>SET MT-A TO MT-B</c> / <c>SET MT-A TO NULL</c> select
+/// it by the message-tag operand's category, so the message-tag rules (§14.9.39.3 SR35) speak, and no other format's
+/// screen does — a rule about a format the program is not.</para></summary>
 internal enum SetFormat
 {
     /// <summary>Format 1 — index-assignment.</summary>
@@ -183,9 +179,9 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         new(SetFormat.F5,  SetDirections.To,     [SetOperandKind.ObjectReference],
             [SetOperandKind.ObjectReference],                                           "ISO §14.9.39.3 SR8",
             "Format 5's receiving operand is identifier-3, an item of class object permitted as a receiving item"),
-        // Format 17 (message-tag) — a DECLINED facility with a row, not a hole. §14.9.39.3 SR35 makes BOTH its
-        // operands message-tag data items, so the kind names this row from either side and `SET N TO MT` is
-        // Format 17 just as `SET MT TO N` is; SetBinder answers it with the §4.2.6 facility refusal.
+        // Format 17 (message-tag). §14.9.39.3 SR35 makes BOTH its operands message-tag data items, so the kind
+        // names this row from either side and `SET N TO MT` is Format 17 just as `SET MT TO N` is; SetBinder's
+        // BindMessageTagSet refuses the operand that is not one.
         new(SetFormat.F17, SetDirections.To,     [SetOperandKind.MessageTag],
             [SetOperandKind.MessageTag],                                                "ISO §14.9.39.3 SR35",
             "Format 17's receiving operand is data-name-4, a message-tag data item"),
@@ -246,11 +242,6 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     {
         if (item.IsDynamicLength) return SetOperandKind.DynamicLength;                                // SR33
         if (item.Pic is { Usage: Usage.Index }) return SetOperandKind.IndexDataItem;                  // §8.5.2.1 Table 2
-        // ⛔ ASKED THROUGH THE USAGE, NOT THE CATEGORY (kb/Work PB453). MESSAGE-TAG is a DECLINED usage, so its
-        // entry carries a recovery PicInfo whose CATEGORY is a placeholder — reading `OperandCategory` here
-        // answers "alphanumeric" and the operand falls through to Format 1 / Format 5 and draws a rule that is
-        // false about the program. ItemCategory.IsMessageTag reads the written clause AND the resolved usage,
-        // which is the pair §13.18.60.3 SR14's own screen reads.
         if (ItemCategory.IsMessageTag(item)) return SetOperandKind.MessageTag;                        // SR35
         return operandCategory switch
         {

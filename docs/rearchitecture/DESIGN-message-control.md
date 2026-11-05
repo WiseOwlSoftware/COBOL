@@ -389,7 +389,10 @@ outcome back through the ordinary channels:
   holding one has an image only if `DataItem.ElementImageCapable` admits the category: it admits `PicCategory.MessageTag`
   with an image of eight spaces (DOC-A.1-212), as R40 admitted INDEX: the generated `FromImage` skips those positions
   and the slot carries the value. A pointer-class leaf stays excluded, and `DataItem.TransferImageCapable`'s slot arm is
-  unchanged. An identifier-1
+  unchanged. Slice S1 (kb/Work PB4740) landed the tag as a slot-carried category (`SlotWindow.CarriedBySlot`) and left
+  `ElementImageCapable` as it was, so a strongly-typed group holding a tag has today the one-way transfer image an object
+  reference's group has (DISPLAY, MOVE sender, the `BYTE-LENGTH` of 8 positions per tag); the two-way image that SEND and
+  RECEIVE need is this bullet's admission, which belongs to slice S4 with the emitter that consumes it. An identifier-1
   that is a single elementary message tag has the image `""` (`RecordAreaImage`'s slot-carried arm), zero character
   positions, so its SEND is EC-MCS-MESSAGE-LENGTH under GR1 and a RECEIVE into it takes any message as too long (GR3).
 - RECEIVE stores the message by the receiving inverse a READ uses, arm for arm. An identifier-1 that is a
