@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Frozen;
 using System.Diagnostics;
+using WiseOwl.Cobol.Binding.Model;
 
 namespace WiseOwl.Cobol.Binding.Bound;
 
@@ -140,10 +141,20 @@ internal static class IntrinsicCarrierRules
     ///         approximation, where its decimal is 0.000001). On the exact lane each argument enters as its own kind
     ///         (<c>CobolExact.FromBinary64</c>, <c>CobolExact.FromApproximation</c>) and the selected one lands as that kind.</item>
     /// </list>
-    /// A list of one kind of binary64 stays on the float lane: its content IS the double.
+    /// A list of one kind of binary64 stays on the float lane: its content IS the double. So does an even-count MEDIAN of two kinds
+    /// (<paramref name="meanOfMiddlePair"/>, kb/Work PB4753): the mean of the two middle values is a NEW value, evaluated as its
+    /// equivalent expression is (§15.4.1) in binary64 beside a float item, where the exact lane landed it one binary64 low.
     /// </summary>
-    internal static bool SelectionNeedsExactLane(bool anyBinary64, bool allBinary64, bool anyFloatItem, bool anyApproximation) =>
-        anyBinary64 && (!allBinary64 || (anyFloatItem && anyApproximation));
+    internal static bool SelectionNeedsExactLane(bool anyBinary64, bool allBinary64, bool anyFloatItem, bool anyApproximation,
+        bool meanOfMiddlePair) =>
+        anyBinary64 && (!allBinary64 || (!meanOfMiddlePair && anyFloatItem && anyApproximation));
+
+    /// <summary>Is the value of the call of <paramref name="functionName"/> over <paramref name="arguments"/> the arithmetic MEAN of the two middle arguments and not a selected argument
+    /// (kb/Work PB4753)? True for MEDIAN over an even, statically known count (§15.61.4 r2); a table(ALL) argument stands for an unknown
+    /// count and is treated as a selection, the lane it had. A mean is a NEW value that no argument's own kind describes, so the
+    /// kind-preserving exact lane of <see cref="SelectionNeedsExactLane"/> has nothing to preserve for it.</summary>
+    internal static bool ReturnsMeanOfMiddlePair(string functionName, IReadOnlyList<BoundOperand> arguments) =>
+        functionName == "MEDIAN" && arguments.Count % 2 == 0 && !arguments.Any(a => a is BoundFieldOperand { Place: TableAllPlace });
 
     /// <summary>The functions <see cref="ReturnsExactParse"/> answers true for, as a set so that
     /// <c>ReceiverShapeReaderDriftTests</c> can hold each member's runtime body against the renderer (no <c>RenderNum</c>

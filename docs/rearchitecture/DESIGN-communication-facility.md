@@ -123,7 +123,7 @@ a length limit and a user's MCS directory can be arbitrarily deep.
 
 Every member but `name` is optional. A name is 1 to 12 characters and a file-name component on every host, since a queue path and a device file are built from names: it holds no character `Path.GetInvalidFileNameChars` gives on either OS (the Windows set, so the colon that opens an NTFS alternate stream is refused on Linux too) and is no Windows device name (`CON`, `NUL`, `COM1`, `LPT¹` and the rest, with or without an extension, in any case), a screen that does not depend on the host (`MessageStoreState.NameOf`); queues nest to the four levels of E.5.5.4. `key` is the COBOL-85 password (a KEY phrase's value against it, status 40; an endpoint with
 none admits any). `messages` enter a queue or a terminal once, when the store first holds that endpoint. `capacity` bounds a destination's waiting messages (status 65, error key 6). `deliverTo` makes a destination feed a queue path or
-`terminal:<name>`, so one run unit talks to another; a destination without it transmits to its device, the file `<name>.out`, and a terminal's SEND does too.
+`terminal:<name>`, so one run unit talks to another; a destination without it transmits to its device, the file `<name>.out`, and a terminal's SEND does too. Those device-bearing names (the destinations without `deliverTo` and the terminals) are distinct without regard to case, on every host, since a case-folding file system would make `D1` and `d1` one file: a definition file that breaks this is refused (status 91, `MessageStoreState.RefuseSharedDeviceFiles`).
 A `servers` member defines the 2023 facility's servers (DESIGN-message-control.md §0 Q3); this facility reads its four members by
 name and ignores it.
 

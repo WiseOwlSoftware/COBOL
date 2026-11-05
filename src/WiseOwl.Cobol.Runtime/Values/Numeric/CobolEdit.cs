@@ -969,6 +969,15 @@ public static partial class CobolEdit
                 sum += j > at && RuleFor(pattern[j], edits) is { Floating: false } r ? r.Width : 1;
                 if (sum == target) return (run, j - at + 1);
             }
+            // The run outlasts the string: every position of the string is suppressed, the landing is its LAST
+            // position (rule 6 a: the rightmost suppressed one) and the spaces past it are the suppressed
+            // positions to its right (a Z beside a FOR character-1, SR12b; kb/Work PB4755), one space wide each
+            // (a simple insertion symbol among them, its own width). They must account for the run exactly.
+            for (int j = z.End; j < pattern.Length && sum < target; j++)
+            {
+                sum += RuleFor(pattern[j], edits) is { Floating: false } r ? r.Width : 1;
+                if (sum == target) return (run, j - at + 1);
+            }
         }
         return null;
     }
