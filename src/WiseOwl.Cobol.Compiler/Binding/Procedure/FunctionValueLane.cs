@@ -128,7 +128,8 @@ internal static class FunctionValueLane
         // A mixed selection list rides the SDIDI too (RenderNum's selection arm).
         if (Selections.Contains(sig.RuntimeMethod) && sdidiBody
             && IntrinsicCarrierRules.SelectionNeedsExactLane(anyReal, allReal,
-                args.Any(a => a.Kind == CarrierKind.Real), args.Any(a => a.Kind == CarrierKind.ApproximateReal)))
+                args.Any(a => a.Kind == CarrierKind.Real), args.Any(a => a.Kind == CarrierKind.ApproximateReal),
+                IntrinsicCarrierRules.ReturnsMeanOfMiddlePair(sig.Name, call.Args)))
             return OnSdidiBody(sig.RuntimeMethod);
         if (sig.Float) return CarrierKind.ApproximateReal;
         // RenderNum's last dispatch: a binary64 argument at a numeric position moves the whole call onto the float lane. The value

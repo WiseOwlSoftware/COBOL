@@ -1280,11 +1280,18 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // sum the declared pictures hold and GnuCOBOL's cob_decimal_add (exact, CLAUDE.md rule 1 for §8.8.1.3) gives: COMPUTE R = D + F
         // of 1000000000000000001 and 1.01 is 1000000000000000002. The run-time-scaled exact carrier tries the VALUE on the 256-bit form
         // and leaves it only when the value does (CobolExact.Add), the carrier every sibling arm above hands such a pair.
-        // ONLY WHEN THE ALIGNMENT, NOT THE OPERANDS, LEAVES THE LANE: each operand's own bound is within the 38 digits. An operand that is
-        // itself a 16-byte container (bound 39) leaves the lane at its top, and that sum's size error is the documented one (DOC-A.1-179 (1),
-        // golden pb91_native_overflow_outside_arithmetic: HIGHEST-ALGEBRAIC + 1).
-        if (digits > ReceiverContext.IntermediateDigits && a.Digits <= ReceiverContext.IntermediateDigits
-            && b.Digits <= ReceiverContext.IntermediateDigits && !_rcv.Real)
+        // ONLY WHEN THE ALIGNMENT, NOT THE OPERANDS, LEAVES THE LANE (kb/Work PB4752): the operands' own bounds (DigitBound: an operand
+        // with no bound of its own, an intrinsic's value, is bounded by its 16-byte carrier's 39 digits) plus the scale gap each is SHIFTED
+        // by pass the 38 digits. That is a property of the shift, so an operand of unknown bound or a 16-byte container beside a fraction
+        // takes the exact additive as a known-bound one does (COMPUTE R = FUNCTION INTEGER (D) + F of 1000000000000000001 and 1.01). A sum
+        // with NO shift whose operand is itself a container leaves the lane at its top, and that size error is the documented one
+        // (DOC-A.1-179 (1), golden pb91_native_overflow_outside_arithmetic: HIGHEST-ALGEBRAIC + 1).
+        bool shifted = a.Scale != s || b.Scale != s;
+        int alignedBound = Math.Max(DigitBound(a) + (s - a.Scale), DigitBound(b) + (s - b.Scale));
+        bool alignmentLeavesLane = shifted && alignedBound > ReceiverContext.IntermediateDigits;
+        bool knownSumLeavesLane = digits > ReceiverContext.IntermediateDigits && a.Digits <= ReceiverContext.IntermediateDigits
+            && b.Digits <= ReceiverContext.IntermediateDigits;
+        if ((alignmentLeavesLane || knownSumLeavesLane) && !_rcv.Real)
             return ExactBinary(op, a, b);
         if (digits > ReceiverContext.IntermediateDigits) digits = 0;
         // Under an ON SIZE ERROR phrase the sum/difference is overflow-checked at the Int128 ENGINE boundary
