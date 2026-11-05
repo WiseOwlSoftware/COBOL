@@ -19,3 +19,4 @@ because `EnclosedBooleanOperand` returns the enclosed item's plain operand. The 
 `BoundOperand.ExpressionAsWritten`, so both wrappers state it; golden pb4763-class-condition-paren-boolean-subject (COBOL3318). Lead R1-2 fixed in
 the same screen (a literal or figurative subject, `IF 5 IS NUMERIC`, compiled and aborted at run time; golden pb4763-class-condition-literal-subject).
 Lead R1-3 (a function folding to a literal reaches the renderer's loud arm) sits in ConditionRenderer.cs, a file this change does not touch, and is left for the clerk.
+The first gate of this round was RED on one golden, pb829_closed_formats_legal, which used the literal `IF "7" IS DIGITS` as a subject; 8.8.4.4.2 prints identifier-1, so the golden now tests a PIC X item. Gate (run 000002-20261105T232527Z): === BUILD-LOCAL GATE: GREEN — Conformance 22,164/22,164 · Unit 40,189/40,189 · Characterization 37/37 cases ran (skipped 0) ===
