@@ -27,4 +27,16 @@ and AR-15.14.3-1 already read CONFORMS).
 code: the arms implement 15.50.3 r1 and 15.14.3 r1 as cited (checked with `cite.py`); LENGTH and BYTE-LENGTH agree. Performance: no
 allocation added. Duplication: the two arms keep the one shared pattern; the comment in the LENGTH arm explains it for the twin.
 
+**Review round 1 (R1-1, fixed).** The counter-register arms read the same tree shape: `LENGTH((LINAGE-COUNTER))`, `BYTE-LENGTH((LINAGE-COUNTER))`,
+`FIND-STRING(X9 "A" (LINAGE-COUNTER))` and `HIGHEST-/LOWEST-/SMALLEST-ALGEBRAIC((LINAGE-COUNTER))` compiled while the same position refused `(I2)`.
+The first pass swept `{ Expr: BoundIntrinsicCall` alone; the sweep for the mechanism, a `BoundComputedOperand` whose `Expr` is read without the binder's
+statement, found four readers (the two folds, `IntrinsicArgumentRules.IsDataItem`, `BindAlgebraicFold`). `BoundComputedOperand.CounterRegisterValue`,
+set in `BindArgOperandCore` for a register written as a sole unparenthesized argument, is now what they ask. Goldens: refusals
+`pb4712-length-parenthesized-counter-register`, `pb4712-byte-length-parenthesized-counter-register`,
+`pb4712-highest-algebraic-parenthesized-counter-register`, `pb4712-find-string-parenthesized-counter-register`; accept
+`pb4712_find_string_counter_register_argument` (bare register as FIND-STRING argument-3, 3). The bare LENGTH, BYTE-LENGTH and ALGEBRAIC legs are the
+existing `pb1153_counter_register_*` and `algebraic_counter_registers`. R1-3: the `WrittenForm` comment now names the one function-identifier with no arm.
+Left as a lead (R1-2, outside the group): the class-condition subject screen `ConditionBinder.cs:928` admits `IF (LINAGE-COUNTER) IS NUMERIC` and
+`IF (FUNCTION ABS(I2)) IS NUMERIC`.
+
 **Gate.** === BUILD-LOCAL GATE: GREEN — Conformance 21,891/21,891 · Unit 39,974/39,974 · Characterization 37/37 (run 000001-20261105T064224Z, head f7bfaf20f). The four new cases ran and Passed in Conformance.trx.

@@ -620,6 +620,15 @@ public sealed record BoundComputedOperand(BoundExpr Expr) : BoundOperand
     /// when both are a <see cref="BoundBinary"/> (kb/Work PB3613). Set only through <c>IntrinsicBinder.OperandOf</c>.</summary>
     public bool FunctionValue { get; init; }
 
+    /// <summary>True when the operand is a COUNTER REGISTER (LINAGE-/LINE-/PAGE-COUNTER) written as the sole, unparenthesized
+    /// argument of an intrinsic function - the binder's statement that the source named the register, "a temporary unsigned integer
+    /// data item" (§8.4.3.14.4 GR1 / §8.4.3.15.4 GR1), as <see cref="FunctionValue"/> is its statement for a function-identifier
+    /// (kb/Work PB4712, PB3678). <c>(LINAGE-COUNTER)</c> is an arithmetic expression enclosed in parentheses (§8.8.1.1), no data item,
+    /// yet the expression binder drops the parentheses and gives the same <see cref="Expr"/>, so the data-item screens ask THIS, never
+    /// the tree: <c>IntrinsicArgumentRules.IsDataItem</c>, the LENGTH and BYTE-LENGTH folds and the ALGEBRAIC folds. Set only by
+    /// <c>IntrinsicBinder.BindArgOperandCore</c>.</summary>
+    public bool CounterRegisterValue { get; init; }
+
     /// <summary>True when the operand is the value of a NUMERIC function-identifier: <see cref="FunctionValue"/> (the binder's
     /// statement that the source wrote the function-identifier, however it lowered to a tree) whose value is numeric. The one
     /// question every channel that sends a value into a plain group asks (<c>OperandText.NonElementaryMoveSender</c>, the CALL
