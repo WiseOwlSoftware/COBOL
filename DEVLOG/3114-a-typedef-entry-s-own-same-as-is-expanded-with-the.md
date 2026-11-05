@@ -1,4 +1,4 @@
-## A TYPEDEF entry's own SAME AS is expanded with the declaration, and PB4626 is discharged as a duplicate of PB4602 (PB4626, PB4638)
+## Entry 3114 — 2026-11-04 16:17 PST — A TYPEDEF entry's own SAME AS is expanded with the declaration, and PB4626 is discharged as a duplicate of PB4602 (PB4626, PB4638)
 
 Wave 20261868 group D continued the PB4610/PB4611/PB4612 branch (DEVLOG 3112) in `DataBinder.cs`.
 
@@ -20,3 +20,4 @@ JUSTIFIED, REDEFINES with TYPE) each draw exactly one diagnostic. The note is re
 
 No inventory row is claimed or closed. Self-review (architecture, full code, performance, duplication): the change replaces a special-cased line with
 the walk already used for the members, so no second copy of the expansion order exists; the walk runs once per declaration at bind.
+
