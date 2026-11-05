@@ -1755,10 +1755,12 @@ internal static class IntrinsicArgumentRules
                     ? (v.Coeff + sign, p.Scale, p.IsFloat, v.Opaque) : (sign, p.Scale, p.IsFloat, false);
                 break;
             // ⛔ A CALL WHOSE VALUE IS ITS ARGUMENT IS THAT ARGUMENT (kb/Work PB4757). The walk below marks every item beneath a call
-            // opaque, which keeps `S2 - FUNCTION ABS (S2)` legal (the term moves with S2) but let `S2 + FUNCTION ABS (S2)` slip past
-            // the screen, although it is 2 × S2. FUNCTION ABS of an item that cannot hold a negative value is that item: §15.7.4
-            // 1) a) "When the value of argument-1 is zero or positive, (argument-1)". The call is read as its argument, so the leaf
-            // arm counts S2 twice and the witness argument stands. A signed argument has no such identity and stays opaque.
+            // opaque, which keeps `G2 - FUNCTION ABS (G2)` legal (the term moves with G2) but let `G2 + FUNCTION ABS (G2)` slip past
+            // the screen, although over every non-negative valuation it is 2 × G2. FUNCTION ABS of a bare numeric item (or of its
+            // negation) is that item on the valuations where the item is not negative: §15.7.4 1) a) "When the value of argument-1
+            // is zero or positive, (argument-1)". The screen needs ONE witness valuation, so a signed item is read the same way
+            // as an unsigned one: the call counts as the item, the leaf arm counts it twice and the witness argument stands, while
+            // `G2 - FUNCTION ABS (G2)` nets to 0 and stays legal.
             case BoundIntrinsicCall { Args: [var argument] } call when UnsignedArgumentOfAbs(call, argument) is { } identity:
                 CollectAdditive(identity, sign, spine); break;
             default:
@@ -1775,21 +1777,28 @@ internal static class IntrinsicArgumentRules
         }
     }
 
-    /// <summary>The reference FUNCTION ABS returns unchanged: its argument, when that is a bare (or parenthesized) numeric data item
-    /// described without a sign (an item that cannot hold a negative value, so §15.7.4 1) a) gives <c>(argument-1)</c>); null for
-    /// every other call and argument.</summary>
+    /// <summary>The item FUNCTION ABS reads as, on the valuations where that item is not negative: its argument when that is a bare
+    /// (or parenthesized, or negated) numeric data item, since §15.7.4 1) a) gives <c>(argument-1)</c> for a zero or positive value
+    /// (and a negated argument is then not positive, so its absolute value is the item again); null for every other call and
+    /// argument.</summary>
     private static BoundNumRef? UnsignedArgumentOfAbs(BoundIntrinsicCall call, BoundOperand argument)
     {
         if (!CobolNames.Same(call.Sig.Name, "ABS")) return null;
         var place = argument switch
         {
             BoundFieldOperand f => f.Place,
-            BoundComputedOperand { Expr: BoundNumRef r } => r.Place,
+            BoundComputedOperand { Expr: var inner } => BareItem(inner),
             _ => null,
         };
-        return place is { DenotedItem: not null, Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric, Signed: false, IsFloat: false } } }
+        return place is { DenotedItem: not null, Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric, IsFloat: false } } }
             ? new BoundNumRef(place)
             : null;
+
+        static Place? BareItem(BoundExpr x)
+        {
+            while (x is BoundNegate n) x = n.Operand;
+            return x is BoundNumRef r ? r.Place : null;
+        }
     }
 
     /// <summary>Is <paramref name="e"/> an integer for EVERY valuation of the items it references? Sound, not
@@ -2030,11 +2039,12 @@ internal static class IntrinsicArgumentRules
                 foreach (var x in NonIntegralItemsBeneath(p2.Base)) yield return x;
                 foreach (var x in NonIntegralItemsBeneath(p2.Exp)) yield return x;
                 break;
-            // ⛔ A CALL MOVES WITH THE ITEMS IN ITS ARGUMENTS (kb/Work PB4709, review R1-4): in `S2 - FUNCTION ABS(S2)` the term
-            // ABS(S2) equals S2 for every value of an unsigned S2, so the sum is 0 and always an integer, but the walk saw no item
-            // beneath the call, left S2's additive witness standing, and the screen refused legal source. The witness argument
+            // ⛔ A CALL MOVES WITH THE ITEMS IN ITS ARGUMENTS (kb/Work PB4709, review R1-4): in `G2 - FUNCTION ABS (G2 + 0)` the term
+            // ABS(G2 + 0) equals G2 on every non-negative value of G2, so the difference is 0 and always an integer, but the walk saw
+            // no item beneath the call, left G2's additive witness standing, and the screen refused legal source. The witness argument
             // (hold every other leaf constant and step the item) fails for the same reason it fails under `F * 1`: the term moves
-            // with the item, so the item is marked opaque and the screen fails open.
+            // with the item, so the item is marked opaque and the screen fails open. (A bare `ABS (G2)` never reaches this walk:
+            // CollectAdditive reads it as G2, PB4757.)
             case BoundIntrinsicCall call:
                 foreach (var argument in call.Args)
                     foreach (var x in NonIntegralItemsBeneath(argument)) yield return x;
