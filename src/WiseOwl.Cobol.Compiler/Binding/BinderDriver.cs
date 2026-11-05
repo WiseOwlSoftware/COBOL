@@ -243,7 +243,7 @@ internal sealed class BinderDriver
         // kb/Work PB1393. Over every text the group compiles (GroupBindContext.Texts), the text of an expansion of a skeleton read from the
         // repository too, whose tokens name their DiagnosticRegion so a report is attributed as the group's other screens attribute it (kb/Work PB4649).
         foreach (var text in ctx.Texts)
-            global::WiseOwl.Cobol.Frontend.Parsing.LiteralScreen.Run(text, edition.Edition, edition, gateFormats: true);
+            global::WiseOwl.Cobol.Frontend.Parsing.LiteralScreen.Run(text, edition.Edition, edition, gateFormats: true, edition.ClientWritten);
 
         // The word-character screen (ISO §8.3.2.1, §8.1.3.2 GR4, Annex B.3) — the character half of the COBOL-word rule is a
         // property of the word TOKEN, whatever position it is written in, so it is asked once per word of the tree rather
@@ -253,7 +253,7 @@ internal sealed class BinderDriver
         // a compilation of its own, so the once-per-word rule is per text (a word an expansion's text raises is not hidden by the same word in
         // another text), the expansion of a skeleton read from the repository included (kb/Work PB4649).
         foreach (var text in ctx.Texts)
-            global::WiseOwl.Cobol.Frontend.Parsing.WordCharacterScreen.RunOnTree(text, edition.Edition, edition);
+            global::WiseOwl.Cobol.Frontend.Parsing.WordCharacterScreen.RunOnTree(text, edition.Edition, edition, edition.ClientWritten);
 
         // The declined-optional-element pass (ISO Annex A.4.1) — a THIRD sibling on the same footing: it answers
         // "does this implementation claim support for this optional module", which is orthogonal to both the

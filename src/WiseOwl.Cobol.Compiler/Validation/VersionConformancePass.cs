@@ -105,7 +105,7 @@ internal sealed class VersionConformancePass
         //    A repository text's reports are withdrawn when its expansion is compiled apart or imported, so a set shared across texts
         //    let that withdrawn report suppress the same word in the written tree's or a group-placed expansion's text, and the report
         //    the group answers for was lost; per text, each text reports as its own compilation would. ──
-        foreach (var text in group.Texts) new ParseArm(pass, reservedWords, group.Session.CobolWords).VisitPositioned(text);
+        foreach (var text in group.Texts) new ParseArm(pass, reservedWords, group.Session.CobolWords, group.Session.Edition.ClientWritten).VisitPositioned(text);
         // ── BOUND-tree arm: the genuinely-SEMANTIC gates (MOVE figurative-category; the file-org / USAGE /
         //    pointer-category conditioned STATEMENT gates) + the DATA-attribute gates (Step 14g — every
         //    source-declared DataItem's resolved USAGE / PICTURE category), which need a resolved bound fact. ──
@@ -598,7 +598,7 @@ internal sealed class VersionConformancePass
     /// dropped the pre-bind fail-fast), so a below-edition construct surfaces BOTH its edition diagnostic and
     /// its bind diagnostics — intended (both are true; the tests are contains-based).
     /// </summary>
-    private sealed class ParseArm(VersionConformancePass p, ReservedWordSet reservedWords, CobolWordsMap cobolWords)
+    private sealed class ParseArm(VersionConformancePass p, ReservedWordSet reservedWords, CobolWordsMap cobolWords, ClientWrittenTokens clientWritten)
         : CursorFollowingVisitor(p._sink)   // the cursor follows the walk (kb/Work PB82)
     {
         private readonly VersionConformancePass _p = p;
@@ -2889,6 +2889,9 @@ internal sealed class VersionConformancePass
             // from a new-feature introduction gate, so it is NOT a 0900 construct). Fire below 2023 for 32–63-char
             // words, and at EVERY edition for >63 (a hard cap). Checked for every COBOL word regardless of role
             // (reserved words are all short — only user-defined words reach the limit); deduped per distinct word.
+            // A word the CLIENT wrote into an expansion's text (an actual, the renamed header) is the written tree's to judge, where the
+            // client wrote it: this walk of the expansion's text must not report it again at the EXPANDS entry (kb/Work PB4721).
+            if (clientWritten.Contains(ctx.Start)) return base.VisitChildren(ctx);
             string raw = ctx.Start.Text;
             int max = CobolWordRule.MaxLength(_p._edition.Year);   // ONE ceiling — the directive stages share it
             // §8.3.2.1's OTHER half — the word CHARACTER SET (fix-queue R02; the underscore's 2002 gate, the extended

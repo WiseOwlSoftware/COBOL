@@ -44,8 +44,10 @@ internal sealed record PublishedSkeleton(string Name, string ExternalizedName, b
 /// <param name="State">The compile state of the skeleton it is made from.</param>
 /// <param name="Placement">Where it goes.</param>
 /// <param name="RequestedAt">The EXPANDS entry that asked for it, as the user's source names it (file, line, column), which a diagnostic of its compilation is reported at. It is where the group prints a diagnostic about the text of an expansion of a skeleton it read from the repository too (<c>DiagnosticRegion.ReportedAt</c>), so the placements agree on all three (kb/Work PB4469, PB4483).</param>
+/// <param name="ClientWritten">The texts of the tokens of <paramref name="Text"/> the client wrote (<c>ExpansionOrigin.ClientWritten</c>), which the expansion's own compilation does not screen (kb/Work PB4721).</param>
 /// <param name="Region">The region the group's bind of the text reported under (<c>ExpansionToken</c>), which says who answers for the text: for a skeleton read from the repository its own compilation does, and the group withdraws what it raised there once that compilation has run (<c>EditionContext.WithdrawWarningsOf</c>); for a skeleton written in the group the group does, at the positions the user wrote it at, and that compilation's warnings are the same facts again (<c>ExpansionAssemblies.Write</c>, kb/Work PB4483).</param>
-internal sealed record ExpansionToWrite(string Text, CompileState State, ExpansionPlacement Placement, SourceLocation RequestedAt, DiagnosticRegion Region);
+internal sealed record ExpansionToWrite(string Text, CompileState State, ExpansionPlacement Placement, SourceLocation RequestedAt, DiagnosticRegion Region,
+    IReadOnlySet<string> ClientWritten);
 
 /// <summary>What the group publishes for its parameterized definitions and where each of its expansions lives (§10.5): produced by
 /// <c>ExpansionPlacementPass</c> once the group is bound, carried on the <see cref="BoundCompilation"/>, read by the emitter and the

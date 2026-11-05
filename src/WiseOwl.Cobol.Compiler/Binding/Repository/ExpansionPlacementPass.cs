@@ -197,7 +197,7 @@ internal static class ExpansionPlacementPass
             if (placement.Where is ExpansionWhere.Imported) edition.WithdrawWarningsOf(origin.Region);
             if (placement.Where is ExpansionWhere.OwnAssembly)
                 order.Add(new ExpansionToWrite(origin.Text, origin.Skeleton.State, placement,
-                    edition.LocationOf(origin.Entry.Start.Line, origin.Entry.Start.Column), origin.Region));
+                    edition.LocationOf(origin.Entry.Start.Line, origin.Entry.Start.Column), origin.Region, origin.ClientWritten));
             inProgress.Remove(symbol);
             return placement;
         }
