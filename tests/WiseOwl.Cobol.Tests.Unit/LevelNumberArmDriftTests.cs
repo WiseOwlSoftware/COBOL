@@ -123,7 +123,7 @@ public sealed class LevelNumberArmDriftTests
     public void TheLevelNumberRuleIsWrittenOnce()
     {
         string pass = PassSource;
-        Assert.Equal(4, Regex.Matches(pass, @"\[LevelNumberArm\.\w+\] = new\(").Count);
+        Assert.Equal(5, Regex.Matches(pass, @"\[LevelNumberArm\.\w+\] = new\(").Count);
         Assert.Single(Regex.Matches(pass, @"internal bool Permits\(int level\)"));
 
         // No OTHER compiler source may re-decide the permitted set: a second range test would be a second rule.

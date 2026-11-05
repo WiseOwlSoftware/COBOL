@@ -8,7 +8,8 @@ using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
 namespace WiseOwl.Cobol.Validation;
 
 /// <summary>
-/// The four arms of ISO §13.18.33.3 — the syntax rules that state, PER DATA DIVISION SECTION, which level-numbers
+/// The arms of the level-number syntax rules — ISO §13.18.33.3's four, plus the 2002 communication-record arm
+/// (ISO/IEC 1989:2002 13.16.31 SR2) — the rules that state, PER DATA DIVISION SECTION, which level-numbers
 /// an entry may carry. The arm is a property of the entry's SECTION, never of the entry itself, which is why the
 /// screen classifies from the parse-tree ancestry instead of trusting any one binder's local knowledge.
 /// </summary>
@@ -17,6 +18,11 @@ internal enum LevelNumberArm
     /// <summary>§13.18.33.3 SR2 — a data description entry subordinate to an FD or SD entry. Note 77 is NOT in
     /// this set: a noncontiguous item has no meaning in a record area (§13.18.33.4 GR2a).</summary>
     FileRecord,
+
+    /// <summary>ISO/IEC 1989:2002 13.16.31 SR2 — a data description entry subordinate to a CD entry (the rule's
+    /// subject list is "a CD, FD, or SD entry"; 2023 removed the communication facility, so §13.18.33.3 SR2 names
+    /// only FD and SD). Same permitted set as <see cref="FileRecord"/>, its own sentence and citation.</summary>
+    CommunicationRecord,
 
     /// <summary>§13.18.33.3 SR5 — a data description entry in the WORKING-STORAGE, LOCAL-STORAGE or LINKAGE
     /// section. The only arm that admits 77.</summary>
@@ -67,11 +73,11 @@ internal static class LevelNumberRules
 {
     /// <summary>One SECTION arm: the verbatim §13.18.33.3 requirement sentence, its rule number, and the SPECIAL
     /// level-numbers it admits on top of the universal 1–49 range (§13.18.33.1).</summary>
-    /// <param name="SyntaxRule">The §13.18.33.3 syntax-rule number ("2", "4", "5", "6").</param>
+    /// <param name="Citation">The rule's printed citation, edition-qualified, as the diagnostic quotes it.</param>
     /// <param name="Requirement">The rule sentence, verbatim from §13.18.33.3 but for its leading capital — the
     /// diagnostic quotes the standard rather than paraphrasing it.</param>
     /// <param name="Specials">The special level-numbers this arm admits (§13.18.33.4 GR2). 1–49 is universal.</param>
-    internal readonly record struct Arm(string SyntaxRule, string Requirement, int[] Specials)
+    internal readonly record struct Arm(string Citation, string Requirement, int[] Specials)
     {
         /// <summary>§13.18.33.1: "Level numbers 1 through 49 indicate the position of a data item or screen item
         /// within the hierarchical structure … In addition, level numbers 66, 77, and 88 are used to identify
@@ -84,16 +90,19 @@ internal static class LevelNumberRules
     /// two-digit bound on the spelling (§8.3.2.2.13) is <see cref="LevelNumberPass.VisitLevelNumber"/>'s length test.</summary>
     private static readonly Dictionary<LevelNumberArm, Arm> Table = new()
     {
-        [LevelNumberArm.FileRecord] = new("2",
+        [LevelNumberArm.FileRecord] = new("ISO §13.18.33.3 SR2",
             "data description entries subordinate to a FD or SD entry shall have level-numbers with the values "
             + "66, 88, or 1 through 49", [66, 88]),
-        [LevelNumberArm.NoncontiguousCapable] = new("5",
+        [LevelNumberArm.CommunicationRecord] = new("ISO/IEC 1989:2002 13.16.31 SR2",
+            "data description entries subordinate to a CD entry shall have level-numbers with the values "
+            + "66, 88, or 1 through 49", [66, 88]),
+        [LevelNumberArm.NoncontiguousCapable] = new("ISO §13.18.33.3 SR5",
             "data description entries in the working-storage section, local-storage section, and linkage section "
             + "shall have level-numbers 66, 77, 88, or 1 through 49", [66, 77, 88]),
-        [LevelNumberArm.ReportGroup] = new("4",
+        [LevelNumberArm.ReportGroup] = new("ISO §13.18.33.3 SR4",
             "report group description entries that are subordinate to an RD entry shall have level-numbers with "
             + "the values 1 through 49", []),
-        [LevelNumberArm.ScreenItem] = new("6",
+        [LevelNumberArm.ScreenItem] = new("ISO §13.18.33.3 SR6",
             "screen description entries shall have level-numbers 1 through 49", []),
     };
 
@@ -109,8 +118,8 @@ internal static class LevelNumberRules
         CobolParserCore.DataDescriptionEntryContext e => e.Parent switch
         {
             CobolParserCore.FileDescriptionEntryContext
-                or CobolParserCore.SortMergeDescriptionEntryContext
-                or CobolParserCore.CommunicationDescriptionEntryContext => LevelNumberArm.FileRecord,   // ISO/IEC 1989:2002 13.16.31 SR2: "a CD, FD, or SD entry"
+                or CobolParserCore.SortMergeDescriptionEntryContext => LevelNumberArm.FileRecord,
+            CobolParserCore.CommunicationDescriptionEntryContext => LevelNumberArm.CommunicationRecord,
             CobolParserCore.WorkingStorageSectionContext
                 or CobolParserCore.LocalStorageSectionContext
                 or CobolParserCore.LinkageSectionContext => LevelNumberArm.NoncontiguousCapable,
@@ -293,7 +302,7 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink) : CursorFollowingVis
                     + "range of 1 through 9 may be specified as 01 through 09 (ISO §8.3.2.2.13, §13.18.33.3 SR3)");
             else if (!known || !arm.Permits(level))
                 Report(ctx, DiagnosticCatalog.LevelNumberOutOfRange, text,
-                    $"{arm.Requirement} (ISO §13.18.33.3 SR{arm.SyntaxRule})");
+                    $"{arm.Requirement} ({arm.Citation})");
             else if (ctx.Parent is CobolParserCore.DataDescriptionEntryContext entry)
                 CheckEntryFormat(ctx, entry, text, level);
         }
