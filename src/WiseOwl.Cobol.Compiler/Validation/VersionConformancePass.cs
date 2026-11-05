@@ -3018,9 +3018,8 @@ internal sealed class VersionConformancePass
         /// was <c>VisitDataName</c>, reading <c>ctx.reservedGatedWord()</c>, and before that a hand-written
         /// <c>ctx.COMMIT() is not null ? "COMMIT" : …</c> word list that had already gone stale (CRT/CURSOR).
         /// Every alternative of the rule is a SINGLE token, so the subrule's own text IS the word.</para>
-        /// <para>PROCEDURE and FILLER are deliberately NOT reached: they are separate <c>dataName</c>
-        /// alternatives — PROCEDURE is §8.9-reserved at every edition and NC205A legally names a data item with
-        /// it, and FILLER is not a user-defined word at all.</para></summary>
+        /// <para>FILLER is deliberately NOT reached: it is a separate <c>dataName</c> alternative, and not a
+        /// user-defined word at all.</para></summary>
         public override object? VisitReservedGatedWord(CobolParserCore.ReservedGatedWordContext ctx)
         {
             FlagReservedUserWord(CobolNames.UpperFold(ctx.GetText()), ctx.Start);

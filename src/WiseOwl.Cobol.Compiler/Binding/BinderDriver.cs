@@ -1158,7 +1158,14 @@ internal sealed class BinderDriver
             if (repository.ResolveProgram(spec.ExternalizedName, position) is { } details)
                 map[name] = new ProgramPrototype(name, spec.ExternalizedName, details);
             else
+            {
                 repository.ReportUnanswered(spec, function: false, name, spec.ExternalizedName, data.Edition);
+                // The refusal's route, for the CALL / CANCEL sentence (kb/Work PB4708): the external repository's finding
+                // suppresses REPO-1, so no SR14 refusal exists to cite. The fact is position-independent, so every element
+                // that inherits the specifier records the same entry.
+                if (repository.External.Refused(RepositoryFamily.Program, name, spec.ExternalizedName))
+                    data.State.Configuration.RefusedProgramSpecifiers.TryAdd(name, ProgramSpecifierRefusal.RepositoryFinding);
+            }
         }
         // §8.4.6.8's other spelling: "the program-name of a containing program definition" is a referable
         // program-prototype-name with NO specifier at all — the element's OWN program definition included, the one

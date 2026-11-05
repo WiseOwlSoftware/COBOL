@@ -808,9 +808,9 @@ rotted: CRT and CURSOR were reservation-gated by kb/Work PB301 and added to neit
 them, so a period-less `UNLOCK F1` after a `MOVE` was swallowed as two more receivers and legal COBOL-2002 source
 was rejected (kb/Work PB693). Deriving the set killed the flag: `gen-cobol-words.ps1` now THROWS if a
 `reservationGated` property reappears in the JSON. `reservedGatedWord`'s alternatives are all single
-tokens, so the funnel reads the subrule's own text and needs no list either. `PROCEDURE` stays a hand-written
-`dataName` alternative ON PURPOSE — it is reserved at *every* edition and NC205A legally names a data item with
-it, so it must never reach the funnel.
+tokens, so the funnel reads the subrule's own text and needs no list either. `dataName` holds no PROCEDURE
+alternative: §8.9 reserves the word at every edition, so §8.3.2.1 1) keeps it out of the slot, and NC205A's `77
+PROCEDURE` continues on its next line as `DIVISION`, the one word PROCEDUREDIVISION (kb/Work PB4706).
 
 ⛔ **WHICH READING WINS WHEN A WORD COULD BE AN OPERAND OR THE NEXT KEYWORD — ONE derived predicate (kb/Work
 PB805).** A greedy operand list whose items bottom out at `cobolWord` absorbs any keyword token `cobolWord`
@@ -1906,8 +1906,8 @@ joined the table the same way, which is the table doing its job: a tenth format 
   (`ReservedWordAtTheEntryNameSlot_NamesTheReservation`) and the `pb4604-*` conformance cases.
   Two more readings of the slot (kb/Work PB4645, PB4646). A dangling level-number whose next line begins what
   follows the entry (`01` then `LINKAGE SECTION.`) is the entry's missing period, not a reserved word written as its
-  name: `OffendingPosition.EntryNameIsDue` is false when the word and the one after it are taken by a walk from the
-  entry's end in its real context (`BeginsWhatFollows`, `ResimulationWalk.After`), so `ReservedWordUse` stands down
+  name: `OffendingPosition.EntryNameIsDue` is false when a period, the word and the one after it read on from the slot
+  (`PeriodIsMissingBeforeTheEntrySlot`, over the position's own `ResimulationWalk`), so `ReservedWordUse` stands down
   and hint 14 reports COBOL0307, as `ClosedFormatResidue` already does for a header word; two tokens, because
   `01 LINKAGE PIC X.` is no header and keeps COBOL0901. And the refusal of a word AFTER the name names the entry even
   when the prediction failed ahead of the parser, before the data-name was attached to the entry's context
@@ -1916,6 +1916,19 @@ joined the table the same way, which is the table doing its job: a tenth format 
   the error production's opening not counted) and the parser has not passed it. Pinned by
   `ClosedFormatReservedWordTests` (`DanglingLevelNumberBeforeASectionHeader_IsTheMissingPeriod`,
   `ReservedWordAfterANameOrAClause_IsStillNotAClause`) and the `pb4645-*`/`pb4646-*` conformance cases.
+  **A header is never a name and a clause (kb/Work PB4706).** SECTION and DIVISION close a section or division header
+  (`CobolParserCoreBase.ClosesAHeader`), and no format follows a data-name with either
+  (`ReadingParsesFollowDriftTests` pins it on FOLLOW(dataName)). So: `dataName`'s `reservedGatedWord` alternative carries
+  `noHeaderWrittenHere()`, and `01 LOCAL-STORAGE SECTION.` stops at the word rather than naming an entry after it;
+  `OffendingPosition.WritesAHeader` keeps `ClosedFormatResidue` from reading the two words as a clause (`01 A` then
+  `MAIN SECTION.` is a plain COBOL0001 at SECTION, as `MAIN SECTION.` after a complete entry is at MAIN) and keeps
+  `EntryNameIsDue` from reading the first as a name (`01 FILE SECTION.`, COBOL0001 at FILE). Hint 14 and the slot ask one
+  question, `OffendingPosition.PeriodIsMissingBeforeTheEntrySlot`: a period, the word and the one after it read on
+  (`01 LINKAGE SECTION FOO.` is COBOL0307 at LINKAGE, and FOO is the next report). A sentence's reading ends at the header's
+  closing word wherever the question is asked (`SentenceTypesFrom`), so `01 A PIC X` then `LINKAGE SECTION FOO.` is the
+  same report, and `ReservedWordUse` stands down for a header keyword a period lets follow
+  (`01 A PIC X` then `LOCAL-STORAGE SECTION.` at 2002 and later). Pinned by
+  `ClosedFormatReservedWordTests.AHeaderAfterALevelNumber_IsNeverANameAndAClause` and the `pb4706-*` conformance cases.
 - **The production's token set — the run holds every literal but the reserved words; a reserved word never opens
   it, and the data division's form holds no literal that begins with an unsigned integer (kb/Work PB3373,
   PB3390).** `unrecognizedClause : (residueOpening | residueInteger) (residueItem | residueInteger)*` and

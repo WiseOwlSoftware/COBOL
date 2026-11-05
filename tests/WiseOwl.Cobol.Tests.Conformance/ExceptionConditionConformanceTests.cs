@@ -677,6 +677,49 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "EC-PROGRAM-NOT-FOUND", "BEFORE");
 
+    [Theory] // docs/CONFORMANCE.md DOC-A.1-17, its abnormal half: a failed CALL's declarative that ends WITHOUT RESUME.
+             // §14.6.3 3): "In the declarative section for a fatal exception condition, there is no next executable
+             // statement" after its last statement, so the run unit terminates abnormally (§14.6.12): the declarative
+             // runs, control never reaches the end of the CALL. Every EC-PROGRAM condition is fatal (Table 13). The
+             // RESUME half is the goldens doc_a1_17_call_other_effects and doc_a1_17_call_other_effects_2002.
+    [InlineData("""
+        CALL "NOSUCHPROG"
+        """, "EC-PROGRAM-NOT-FOUND", "")]
+    [InlineData("""
+        SET PPTR TO NULL
+                CALL PPTR
+        """, "EC-PROGRAM-PTR-NULL", "")]
+    [InlineData("""
+        CALL "ECT022A" USING X
+        """, "EC-PROGRAM-ARG-MISMATCH", """
+        >>TURN EC-PROGRAM CHECKING ON
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. ECT022A.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 L-A PIC X(4).
+        01 L-B PIC X(4).
+        PROCEDURE DIVISION USING L-A L-B.
+        P.
+            DISPLAY "CALLEE-RAN".
+            GOBACK.
+        END PROGRAM ECT022A.
+        """)]
+    public void CallFails_Enabled_DeclarativeWithoutResume_FatalTerminates(string call, string ecName, string callee)
+        => AssertFatal(Prog("ECT022D", ">>TURN EC-PROGRAM CHECKING ON", "", """
+            01 X PIC X(4) VALUE "ABCD".
+            01 PPTR USAGE PROGRAM-POINTER.
+            """, """
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-PROGRAM.
+            EC-H-P.
+                DISPLAY "H: " FUNCTION EXCEPTION-STATUS.
+            """, $"""
+                DISPLAY "BEFORE".
+                {call}.
+                DISPLAY "NEVER".
+                STOP RUN.
+            """) + "\nEND PROGRAM ECT022D.\n" + callee, ecName, $"BEFORE\nH: {ecName}");
+
     [Fact]   // §14.9.4.4 GR3b names a condition DISTINCT from EC-PROGRAM-NOT-FOUND for the NULL case: "If the data
              // item referenced by identifier-1 contains the predefined address NULL, the EC-PROGRAM-PTR-NULL
              // exception condition is set to exist." (GR3g's "invalid program address … undefined" is the NON-null

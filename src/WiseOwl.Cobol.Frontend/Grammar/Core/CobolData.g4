@@ -261,7 +261,6 @@ dataName
     // does not declare keeps its keyword reading. Actions never run during prediction.
     : ( cobolWord
     | FILLER
-    | PROCEDURE    // NC205A: PROCEDURE used as a data name (77 PROCEDURE-DIVISION PIC X)
     // kb/Work PB137/PB655: a reservation-gated word is never a cobolWord (so operand lists cannot absorb the
     // bare facility verbs), but a DECLARATION naming one must still PARSE — where §8.9 reserves it so the
     // funnel's targeted COBOL0901 can NAME the word instead of a generic parse error (the user-word-commit
@@ -270,10 +269,13 @@ dataName
     // `01 CRT PIC X.` at --std 2002 answered COBOL0001 "no viable alternative" instead of naming §8.9.
     // `reservedGatedWord` is GENERATED from the SAME cobol-words.json `reservationGated` flag that generates
     // the cobolWord gates (kb/Work PB300, CLAUDE.md rule 5), so the two halves cannot drift apart and the next
-    // gated word is automatic; CobolWordsDriftTests pins both directions. PROCEDURE stays a separate
-    // alternative on purpose — it is reserved at EVERY edition and NC205A must keep compiling, so it must NOT
-    // reach the funnel.
-    | reservedGatedWord
+    // gated word is automatic; CobolWordsDriftTests pins both directions.
+    // ⛔ noHeaderWrittenHere (kb/Work PB4706): the gated word before SECTION or DIVISION writes a header, and no format
+    // follows a data-name with either, so `01` with its period forgotten, then `LOCAL-STORAGE SECTION.`, stops at the
+    // word as the missing period rather than naming an entry after it.
+    // ⛔ NO PROCEDURE ALTERNATIVE (kb/Work PB4706): §8.9 reserves PROCEDURE at every edition, so §8.3.2.1 1) keeps it out of
+    // this slot. NC205A names no item PROCEDURE: its `77 PROCEDURE` continues on the next line as `DIVISION`, one word.
+    | {noHeaderWrittenHere()}? reservedGatedWord
       ) { declareName(TokenStream.LT(-1)); }
     ;
 

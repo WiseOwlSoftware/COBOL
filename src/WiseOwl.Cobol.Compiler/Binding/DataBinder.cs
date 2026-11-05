@@ -4013,7 +4013,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             && !(UnitIsFunction == isFunctionPointer && ContainingDefinitionNames.Contains(restrictedPrototypeName))
             && !(isFunctionPointer
                  ? State.Configuration.UserFunctionNames.Contains(restrictedPrototypeName)
-                 : State.Configuration.ProgramSpecifiers.ContainsKey(restrictedPrototypeName)))
+                 : State.Configuration.DeclaresProgramSpecifier(restrictedPrototypeName)))
         {
             Edition.Error(DiagnosticCatalog.PrototypePointerRestriction, $"{entryWhere}: USAGE "
                 + $"{(isFunctionPointer ? "FUNCTION" : "PROGRAM")}-POINTER TO {restrictedPrototypeName} — "
