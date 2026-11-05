@@ -196,9 +196,9 @@ internal sealed class MessageStoreState
         return name;
     }
 
-    /// <summary>The characters no host lets a file name hold: the union of <see cref="Path.GetInvalidFileNameChars"/> and the Windows set (the control characters
-    /// and <c>" * / : &lt; &gt; ? \ |</c>, Microsoft "Naming Files, Paths, and Namespaces"), so a definition file that is usable on one OS is usable on the other. The colon
-    /// is the one the host call omits on Linux and the one that names an NTFS alternate stream on Windows.</summary>
+    /// <summary>The characters some host refuses in a file name: the union of <see cref="Path.GetInvalidFileNameChars"/> and the Windows set (the control characters
+    /// and <c>" * / : &lt; &gt; ? \ |</c>, Microsoft "Naming Files, Paths, and Namespaces"), so a definition file that is usable on one OS is usable on the other. The host
+    /// call on Linux omits all but the slash and NUL; the colon in particular names an NTFS alternate stream on Windows.</summary>
     private static readonly SearchValues<char> NotInAFileName = SearchValues.Create(
         [.. Path.GetInvalidFileNameChars(), .. Enumerable.Range(0, 32).Select(c => (char)c), .. "\"*/:<>?\\|"]);
 

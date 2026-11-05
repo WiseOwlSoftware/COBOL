@@ -40,7 +40,7 @@ With no `mcs.json`, every symbolic name is unknown: the statements run and their
 }
 ```
 
-Every member but `name` is optional. A name is 1 to 12 characters. `enabled` (default `true`) is a path's starting state. `key` is the
+Every member but `name` is optional. A name is 1 to 12 characters and must be usable as a file name on every host, because a destination's or terminal's `.out` file is named after it: it holds none of the characters `\ / : * ? " < > |` or a control character, and it is not a Windows device name (`CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9`, `LPT1` to `LPT9`, in any case, with or without an extension). A name that breaks the rule makes `mcs.json` unusable: every communication statement answers status 91 and takes no action. `enabled` (default `true`) is a path's starting state. `key` is the
 password the COBOL 1985 `WITH KEY` phrase is checked against. `messages` enter once, when the MCS first answers, as a string or as
 `{ "segments": [...], "group": true, "source": "...", "date": "YYMMDD", "time": "HHMMSSTT" }`. `capacity` bounds a destination's waiting
 messages. `deliverTo` makes a destination feed a queue path or `terminal:<name>`, which is how one run unit sends to another; any other

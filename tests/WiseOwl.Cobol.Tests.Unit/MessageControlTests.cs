@@ -127,7 +127,8 @@ public sealed class MessageControlTests : IDisposable
     }
 
     /// <summary>A symbolic name is a file-name component on every host (a device file <c>&lt;name&gt;.out</c> is built from it), so the screen is the same on
-    /// Windows and Linux: a name that merely resembles a separator-free, non-device one is still a name.</summary>
+    /// Windows and Linux, and it refuses a name only by a character or by a whole device name: one that merely resembles a device name (CONSOLE, COM10, COMX, LPT,
+    /// NULL) is still a name.</summary>
     [Theory]
     [InlineData("CONSOLE")]
     [InlineData("COM10")]
