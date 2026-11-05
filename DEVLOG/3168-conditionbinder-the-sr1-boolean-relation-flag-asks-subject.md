@@ -1,4 +1,4 @@
-## ConditionBinder: the SR1 boolean-relation flag asks subject OR object, and a class condition's subject asks the binder's statement of an expression (PB4762, PB4763)
+## Entry 3168 — 2026-11-05 15:51 PST — ConditionBinder: the SR1 boolean-relation flag asks subject OR object, and a class condition's subject asks the binder's statement of an expression (PB4762, PB4763)
 
 **PB4762.** The leading partial-expression (EVALUATE `WHEN = B2 AND <> B3`) seeded the section 8.8.4.12.3 SR1 carry from the
 selection subject alone, where a written relation asks subject OR object. Re-probe: `EVALUATE ZERO WHEN = B2 AND <> B3` compiled
@@ -28,3 +28,4 @@ Review round 2: R2-1 (blocking) the new literal arm refused a function-identifie
 pb4763_class_condition_function_identifier_subject. R2-2 (blocking) EVALUATE's own boolean-expression subject (`BindSubjectValue`) built its
 operand without the flag, so `EVALUATE (B1 B-AND B2) WHEN BOOLEAN` still compiled; both its operands (the in-place bool and the held intermediate)
 state `ExpressionAsWritten`; golden pb4763-class-condition-evaluate-boolean-expression-subject (COBOL3318).
+
