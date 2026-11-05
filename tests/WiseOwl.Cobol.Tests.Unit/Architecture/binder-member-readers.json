@@ -289,6 +289,7 @@
       "WiseOwl.Cobol.Compiler.Oo.OoDriver"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::DeclaredForest": [
+      "WiseOwl.Cobol.Binding.Passes.CheckValueLiteralClassesPass",
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::DeclaredNearerThan": [
@@ -722,7 +723,6 @@
       "WiseOwl.Cobol.Binding.Passes.CheckCodeSetRecordItemsPass",
       "WiseOwl.Cobol.Binding.Passes.CheckConditionNameAssociationsPass",
       "WiseOwl.Cobol.Binding.Passes.CheckSignClausesPass",
-      "WiseOwl.Cobol.Binding.Passes.CheckValueLiteralClassesPass",
       "WiseOwl.Cobol.Binding.Passes.ClassifyRedefinesClassesPass",
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",
