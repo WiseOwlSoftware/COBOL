@@ -1,4 +1,4 @@
-## DOC-A.1-17 CONFORMS: the traceability inventory reaches zero GAP
+## Entry 3155 — 2026-11-05 12:27 PST — DOC-A.1-17 CONFORMS: the traceability inventory reaches zero GAP
 
 **What.** The owner assigned the inventory's last GAP row, DOC-A.1-17 (A.1 item 17: the other effects of a CALL that was
 not successful and whose condition is handled by exception processing, §14.9.4.4 GR3 h) 2.), to the Mythos lane. Its
@@ -22,3 +22,4 @@ level's own LOCAL-STORAGE item. And `work.py check` failed at GAP 0: its populat
 defective and some note to claim a row, which a finished inventory need not have. They now ask whether the schema still
 marks defective verdicts, whether rows carry a `verdict`, and whether notes carry the `inventory_rows` key
 (`work_inventory.py`, with self-tests for a GAP-0 register and a schema without `resolves` flags).
+
