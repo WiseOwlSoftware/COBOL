@@ -1,4 +1,4 @@
-## PB4755: BlankLandingRun sums the suppressed Z positions after a floating string
+## Entry 3161 — 2026-11-05 14:36 PST — PB4755: BlankLandingRun sums the suppressed Z positions after a floating string
 
 Re-probe on this build: `PIC LLLZZ9 EDITING L FOR NEGATIVE IS "(("` (positive text two spaces, SR12c) holding 5 is
 `      5`, and the de-editing MOVE gave +00000. `CobolEdit.BlankLandingRun` reads a BLANK landing wider than one
@@ -15,3 +15,4 @@ account for the run exactly. Otherwise the method still returns null.
 Tests: unit `DeEdit_FloatingExtendedSignBlankWideLandingBeforeSuppressedZ_RoundTrips` (round trip through Format and
 DeEdit), golden `pb4755_deedit_for_floating_blank_landing_before_z` (accept 2023; values derived from rule 6 a and
 the GR14 'es' width) and its refusal below 2023 (COBOL0900). closes_rows: none (no inventory row claimed).
+
