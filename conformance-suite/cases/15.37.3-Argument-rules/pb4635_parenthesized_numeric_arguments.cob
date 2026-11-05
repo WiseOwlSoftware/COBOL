@@ -17,6 +17,12 @@
       *> in "ABCABCABC" at 1, 4 and 7, so ignoring I2 = 2 matches (bare item, then bare literal) returns 7. ABS((I2)) = 2,
       *> MOD((7) (I2)) = 7 mod 2 = 1, MAX((I2) (TE(1))) with I2 = 2 and TE(1) = 2 is 2, so the sum is 5. The bare BASECONVERT
       *> of "1A" from base 16 to base 10 is 26 (0x1A).
+      *>
+      *> THE FUNCTION TYPE SURVIVES THE PARENTHESES (review R1-2). §15.7.1: an Integer argument gives an Integer ABS, and
+      *> §15.3 item 6 admits "an arithmetic expression that will always result in an integer value", which (I2) over an
+      *> integer item is. So ABS((I2)) is an integer function: FACTORIAL's argument is an integer position that
+      *> §8.4.3.2.3 SR11 bars a numeric function from, and FACTORIAL(2) = 2 (0002 in T); and the count of PERFORM ... TIMES
+      *> is MAX((I2) 1) = 2, so CNT reaches 2.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4635PARENNUM.
        DATA DIVISION.
@@ -38,7 +44,8 @@
                + FUNCTION MAX((I2) (TE(1)))
            DISPLAY "NUMERIC=" T
            DISPLAY "BASES=" FUNCTION BASECONVERT("1A" B16 10)
-           DISPLAY "INTTYPE=" FUNCTION ABS((I2))
+           COMPUTE T = FUNCTION FACTORIAL(FUNCTION ABS((I2)))
+           DISPLAY "INTTYPE=" T
            PERFORM FUNCTION MAX((I2) 1) TIMES
                ADD 1 TO CNT
            END-PERFORM

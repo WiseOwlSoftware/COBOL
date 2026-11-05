@@ -22,6 +22,8 @@ index, pointer or boolean item). The binder now binds every argument that is not
 operand answered false to `IsIntegerOperand`, so `ABS((I2))` resolved NUMERIC (`PERFORM FUNCTION MAX((I2) 1) TIMES` became COBOL1646,
 `DISPLAY FUNCTION ABS((I2))` printed 000000002). `IntrinsicResultType.IsIntegerArgument` reads a parenthesized sole integer item or
 literal as the always-integer arithmetic expression it is (section 15.3 item 6); the shared `IsIntegerOperand` is untouched so the
-relation screen and PERFORM TIMES still refuse a parenthesized item (PB1935). Also fixed: the comment quote in the BASECONVERT negative
+relation screen and PERFORM TIMES still refuse a parenthesized item (PB1935). The one thing that stays different is DISPLAY's device
+image of `ABS((I2))` (000000002, as `ABS(I2 + 0)` already printed): the device image describes a field-operand argument by its own
+PICTURE, and a parenthesized item is an expression, so the image is implementor-defined and follows the expression's. Also fixed: the comment quote in the BASECONVERT negative
 and the stale `BindArgOperand` summary. New goldens: `pb4635-abs-parenthesized-alphanumeric`, `pb4635-abs-compound-alphanumeric`, and
 INTTYPE/TIMES lines in `pb4635_parenthesized_numeric_arguments`.
