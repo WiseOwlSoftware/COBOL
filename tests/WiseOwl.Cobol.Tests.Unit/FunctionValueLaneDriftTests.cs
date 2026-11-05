@@ -48,8 +48,10 @@ public sealed class FunctionValueLaneDriftTests
             if (!m.Success) continue;
             // `"Sqrt" when num.StandardDecimal` / `"Factorial" when num.StandardDecimal` are standard-mode arms: a NATIVE
             // call to either keeps the float / exact lane (IntrinsicRenderer: "an unguarded arm would flip native float
-            // SQRT onto the Dec lane").
-            if (m.Groups["guard"].Value.Contains("num.StandardDecimal", StringComparison.Ordinal)) continue;
+            // SQRT onto the Dec lane"). A `when !num.StandardDecimal` arm is the NATIVE one and stays (kb/Work PB4730: the native
+            // selections return their exact value, not an SDIDI).
+            string guard = m.Groups["guard"].Value;
+            if (guard.Contains("num.StandardDecimal", StringComparison.Ordinal) && !guard.Contains("!num.StandardDecimal", StringComparison.Ordinal)) continue;
             string body = m.Groups["body"].Value.Trim();
             if (body.Length == 0 && i + 1 < lines.Length) body = lines[i + 1].Trim();
             bool sdidi = body.StartsWith("Dec(", StringComparison.Ordinal);

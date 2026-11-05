@@ -53,15 +53,16 @@ internal static class FunctionValueLane
         "MedianScaled", "MidrangeScaled", "Variance", "StandardDeviation", "Annuity", "PresentValue",
     }.ToFrozenSet(StringComparer.Ordinal);
 
-    /// <summary>The native SDIDI bodies whose value <c>IntrinsicRenderer.RenderDec</c> returns as an EXACT scale-0 value
-    /// rather than on the SDIDI: SIGN reads an SDIDI argument and returns +1, 0 or -1 (§15.81.1), and ORD-MAX / ORD-MIN
+    /// <summary>The native SDIDI bodies whose value <c>IntrinsicRenderer.RenderDec</c> returns as an EXACT value
+    /// rather than on the SDIDI: SIGN reads an SDIDI argument and returns +1, 0 or -1 (§15.81.1), ORD-MAX / ORD-MIN
     /// compare on the SDIDI and return "the ordinal number that corresponds to the position of the argument-1 having the
-    /// greatest [least] value" (§15.71.4 r1 / §15.72.4 r1). Every other member of <see cref="NativeSdidiBodies"/> returns
-    /// the SDIDI. <c>FunctionValueLaneDriftTests</c> derives this set from the renderer's switch as well (the native arms
+    /// greatest [least] value" (§15.71.4 r1 / §15.72.4 r1), and MAX / MIN / MEDIAN return "the content of the argument" selected
+    /// (§15.59.4 r1 / §15.63.4 r1 / §15.61.1) as the exact value it is, whole (kb/Work PB4730). Every other member of
+    /// <see cref="NativeSdidiBodies"/> returns the SDIDI. <c>FunctionValueLaneDriftTests</c> derives this set from the renderer's switch as well (the native arms
     /// not wrapped in its <c>Dec(...)</c>).</summary>
     internal static readonly FrozenSet<string> NativeSdidiBodiesWithExactResult = new[]
     {
-        "SignOf", "OrdMax", "OrdMin",
+        "SignOf", "OrdMax", "OrdMin", "MaxScaled", "MinScaled", "MedianScaled",
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>The pure selections, which a MIXED list takes onto the SDIDI under native arithmetic so the compared and

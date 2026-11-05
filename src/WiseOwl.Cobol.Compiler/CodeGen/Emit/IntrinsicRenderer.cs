@@ -1337,12 +1337,16 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "RemScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RemExact", $"{mode}, {ExactValueArg(ic, 0)}, {ExactValueArg(ic, 1)}")),
             "OrdMax" when !num.StandardDecimal => new NumX(RuntimeApi.Intrinsic("OrdMaxExact", ExactValueArgList(ic)), 0),
             "OrdMin" when !num.StandardDecimal => new NumX(RuntimeApi.Intrinsic("OrdMinExact", ExactValueArgList(ic)), 0),
-            "MaxScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MaxExact", $"{mode}, {ExactValueArgList(ic)}")),
-            "MinScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MinExact", $"{mode}, {ExactValueArgList(ic)}")),
+            // ⛔ A SELECTION RETURNS THE SELECTED ARGUMENT'S CONTENT, WHOLE (kb/Work PB4730): §15.59.4 1) "the content of the argument-1
+            // having the greatest value", §15.63.4 1), §15.61.1. The selected value is an EXACT value (NumX.Exact), not an SDIDI
+            // content: a float item's expansion (DP = 2.5E+40 is 25000000000000000155002161260194579873792) keeps all 41 digits to its
+            // receiver, where the SDIDI's 34 stored 00000 for 73792.
+            "MaxScaled" when !num.StandardDecimal => Exact("MaxExact", ExactValueArgList(ic), null),
+            "MinScaled" when !num.StandardDecimal => Exact("MinExact", ExactValueArgList(ic), null),
             "SumScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SumExact", $"{mode}, {ExactValueArgList(ic)}")),
             "RangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RangeExact", $"{mode}, {ExactValueArgList(ic)}")),
             "MeanScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MeanExact", $"{mode}, {ExactValueArgList(ic)}")),
-            "MedianScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MedianExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "MedianScaled" when !num.StandardDecimal => Exact("MedianExact", $"{mode}, {ExactValueArgList(ic)}", null),
             "MidrangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MidrangeExact", $"{mode}, {ExactValueArgList(ic)}")),
             "Variance" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("VarianceExact", $"{mode}, {ExactValueArgList(ic)}")),
             "StandardDeviation" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("StdDevExact", $"{mode}, {ExactValueArgList(ic)}")),

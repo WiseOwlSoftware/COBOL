@@ -184,7 +184,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// <summary>The two non-finite binary64 states under §8.8.1.5: an infinite operand exceeds the decimal128 range
     /// (EC-SIZE-OVERFLOW, §8.8.1.5.2 r2); a NaN operand is the IEC 60559 'invalid operation' state
     /// (EC-DATA-INCOMPATIBLE, §8.8.1.5.1).</summary>
-    private static void RejectNonFinite(double d)
+    internal static void RejectNonFinite(double d)
     {
         if (double.IsNaN(d))
             throw new CobolSizeError("NaN floating-point operand in standard-decimal arithmetic (ISO §8.8.1.5.1 — "
@@ -1284,7 +1284,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
 
     /// <summary>Zero raised to the positive INTEGER power <paramref name="n"/> (§8.8.1.2 r6a has excluded every other): the
     /// power is the product of <paramref name="n"/> factors (§8.8.1.5.4 r2 on the SDIDI; native, GnuCOBOL's scale × n,
-    /// <c>CobolIntrinsics.PowNativeDec</c>), so its zero is held at <paramref name="n"/> times the base's exponent, as a
+    /// <c>CobolExact.Pow</c>), so its zero is held at <paramref name="n"/> times the base's exponent, as a
     /// product of nonzero factors is (<see cref="Mul"/>, <see cref="Zero"/>).</summary>
     internal static CobolDec ZeroPower(CobolDec b, Int128 n) =>
         Zero(b.Exp * (long)Int128.Clamp(n, 0, int.MaxValue));

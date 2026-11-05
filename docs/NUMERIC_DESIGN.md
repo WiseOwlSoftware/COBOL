@@ -11,7 +11,7 @@ Decision-complete design for WiseOwl COBOL's native scaled-integer numeric model
 
 THE CENTRAL HARDENING: the runtime's value engine (`src/WiseOwl.Cobol.Runtime/Numeric/CobolNum.cs`) is Int128-monomorphic, NOT long — a long-only engine would silently overflow real COMPUTE (e.g. `COMPUTE c = a * b` on two PIC 9(18) = 36 digits). The single intermediate carrier is an Int128 value + its compile-time scale (conceptually `CobolInt(Int128 Unscaled, int Scale)`). Storage stays the narrow native type; every operand widens long→Int128 at op entry, scales-align, computes in Int128, and a single `TryStore` rescales/rounds/truncates/bounds-checks back into the receiver's storage type. The 'Int128 escape boundary' is reached only when a single product of two ≥19-digit operands exceeds Int128 (~38 digits) → EC-SIZE-OVERFLOW.
 
-INTERMEDIATE PRECISION (ISO §8.8.1, mined from the proven legacy `decimal` path): arithmetic operates on the algebraic VALUE (§8.8.1.2). Per-operator result scale: ADD/SUBTRACT → max(scales); MULTIPLY → sum(scales); DIVIDE/COMPUTE-division → a guard scale = max(receiver-scales, operand-scales) + DIV_GUARD_DIGITS (DIV_GUARD_DIGITS=14, reproducing the legacy decimal accumulator's ~28-sig-digit headroom — the one policy `decimal` auto-picked that I must make explicit). EXPONENTIATION: native = **EXACT for an integer exponent while the value fits the 256-bit wide form (77 digits), and `PowNativeDec`'s 34-digit round-to-odd chain past it** (⚖ OWNER DECISION 2026-11-04, kb/Work PB4569, superseding the 2026-08-03 PB18 decision of a double approximation past `Int128`: `NumericRenderer.Power` — `CobolWide.Pow` for a literal exponent whose bound fits, else `CobolExact.Pow` / `CobolIntrinsics.PowNativeDec`, an Int128 landing that cannot hold the value raising EC-SIZE-OVERFLOW; see D19); standard modes = `CobolDec.Pow` per §8.8.1.5.4 (integer powers by repeated SDIDI multiply — r2a–d exactly). Statement-arithmetic enforces the 31-digit composite-of-operands limit (§ rule 2, p595); COMPUTE expressions have NO composite limit (§8.8.1.2 rule 7) — Int128 is the cap, SIZE ERROR past ~38 digits. Default mode = NATIVE arithmetic (§8.8.1.3, implementor-defined = Int128 fixed-point); STANDARD (2002) / STANDARD-DECIMAL (2014, decimal128) are implemented via the `CobolDec` SDIDI, and STANDARD-BINARY is documented-unsupported (spec-obsolete).
+INTERMEDIATE PRECISION (ISO §8.8.1, mined from the proven legacy `decimal` path): arithmetic operates on the algebraic VALUE (§8.8.1.2). Per-operator result scale: ADD/SUBTRACT → max(scales); MULTIPLY → sum(scales); DIVIDE/COMPUTE-division → a guard scale = max(receiver-scales, operand-scales) + DIV_GUARD_DIGITS (DIV_GUARD_DIGITS=14, reproducing the legacy decimal accumulator's ~28-sig-digit headroom — the one policy `decimal` auto-picked that I must make explicit). EXPONENTIATION: native = **EXACT for an integer exponent while the value fits the 256-bit wide form (77 digits), and exact on the arbitrary-precision `CobolBig` past it (|value| < 10^6145), reduced once to 34 digits by round-to-odd where lowered** (⚖ OWNER DECISIONS 2026-11-04, kb/Work PB4569, PB4592, PB4587, superseding the 2026-08-03 PB18 decision of a double approximation past `Int128`: `NumericRenderer.Power` — `CobolWide.Pow` for a literal exponent whose bound fits, else `CobolExact.Pow`, an Int128 landing that cannot hold the value raising EC-SIZE-OVERFLOW; see D19); standard modes = `CobolDec.Pow` per §8.8.1.5.4 (integer powers by repeated SDIDI multiply — r2a–d exactly). Statement-arithmetic enforces the 31-digit composite-of-operands limit (§ rule 2, p595); COMPUTE expressions have NO composite limit (§8.8.1.2 rule 7) — Int128 is the cap, SIZE ERROR past ~38 digits. Default mode = NATIVE arithmetic (§8.8.1.3, implementor-defined = Int128 fixed-point); STANDARD (2002) / STANDARD-DECIMAL (2014, decimal128) are implemented via the `CobolDec` SDIDI, and STANDARD-BINARY is documented-unsupported (spec-obsolete).
 
 ALL USAGES with capacity/truncation: DISPLAY/COMP/COMP-4/BINARY → DigitCount discipline (PIC 99 COMP holds 0–99 not 0–32767); COMP-3/PACKED → 2n−1 packed-digit capacity; COMP-5/BINARY-CHAR…DOUBLE → native two's-complement width (PIC S9(4) COMP-5 = −32768..32767, PIC 9(4) COMP-5 = 0..65535); COMP-1/COMP-2 → IEEE, bypass the scaled engine. The 8 ROUNDED modes are the `CobolRounding` enum; `Store` is the no-SIZE-ERROR (silent-truncation) branch and `TryStore` (bool, receiver-unchanged-on-overflow, PROHIBITED-inexact → SIZE ERROR) is the ON SIZE ERROR branch.
 
@@ -36,7 +36,8 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > Every emitted operation forces wide math (`(Int128)(a) op (b)`); a ≤18-digit receiver stores through one
 > width-aware `(long)` cast at the store site (`ArithmeticEmitter.Narrow` — Int128 storage for 19+ digits uses the
 > wide tier). A product whose operands' digit bounds may pass 38 digits is formed exactly instead (the 256-bit
-> `CobolWide`, or the SDIDI past 77 digits — kb/Work PB1143, PB1900), an operand of unknown bound being bounded by its
+> `CobolWide`, or past 77 digits the exact `CobolExact` carrier, which tries the VALUE on the wide form and leaves it only when the
+> value does: the arbitrary-precision `CobolBig`, kb/Work PB1143, PB1900, PB4592, PB4729), an operand of unknown bound being bounded by its
 > `Int128` carrier (39 digits, kb/Work PB3538), so no product is ever a checked Int128 multiply.
 
 ### D2. DIVIDE/COMPUTE-division quotient is computed at an explicit guard scale = max(the receiver's fraction scale, the operands' PRECISION) + DIV_GUARD_DIGITS, DIV_GUARD_DIGITS = 14; the final per-receiver store rescales+rounds to the receiver's scale.
@@ -62,8 +63,10 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > truncated quotient on the exact 256-bit form (`CobolWide.DivTruncated`, for an exact wide operand too), because the
 > lane is a representation and must not change the value (PB3538's review finding R1-1: an intrinsic's value, of unknown
 > bound, took the SDIDI's round-to-odd and `FUNCTION INTEGER(X) / 7 * 7` was 2.000000 beside `X / 7 * 7`'s 1.999999);
-> past 77 digits, and beside an SDIDI-carried operand (a product of two intrinsic values, 39 + 39 digits; a float
-> literal; a power — `CombineCore` routes a nested quotient with such an operand to `Divide`), the SAME truncated
+> past 77 digits by BOUND, the SAME truncated quotient on the run-time-scaled exact carrier (`CobolExact.DivTruncated`: the
+> VALUE tried on the wide form, the arbitrary-precision form past it, kb/Work PB4729, PB4702 — a product of two intrinsic values,
+> 39 + 39 digits, is no longer the SDIDI's); and beside an SDIDI-carried operand (a float
+> literal — `CombineCore` routes a nested quotient with such an operand to `Divide`), the SAME truncated
 > quotient on the SDIDI, held to its 34 significant digits by round-to-odd (`CobolDec.DivTruncatedToOdd`), so a
 > quotient of at most 34 digits is exact there too (review finding R2-1: the SDIDI's own quotient of the exact value
 > made the product above it round back up, and `FUNCTION INTEGER(X) * FUNCTION INTEGER(Y) / 7 * 7` was 2.000000).
@@ -936,7 +939,7 @@ Two-phase per the spec: (a) evaluate the expression into the intermediate CobolI
 - The >38-digit ceiling: COBOL-2002/2014 permit pictures up to 31 (mandatory) and some profiles to 38; arithmetic intermediates on 19+-digit operands can exceed Int128. If the conformance target ever requires guaranteed-exact arithmetic beyond 38 digits, the carrier must widen (Int256 / a fixed 128-bit decimal). Confirm 38 digits is sufficient for the 2002/2014/2023 `--std` conformance scope (per `docs/VERSION_CHANGE_REFERENCE.md` + the version test matrix), else this becomes a substrate question.
 - RESOLVED: `ARCHITECTURE.md` §3's data-model table is native `long`/`Int128`-unscaled (NO `decimal`); no second SSOT remains.
 
-### D19. NATIVE `**` of an integer exponent is EXACT while the value fits the 256-bit wide form (77 digits) and the SDIDI's 34-digit round-to-odd value past it, for EVERY base shape; §8.8.1.2 rule 6 is screened on EVERY native arm.
+### D19. NATIVE `**` of an integer exponent is EXACT, for EVERY base shape: on the 256-bit wide form (77 digits) while the value fits, on the arbitrary-precision `CobolBig` past it (|value| < 10^6145), and reduced ONCE to the SDIDI's 34 digits by round-to-odd wherever a consumer lowers it; §8.8.1.2 rule 6 is screened on EVERY native arm.
 
 **Decision (⚖ OWNER, 2026-08-03; fix-queue PB18 + PB28 + PB32; part (a) SUPERSEDED by the OWNER on 2026-11-04, kb/Work
 PB4569).** Two parts, and only the first is a choice.
@@ -948,8 +951,10 @@ to the double approximation when it does not** for an INTEGER base, following IB
 (floating point past the fixed capacity) before CLAUDE.md rule 1's precedence (ISO → GnuCOBOL → IBM / Micro Focus) was set
 (2026-08-08). **On 2026-11-04 the owner answered "Yes, exact" to whether rule 1 supersedes it** (kb/Work PB4569): GnuCOBOL's
 `cob_decimal_pow` is an exact `mpz_pow_ui`, with no boundary at all, so **a native integer power is EXACT for every base
-shape while its value fits the wide form, and past 77 digits it is `PowNativeDec`'s round-to-odd SDIDI chain, as for every
-other native power** — never a binary64 approximation, and never a size error merely for outgrowing a carrier. The old
+shape while its value fits the wide form, and past 77 digits it is the exact power on the arbitrary-precision form
+(`CobolBig`, kb/Work PB4587, PB4592 — the owner's decision of the same day, "Exact, lift the ban"), reduced once by round-to-odd
+where it is lowered** — never a binary64 approximation, never a chain of rounded products, and never a size error merely for
+outgrowing a carrier (only the SDIDI's range, |value| < 10^6145, which is §14.7.5 5)'s checked intermediate range). The old
 fallback landed `2 ** 130` at 16 digits where `B65 * B65` kept all 40 for the same value, so `FUNCTION ABS (2 ** 130)`,
 `MOD`, `REM`, `INTEGER`, `SUM`, a relation and a subtraction that cancels the power inherited the wrong operand silently
 (`MOD (2 ** 130, 1000)` answered 0 for 824). There is no `PowNativeIntDec` any more: an integer base takes (c)'s two arms.
@@ -993,8 +998,8 @@ the same pass rather than left to be discovered as a fourth leg.
 integer power one value on the SDIDI carrier (`PowNativeIntDec`: exact `Int128` loop while it fits, a double
 approximation past it); **PB4569 made that value exact** and deleted `PowNativeIntDec`: the power is `CobolWide.Pow` as a
 `NumX.Wide` for a literal exponent whose bound fits 77 digits, and otherwise `CobolExact.Pow` — exact on the wide form
-while the VALUE fits it (`2 ** 130`, bound 130, is 40 digits), `PowNativeDec` past it (the reciprocal of §8.8.1.5.4 r3, the
-rule-6 screen, the round-to-odd chain) — so `MOD (A ** 3, B)` is the true 980012199, not the double's residue 1012193,
+while the VALUE fits it (`2 ** 130`, bound 130, is 40 digits), `CobolBig` past it (the reciprocal of §8.8.1.5.4 r3, the
+rule-6 screen) — so `MOD (A ** 3, B)` is the true 980012199, not the double's residue 1012193,
 and `A ** 3 / A ** 2 * 1` is A. The consumers follow: a relation compares the exact values
 (`CobolWide.Compare`, `CobolExact.Compare`); a NATIVE arithmetic operation with an exact operand stays exact
 (`CombineCore`'s exact arm — and with an SDIDI-carried one it evaluates on the SDIDI; the float lane keeps precedence when a
@@ -1162,10 +1167,12 @@ non-binary64 base takes (1) for a literal exponent n ≥ 1 whose digit bound (`b
 `A ** 2` IS `A * A` — and (2) for every other integer exponent (a data item, zero or a negative literal, a bound past 77
 digits though the value may fit, as `2 ** 130`): for an integer or exact base (`NumX.Wide`, `NumX.Exact`, scale 0)
 `CobolExact.Pow`, a `NumX.Exact` — exact on the wide form at the base's scale times the exponent while the VALUE fits,
-`PowNativeDec` past it — and for a scaled or SDIDI base `CobolIntrinsics.PowNativeDec` on the SDIDI. `PowNativeDec` owns
-its scale at run time: the same exact power (the wide lane, then the round-to-odd `MulToOdd` chain), the reciprocal
-`1 / (b ** |e|)` of §8.8.1.5.4 r3 for a negative exponent, and `CheckPowRule6`'s §8.8.1.2 rule-6 screen. A power past 77
-digits is therefore the chain's 34-digit value, not one rounding of the exact power (`2.5 ** 100`; kb/Work PB4587). Under
+`CobolBig` past it — and the same `CobolExact.Pow` for a scaled or SDIDI base (`CobolIntrinsics.PowNativeDec` and its
+round-to-odd `MulToOdd` chain are deleted). `CobolExact.Pow` owns its scale at run time: the exact power (the wide lane, then
+`CobolBig.Pow`, `mpz_pow_ui` with scale × n), the reciprocal `1 / (b ** |e|)` of §8.8.1.5.4 r3 for a negative exponent (one
+rounding of the exact quotient), and `CheckPowRule6`'s §8.8.1.2 rule-6 screen. A power past 77 digits is therefore ONE rounding
+of the exact power, round-to-odd, which is what every receiver of at most 32 digit positions sees as the exact value
+(`2.5 ** 100` is …0125, not the chain's …0127; `1.01 ** 119` is …851, not …852; kb/Work PB4587). Under
 STANDARD-DECIMAL the power is `CobolDec.Pow` (§8.8.1.5.4 2 e), 34 digits, unchanged: `2 ** 130` is 1.361129467683753853853498429727073E+39.
 
 ### D25. The ALPHANUMERIC SENDING OPERAND has THREE methods, one per rule — a SIZE rule (`FromAlphanumeric`), an EXCEPTION rule (`FromAlphanumericSending`) and a rule-free digit decode (`DigitMagnitude`) — and the emit side asks which of them applies through `SendingRefRules`, never at the call site. (kb/Work PB426 + PB844.)
@@ -1252,8 +1259,7 @@ clause text and fails if a new member is silently exempted.
    power, a NUMVAL or function value: kb/Work PB4575) the wide value keeps every digit too: the wide form's scale is the
    compiler's and the SDIDI value's a run-time fact, so `NumericRenderer.CombineCore` forms the sum, difference, product or
    NESTED quotient as a run-time-scaled exact value (`NumX.Exact`, typed `CobolExact`: exact on the wide form at the scale the
-   run time aligns, the SDIDI past 77 digits, the operands lifted there as `CobolExact.ToDec` lifts them — exact to 38 digits,
-   a wider one rounded once in the intermediate mode). Every +, −, × and nested quotient over one stays on it (a quotient is
+   run time aligns, and past 256 bits exact on the arbitrary-precision form, `CobolBig`, kb/Work PB4592 — no image, no residue). Every +, −, × and nested quotient over one stays on it (a quotient is
    `CobolExact.DivTruncated`, truncated at the working scale of the precision the value CARRIES, D2, so a nested quotient's
    guard digits never compound), and it settles exactly where a wide value does — `Settle` (`CobolExact.ToUnscaled` at the
    final transfer, `CobolExact.Image`'s round-to-odd lowering otherwise, with `ImageWithPrecision` for a nested quotient
@@ -1266,15 +1272,17 @@ clause text and fails if a new member is silently exempted.
    other function takes it through `RenderDec`'s exact intake, and `ExactWideSettlementDriftTests` holds the two lists equal to
    `RenderWide`'s), shown whole by DISPLAY and sent whole as text (`CobolNum.FormatExactFunctionText`). An exact BASE — a wide
    value or one of these — raised to an INTEGER exponent keeps every digit (`NumericRenderer.Power`: a literal exponent whose
-   bound fits the wide form is `CobolWide.Pow`, any other `CobolExact.Pow`, exact on the wide form and the SDIDI's
-   `PowNativeDec` past it), so `(P) ** N - P` is 0 (kb/Work PB4575 review findings R1-1, R1-2: the base and the function argument
+   bound fits the wide form is `CobolWide.Pow`, any other `CobolExact.Pow`, exact on the wide form and on `CobolBig` past it), so `(P) ** N - P` is 0 (kb/Work PB4575 review findings R1-1, R1-2: the base and the function argument
    entered as the image, and the exact expression around them exposed the image's residue). A final-transfer quotient takes the SDIDI as above a wide value,
    and a binary64 operation the value's image. A scaled `Int128` operand beside an SDIDI one keeps the SDIDI lane (its digit
    bound is within the lane's 38-digit exact operand; the 34-digit result is CONFORMANCE.md A.1 item 82's lane
    determination). So `(P + 2.0E0) - P` of a 39-digit P is 2 and `IF P - 1 < 2.0E0 + P` is true, where the 34-digit images
-   answered 0 and false (`pb4575_wide_beside_sdidi_operand`). A bound past 77 digits, a FINAL-TRANSFER quotient above a wide value
-   (GnuCOBOL's own divide is inexact, numeric.c:2259-2261; a NESTED one is `CobolWide.DivTruncated`, or past 77 digits
-   `CobolDec.DivTruncatedToOdd`, D2) and an exponentiation whose base is not exact or whose exponent is not an integer take the SDIDI (`CobolDec.MulToOdd` / `DivToOdd`) as before; an unknown bound is the `Int128` carrier's own, 39 digits (kb/Work PB3538: the checked multiply it used to take at
+   answered 0 and false (`pb4575_wide_beside_sdidi_operand`). ⛔ **A digit BOUND past 77 is not a VALUE past 77** (kb/Work PB4729): `NumericRenderer.Multiply`, the
+   nested quotient and the additive arm hand a bound past the form to `CobolExact`, which tries the value on the wide form and falls to `CobolBig`
+   only when the value leaves it (`A*A*A*A + 1 - A*A*A*A` of a 20-digit A, 77 digits, is 1). A FINAL-TRANSFER quotient above an exact value
+   lands from the EXACT quotient rounded once at the receiver (`CobolExact.QuotientAtScale`, kb/Work PB4701: a size error stores the exact quotient's own low-order digits) — GnuCOBOL's `cob_decimal_div`
+   then `cob_decimal_get_field`, a NESTED one is `CobolWide.DivTruncated` or `CobolBig.DivTruncated`, D2. An exponentiation whose base is not exact or whose exponent is not an integer
+   takes the SDIDI or binary64 as before; an unknown bound is the `Int128` carrier's own, 39 digits (kb/Work PB3538: the checked multiply it used to take at
    the summed scale raised the size error when the SCALE left the carrier), so a native product never wraps. The old emitter
    multiplied unchecked and `PIC 9V9(30)` × `PIC 9V9(30)` — a legal statement, §14.7.7 r2 a) caps the COMPOSITE — stored a
    wrapped product. The same bound drives `IntrinsicCarrierRules.AlignmentMayLeaveCarrier` (the one reader, in `compiler.bound`; the renderer and the bind-time lane prediction both ask it): SUM / RANGE / MEDIAN /

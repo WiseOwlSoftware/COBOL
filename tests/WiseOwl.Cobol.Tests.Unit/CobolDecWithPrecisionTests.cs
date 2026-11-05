@@ -146,7 +146,7 @@ public sealed class CobolDecWithPrecisionTests
         Assert.Equal(new CobolDec(0, -2), CobolDec.Div(new CobolDec(0, -3), new CobolDec(30, -1), mode));       // 0.000 / 3.0
         Assert.Equal(new CobolDec(0, -17), CobolDec.DivTruncatedToOdd(new CobolDec(0, -3), new CobolDec(3, 0), 17));
         Assert.Equal(new CobolDec(0, -6), CobolDec.Pow(new CobolDec(0, -3), new CobolDec(2, 0), mode));         // 0.000 ** 2
-        Assert.Equal(new CobolDec(0, -6), CobolIntrinsics.PowNativeDec(new CobolDec(0, -3), 2));
+        Assert.Equal(new CobolDec(0, -6), CobolExact.Pow(CobolExact.FromDec(new CobolDec(0, -3)), 2).Image);
         Assert.Equal(new CobolDec(0, -2), CobolDec.Sqrt(new CobolDec(0, -4), mode));                          // SQRT (0.0000)
         Assert.Equal(new CobolDec(0, -3), CobolDec.Sqrt(new CobolDec(0, -5), mode));                          // half, rounded down
         Assert.Equal(new CobolDec(0, -3), CobolDec.FromParsed(0, -3, mode));                                  // NUMVAL ("0.000")

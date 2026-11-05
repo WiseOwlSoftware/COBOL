@@ -274,7 +274,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   `BoundBoolCall` — the LENGTH fold, `IsStringOperand`, the condition renderer's fifth site) and §8.8.1.1's
   arithmetic screen fires at bind for a string-class function operand; RV-15.13.4-1 → CONFORMS, GAP 4047.
   **✅ PB69 CLOSED (DEVLOG 1301, 2026-08-18)** — one native `**` value for every integer power (the saturating
-  Int128 twin deleted; PB4569 made it exact and replaced `PowNativeIntDec` by `CobolExact.Pow` / `PowNativeDec`); a native operation / intrinsic argument with a Dec evaluates on the SDIDI (MOD/REM exact
+  Int128 twin deleted; PB4569 made it exact and replaced `PowNativeIntDec` by `CobolExact.Pow`; PB4587 then deleted `PowNativeDec` and its round-to-odd chain: the power past 77 digits is exact on `CobolBig`); a native operation / intrinsic argument with a Dec evaluates on the SDIDI (MOD/REM exact
   integers stay exact); Dec→Int128 landings that cannot hold the value raise EC-SIZE-OVERFLOW (A.1 179 "checked",
   three places). **PB83 found and fixed in the same commit** — `CobolDec.Div`'s numerator pre-scale was capped at
   10^38 with an uncapped exponent (`100000 / D30` under STANDARD-DECIMAL was 0; wrong by 10^(scaleUp − 38)).
