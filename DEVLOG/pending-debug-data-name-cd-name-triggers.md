@@ -35,3 +35,17 @@ matter, listed as a lead). The file-name trigger (PB4811) and the DEBUG-CONTENTS
 at head a2c47e5314d6 (run 000003-20261106T195442Z). The first gate was RED on six Unit tests of the new code (a namespace literal in an emitted-name scan, two
 drift lists naming the renamed PERFORM store sites, two backend-contract rows and a state field in the new walker, the diagnostic-facts file): the walker
 became static with no state, the PERFORM store sites kept their names, the rows and the facts file were added. The seven new goldens' results are in the trx, all Passed.
+
+**Branch review round 1 (seven blocking findings, all answered).** (R1-1) A statement that holds a nested transfer (`IF D = 1 GO TO P`, `ADD 1 TO E NOT ON SIZE ERROR GO TO P`)
+lost its after-statement section, because the fire sat after the nested GO TO. `StatementEmitter.EmitStatement` now asks `DebugTriggerEmitter.LandBeforeTransfer` before every
+`IBoundTransfersControl` leaf, which runs the sections the enclosing statements owe; a path that does not transfer reaches the ordinary after fire. (R1-2, R1-3) The reference walk was
+not total (SORT and MERGE keys and CANCEL's tuple operands were missed) and read the lowered tree (MOVE and ADD CORRESPONDING members, a condition-name's conditional variable, the
+RELATIVE KEY a START without KEY compares, the record READ INTO and RETURN send fired sections the written statement does not name). Nodes now name the operands the program did
+not write (`IBoundImplicitOperands`), the walk reads tuples, `BoundSortMergeKey.Written` and `BoundCorresponding.SendingGroup`/`ReceivingGroup` carry the written operands. (R1-4) The INTO
+phrase of READ and RETURN is its own moment, `AfterAction`, landed after the move, so an AT END that moves nothing runs no section; an EVALUATE WHEN that was never evaluated and the
+operands a short-circuited condition never reaches are still counted as referenced (a lead: they need a per-phrase evaluated flag in the IF and EVALUATE emitters). (R1-5) DEBUG-SUB-n
+is the numeric `S9999 SIGN IS LEADING SEPARATE` item rule 10 states, image-carried (`+0003`), one shared description: a comparison, COMPUTE and DISPLAY read it. The earlier alphanumeric
+view was a determination where the text decides; D-DEBUG-SUB is rewritten. An unused member (spaces) is no number, so two pins read it through the DEBUG-ITEM group image. (R1-6, R1-7)
+DEBUG-CONTENTS is the storage image of the whole referenced item (rules 24 c, 11, syntax rule 12): a reference-modified statement no longer gives the window, and a binary or packed item
+arrives as its bytes. Goldens `pb4810-debug-nested-transfer`, `pb4810-debug-explicit-references`, `pb4810-debug-contents-and-sub-values` (all accepted at 85). The first re-gate was RED on
+a CRLF my own edit script wrote (`line_endings.py --fix`), the second on the two spaces-as-number pins above.

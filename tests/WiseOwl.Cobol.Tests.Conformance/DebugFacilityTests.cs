@@ -150,7 +150,6 @@ public sealed class DebugFacilityTests
                 USE FOR DEBUGGING ON ALL PROCEDURES.
             DBG-BODY.
                 MOVE DEBUG-ITEM TO GI.
-                DISPLAY "S1=[" DEBUG-SUB-1 "]".
                 DISPLAY "GI=[" GI "]".
             END DECLARATIVES.
             MAIN SECTION.
@@ -160,10 +159,12 @@ public sealed class DebugFacilityTests
         var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 85);
         Assert.True(ok, detail);
         string[] lines = stdout.Split('\n');
-        Assert.Equal("S1=[     ]", lines[0]);   // DEBUG-SUB-1 = five SPACES (unsubscripted, S9(4) SIGN LEADING SEPARATE width)
         // The whole DEBUG-ITEM group image is exactly 86 characters between the brackets.
-        int lb = lines[1].IndexOf('[') + 1, rb = lines[1].LastIndexOf(']');
+        int lb = lines[0].IndexOf('[') + 1, rb = lines[0].LastIndexOf(']');
         Assert.Equal(86, rb - lb);
+        // DEBUG-SUB-1 (characters 39 to 43: 6 + 1 + 30 + 1 before it) is five SPACES for a reference that is not subscripted — the
+        // S9(4) SIGN LEADING SEPARATE width of general rule 10, read through the group image because spaces are no number.
+        Assert.Equal("     ", lines[0].Substring(lb + 38, 5));
     }
 
     /// <summary>The removal gate: WITH DEBUGGING MODE + USE FOR DEBUGGING are rejected COBOL0902 at ≥2002 (the

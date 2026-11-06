@@ -19,8 +19,10 @@
       *> (ISO/IEC 1989:2023 section 14.9.25.4 GR6), so W-S1 holds the four
       *> digits of the occurrence number and a space. Rule 11: DEBUG-ITEM is
       *> space filled before each execution, so a member the reference does
-      *> not use stays spaces. Rule 24 c: DEBUG-CONTENTS is the content of
-      *> the item at the time the section runs.
+      *> not use stays spaces (read here through the DEBUG-ITEM group
+      *> image, characters 51 to 55, because spaces are no number). Rule 24
+      *> c: DEBUG-CONTENTS is the content of the item at the time the
+      *> section runs.
       *> The operand of USE is written WITHOUT subscripts (syntax rule 10),
       *> and the section runs for every occurrence a statement references.
       *> Why each leg can fail: a subscript read before the statement
@@ -51,6 +53,7 @@
        01  W-S1  PIC X(5).
        01  W-S2  PIC X(5).
        01  W-S3  PIC X(5).
+       01  W-ITEM PIC X(86).
        PROCEDURE DIVISION.
        DECLARATIVES.
        DBG-CELL SECTION.
@@ -69,14 +72,16 @@
            MOVE DEBUG-CONTENTS TO W-CONT.
            MOVE DEBUG-SUB-1 TO W-S1.
            MOVE DEBUG-SUB-2 TO W-S2.
-           MOVE DEBUG-SUB-3 TO W-S3.
+           MOVE DEBUG-ITEM TO W-ITEM.
+           MOVE W-ITEM (51:5) TO W-S3.
            DISPLAY W-NAME "[" W-CONT "][" W-S1 "][" W-S2 "][" W-S3 "]".
        DBG-FLD SECTION.
            USE FOR DEBUGGING ON FLD IN R2.
        DBG-FLD-BODY.
            MOVE DEBUG-NAME TO W-NAME.
            MOVE DEBUG-CONTENTS TO W-CONT.
-           MOVE DEBUG-SUB-1 TO W-S1.
+           MOVE DEBUG-ITEM TO W-ITEM.
+           MOVE W-ITEM (39:5) TO W-S1.
            DISPLAY W-NAME "[" W-CONT "][" W-S1 "]".
        END DECLARATIVES.
        MAIN SECTION.
