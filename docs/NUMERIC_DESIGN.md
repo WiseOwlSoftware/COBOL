@@ -443,6 +443,14 @@ NATIVE statement onto the decimal128 lane (34 significant digits) where a fixed-
 `CombineNative`'s Int128 one (~38), so `A * B + 0.0E+0` and `A * B + 0.0` differ for 18-digit A and B, and
 INTERMEDIATE ROUNDING (§11.9.11) reaches the first and not the second. The sentence "a literal's NOTATION never
 changes the arithmetic" was written in four places and is false in all of them (kb/Work PB274).
+**The exactness ruling stops at a float item** (owner 2026-11-05, kb/Work PB4731 and PB4751). The 2026-11-04 ruling
+(PB4569: rule 1 supersedes D19 (a), so a value the standard defines exactly is computed exactly) does NOT reach an
+expression with a float ITEM operand or a float receiver: that expression stays wholly IEEE binary64, every other
+operand converted to binary64 first, whether it is a fixed-point item, a literal or an exact-valued function such as
+EXP10. So `A1 + A2` over FLOAT-LONG 0.1 and 0.2 stores +0.3000000000000000444 into S9V9(19), and
+`ZF + FUNCTION EXP10 (-6)` with ZF = 0 truncates binary64 10**-6 (0.000000999999999999999954...) to 0.000000 in
+9V9(6), where GnuCOBOL 3.2 stores .2999999999999999750 and 0.000001. SUM, MEAN, RANGE, MIDRANGE and ABS over such
+arguments share the `CarrierKind.Real` lane and so the same values. CONFORMANCE.md DOC-A.1-123 publishes the rule.
 The binder checks the literal's FORM (SR2/SR3/SR4 — COBOL1661) at the ONE normalizer and its RANGE at the ONE
 expression chokepoint (`CheckLiteral`, now decimal128 in every mode — one carrier, one range) and, separately, at
 the VALUE funnel for a FLOAT-* subject, where §13.18.63.3 SR2 asks for "permissible values within the range
