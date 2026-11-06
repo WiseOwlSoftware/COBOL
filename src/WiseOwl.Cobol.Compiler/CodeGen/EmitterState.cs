@@ -305,8 +305,8 @@ internal sealed class DispatchState
     public HashSet<Binding.ReportModel> BeforeReportingSelectors { get; } = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>The program being emitted has an ACTIVE X3.23-1985 USE FOR DEBUGGING procedure-trigger facility
-    /// (WITH DEBUGGING MODE + a procedure-subject debugging declarative; VCR Table 7 row 7.17). Gates the debug
-    /// scaffolding — the <c>__dbgItem</c>/<c>__dbgCause</c> fields, the <c>__RunDebug</c> helper, the per-subject
+    /// (WITH DEBUGGING MODE + a procedure-subject, data-name or cd-name debugging declarative; VCR Table 7 row 7.17). Gates the debug
+    /// scaffolding — the <c>__dbgItem</c>/<c>__dbgCause</c> fields, the <c>__RunDebug</c> and <c>__RunDebugRef</c> helpers, the per-subject
     /// entry triggers, and the DEBUG-CONTENTS cause assignments threaded through every transfer of control — so a
     /// non-debug program's generated source is byte-identical (the zero-scaffolding invariant). Set per unit by the
     /// dispatcher emission; a class unit owns no debug facility.</summary>

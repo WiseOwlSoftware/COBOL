@@ -46,12 +46,14 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     private readonly CallEmitter _call;
     private readonly EcEmitter _ecEmit;
     private readonly ReceiverBracketEmitter _brackets;
+    private readonly DebugTriggerEmitter _debug;
     private readonly OoEmitter _oo;
 
     public StatementEmitter(UnitEmitters u, OoEmitter oo, DispatchState dispatchState)
     {
         _ctx = u.Ctx;
         _num = u.Num;
+        _debug = u.Debug;
         _dispatchState = dispatchState;
         _move = u.Move;
         _arith = u.Arith;
@@ -417,6 +419,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundRaiseObject n) => _ecEmit.EmitRaiseObject(n);   // EC-OO (§14.9.29; §14.6.13.1.5)
     public bool Visit(BoundEcChecked n) => _ecEmit.EmitChecked(n);         // TURN scope (§7.3.25)
     public bool Visit(BoundActivationSite n) => _ecEmit.EmitActivationSite(n);   // §14.9.33.4 GR2 a) 2. (PB892)
+    public bool Visit(BoundDebugTriggered n) => _debug.Emit(n, EmitStatement);   // X3.23-1985 USE FOR DEBUGGING general rules 5-8 (D20)
     public bool Visit(BoundRaise n) => _ecEmit.EmitRaise(n);               // RAISE (§14.9.29)
     public bool Visit(BoundResume n) => _ecEmit.EmitResume(n);   // RESUME (§14.9.33) — unwinds, unless GR1 makes it a CONTINUE
     public bool Visit(BoundSetLastException n) { _ctx.Writer.Line("ExceptionState.Clear();   // SET LAST EXCEPTION TO OFF (ISO §14.9.39 F13)"); return false; }

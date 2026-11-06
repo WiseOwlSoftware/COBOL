@@ -16,7 +16,7 @@ internal static class BackendContract
     [
         new(NeutralKind.CobolWord,
         [
-            "Bound.BoundDebugSubject.SubjectName", "Bound.BoundDeclarative.SectionName", "Bound.BoundExceptionMatch.OpenMode",
+            "Bound.BoundDebugSubject.SubjectName", "Bound.BoundDebugTarget.Name", "Bound.BoundDeclarative.SectionName", "Bound.BoundExceptionMatch.OpenMode",
             "Bound.BoundMethod.CobolName", "Bound.BoundNumLiteral.FoldedFunction", "Bound.BoundNumericLiteral.FoldedFunction",
             "Bound.BoundParagraph.CobolName", "Bound.BoundProgramAddress.Prototype", "Bound.BoundRangeMembership.Alphabet", "Bound.BoundSendToServer.ServerName",
             "Bound.BoundSetSwitches.Switches", "Bound.BoundSwitchCondition.ImplementorName",
@@ -161,7 +161,7 @@ internal static class BackendContract
             "Bound.BoundRaising.EcName", "Bound.BoundRaising.Location", "Bound.BoundRaising.PdRaising",
             "Bound.BoundRaising.StatementName", "Bound.BoundWhenOperand.Ec",
             "Bound.EcStatementInfo.Enabled", "Bound.EcStatementInfo.Location", "Bound.EcStatementInfo.StatementName",
-            "Model.BoundUnit.RegistryKey", "Model.CommunicationDescription.Key", "Model.FileModel.AssignTarget", "Model.FileModel.ExternalName",
+            "Bound.BoundDebugTarget.CdKey", "Model.BoundUnit.RegistryKey", "Model.CommunicationDescription.Key", "Model.FileModel.AssignTarget", "Model.FileModel.ExternalName",
             "Model.LocalePhrase.Tag", "Model.LocaleRef.Tag", "Model.LocaleSymbol.External", "Model.LocaleSymbol.Tag",
             "Model.ObjectRefDescriptor.Spelled", "Model.LocaleEditRecord.External",
             // the assemblies an expansion is imported from or written to: file paths the backend references (kb/Work PB2104)

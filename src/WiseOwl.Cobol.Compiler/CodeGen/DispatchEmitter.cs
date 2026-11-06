@@ -43,7 +43,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // X3.23-1985 USE FOR DEBUGGING procedure-trigger facility (VCR Table 7 row 7.17): active when a
         // procedure-subject debugging declarative was collected under WITH DEBUGGING MODE. Gates all debug
         // scaffolding (zero-scaffolding invariant — a non-debug program is byte-identical).
-        dispatchState.DebugActive = bound.DebugSubjects is { Count: > 0 };
+        dispatchState.DebugActive = bound.DebugSubjects is { Count: > 0 } || bound.DebugTargets is { Count: > 0 };
         dispatchState.DebugByPc = bound.DebugSubjects?.ToDictionary(s => s.SubjectPc)
             ?? new Dictionary<int, BoundDebugSubject>();
         w.Line();
@@ -55,7 +55,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         if (dispatchState.DebugActive)
         {
             // The X3.23-1985 DEBUG-ITEM special register + its per-trigger transfer cause (VCR Table 7 row 7.17).
-            w.Line("private readonly DebugItem __dbgItem = new DebugItem();   // X3.23-1985 DEBUG-ITEM register (VCR 7.17)");
+            // DEBUG-CONTENTS is declared as wide as the widest data-name or cd-name target needs (general rule 15).
+            w.Line($"private readonly DebugItem __dbgItem = new DebugItem({bound.DebugContentsWidth});   // X3.23-1985 DEBUG-ITEM register (VCR 7.17)");
             w.Line("private DebugCause __dbgCause;   // the transfer-of-control cause of the next debug trigger (default Transfer → SPACES)");
             w.Line("private int __dbgLine;   // the CAUSING statement's source line — DEBUG-LINE for a non-START-PROGRAM trigger");
             w.Line("private bool __dbgBusy;   // a debugging declarative is not itself debugged (re-entrancy guard)");
@@ -252,6 +253,16 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // statement, carried in __dbgLine by the transfer site.
             w.Line("int __line = __dbgCause == DebugCause.StartProgram ? __subjLine : __dbgLine;");
             w.Line("__dbgItem.Populate(__line, __nm, __dbgCause);");
+            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgBusy = false; }");
+        }
+        w.Line();
+        // The data-name, ALL REFERENCES OF and cd-name triggers (docs/CONTROL_FLOW_DESIGN.md D20): the same guards as __RunDebug, named
+        // __DebugReady so a fire evaluates its DEBUG-CONTENTS operand only when the section will run.
+        w.Line("private bool __DebugReady => RunUnit.Current.DebugMode && !__dbgBusy;   // the object-time switch, and a debugging section is not itself debugged");
+        using (w.Block("private void __RunDebugRef(int __line, string __nm, string __contents, int __ds, int __de, params long[] __occ)"))
+        {
+            w.Line("__dbgBusy = true;");
+            w.Line("__dbgItem.PopulateReference(__line, __nm, __contents, __occ);");
             w.Line("try { __Dispatch(__ds, __de); } finally { __dbgBusy = false; }");
         }
         w.Line();

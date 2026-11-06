@@ -1,14 +1,16 @@
       *>--- conformance-case
       *> id: pb4713-debug-cd-name
       *> rules: []
+      *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB4713. The X3.23-1985 debug module triggers on the ENABLE, DISABLE, PURGE, RECEIVE and SEND of
-      *> a cd-name (CCVS DB205A writes USE FOR DEBUGGING ON CM-INQUE CM-OUTQUE). CM-IN is declared by the
-      *> communication description entry below, so the program is right; the cd-name trigger is not modeled, and
-      *> the refusal is the staged COBOL1571 that says so. Why it can fail: a binder that asks only for a data
-      *> item or a file calls the declared cd-name 'not defined' (COBOL1639), the program being wrong.
+      *> kb/Work PB4713, PB4759. X3.23-1985 USE FOR DEBUGGING names a cd-name as a debug target (CCVS DB205A writes
+      *> USE FOR DEBUGGING ON CM-INQUE CM-OUTQUE; general rule 8 runs its section after the communication
+      *> statements, pb4759_debug_cd_name_triggers). CM-IN is declared by the communication description entry
+      *> below, so the program is right and compiles; no statement of it names CM-IN, so the section never runs
+      *> and the program prints nothing. Why it can fail: a binder that asks only for a data item or a file calls
+      *> the declared cd-name 'not defined' (COBOL1639), the program being wrong.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4713DBGCD.
        ENVIRONMENT DIVISION.

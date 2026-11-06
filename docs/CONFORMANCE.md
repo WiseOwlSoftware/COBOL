@@ -2217,14 +2217,15 @@ of an unsupported facility.
   OF W-A` are one operand (GnuCOBOL 3.2 `cobc -std=cobol85 -fsyntax-only` accepts all four; CCVS DB201A writes `ALL
   ID-2` and `ALL AB2 OF A2`). The grammar is `useDebugTarget`'s `ALL REFERENCES? OF? dataReference` arm, and the binder
   tells the arm by ALL, never by REFERENCES, so `ALL P1` is never a procedure-name subject. Without WITH DEBUGGING MODE
-  the section is inert; with it every operand is RESOLVED before it is named (kb/Work PB4363): a data item reaches the
-  staged COBOL1571, positioned at its operand and naming it (a data item is judged by its DECLARATION, so an
-  unsubscripted table element, the form DB201A writes, is one and never draws COBOL2270); in the ALL arm a word that names a paragraph or section is
+  the section is inert; with it every operand is RESOLVED before it is named (kb/Work PB4363): a data item is a trigger target
+  (D-DEBUG-DATA; it is judged by its DECLARATION, so an unsubscripted table element, the form DB201A writes, is one and never
+  draws COBOL2270); in the ALL arm a word that names a paragraph or section is
   COBOL5848 (a procedure-name identifies no data item, ISO 14.4.1 with 8.4.2.1); a word nothing declares is the one
   undefined-reference COBOL1639 in either arm (8.4.2.1), the program being wrong and not the compiler incomplete (a paragraph under a qualifier that is not its own section
   is COBOL1639 in the procedure-name text, `names no procedure`). A cd-name the program declares (X3.23-1985's debug module
-  triggers on the ENABLE, DISABLE, PURGE, RECEIVE and SEND of one; CCVS DB205A) is a bare operand like a file-name, so it reaches
-  the staged COBOL1571 and never "not defined" (kb/Work PB4713); after ALL it is no identifier-1, and the resolver says it is
+  triggers on the ENABLE, DISABLE, SEND, RECEIVE and ACCEPT MESSAGE COUNT of one; CCVS DB205A) is a bare operand like a file-name,
+  a cd-name trigger target (D-DEBUG-DATA) and never "not defined" (kb/Work PB4713); a file-name stays the staged COBOL1571
+  (kb/Work PB4811); after ALL it is no identifier-1, and the resolver says it is
   "declared as a cd-name, not as a data item" (COBOL1639), as it does for `MOVE CM-IN TO T`. The
   bare operand reads `word` and `word OF section` as a procedure-name first (8.4.2.2.2), so `ON PARA-W OF SEC-A`
   debugs the qualified paragraph. Witnesses: `conformance:cases/_unassigned/pb4237_debug_all_identifier` (85),
@@ -2232,13 +2233,42 @@ of an unsupported facility.
   `conformance:cases/_unassigned/pb4363_debug_qualified_procedure` (85),
   `conformance:cases/_unassigned/pb4363-debug-all-procedure-name` (COBOL5848 at 85),
   `conformance:cases/_unassigned/pb4363-debug-all-undeclared` (COBOL1639 at 85),
-  `conformance:cases/_unassigned/pb4713-debug-cd-name` (COBOL1571 at 85), `conformance:cases/_unassigned/pb4713-debug-all-cd-name`
+  `conformance:cases/_unassigned/pb4713-debug-cd-name` (accepted at 85), `conformance:cases/_unassigned/pb4713-debug-all-cd-name`
   (COBOL1639 at 85), `conformance:cases/_unassigned/pb4713-move-cd-name` (COBOL1639 at 85 and 2002),
-  `conformance-test:DebugFacilityTests.BareOperandNamingACdName_At85_IsTheStagedCdNameSubject`,
+  `conformance-test:DebugFacilityTests.BareOperandNamingACdName_At85_IsTheCdNameSubject`,
   `conformance-test:DebugFacilityTests.AllOperandNamingACdName_At85_IsDeclaredAsACdName`,
-  `conformance-test:DebugFacilityTests.AllIdentifier_EverySpelling_At85_IsTheStagedDataItemOperand`,
-  `conformance-test:DebugFacilityTests.OperandNamingAnUnsubscriptedTableElement_At85_StaysStaged`,
+  `conformance-test:DebugFacilityTests.AllIdentifier_EverySpelling_At85_IsTheDataItemOperand`,
+  `conformance-test:DebugFacilityTests.OperandNamingAnUnsubscriptedTableElement_At85_IsTheElementSubject`,
   `conformance-test:DebugFacilityTests.ProcedureNameUnderTheWrongQualifier_At85_NamesNoProcedure`.
+
+- **D-DEBUG-DATA — when a data-name, ALL REFERENCES OF or cd-name USE FOR DEBUGGING section runs** (kb/Work PB4810, PB4759, PB4808).
+  ISO/IEC 1989:2023 prints nothing on the facility, so the text is X3.23-1985's Debug module (the owner's copy,
+  `specs-private/ANSI_COBOL_1985.pdf`, PDF pages 693-698), USE FOR DEBUGGING general rules 5-9 and 23-24 and syntax rules 6, 9, 10 and
+  12; the design is `docs/CONTROL_FLOW_DESIGN.md` D20. **Determinations** where the text leaves the choice: (1) "causes the content … to
+  be changed" (rule 6 c) is read as STORED INTO by the executed statement, whether or not the value differs and whether or not an ON
+  SIZE ERROR path skipped the store (GnuCOBOL 3.3-dev `typeck.c:1210-1232`; the text is silent on a skipped store, and no implementation
+  compares before and after); a BY REFERENCE CALL argument is not a store (the callee's effect is not decidable at the CALL). (2) The
+  loop moments of rule 5 c / 6 b are each initialization, each augment and each evaluation of a VARYING, AFTER or UNTIL phrase that
+  references the item, TEST BEFORE and TEST AFTER alike. (3) A statement nested in another is a statement of its own (rule 7), so an
+  IF's condition and its nested MOVE are planned separately, and the section of an item the IF's condition references runs after the
+  IF. (4) A group reference does not reference its subordinate items, nor a subordinate item its group, and a qualifier is no reference
+  (rule 9). (5) DEBUG-CONTENTS is the item's character image, the CD record-area image for a cd-name (rule 23 e), and DEBUG-LINE the
+  physical source line of the referencing statement (rule 12 leaves the form to the implementor). (6) RECEIVE's cd-name section runs
+  when the data arrived and before the WITH DATA statements. **Departures from GnuCOBOL, each where the 1985 text decides:** SORT, MERGE,
+  RELEASE and RETURN run the ALL REFERENCES OF section (rule 5 d: "any other COBOL statement"); a cd-name section runs (rule 8; GnuCOBOL
+  never fires it). A special register and a REPORT SECTION sum counter are staged (COBOL1571: they have no data item of their own for
+  the trigger to watch; syntax rule 9 admits the sum counter). Witnesses: `conformance:cases/_unassigned/pb4810-debug-data-name-triggers`,
+  `conformance:cases/_unassigned/pb4810-debug-write-go-to-perform`, `conformance:cases/_unassigned/pb4810-debug-rewrite-and-failed-write`, `conformance:cases/_unassigned/pb4810-debug-sub-and-name`,
+  `conformance:wiseowl/cases/_unassigned/pb4759_debug_cd_name_triggers`, `conformance:cases/_unassigned/pb4810-debug-target-subscripted`
+  (COBOL6334), `conformance:cases/_unassigned/pb4810-debug-target-repeated` (COBOL6335),
+  `conformance-test:DebugFacilityTests.StatementInADebuggingSection_At85_CausesNoSection`; CCVS DB201A runs with no failing test.
+
+- **D-DEBUG-SUB — what DEBUG-SUB-1 to DEBUG-SUB-3 are** (kb/Work PB4810). The 1985 implicit description makes each `PIC S9999 SIGN IS LEADING
+  SEPARATE CHARACTER`, and rule 11 leaves a member the reference does not use SPACES. **Determination:** WiseOwl COBOL reads each as an
+  ALPHANUMERIC view of five characters holding the image a MOVE to an alphanumeric item gives the numeric item (ISO/IEC 1989:2023
+  §14.9.25.4 GR6: the separate sign is not moved): the four digits of the occurrence number and a space, or five spaces. CCVS DB201A moves
+  DEBUG-SUB-1 to `PIC X(5)` and compares `"0005"`, which that image satisfies. The sign is never visible and a numeric comparison of the
+  member decodes its digits; a numeric place view of an implicit register is not built (`DebugRegisterPlace` is alphanumeric).
 
 - **D-CE1 — where a FREE-form comment-entry ends** (kb/Work PB3245, review finding R1-1; PB1494, PB1758). The
   comment-entry paragraphs (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY, REMARKS) are COBOL-85's,

@@ -23,6 +23,9 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// can satisfy).</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
+    /// <summary>The USE FOR DEBUGGING trigger emitter — property-wired by <see cref="UnitEmitters"/> (docs/CONTROL_FLOW_DESIGN.md D20).</summary>
+    internal DebugTriggerEmitter Debug { get; set; } = null!;
+
     /// <summary>The EC raise-site dispatcher (property-wired by <see cref="UnitEmitters"/>, the same cyclic edge as
     /// <see cref="Statements"/>) — a SEARCH with EC-RANGE checking ON but NO AT END phrase dispatches the raised
     /// range EC to an applicable USE declarative / Format-3 WHEN via <see cref="EcEmitter.EcDispatchExpr"/>
@@ -287,13 +290,64 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// EXIT PERFORM (SR8), so it takes the bare loop with no region/labels.</summary>
     private void EmitPerform(BoundPerformControl control, Action body, bool inline)
     {
-        if (!inline) { EmitPerformLoop(control, body, inline: false); return; }
+        // The USE FOR DEBUGGING loop phases of THIS PERFORM (X3.23-1985 general rules 5 c and 6 b; docs/CONTROL_FLOW_DESIGN.md D20), taken
+        // before anything nested is emitted: a statement in the body is another statement, with fires of its own.
+        var savedLoop = _loop;
+        var savedVarying = _varying;
+        _loop = Debug.TakeLoopFires();
+        _varying = control as PerformVarying;
+        try
+        {
+            if (!inline) { EmitPerformLoop(control, body, inline: false); return; }
+            var w = ctx.Writer;
+            int pid = ctx.Names.NextLoop();
+            var saved = dispatch.SetF3Region(F3Region.Inline, pid);
+            EmitPerformLoop(control, () => { body(); w.Line($"__pcont{pid}: ;"); }, inline: true);
+            dispatch.RestoreF3Region(saved);
+            w.Line($"__pexit{pid}: ;");
+        }
+        finally { (_loop, _varying) = (savedLoop, savedVarying); }
+    }
+
+    /// <summary>The debug loop-phase fires of the PERFORM being emitted, and its VARYING control (null for another control).</summary>
+    private DebugTriggerEmitter.LoopFires? _loop;
+    private PerformVarying? _varying;
+
+    /// <summary>The head of a TEST BEFORE loop: <c>while (!(until))</c>, or — when a debugging section runs after the condition is evaluated
+    /// (X3.23-1985 general rule 5 c / 6 b) — a <c>while (true)</c> whose first statements evaluate the condition, run the section and leave
+    /// when the condition holds. The caller disposes the returned block at the end of the loop.</summary>
+    private IDisposable OpenTestBefore(BoundCondition until, int level)
+    {
         var w = ctx.Writer;
-        int pid = ctx.Names.NextLoop();
-        var saved = dispatch.SetF3Region(F3Region.Inline, pid);
-        EmitPerformLoop(control, () => { body(); w.Line($"__pcont{pid}: ;"); }, inline: true);
-        dispatch.RestoreF3Region(saved);
-        w.Line($"__pexit{pid}: ;");
+        if (!DebugTriggerEmitter.HasLoopPhase(_loop, DebugWhen.LoopTest, level))
+            return w.Block($"while (!({cond.Render(until)}))");
+        var block = w.Block("while (true)");
+        EmitTestExit(until, level);
+        return block;
+    }
+
+    /// <summary>The loop's exit test: <c>if (until) break;</c>, or the condition's value held across the debugging section that runs after its
+    /// evaluation.</summary>
+    private void EmitTestExit(BoundCondition until, int level)
+    {
+        var w = ctx.Writer;
+        if (!DebugTriggerEmitter.HasLoopPhase(_loop, DebugWhen.LoopTest, level))
+        {
+            w.Line($"if ({cond.Render(until)}) break;");
+            return;
+        }
+        string held = $"__dbgt{ctx.Names.NextLoop()}";
+        w.Line($"bool {held} = {cond.Render(until)};");
+        Debug.EmitLoopPhase(_loop, DebugWhen.LoopTest, level);
+        w.Line($"if ({held}) break;");
+    }
+
+    /// <summary>The level of <paramref name="lv"/> in the PERFORM VARYING being emitted — the key a loop-phase fire carries.</summary>
+    private int LevelOf(VaryingLevel lv)
+    {
+        for (int k = 0; k < _varying!.Levels.Count; k++)
+            if (ReferenceEquals(_varying.Levels[k], lv)) return k;
+        throw new InvalidOperationException("a PERFORM VARYING level that is not in the PERFORM being emitted");
     }
 
     private void EmitPerformLoop(BoundPerformControl control, Action body, bool inline)
@@ -309,12 +363,20 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                 w.Line($"long __n{id} = {CountExpr(t.Count)};");
                 using (w.Block($"for (long __i{id} = 0; __i{id} < __n{id}; __i{id}++)")) body();
                 break;
+            case PerformUntil u when u.TestAfter && DebugTriggerEmitter.HasLoopPhase(_loop, DebugWhen.LoopTest, 0):
+                // X3.23-1985 USE FOR DEBUGGING general rule 5 c / 6 b: the condition is evaluated, the section runs, then the loop decides.
+                using (w.Block("while (true)"))
+                {
+                    body();
+                    EmitTestExit(u.Until, 0);
+                }
+                break;
             case PerformUntil u when u.TestAfter:
                 using (w.Block("do")) body();
                 w.Line($"while (!({cond.Render(u.Until)}));");
                 break;
             case PerformUntil u:
-                using (w.Block($"while (!({cond.Render(u.Until)}))")) body();
+                using (OpenTestBefore(u.Until, 0)) body();
                 break;
             case PerformVarying v:
                 EmitVarying(v, body);
@@ -360,16 +422,16 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         var levels = v.Levels;
         if (!v.TestAfter)
         {
-            foreach (var lv in levels) InitVaryingTarget(v, lv);   // GR13a: left-to-right init
+            foreach (var lv in levels) InitVaryingLevel(v, lv);   // GR13a: left-to-right init
             EmitBefore(0);
             void EmitBefore(int k)
             {
-                using (w.Block($"while (!({cond.Render(levels[k].Until)}))"))
+                using (OpenTestBefore(levels[k].Until, k))
                 {
                     if (k == levels.Count - 1)
                     {
                         body();
-                        Augment(levels[k]);
+                        AugmentLevel(levels[k]);
                     }
                     else
                     {
@@ -386,15 +448,15 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         // ⛔ Do NOT swap these two: the augment-then-reset order is NIST NC201A PFM-TEST-F4-23's
                         // CCVS-85 expectation, which GR13 e) 2 contradicts — see the method doc-comment, the
                         // docs/CONFORMANCE.md §3 determination and kb/Work PB436.
-                        InitVaryingTarget(v, levels[k + 1]);
-                        Augment(levels[k]);
+                        InitVaryingLevel(v, levels[k + 1]);
+                        AugmentLevel(levels[k]);
                     }
                 }
             }
         }
         else
         {
-            InitVaryingTarget(v, levels[0]);
+            InitVaryingLevel(v, levels[0]);
             EmitAfter(0);
             void EmitAfter(int k)
             {
@@ -407,14 +469,30 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         // the false condition are set to their initialization values" — so the augment of level k
                         // (bottom of this block) happens BEFORE this reset of level k+1, the OPPOSITE order to the
                         // TEST BEFORE arm's GR13 e) 2 a–c. Deliberate: each arm is written to its own sub-step.
-                        InitVaryingTarget(v, levels[k + 1]);
+                        InitVaryingLevel(v, levels[k + 1]);
                         EmitAfter(k + 1);
                     }
-                    w.Line($"if ({cond.Render(levels[k].Until)}) break;");
-                    Augment(levels[k]);
+                    EmitTestExit(levels[k].Until, k);
+                    AugmentLevel(levels[k]);
                 }
             }
         }
+    }
+
+    /// <summary>A PERFORM VARYING (or AFTER) level's initialization, then the debugging section that runs "immediately after each
+    /// initialization … of the data item" (X3.23-1985 USE FOR DEBUGGING general rule 5 c / 6 b; docs/CONTROL_FLOW_DESIGN.md D20).</summary>
+    private void InitVaryingLevel(PerformVarying v, VaryingLevel lv)
+    {
+        InitVaryingTarget(v, lv);
+        Debug.EmitLoopPhase(_loop, DebugWhen.LoopInit, LevelOf(lv));
+    }
+
+    /// <summary>A level's augment, then the section that runs "immediately after each … modification … of the data item" (general rule
+    /// 5 c / 6 b).</summary>
+    private void AugmentLevel(VaryingLevel lv)
+    {
+        Augment(lv);
+        Debug.EmitLoopPhase(_loop, DebugWhen.LoopAugment, LevelOf(lv));
     }
 
     /// <summary>Initialize a PERFORM VARYING (or AFTER) level's target from its FROM operand (GR13).

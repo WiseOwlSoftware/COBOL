@@ -982,3 +982,12 @@ static WiseOwl.Cobol.Runtime.CobolArgAdapt.StoreReturn(WiseOwl.Cobol.Runtime.Cob
 static WiseOwl.Cobol.Runtime.MessageTag.SameParty(WiseOwl.Cobol.Runtime.MessageTag a, WiseOwl.Cobol.Runtime.MessageTag b) -> bool
 static readonly WiseOwl.Cobol.Runtime.MessageTag.Null -> WiseOwl.Cobol.Runtime.MessageTag
 WiseOwl.Cobol.Runtime.Repository.RepositoryCategory.MessageTag = 10 -> WiseOwl.Cobol.Runtime.Repository.RepositoryCategory
+*REMOVED*WiseOwl.Cobol.Runtime.DebugItem.DebugItem() -> void
+*REMOVED*const WiseOwl.Cobol.Runtime.DebugItem.ContentsWidth = 30 -> int
+*REMOVED*const WiseOwl.Cobol.Runtime.DebugItem.GroupWidth = 86 -> int
+WiseOwl.Cobol.Runtime.DebugItem.DebugItem(int contentsWidth = 30) -> void
+WiseOwl.Cobol.Runtime.DebugItem.ContentsWidth.get -> int
+const WiseOwl.Cobol.Runtime.DebugItem.MinContentsWidth = 30 -> int
+static WiseOwl.Cobol.Runtime.DebugItem.GroupWidthFor(int contentsWidth) -> int
+WiseOwl.Cobol.Runtime.DebugItem.PopulateReference(int line, string! name, string! contents, params long[]! occurrences) -> void
+const WiseOwl.Cobol.Runtime.DebugItem.MaxSubscriptLevels = 3 -> int

@@ -86,11 +86,26 @@ public static class BoundStores
     public static bool StoresInto(BoundStatement s, Func<DataItem, bool> matches) =>
         s.Accept(new StoreKindVisitor(matches, crossingsStore: false)) is not StoreKind.None;
 
+    /// <summary>The place through which <paramref name="s"/> ITSELF — never a statement nested in it — stores into
+    /// <paramref name="item"/>, or null when it does not. The third client (X3.23-1985 USE FOR DEBUGGING general rule 6 c, which
+    /// runs a debugging section "immediately after the execution of any other COBOL statement that explicitly references and causes the
+    /// content of the data item … to be changed"; rule 7 makes each imperative verb a statement of its own;
+    /// docs/CONTROL_FLOW_DESIGN.md D20): the same emitter-verified classification as <see cref="StoresInto"/>, over the direct
+    /// operands only. A BY REFERENCE CALL argument is not a store here, for <see cref="StoresInto"/>'s reason.</summary>
+    public static Place? DirectStoreOf(BoundStatement s, DataItem item)
+    {
+        var visitor = new StoreKindVisitor(x => ReferenceEquals(x, item), crossingsStore: false, direct: true);
+        return s.Accept(visitor) is StoreKind.None ? null : visitor.FirstHit;
+    }
+
     /// <summary>The per-node store classification (the former <c>StoreKindOf</c> switch, one arm per leaf) —
     /// the exhaustive <see cref="IBoundStatementVisitor{T}"/> over the bound statements, carrying the target
     /// <paramref name="item"/> so recursion is <c>child.Accept(this)</c>.</summary>
-    private sealed class StoreKindVisitor(Func<DataItem, bool> matches, bool crossingsStore) : IBoundStatementVisitor<StoreKind>
+    private sealed class StoreKindVisitor(Func<DataItem, bool> matches, bool crossingsStore, bool direct = false) : IBoundStatementVisitor<StoreKind>
     {
+        /// <summary>The first <see cref="Place"/> a matching store went through, or null (<see cref="DirectStoreOf"/> reads it).</summary>
+        public Place? FirstHit { get; private set; }
+
         /// <summary>Does the statement store through <paramref name="p"/> into a matching item? Every arm asks its store
         /// positions through here (or through a helper that does), so a store into a reference-modified WINDOW of the
         /// item (<see cref="WholeReceiverStore"/>) is noted once, for every present and future whole-receiver arm, in
@@ -98,6 +113,7 @@ public static class BoundStores
         private bool Hit(Place? p)
         {
             if (p is null || !matches(p.Item)) return false;
+            FirstHit ??= p;
             if (WholeReceiverStore(p) is StoreKind.WriteInPart) StoredThroughWindow = true;
             return true;
         }
@@ -112,8 +128,14 @@ public static class BoundStores
         private bool IntoHit(BoundMove? m) => m is not null && m.Targets.Any(Hit);
         private bool ReceiversHit(IReadOnlyList<Receiver> rs) => rs.Any(r => Hit(r.Place));
 
-        // Aggregate child-statement lists: a found store dominates (the temp occurs exactly once).
-        private StoreKind Kids(params IEnumerable<BoundStatement>?[] lists)
+        // The statements NESTED in this one — a conditional phrase's imperative statements, an IF or EVALUATE arm, an inline
+        // PERFORM body: each is a statement of its own. A found store dominates (the temp occurs exactly once). A DIRECT query
+        // (the debug triggers, X3.23-1985 USE FOR DEBUGGING general rule 7) asks the statement ITSELF and never descends here.
+        private StoreKind Kids(params IEnumerable<BoundStatement>?[] lists) => direct ? StoreKind.None : Steps(lists);
+
+        // The steps of a container that is one source statement made of several nodes (BoundSequence's operand-evaluation steps,
+        // BoundImplicitSeries's members): always descended, whatever the query.
+        private StoreKind Steps(params IEnumerable<BoundStatement>?[] lists)
         {
             foreach (var list in lists)
                 foreach (var child in list ?? [])
@@ -194,11 +216,12 @@ public static class BoundStores
         public StoreKind Visit(BoundUnlock n) => StoreKind.None;
 
         // ── Wrappers / containers ───────────────────────────────────────────────────────────────────────
-        public StoreKind Visit(BoundSequence n) => Kids(n.Steps);
+        public StoreKind Visit(BoundSequence n) => Steps(n.Steps);
         // A multi-operand verb's implicit statements (ISO §14.9.20.4 GR3 and siblings — BoundImplicitSeries):
         // a container exactly like BoundSequence for this query, since any member may carry the store.
-        public StoreKind Visit(BoundImplicitSeries n) => Kids(n.Members);
+        public StoreKind Visit(BoundImplicitSeries n) => Steps(n.Members);
         public StoreKind Visit(BoundEcChecked n) => n.Inner.Accept(this);
+        public StoreKind Visit(BoundDebugTriggered n) => n.Inner.Accept(this);   // the USE FOR DEBUGGING wrapper is the same statement (D20)
         public StoreKind Visit(BoundActivationSite n) => n.Inner.Accept(this);
         public StoreKind Visit(BoundReceiverBrackets n) => n.Inner.Accept(this);   // the brackets' accessors are not stores of the statement's receivers
         public StoreKind Visit(BoundIf n) => Kids(n.Then, n.Else);
