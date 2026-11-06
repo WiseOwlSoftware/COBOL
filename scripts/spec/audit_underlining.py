@@ -46,6 +46,7 @@ rectangles before changing anything.
     python scripts/spec/audit_underlining.py                 # whole standard
     python scripts/spec/audit_underlining.py --pages 600 700
     python scripts/spec/audit_underlining.py --json out.json
+    python scripts/spec/audit_underlining.py --edition 2002  # another edition's transcription and PDF (default 2023)
 """
 from __future__ import annotations
 
@@ -58,10 +59,7 @@ import sys
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
-import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
-PDF = spec_pdf.path(2023)
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 
 # A COBOL reserved word as printed in a general format: uppercase, digits and hyphens.
 RESERVED = re.compile(r"^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*$")
@@ -92,7 +90,7 @@ def page_slices(md_lines):
 # what it needs to live on for the rest.
 def _require_page_anchors(figs):
     if not figs:
-        sys.exit("HALTED: no page anchors in specs/ISO_COBOL_2023.md — pages were removed from the transcription, "
+        sys.exit("HALTED: no page anchors in the transcription (specs/*.md) — pages were removed from it, "
                  "so this page-keyed audit can no longer bucket it. For figures use "
                  "`python scripts/spec/sweep_figures.py --check`, which regenerates and diffs exactly. "
                  "This audit needs re-keying onto the clause hierarchy.")
@@ -104,15 +102,17 @@ def main() -> int:
     ap.add_argument("--pages", nargs=2, type=int, metavar=("FROM", "TO"))
     ap.add_argument("--json")
     ap.add_argument("--quiet", action="store_true", help="totals only")
+    spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
-    spec_pdf.require(2023)
+    spec_pdf.require_vector(args.edition, "audit_underlining.py")
+    pdf = spec_pdf.require(args.edition)
     import fitz
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
     from figure_extract import extract
 
-    doc = fitz.open(PDF)
-    md = SPEC_MD.read_text(encoding="utf-8").splitlines()
+    doc = fitz.open(pdf)
+    md = spec_pdf.markdown(args.edition).read_text(encoding="utf-8").splitlines()
     slices = page_slices(md)
     lo, hi = args.pages if args.pages else (1, doc.page_count)
 

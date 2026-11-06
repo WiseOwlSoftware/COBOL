@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Validate a spec citation against `specs/ISO_COBOL_2023.md` — the mechanical check for CLAUDE.md rule 1.
+"""Validate a spec citation against the transcription of the standard (`--edition`, default 2023: `specs/ISO_COBOL_2023.md`)
+— the mechanical check for CLAUDE.md rule 1.
 
 WHY THIS EXISTS. Rule 1 requires the exact §/GR for any semantics question, and the failure mode is not
 inventing a citation — it is INHERITING one. A fix-queue entry or design doc carries "§8.4.1.2 GR2", the text
@@ -38,11 +39,11 @@ import functools
 import pathlib
 import re
 import sys
+import tempfile
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC = REPO / "specs" / "ISO_COBOL_2023.md"
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 
 # A clause number is either the body's dotted decimal (14.9.39.4) or an ANNEX's letter-headed form
 # (E.2, A.4.14, D.2.2.5.1). The annex alternative requires at least one dot segment, which is what keeps it
@@ -171,7 +172,11 @@ def check(lines, cls, clause, text):
                "      run --find to locate the text and get the clause it is really in"]
 
 
-def load(path: pathlib.Path = SPEC):
+def load(edition: int = spec_pdf.DEFAULT_EDITION, repo: pathlib.Path = spec_pdf.REPO):
+    """The lines and clause regions of `edition`'s transcription."""
+    path = spec_pdf.markdown(edition, repo)
+    if not path.is_file():
+        sys.exit(f"FATAL: the {edition} transcription ({path.relative_to(repo).as_posix()}) does not exist in this tree.")
     lines = path.read_text(encoding="utf-8").splitlines()
     return lines, clauses(lines)
 
@@ -179,7 +184,20 @@ def load(path: pathlib.Path = SPEC):
 def self_test() -> int:
     """Each guard is shown to FIRE on its defect and to stay SILENT on its neighbour (kb/Work PB308, PB309)."""
     lines, cls = load()
+    with tempfile.TemporaryDirectory() as td:
+        planted = pathlib.Path(td)
+        planted_md = spec_pdf.markdown(2002, planted)
+        planted_md.parent.mkdir()
+        planted_md.write_text("## 9.9 Planted\n\nthe planted sentence\n", encoding="utf-8", newline="\n")
+        edition_2002 = check(*load(2002, planted), "9.9", "the planted sentence")[0]
+        try:
+            load(1985, planted)
+            absent_1985 = False
+        except SystemExit as ex:
+            absent_1985 = "1985" in str(ex.code)
     cases = [
+        ("reads the transcription of the edition named (2002), not 2023's", edition_2002 == 0),
+        ("an edition whose transcription is absent exits naming it", absent_1985),
         ("fires EMPTY-NEEDLE (check)", check(lines, cls, "7.1", "| + | + | - |")[0] == 1),
         ("fires EMPTY-NEEDLE (find)", find(lines, cls, "| + | - |")[0] == 1),
         ("silent on a needle carrying digits", check(lines, cls, "15.43.4", "| S999 | +999 |")[0] == 0),
@@ -208,13 +226,14 @@ def main() -> int:
                     help="assert TEXT appears inside CLAUSE's own region; exit 1 if not")
     ap.add_argument("--find", metavar="TEXT", help="which clause(s) contain this text")
     ap.add_argument("--self-test", action="store_true", help="prove each guard fires and stays silent")
+    spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
     if args.self_test:
         return self_test()
     if not (args.find or args.check):
         ap.print_help()
         return 2
-    lines, cls = load()
+    lines, cls = load(args.edition)
     code, out = find(lines, cls, args.find) if args.find else check(lines, cls, *args.check)
     print("\n".join(out))
     return code
