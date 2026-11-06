@@ -606,7 +606,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         //    and naming it is the choice docs/CONFORMANCE.md §4 item 3 records (kb/Work PB709). Each binds
         //    to BoundNop: the program compiles, runs, and the facility is inert — never a silent wrong answer,
         //    and never an EC (licensed off by §14.6.13.1.1). The statement's IDENTIFIERS are still read first
-        //    (DeclinedFacilityBinder, kb/Work PB3568); BindDeclinedStatement says why below the statement's
+        //    (VALIDATE by DeclinedFacilityBinder, kb/Work PB3568; SEND and RECEIVE by MessagingBinder, PB4743); BindDeclinedStatement says why below the statement's
         //    introduction (VALIDATE 2002, RECEIVE / SEND 2023) it does neither. ──
         _ when s.messagingReceiveStatement() is { } rcv => BindDeclinedStatement(Constructs.AsyncMessaging2023,
             DiagnosticCatalog.McsFacilityUnsupported, r => _ = Messaging.BindReceive(r), rcv),

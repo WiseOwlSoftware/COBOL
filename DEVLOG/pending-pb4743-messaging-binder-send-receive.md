@@ -29,3 +29,13 @@ The architecture ratchets took one new pair (`StatementBinder` to `MessagingBind
 **Self-review.** Architecture: one binder per statement family, one operand-class helper, no C# text in a node. Full code: the rule texts are `cite.py`-checked and
 quoted in the refusals; sibling arms (SEND and RECEIVE) share `ScreenMessageArea`. Performance: the walk is one pass over a record's items per statement at bind time.
 Duplication: `ClassifySend`, `ScreenName`, `ScreenSendRequiredPhrases` moved, none copied.
+
+**Branch review, round 1.** Two blocking findings, both fixed at the root. (R1-1) A constant-name after TO is literal-1 (§13.10.3 SR2, §13.10.4 GR1): `BindSend` now asks
+`LiteralAliasOf` before it takes the word for a message-server-name-1, so a numeric constant draws COBOL6265 as `SEND TO 5` does, and a string constant binds its literal
+(`BoundSendToServer.ServerLiteral`) instead of its name; `ClassifySend` counts the alias as Format 1's evidence, and the drift test's exemption for the statement is gone because
+a golden now witnesses the slot. (R1-2) SEND's identifier-1 is any identifier (§8.4.3.1.2): the grammar's FROM operand is `inlineMethodInvocation | dataReference | functionCall`,
+and `BoundSendToServer.From`/`BoundSendResponse.From` are `BoundOperand`s (a data item's place or a function's or method's value); only a place is walked by SR3. Leads fixed in the same
+files: a figurative constant is a legal literal-1 (R1-3), a reference-modified identifier-1 is asked its base item's own clauses (R1-4), and the COBOL6266 catalog text, the
+CONFORMANCE paragraph and the StatementBinder comment no longer name RECEIVE's unreachable CONSTANT RECORD arm or the old binder (R1-5). Goldens: the accepted SEND case gained a
+constant-name, a figurative and a FUNCTION leg; `pb4743-send-constant-numeric` (COBOL6265) and `pb4743-send-from-refmod-based` (COBOL6266) are new refusals; `MessagingSyntaxRuleTests`
+gained the constant-name, function and slice theories.

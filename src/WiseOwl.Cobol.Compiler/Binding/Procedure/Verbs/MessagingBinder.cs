@@ -76,13 +76,14 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
         // reference-modified or special-register operand is neither a message-server-name-1 nor a data-name-2 (ScreenName); it was reported once and is read
         // no further.
         bool toIsName = to is null || ScreenName(to, "SEND TO operand", SendClause);
-        var format = ClassifySend(s, to, toIsName, out _);
+        // ⛔ A CONSTANT-NAME AFTER TO IS literal-1 (kb/Work PB4743, review R1-1): "the effect of specifying constant-name-1 ... is as if literal-1 ... were written" (ISO §13.10.4 GR1; §13.10.3 SR2 admits
+        // the name "anywhere that a format specifies a literal of the class and category of constant-name-1"), so the one alias resolution is asked before the word is taken for a message-server-name-1.
+        var toAlias = to is not null && toIsName ? host.Expr.LiteralAliasOf(to) : null;
+        var format = ClassifySend(s, to, toIsName, toAlias, out _);
         BoundStatement? refusal = toIsName ? null : BoundRejected.Reported(ctx.Edition);
         if (format is SendFormat.Unclassified) refusal ??= BoundRejected.Reported(ctx.Edition);
 
-        var fromReference = DataReferencesAfter(s, Core.FROM).FirstOrDefault();
-        Place? from = fromReference is null ? null : Sending(fromReference, ref refusal);
-        if (from is not null && ScreenMessageArea(fromReference!, from, receiving: false) is { } areaRefusal) refusal ??= areaRefusal;
+        var from = BindSendFrom(s, ref refusal);
 
         BoundStatement bound;
         if (format is SendFormat.MessageServerResponse)
@@ -101,7 +102,7 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
                 else refusal ??= BoundRejected.Reported(ctx.Edition);
             }
             var (onException, notOnException) = BindExceptionPhrases(s.conditionalPhrases());
-            if (ScreenSendRequiredPhrases(s, format)) refusal ??= BoundRejected.Reported(ctx.Edition);
+            if (ScreenSendRequiredPhrases(s, format, false)) refusal ??= BoundRejected.Reported(ctx.Edition);
             if (refusal is not null || from is null || toPlace is null) return refusal ?? BoundRejected.Reported(ctx.Edition);
             bound = new BoundSendResponse(toPlace, from, raising, s.LAST() is not null, onException, notOnException);
         }
@@ -117,28 +118,67 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
                         "ISO §14.9.38.3 SR4", "Data-name-1 and data-name-2 shall be the name of a message-tag data item.");
             }
             BoundOperand? serverLiteral = null;
-            if (s.literal() is { } literal)
-            {
-                serverLiteral = host.Expr.LiteralOperand(literal);
-                // The literal's own category is the question (a literal is no data item, so no lattice class is asked): a plain or N"" literal passes, a numeric
-                // or B"" literal does not.
-                if (serverLiteral is not BoundStringLiteral { Category: PicCategory.Alphanumeric or PicCategory.National })
-                {
-                    using var at = ctx.Edition.At(literal);
-                    ctx.Edition.Error(DiagnosticCatalog.MessagingOperandClass,
-                        $"SEND TO {literal.GetText()}: literal-1 is not an alphanumeric or national literal; ISO §14.9.38.3 SR1: "
-                        + "\"Literal-1 shall be an alphanumeric or national literal.\"");
-                    refusal ??= BoundRejected.Reported(ctx.Edition);
-                }
-            }
+            bool literalWritten = s.literal() is not null || toAlias is not null;
+            if (s.literal() is { } literal) serverLiteral = ScreenServerLiteral(host.Expr.LiteralOperand(literal), literal, literal.GetText(), ref refusal);
+            else if (toAlias is not null) serverLiteral = ScreenServerLiteral(host.Expr.AliasOperand(toAlias), to!, toAlias.Word, ref refusal);
             var (onException, notOnException) = BindExceptionPhrases(s.conditionalPhrases());
-            if (ScreenSendRequiredPhrases(s, format)) refusal ??= BoundRejected.Reported(ctx.Edition);
-            string? serverName = serverLiteral is null && to is not null && toIsName ? DataBinder.WrittenText(to) : null;
+            if (ScreenSendRequiredPhrases(s, format, literalWritten)) refusal ??= BoundRejected.Reported(ctx.Edition);
+            string? serverName = !literalWritten && to is not null && toIsName ?DataBinder.WrittenText(to) : null;
             if (refusal is not null || from is null || returning is null || (serverLiteral is null && serverName is null))
                 return refusal ?? BoundRejected.Reported(ctx.Edition);
             bound = new BoundSendToServer(serverName, serverLiteral, from, returning, onException, notOnException);
         }
         return bound;
+    }
+
+    /// <summary>⛔ SEND SR1 ON THE LITERAL-1 OPERAND, WRITTEN OR SUBSTITUTED (ISO §14.9.38.3 SR1: "Literal-1 shall be an alphanumeric or national literal."). The
+    /// literal's own category is the question (a literal is no data item, so no lattice class is asked): a plain, hexadecimal or N"" literal passes, and so
+    /// does a figurative constant — §8.3.3.6.3 SR1 admits one "whenever 'literal' appears in a format" unless the literal is restricted to numeric, and this
+    /// rule restricts it to alphanumeric or national, which a figurative constant is in an alphanumeric context (kb/Work PB4743, review R1-3). A numeric or
+    /// boolean literal does not. An operand already refused where it was bound is reported once, there.</summary>
+    /// <returns>the operand, or null after the refusal was recorded.</returns>
+    private BoundOperand? ScreenServerLiteral(BoundOperand operand, ParserRuleContext at, string written, ref BoundStatement? refusal)
+    {
+        switch (operand)
+        {
+            case BoundStringLiteral { Category: PicCategory.Alphanumeric or PicCategory.National }:
+            case BoundAllLiteral { Category: PicCategory.Alphanumeric or PicCategory.National }:
+            case BoundFigurative:
+                return operand;
+            case BoundOperandError:
+                refusal ??= BoundRejected.Reported(ctx.Edition);
+                return null;
+        }
+        using var scope = ctx.Edition.At(at);
+        ctx.Edition.Error(DiagnosticCatalog.MessagingOperandClass,
+            $"SEND TO {written}: literal-1 is not an alphanumeric or national literal; ISO §14.9.38.3 SR1: "
+            + "\"Literal-1 shall be an alphanumeric or national literal.\"");
+        refusal ??= BoundRejected.Reported(ctx.Edition);
+        return null;
+    }
+
+    /// <summary>⛔ SEND's identifier-1 IS ANY IDENTIFIER (ISO §14.9.38.2; §8.4.3.1.2 Format 1 a function-identifier, Format 4 an inline method invocation; both
+    /// are barred only from a RECEIVING operand, §8.4.3.2.3 SR1, §8.4.3.4.3 SR1), so the operand is a <see cref="BoundOperand"/>: a data item's place, or a
+    /// function's or method's value, as every other sending identifier is (kb/Work PB4743, review R1-2). SR3 asks about "the data description entries of
+    /// identifier-1", which only a data item has, so only a place is walked (<see cref="ScreenMessageArea"/>).</summary>
+    private BoundOperand? BindSendFrom(Core.MessagingSendStatementContext s, ref BoundStatement? refusal)
+    {
+        BoundOperand? operand = null;
+        if (s.functionCall() is { } function) operand = host.Intrinsic.IntrinsicOperand(function);
+        else if (s.inlineMethodInvocation() is { } invocation) operand = host.Oo.OoInlineInvocationOperand(invocation);
+        else if (DataReferencesAfter(s, Core.FROM).FirstOrDefault() is { } reference)
+        {
+            // A repository function written without FUNCTION is a function-identifier too (§8.4.3.2 SR2), read as FieldOperand reads it.
+            if (host.Intrinsic.KeywordOmittedFunction(reference) is { } keywordOmitted) operand = IntrinsicBinder.OperandOf(keywordOmitted, functionValue: true);
+            else if (Sending(reference, ref refusal) is { } place)
+            {
+                if (ScreenMessageArea(reference, place, receiving: false) is { } areaRefusal) refusal ??= areaRefusal;
+                operand = new BoundFieldOperand(place);
+            }
+        }
+        if (operand is not BoundOperandError) return operand;
+        refusal ??= BoundRejected.Reported(ctx.Edition);
+        return null;
     }
 
     private Place? Sending(Core.DataReferenceContext dref, ref BoundStatement? refusal)
@@ -181,8 +221,13 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
     /// hold) or is not the message area's own (BASED).</summary>
     private BoundStatement? ScreenMessageArea(Core.DataReferenceContext operand, Place place, bool receiving)
     {
-        if (place.DenotedItem is not { } root) return null;
-        foreach (var item in DataItem.SelfAndDescendantsOf(root))
+        // ⛔ A REFERENCE-MODIFIED identifier-1 (kb/Work PB4743, review R1-4): §8.4.3.3.4 GR5 makes the slice "a unique data item that is a subset of the data
+        // item referenced by identifier-1" with NO subordinates, and GR6 gives it its base's class, category and usage, so its one data description entry is the
+        // base item's own: the walk asks that entry (a BASED, DYNAMIC-LENGTH, ANY LENGTH, pointer or ODO base item draws the refusal, as the whole item does)
+        // and not the base's subordinates, which the slice does not have.
+        var root = place.DenotedItem ?? place.Item;
+        var items = place.DenotedItem is null ? [root] : DataItem.SelfAndDescendantsOf(root);
+        foreach (var item in items)
         {
             string? clause = ForbiddenClause(item, root);
             if (clause is null) continue;
@@ -236,13 +281,15 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
     /// evidence exactly as a message-tag item is. An operand <paramref name="toIsName"/> refused (a subscript, a reference modifier, a special register:
     /// neither format prints one) says nothing about the format; if nothing else does, the statement is <see cref="SendFormat.Unclassified"/> and is not also
     /// asked for the RETURNING phrase it may not need.</para></summary>
-    private SendFormat ClassifySend(Core.MessagingSendStatementContext s, Core.DataReferenceContext? to, bool toIsName, out bool toIsMessageTag)
+    private SendFormat ClassifySend(Core.MessagingSendStatementContext s, Core.DataReferenceContext? to, bool toIsName,
+        ExpressionBinder.LiteralAlias? toAlias, out bool toIsMessageTag)
     {
-        toIsMessageTag = to is not null && toIsName && ctx.Refs.ProbeDeclaration(to) is { } declaration
+        toIsMessageTag = to is not null && toIsName && toAlias is null && ctx.Refs.ProbeDeclaration(to) is { } declaration
             && ItemCategory.IsMessageTag(declaration);
         bool toIsQualified = to is not null && toIsName && ReferenceResolver.ReadWritten(to).Qualifiers.Count > 0;
         List<string> format1 = [], format2 = [];
         if (s.literal() is not null) format1.Add("a literal-1 operand");
+        else if (toAlias is not null) format1.Add($"the TO operand '{toAlias.Word}', {toAlias.Described} (ISO §13.10.3 SR2)");
         if (s.RETURNING() is not null) format1.Add("the RETURNING phrase");
         if (s.RAISING() is not null) format2.Add("the RAISING phrase");
         if (toIsMessageTag) format2.Add($"the TO operand '{DataBinder.WrittenText(to!)}', a message-tag data item");
@@ -281,12 +328,12 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
     /// that is no message-tag data item — message-server-name-1 (§14.9.38.3 SR2) — neither of which Format 2 prints (kb/Work PB4090). An
     /// <see cref="SendFormat.Unclassified"/> statement has drawn its refusal and is asked no more.</summary>
     /// <returns>true when a required phrase is omitted, after reporting it.</returns>
-    private bool ScreenSendRequiredPhrases(Core.MessagingSendStatementContext s, SendFormat format)
+    private bool ScreenSendRequiredPhrases(Core.MessagingSendStatementContext s, SendFormat format, bool literalWritten)
     {
         bool omitted = ctx.Validation.ScreenOmittedRequiredPhrase(s.END_SEND() is null, "END-SEND", "SEND",
             "both of its general formats print END-SEND on a line of its own without brackets", SendClause);
         if (format is not SendFormat.ToMessageServer) return omitted;
-        bool literal = s.literal() is not null;
+        bool literal = literalWritten;
         omitted |= ctx.Validation.ScreenOmittedRequiredPhrase(s.RETURNING() is null, "RETURNING",
             literal ? "SEND TO literal-1" : "SEND TO message-server-name-1",
             (literal ? "a literal-1 operand" : "a TO name that is no message-tag data item, which is message-server-name-1")

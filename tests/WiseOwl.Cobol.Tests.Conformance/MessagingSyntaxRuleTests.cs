@@ -159,6 +159,9 @@ public sealed class MessagingSyntaxRuleTests
     [InlineData("SEND TO N\"SRV\" FROM WS-MSG RETURNING MT END-SEND.", false)]
     [InlineData("SEND TO 5 FROM WS-MSG RETURNING MT END-SEND.", true)]
     [InlineData("SEND TO 5.5 FROM WS-MSG RETURNING MT END-SEND.", true)]
+    [InlineData("SEND TO K-NUM FROM WS-MSG RETURNING MT END-SEND.", true)]
+    [InlineData("SEND TO K-SRV FROM WS-MSG RETURNING MT END-SEND.", false)]
+    [InlineData("SEND TO SPACE FROM WS-MSG RETURNING MT END-SEND.", false)]
     [InlineData("SEND TO \"SRV\" FROM WS-MSG RETURNING WS-LEN END-SEND.", true)]
     [InlineData("SEND TO MT FROM WS-MSG END-SEND.", false)]
     [InlineData("SEND TO WS-LEN FROM WS-MSG RAISING LAST END-SEND.", true)]
@@ -171,10 +174,52 @@ public sealed class MessagingSyntaxRuleTests
     [InlineData("RECEIVE WS-LEN GIVING WS-MSG WS-LEN END-RECEIVE.", true)]
     public void TheClassScreens(string statement, bool refused)
     {
-        const string items = "01 WS-BIN PIC S9(4) COMP.\n        01 WS-PACKED PIC 9(5) COMP-3.\n        01 WS-FRAC PIC 9V99.\n        01 WS-FLOAT COMP-2.";
+        const string items = "01 WS-BIN PIC S9(4) COMP.\n        01 WS-PACKED PIC 9(5) COMP-3.\n        01 WS-FRAC PIC 9V99.\n        01 WS-FLOAT COMP-2.\n        01 K-NUM CONSTANT AS 5.\n        01 K-SRV CONSTANT AS \"SRV\".";
         var diagnostics = EditionHarness.GetDiagnostics(Prog("PB4743T8", items, statement), 2023);
         if (refused) EditionHarness.AssertHasDiagnostic(diagnostics, OperandClass);
         else EditionHarness.AssertNoDiagnostic(diagnostics, OperandClass);
+    }
+
+    /// <summary>⛔ A CONSTANT-NAME AFTER TO IS literal-1 (§13.10.3 SR2, §13.10.4 GR1; review R1-1): the statement binds the constant's literal, never the
+    /// constant's NAME as a message-server-name-1, and SR1 is asked of the literal it stands for.</summary>
+    [Fact]
+    public void ATo_ConstantName_IsLiteral1_NotAServerName()
+    {
+        const string items = "01 K-SRV CONSTANT AS \"SRV\".\n        01 K-NUM CONSTANT AS 5.";
+        var legal = EditionHarness.GetDiagnostics(Prog("PB4743TB", items, "SEND TO K-SRV FROM WS-MSG RETURNING MT END-SEND."), 2023);
+        EditionHarness.AssertNoDiagnostic(legal, OperandClass);
+        var numeric = EditionHarness.GetDiagnostics(Prog("PB4743TC", items, "SEND TO K-NUM FROM WS-MSG RETURNING MT END-SEND."), 2023);
+        EditionHarness.AssertHasDiagnostic(numeric, OperandClass);
+        EditionHarness.AssertHasDiagnostic(numeric, "ISO §14.9.38.3 SR1");
+        // A constant-name is Format 1's literal-1: with RAISING it is a phrase of each format (COBOL5488), exactly as the written literal is.
+        var both = EditionHarness.GetDiagnostics(Prog("PB4743TD", items, "SEND TO K-SRV FROM WS-MSG RAISING LAST END-SEND."), 2023);
+        EditionHarness.AssertHasDiagnostic(both, "COBOL5488");
+    }
+
+    /// <summary>⛔ SEND's identifier-1 IS ANY IDENTIFIER (§8.4.3.1.2 Format 1: a function-identifier; review R1-2), so a function value is a legal FROM
+    /// operand and draws no syntax error.</summary>
+    [Fact]
+    public void SendFrom_AFunctionIdentifier_IsLegal()
+    {
+        var diagnostics = EditionHarness.GetDiagnostics(
+            Prog("PB4743TE", "", "SEND TO \"SRV\" FROM FUNCTION UPPER-CASE(WS-MSG) RETURNING MT END-SEND."), 2023);
+        EditionHarness.AssertNoDiagnostic(diagnostics, "COBOL5506");
+        EditionHarness.AssertNoDiagnostic(diagnostics, OperandClass);
+        EditionHarness.AssertNoDiagnostic(diagnostics, MessageArea);
+    }
+
+    /// <summary>⛔ A REFERENCE-MODIFIED identifier-1 is asked its base item's own data description entry (§8.4.3.3.4 GR5, GR6; review R1-4), so a slice of
+    /// a BASED or DYNAMIC LENGTH item is refused as the whole item is.</summary>
+    [Theory]
+    [InlineData("01 MSG-AREA BASED PIC X(8).", "BASED")]
+    [InlineData("01 MSG-AREA PIC X DYNAMIC LENGTH.", "DYNAMIC-LENGTH")]
+    public void AReferenceModifiedArea_IsAskedItsBaseItemsClauses(string items, string clause)
+    {
+        var send = EditionHarness.GetDiagnostics(Prog("PB4743TF", items, "SEND TO \"SRV\" FROM MSG-AREA(1:2) RETURNING MT END-SEND."), 2023);
+        EditionHarness.AssertHasDiagnostic(send, MessageArea);
+        EditionHarness.AssertHasDiagnostic(send, clause);
+        var receive = EditionHarness.GetDiagnostics(Prog("PB4743TG", items, "RECEIVE MT GIVING MSG-AREA(1:2) WS-LEN END-RECEIVE."), 2023);
+        EditionHarness.AssertHasDiagnostic(receive, MessageArea);
     }
 
     /// <summary>The word after CONTINUE AFTER MESSAGE is RECEIVED (§14.9.31.2): any other word is a parse error, and the data item named MESSAGE still

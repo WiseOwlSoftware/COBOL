@@ -3262,7 +3262,7 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
    §14.9.31.3 SR1) and RECEIVE's data-name-2 an integer data item of class numeric (§14.9.31.3 SR3), each refused with
    **COBOL6265**; identifier-1 of either statement and every item subordinate to it carries no ANY LENGTH, BASED, DYNAMIC-LENGTH,
    OBJECT-REFERENCE, POINTER, FUNCTION-POINTER or PROGRAM-POINTER clause and no OCCURS DEPENDING ON whose object lies outside
-   identifier-1, and a RECEIVE's no CONSTANT RECORD clause either (§14.9.38.3 SR3, §14.9.31.3 SR2), each refused with **COBOL6266**;
+   identifier-1 (§14.9.38.3 SR3, §14.9.31.3 SR2), each refused with **COBOL6266** (a RECEIVE's CONSTANT RECORD receiver is the receiving funnel's COBOL1548 first, §13.18.15.3 SR2);
    and the word after `CONTINUE AFTER MESSAGE` is RECEIVED (§14.9.31.2). The binder builds one node per statement format
    (`BoundSendToServer`, `BoundSendResponse`, `BoundReceiveMessage`); the statements stay accepted-inert until the exchange
    is rendered (slice S4). Pinned by

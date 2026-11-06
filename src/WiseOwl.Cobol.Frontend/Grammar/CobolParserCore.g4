@@ -1111,7 +1111,7 @@ messagingSendStatement
     // is a fact about its DECLARATION, which no parse alternative can read — so splitting the rule per format would
     // still leave `SEND TO name FROM x` to the binder. MessagingBinder.ClassifySend assigns the format once;
     // a phrase of each format in one statement is COBOL5488 and a Format 1 without RETURNING is COBOL1850.
-    : SEND TO? (literal | dataReference) FROM dataReference
+    : SEND TO? (literal | dataReference) FROM (inlineMethodInvocation | dataReference | functionCall)
       (RETURNING dataReference)?
       (RAISING (EXCEPTION cobolWord | LAST EXCEPTION?))?
       conditionalPhrases

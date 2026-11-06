@@ -346,8 +346,8 @@ ConditionalPhraseFamily.Exception, ...)`:
 
 | Node | Members |
 |---|---|
-| `BoundSendToServer` | the server (a `string` name or a literal), the FROM place, the RETURNING place, the phrases |
-| `BoundSendResponse` | the TO place, the FROM place, the RAISING exception-name or LAST, the phrases |
+| `BoundSendToServer` | the server (a `string` name or a literal), the FROM operand (a place, or a function or method value), the RETURNING place, the phrases |
+| `BoundSendResponse` | the TO place, the FROM operand (a place, or a function or method value), the RAISING exception-name or LAST, the phrases |
 | `BoundReceiveMessage` | the FROM place, the GIVING place, the length place, the wait (none, seconds expression, poll), the phrases |
 
 `ClassifySend` moves unchanged: a literal-1 and RETURNING are Format 1's evidence, RAISING and a message-tag or qualified TO

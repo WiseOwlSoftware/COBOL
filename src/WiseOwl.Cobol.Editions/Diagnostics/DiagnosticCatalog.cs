@@ -9153,7 +9153,7 @@ public static class DiagnosticCatalog
         "COBOL6266", "messaging-message-area", EditionSeverity.Error,
         "The data description entries of identifier-1 of SEND or RECEIVE, or of any data item subordinate to it, contain a clause the message area shall not "
         + "contain: the ANY LENGTH, BASED, DYNAMIC-LENGTH, OBJECT-REFERENCE, POINTER, FUNCTION-POINTER or PROGRAM-POINTER clause, an OCCURS clause with "
-        + "the DEPENDING ON phrase where the depending on data item is not within identifier-1, and, for RECEIVE, the CONSTANT RECORD clause "
+        + "the DEPENDING ON phrase where the depending on data item is not within identifier-1 "
         + "(ISO §14.9.38.3 SR3; §14.9.31.3 SR2).",
         "ISO §14.9.38.3 SR3; §14.9.31.3 SR2");
 

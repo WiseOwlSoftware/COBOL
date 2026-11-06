@@ -91,8 +91,6 @@ public sealed class ConstantNameLiteralPositionDriftTests
         ["paddingCharacterClause"] = "the SELECT PADDING CHARACTER clause, obsolete at 2002 and absent from ISO 2014 and 2023 "
             + "(COBOL0903 / COBOL0902); its operand is never bound, so a golden that writes a constant-name there would "
             + "witness the parse alone",
-        ["messagingSendStatement"] = "the message server's SEND statement, a processor-dependent facility this implementation does not "
-            + "provide: accepted inert with COBOL1578 (docs/CONFORMANCE.md §4 item 1), so its operand never binds",
         ["screenFromClause"] = Screen,
         ["validateDefaultClause"] = Validate,
         ["validateStatusClause"] = Validate,
