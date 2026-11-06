@@ -1694,8 +1694,43 @@ internal static class IntrinsicArgumentRules
         // constant and step the item by 10^(−scale) — consecutive results are less than 1 apart, so a
         // non-integer value exists. An occurrence inside a NON-additive subtree voids the witness (the subtree
         // moves with the item — `SCALED - (SCALED * 1)` nets to zero through it), so such items are skipped.
-        var spine = new AdditiveSpine();
+        // ⛔ TWO READINGS OF A SIGNED FUNCTION ABS (kb/Work PB4796): FUNCTION ABS of a signed item X is X where X is not negative
+        // and - X where it is negative (§15.7.4 1) a) and b)), and the witness needs ONE valuation region, so the spine is walked
+        // once with every signed ABS read as the item (the non-negative region) and, when it held one, once more read as the
+        // item's negation (the non-positive region): `G2 - FUNCTION ABS (G2)` over a signed G2 nets to 0 in the first and to
+        // 2 * G2 in the second, which is not an integer for a negative G2, so the screen refuses it. An unsigned item has the
+        // first region only, where ABS is the item in both.
+        var spine = new AdditiveSpine(negativeRegime: false);
         CollectAdditive(expr, 1, spine);
+        if (ItemWitness(spine) is { } itemWhy) return itemWhy;
+        if (spine.SawSignedAbs)
+        {
+            var negativeRegime = new AdditiveSpine(negativeRegime: true);
+            CollectAdditive(expr, 1, negativeRegime);
+            if (ItemWitness(negativeRegime) is { } negativeWhy) return negativeWhy;
+        }
+        // THE CONSTANT WITNESS (kb/Work PB617). Every surviving item term is integral — an integer item, or a
+        // scaled item whose net coefficient its granularity cancels (in each region a signed ABS reads in), or a float netting
+        // to zero — so when every OTHER term is provably integral too (RestIntegral), the expression's value is the literal
+        // constant plus an integer for EVERY valuation: it is never an integer when the constant is not one. `1.5 + 1` (2.5)
+        // and `W-I + 0.5` are refused on that VALUE, while `1.5 + 0.5` (2) and `3 - 1` are admitted — the
+        // question is the sum, never the presence of a fraction in some literal. A term the fold cannot value
+        // and cannot prove integral (a numeric function, a quotient over an item) clears RestIntegral: FAIL OPEN.
+        // ⛔ The claim is "never" only when every term was read for EVERY valuation: a FUNCTION ABS of a sum is read as the sum on the
+        // valuations where the items are not negative (spine.AbsOfSum), and the message then says so (kb/Work PB4796 review R2-2).
+        if (spine.RestIntegral && !spine.Constant.IsInteger)
+            return $"is an arithmetic expression whose literal terms sum to {spine.Constant} and whose "
+                + (spine.AbsOfSum ? "other terms always sum to an integer wherever the items are not negative, so its value is not an integer there"
+                    : spine.SawSignedAbs ? "other terms always sum to an integer, so its value is never an integer"
+                    : "every other term is an integer, so its value is never an integer")
+                + " — ISO §15.3 type 6 admits an arithmetic expression only when it ALWAYS results in an integer value";
+        return null;
+    }
+
+    /// <summary>The §15.3 type 6 item witness over a walked spine: the first item whose net coefficient its granularity does
+    /// not cancel, as the violation text, or null (see <see cref="NotAlwaysIntegral"/> for the argument).</summary>
+    private static string? ItemWitness(AdditiveSpine spine)
+    {
         foreach (var (item, (coeff, scale, isFloat, opaque)) in spine.Net)
         {
             if (opaque || coeff == 0) continue;
@@ -1714,29 +1749,27 @@ internal static class IntrinsicArgumentRules
                 + ", so the sum does not always result in an integer value — ISO §15.3 "
                 + "type 6 admits an arithmetic expression only when it ALWAYS results in one";
         }
-        // THE CONSTANT WITNESS (kb/Work PB617). Every surviving item term is integral — an integer item, or a
-        // scaled item whose net coefficient its granularity cancels, or a float netting to zero — so when every
-        // OTHER term is provably integral too (RestIntegral), the expression's value is the literal constant plus
-        // an integer for EVERY valuation: it is never an integer when the constant is not one. `1.5 + 1` (2.5)
-        // and `W-I + 0.5` are refused on that VALUE, while `1.5 + 0.5` (2) and `3 - 1` are admitted — the
-        // question is the sum, never the presence of a fraction in some literal. A term the fold cannot value
-        // and cannot prove integral (a numeric function, a quotient over an item) clears RestIntegral: FAIL OPEN.
-        if (spine.RestIntegral && !spine.Constant.IsInteger)
-            return $"is an arithmetic expression whose literal terms sum to {spine.Constant} and whose every other "
-                + "term is an integer, so its value is never an integer — ISO §15.3 type 6 admits an arithmetic "
-                + "expression only when it ALWAYS results in an integer value";
         return null;
     }
 
     /// <summary>What <see cref="CollectAdditive"/> learns about an additive spine (+, −, unary −): the signed leaf
     /// count of every item whose DESCRIPTION admits a non-integral value, the exact signed sum of the terms the
     /// literal fold can value (<see cref="ExactValue"/>), and whether every remaining term is provably an
-    /// integer.</summary>
-    private sealed class AdditiveSpine
+    /// integer. <paramref name="negativeRegime"/> is the valuation region a signed FUNCTION ABS is read in: false, every
+    /// item not negative (ABS is the item); true, every signed item not positive (ABS is its negation).</summary>
+    private sealed class AdditiveSpine(bool negativeRegime)
     {
         public readonly Dictionary<DataItem, (int Coeff, int Scale, bool Float, bool Opaque)> Net = new();
         public ExactRational Constant = ExactRational.Zero;
         public bool RestIntegral = true;
+        public bool NegativeRegime => negativeRegime;
+        /// <summary>A term that is neither an item of <see cref="Net"/> nor an exact constant (an integer item, a function): the
+        /// spine is not a plain sum of those two.</summary>
+        public bool Residue;
+        /// <summary>A FUNCTION ABS of a signed item whose reading depends on the region was met: the walk is repeated in the other.</summary>
+        public bool SawSignedAbs;
+        /// <summary>A FUNCTION ABS of a sum was read as the sum, which holds where the items are not negative only.</summary>
+        public bool AbsOfSum;
     }
 
     /// <summary>Walk an additive spine, accumulating the signed leaf count of every item whose DESCRIPTION
@@ -1759,51 +1792,94 @@ internal static class IntrinsicArgumentRules
                 spine.Net[it] = spine.Net.TryGetValue(it, out var v)
                     ? (v.Coeff + sign, p.Scale, p.IsFloat, v.Opaque) : (sign, p.Scale, p.IsFloat, false);
                 break;
-            // ⛔ A CALL WHOSE VALUE IS ITS ARGUMENT IS THAT ARGUMENT (kb/Work PB4757). The walk below marks every item beneath a call
-            // opaque, which keeps `G2 - FUNCTION ABS (G2)` legal (the term moves with G2) but let `G2 + FUNCTION ABS (G2)` slip past
-            // the screen, although over every non-negative valuation it is 2 × G2. FUNCTION ABS of a bare numeric item (or of its
-            // negation) is that item on the valuations where the item is not negative: §15.7.4 1) a) "When the value of argument-1
-            // is zero or positive, (argument-1)". The screen needs ONE witness valuation, so a signed item is read the same way
-            // as an unsigned one: the call counts as the item, the leaf arm counts it twice and the witness argument stands, while
-            // `G2 - FUNCTION ABS (G2)` nets to 0 and stays legal.
-            case BoundIntrinsicCall { Args: [var argument] } call when UnsignedArgumentOfAbs(call, argument) is { } identity:
-                CollectAdditive(identity, sign, spine); break;
+            // ⛔ A CALL WHOSE VALUE IS A TERM OF THE SPINE IS READ AS THAT TERM (kb/Work PB4757, PB4795, PB4796). The walk below marks
+            // every item beneath a call opaque, which keeps `G2 - FUNCTION ABS (G2 + 0)` from being refused where it is legal but let
+            // `G2 + FUNCTION ABS (G2)` and `S2 + FUNCTION MAX (S2)` slip past the screen, although each is 2 × the item on the
+            // valuations the call reads as its argument. `ReadCall` names the calls whose value IS an expression of the spine
+            // and the valuations it holds on; the leaf arm then counts the items and the witness argument stands.
+            case BoundIntrinsicCall call when ReadCall(call, spine) is var (term, negated) && term is not null:
+                CollectAdditive(term, negated ? -sign : sign, spine); break;
             default:
                 if (ExactValue(e) is { } constant)
                     spine.Constant += sign < 0 ? -constant : constant;
-                else if (!ProvablyIntegral(e))
+                else
                 {
-                    spine.RestIntegral = false;
-                    foreach (var it in NonIntegralItemsBeneath(e))
-                        spine.Net[it.Item] = spine.Net.TryGetValue(it.Item, out var prior)
-                            ? (prior.Coeff, it.Scale, it.Float, true) : (0, it.Scale, it.Float, true);
+                    spine.Residue = true;
+                    if (!ProvablyIntegral(e))
+                    {
+                        spine.RestIntegral = false;
+                        foreach (var it in NonIntegralItemsBeneath(e))
+                            spine.Net[it.Item] = spine.Net.TryGetValue(it.Item, out var prior)
+                                ? (prior.Coeff, it.Scale, it.Float, true) : (0, it.Scale, it.Float, true);
+                    }
                 }
                 break;
         }
     }
 
-    /// <summary>The item FUNCTION ABS reads as, on the valuations where that item is not negative: its argument when that is a bare
-    /// (or parenthesized, or negated) numeric data item, since §15.7.4 1) a) gives <c>(argument-1)</c> for a zero or positive value
-    /// (and a negated argument is then not positive, so its absolute value is the item again); null for every other call and
-    /// argument.</summary>
-    private static BoundNumRef? UnsignedArgumentOfAbs(BoundIntrinsicCall call, BoundOperand argument)
-    {
-        if (!CobolNames.Same(call.Sig.Name, "ABS")) return null;
-        var place = argument switch
-        {
-            BoundFieldOperand f => f.Place,
-            BoundComputedOperand { Expr: var inner } => BareItem(inner),
-            _ => null,
-        };
-        return place is { DenotedItem: not null, Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric, IsFloat: false } } }
-            ? new BoundNumRef(place)
-            : null;
+    /// <summary>The functions whose value with ONE argument is that argument (the equivalent arithmetic expression for one
+    /// occurrence of argument-1: MAX §15.59.4 1) and MIN §15.63.4 1) "the content of the argument-1 having the greatest (least)
+    /// value", SUM §15.88.4 1) a), MEAN §15.60.4 1) a) and MEDIAN §15.61.4 1) "(argument-1)", MIDRANGE §15.62.4 1)
+    /// "((FUNCTION MAX (argument-list) + FUNCTION MIN (argument-list)) / 2)" of one value). A table(ALL) argument is many occurrences, so it is no identity.</summary>
+    private static readonly string[] OneArgumentIdentities = ["MAX", "MIN", "SUM", "MEAN", "MEDIAN", "MIDRANGE"];
 
-        static Place? BareItem(BoundExpr x)
+    /// <summary>The expression a call reads as in an additive spine on the valuations of the walk's region, with whether it reads as
+    /// the NEGATION of that expression; a null term for every call that reads as no expression of the spine.
+    /// <list type="bullet">
+    /// <item>A one-argument identity (<see cref="OneArgumentIdentities"/>) is its argument on every valuation.</item>
+    /// <item>FUNCTION ABS of a bare (parenthesized, negated) numeric data item is the item where the item is not negative, §15.7.4 1) a)
+    /// "(argument-1)", and its negation where it is, b) "(- (argument-1))". An unsigned item is never negative; a signed item
+    /// reads as the item in the walk of the non-negative region and as its negation in the other
+    /// (<see cref="AdditiveSpine.SawSignedAbs"/> asks for that second walk).</item>
+    /// <item>FUNCTION ABS of a sum that cannot be negative where every item is not negative (a non-negative constant over items of
+    /// non-negative coefficients) is that sum in the non-negative region (<see cref="AdditiveSpine.AbsOfSum"/>). Any other
+    /// argument leaves the call opaque: the sign of a difference depends on the valuation, and one valuation region per item is
+    /// all a witness gets.</item>
+    /// </list></summary>
+    private static (BoundExpr? Term, bool Negated) ReadCall(BoundIntrinsicCall call, AdditiveSpine spine)
+    {
+        if (call.Args is not [var argument] || argument is BoundFieldOperand { Place: TableAllPlace }
+            || ValueOfArgument(argument) is not { } inner)
+            return (null, false);
+        if (OneArgumentIdentities.Any(name => CobolNames.Same(call.Sig.Name, name))) return (inner, false);
+        if (!CobolNames.Same(call.Sig.Name, "ABS")) return (null, false);
+        if (BareNumericItem(inner) is { } item)
         {
-            while (x is BoundNegate n) x = n.Operand;
-            return x is BoundNumRef r ? r.Place : null;
+            if (item.Place.Item?.Pic is not { Signed: true } pic || !AdmitsNonIntegralValue(pic)) return (item, false);
+            spine.SawSignedAbs = true;
+            return (item, spine.NegativeRegime);
         }
+        if (spine.NegativeRegime || !IsNeverNegativeWhereItemsAreNot(inner)) return (null, false);
+        // A literal-only argument has no items: its value holds on every valuation, so the message keeps its plain wording (R1-3).
+        if (ExactValue(inner) is null) spine.AbsOfSum = true;
+        return (inner, false);
+    }
+
+    /// <summary>The expression an intrinsic argument stands for: the data item, the arithmetic expression or the literal; null for
+    /// every other operand.</summary>
+    private static BoundExpr? ValueOfArgument(BoundOperand argument) => argument switch
+    {
+        BoundFieldOperand f => new BoundNumRef(f.Place),
+        BoundComputedOperand c => c.Expr,
+        BoundNumericLiteral l => new BoundNumLiteral(l.Text),
+        _ => null,
+    };
+
+    /// <summary>The numeric data item an expression is, through negations (|- X| = |X|); null for anything else.</summary>
+    private static BoundNumRef? BareNumericItem(BoundExpr x)
+    {
+        while (x is BoundNegate n) x = n.Operand;
+        return x is BoundNumRef { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic.Category: PicCategory.Numeric } } r ? r : null;
+    }
+
+    /// <summary>Is the sum a plain sum of items and exact constants that is not negative when every item is not negative: a
+    /// non-negative constant and a non-negative coefficient on each item (<c>S2 + 1</c>, <c>S2 + S3</c>), nothing opaque and no
+    /// other term (an integer item or a function may be negative)?</summary>
+    private static bool IsNeverNegativeWhereItemsAreNot(BoundExpr sum)
+    {
+        var probe = new AdditiveSpine(negativeRegime: false);
+        CollectAdditive(sum, 1, probe);
+        return !probe.Residue && probe.Constant.Sign >= 0 && probe.Net.Values.All(term => term is { Coeff: >= 0, Opaque: false });
     }
 
     /// <summary>Is <paramref name="e"/> an integer for EVERY valuation of the items it references? Sound, not
@@ -1824,9 +1900,10 @@ internal static class IntrinsicArgumentRules
         // arithmetic of a statement stores every quotient at a finite number of digits: `1 / 3 * 3` is exactly 1 and the compiler
         // stores 0.9999, so an argument proved integral by the fold alone was rewritten to the literal 1 (`IntegralForm`) and
         // `FUNCTION ABS (1 / 3 * 3)` returned 1 where `COMPUTE X = 1 / 3 * 3` stores 0.9999. A quotient whose exact value has a
-        // non-terminating decimal expansion therefore voids the proof (§15.3 6) asks for an expression that "will always result in
+        // non-terminating decimal expansion, or a terminating one longer than the fraction digits the arithmetic keeps
+        // (`1 / 1048576 * 1048576`, PB4794), therefore voids the proof (§15.3 6) asks for an expression that "will always result in
         // an integer value", and that value is the one the arithmetic produces); the argument stays a Numeric one and the caller fails open.
-        _ when ExactValue(e) is { } v => v.IsInteger && QuotientsTerminate(e),
+        _ when ExactValue(e) is { } v => v.IsInteger && QuotientsAreExact(e),
         // Category NUMERIC only: any other operand an extension admits (a de-edited numeric-edited item, say) is
         // not provably integral, and the screen fails open over it.
         BoundNumRef { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } p } }
@@ -1931,20 +2008,44 @@ internal static class IntrinsicArgumentRules
         }
     }
 
-    /// <summary>Does every quotient (and negative-exponent power) in a literal-only subtree have a TERMINATING decimal value (a
-    /// denominator of 2s and 5s only), so that the arithmetic, which keeps a finite number of digits, stores exactly what
-    /// <see cref="ExactValue"/> folded? ⛔ The ONE statement of what makes an exact fold trustworthy as a VALUE (kb/Work PB4758):
-    /// <see cref="ProvablyIntegral"/> reads it, and <see cref="IntegralForm"/>, which rewrites a folded value into a literal, is
-    /// reached only after that proof. False when the subtree cannot be folded.</summary>
-    private static bool QuotientsTerminate(BoundExpr e) => e switch
+    /// <summary>Does every quotient (and negative-exponent power) in a literal-only subtree have a value the arithmetic STORES
+    /// EXACTLY, so that it stores what <see cref="ExactValue"/> folded? ⛔ The ONE statement of what makes an exact fold
+    /// trustworthy as a VALUE (kb/Work PB4758, PB4794): <see cref="ProvablyIntegral"/> reads it, and <see cref="IntegralForm"/>,
+    /// which rewrites a folded value into a literal, is reached only after that proof. False when the subtree cannot be folded.
+    /// <para>A value is stored exactly when its decimal expansion TERMINATES (a denominator of 2s and 5s only) within the fraction
+    /// digits the arithmetic keeps. A nested quotient is truncated at <see cref="CobolNum.NestedQuotientScale"/>
+    /// <c>(receiver scale, operands' precision)</c> (numeric design D2, <c>NumericRenderer.Divide</c>), and this fold does not know the receiver
+    /// (an argument has none): the scale it can rely on is the least that rule gives, <see cref="ExactFractionDigits"/>. A
+    /// terminating quotient longer than that (<c>1 / 1048576 * 1048576</c>, 2 ** -20 as a quotient: 20 fraction digits) is cut and
+    /// its product with the divisor is 0.99999999999999 where the fold said 1 (PB4794).</para></summary>
+    private static bool QuotientsAreExact(BoundExpr e) => e switch
     {
-        BoundBinary { Op: '/' } b => ExactValue(b) is { IsTerminating: true } && QuotientsTerminate(b.Left) && QuotientsTerminate(b.Right),
-        BoundBinary b => QuotientsTerminate(b.Left) && QuotientsTerminate(b.Right),
-        BoundNegate n => QuotientsTerminate(n.Operand),
-        BoundPower pw => ExactValue(pw) is { IsTerminating: true } && QuotientsTerminate(pw.Base) && QuotientsTerminate(pw.Exp),
+        BoundBinary { Op: '/' } b => IsKeptExactly(ExactValue(b)) && QuotientsAreExact(b.Left) && QuotientsAreExact(b.Right),
+        BoundBinary b => QuotientsAreExact(b.Left) && QuotientsAreExact(b.Right),
+        BoundNegate n => QuotientsAreExact(n.Operand),
+        BoundPower pw => PowerIsKeptExactly(pw) && QuotientsAreExact(pw.Base) && QuotientsAreExact(pw.Exp),
         BoundNumLiteral => true,
         _ => false,
     };
+
+    /// <summary>The fraction digits a nested quotient keeps whatever the receiver and the operands: the working scale of
+    /// <see cref="CobolNum.NestedQuotientScale"/> at receiver scale 0 and operand precision 0 (the guard digits alone). ⛔ Read from
+    /// the arithmetic's one home, so a change to the guard moves this fold with it (kb/Work PB4794).</summary>
+    private static readonly int ExactFractionDigits = CobolNum.NestedQuotientScale(0, 0);
+
+    /// <summary>Does the arithmetic store a power as <see cref="ExactValue"/> folded it? A power to an integer exponent is NOT a nested
+    /// quotient and is never cut at <see cref="ExactFractionDigits"/>: a non-negative exponent is the exact power
+    /// (<c>CobolExact.Pow</c>), a negative one is the reciprocal <c>1 / (b ** |e|)</c> (<c>CobolExact.Pow</c>), ONE rounding of the exact
+    /// quotient to the SDIDI's <see cref="SdidiDigits"/> digits, so <c>2 ** -20</c> (20 fraction digits) is exact (kb/Work PB4794
+    /// review R1-1). A power that does not fold, or whose value does not terminate, is not kept exactly.</summary>
+    private static bool PowerIsKeptExactly(BoundPower pw) => ExactValue(pw) is { FractionDigits: { } digits }
+        && (ExactValue(pw.Exp)!.Value.Sign >= 0 || digits <= SdidiDigits);
+
+    /// <summary>The significant digits of the standard decimal intermediate data item (decimal128): 34.</summary>
+    private const int SdidiDigits = 34;
+
+    /// <summary>Is the value a finite decimal of at most <see cref="ExactFractionDigits"/> fraction digits?</summary>
+    private static bool IsKeptExactly(ExactRational? v) => v is { FractionDigits: { } digits } && digits <= ExactFractionDigits;
 
     /// <summary>The largest literal exponent <see cref="ExactValue"/> folds — a bound on the fold's work, never on
     /// what the source may say: a larger exponent is left unfolded and the screen fails open.</summary>
@@ -1976,15 +2077,17 @@ internal static class IntrinsicArgumentRules
 
         public bool IsInteger => Denominator.IsOne;
 
-        /// <summary>Is the value a finite decimal: a denominator of 2s and 5s only?</summary>
-        public bool IsTerminating
+        /// <summary>The fraction digits of the value as a finite decimal (a denominator of 2s and 5s only: the larger of the
+        /// two exponents), or null when the expansion does not terminate.</summary>
+        public int? FractionDigits
         {
             get
             {
                 var den = Denominator;
-                while (den.IsEven) den /= 2;
-                while (den % 5 == 0) den /= 5;
-                return den.IsOne;
+                int twos = 0, fives = 0;
+                while (den.IsEven) { den /= 2; twos++; }
+                while (den % 5 == 0) { den /= 5; fives++; }
+                return den.IsOne ? Math.Max(twos, fives) : null;
             }
         }
         public int Sign => Numerator.Sign;
@@ -2009,12 +2112,7 @@ internal static class IntrinsicArgumentRules
         /// 2s and 5s (every sum of decimal literals), otherwise the fraction.</summary>
         public override string ToString()
         {
-            var den = Denominator;
-            int twos = 0, fives = 0;
-            while (den.IsEven) { den /= 2; twos++; }
-            while (den % 5 == 0) { den /= 5; fives++; }
-            if (!den.IsOne) return $"{Numerator}/{Denominator}";
-            int k = Math.Max(twos, fives);
+            if (FractionDigits is not { } k) return $"{Numerator}/{Denominator}";
             var scaled = System.Numerics.BigInteger.Abs(Numerator * System.Numerics.BigInteger.Pow(10, k) / Denominator);
             string digits = scaled.ToString().PadLeft(k + 1, '0');
             string text = k == 0 ? digits : $"{digits[..^k]}.{digits[^k..]}";
@@ -2044,12 +2142,12 @@ internal static class IntrinsicArgumentRules
                 foreach (var x in NonIntegralItemsBeneath(p2.Base)) yield return x;
                 foreach (var x in NonIntegralItemsBeneath(p2.Exp)) yield return x;
                 break;
-            // ⛔ A CALL MOVES WITH THE ITEMS IN ITS ARGUMENTS (kb/Work PB4709, review R1-4): in `G2 - FUNCTION ABS (G2 + 0)` the term
-            // ABS(G2 + 0) equals G2 on every non-negative value of G2, so the difference is 0 and always an integer, but the walk saw
-            // no item beneath the call, left G2's additive witness standing, and the screen refused legal source. The witness argument
-            // (hold every other leaf constant and step the item) fails for the same reason it fails under `F * 1`: the term moves
-            // with the item, so the item is marked opaque and the screen fails open. (A bare `ABS (G2)` never reaches this walk:
-            // CollectAdditive reads it as G2, PB4757.)
+            // ⛔ A CALL MOVES WITH THE ITEMS IN ITS ARGUMENTS (kb/Work PB4709, review R1-4): in `G2 - FUNCTION ABS (G2 * 1)` over an
+            // UNSIGNED G2 the term ABS(G2 * 1) equals G2 on every value of G2, so the difference is 0 and always an integer, but
+            // the walk saw no item beneath the call, left G2's additive witness standing, and the screen refused legal source. The
+            // witness argument (hold every other leaf constant and step the item) fails for the same reason it fails under `F * 1`:
+            // the term moves with the item, so the item is marked opaque and the screen fails open. (A call that
+            // CollectAdditive.ReadCall reads as an expression of the spine never reaches this walk, PB4757, PB4795.)
             case BoundIntrinsicCall call:
                 foreach (var argument in call.Args)
                     foreach (var x in NonIntegralItemsBeneath(argument)) yield return x;
