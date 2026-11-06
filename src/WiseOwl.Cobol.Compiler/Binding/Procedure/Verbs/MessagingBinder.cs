@@ -157,8 +157,8 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
         return null;
     }
 
-    /// <summary>⛔ SEND's identifier-1 IS ANY IDENTIFIER (ISO §14.9.38.2; §8.4.3.1.2 Format 1 a function-identifier, Format 4 an inline method invocation; both
-    /// are barred only from a RECEIVING operand, §8.4.3.2.3 SR1, §8.4.3.4.3 SR1), so the operand is a <see cref="BoundOperand"/>: a data item's place, or a
+    /// <summary>⛔ SEND's identifier-1 IS ANY IDENTIFIER (ISO §14.9.38.2; §8.4.3.1.2 Format 1 is the function-identifier,
+    /// and Format 4 the inline method invocation; both are barred only from a RECEIVING operand, §8.4.3.2.3 SR1, §8.4.3.4.3 SR1), so the operand is a <see cref="BoundOperand"/>: a data item's place, or a
     /// function's or method's value, as every other sending identifier is (kb/Work PB4743, review R1-2). SR3 asks about "the data description entries of
     /// identifier-1", which only a data item has, so only a place is walked (<see cref="ScreenMessageArea"/>).</summary>
     private BoundOperand? BindSendFrom(Core.MessagingSendStatementContext s, ref BoundStatement? refusal)
