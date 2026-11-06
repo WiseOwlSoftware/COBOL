@@ -244,6 +244,37 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
+    /// <summary>kb/Work PB4773: every specifier kind whose <c>AS literal-n</c> is refused by §12.3.8.3 SR2 reports that refusal
+    /// ALONE. The resolution rules (SR6 class, SR9 interface, SR16 property, SR10 function) ask for the externalized name,
+    /// and a refused literal gave none: they fell back to the word, so each drew a REPO-1 whose sentence said the name sought
+    /// was a word, or an <c>AS "WORD"</c>, the source never wrote.</summary>
+    [Fact]
+    public void ASpecifierWhoseLiteralIsRefused_DrawsNoRepo1ForTheWordTheSourceNeverGave()
+    {
+        WithDirectory("repo-literal-refused-all-kinds", dir =>
+        {
+            const string source = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. R4773C.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    CLASS R4773K AS ""
+                    INTERFACE R4773I AS ""
+                    PROPERTY R4773A AS ""
+                    FUNCTION R4773F AS "".
+                PROCEDURE DIVISION.
+                    GOBACK.
+                END PROGRAM R4773C.
+                """;
+            var r = Compile(dir, "R4773C", source);
+            Assert.False(r.Success);
+            foreach (string literal in new[] { "literal-1", "literal-2", "literal-4", "literal-5" })
+                Assert.Single(r.Errors, e => e.Contains("COBOL1761", StringComparison.Ordinal) && e.Contains(literal, StringComparison.Ordinal));
+            Assert.DoesNotContain("COBOL5962", Codes(r), StringComparison.Ordinal);
+        });
+    }
+
     [Fact]   // §9.3: a --repository directory is searched instead of the output directory, and a --reference file after it.
     public void TheNamedDirectoriesAndReferences_AreTheSearchSpace()
     {

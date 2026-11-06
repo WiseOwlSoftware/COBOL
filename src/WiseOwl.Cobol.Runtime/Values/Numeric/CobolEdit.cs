@@ -365,8 +365,14 @@ public static partial class CobolEdit
         bool inString = false;   // a Z / * / floating member has been seen — only then is an insertion "part of the string"
         bool asteriskFill = pattern.Contains('*');
         bool allIntegerSuppressed = true;
+        // ⛔ THE IMPLIED DECIMAL POINT ENDS THE WALK AS THE '.' DOES. Rules 6 a) and 7 a) both stop at "the decimal
+        // point position", and 6 b) / 7 b) read a nonzero value as if the string "were defined only to the left of
+        // the decimal point position"; V holds no character position, so the pattern has no symbol there and the
+        // position is carried as an index (kb/Work PB4799).
+        int pointAt = ImpliedPointAt(picture);
         for (int i = 0; i < pattern.Length && suppressing; i++)
         {
+            if (i == pointAt) break;
             char p = char.ToUpperInvariant(pattern[i]);
             if ((p == currencyChar && !isFixedCurrency) || RuleFor(pattern[i], edits) is { Floating: true })
             {
@@ -473,6 +479,19 @@ public static partial class CobolEdit
             }
 
         return (output, placedBy, negative);
+    }
+
+    /// <summary>The index in the output pattern (the mask without V and P, which hold no character position,
+    /// §13.18.40.3) of the first symbol AFTER the implied decimal point <c>V</c>, or -1 when the mask holds no V.</summary>
+    private static int ImpliedPointAt(string picture)
+    {
+        int at = 0;
+        foreach (char c in picture)
+        {
+            if (c == 'V') return at;
+            if (c != 'P') at++;
+        }
+        return -1;
     }
 
     /// <summary>⛔ ISO §13.18.8.4 GR3's CONTENT TEST — "the content of the sending data item is all spaces",

@@ -511,7 +511,7 @@ which S0 pins as `MaxPathBytes`. The longest entry adds 33 bytes to `<S>`: `p/` 
 |---|---|---|---|
 | Linux, `$XDG_RUNTIME_DIR` = `/run/user/<uid>` | `/run/user/<uid>/wiseowl-mcs-<uid>/<h>/` | 94 bytes with a 10-digit uid (82 with uid 1000) | 107 |
 | Linux or macOS, `/tmp` | `/tmp/wiseowl-mcs-<uid>/<h>/` | 78 bytes with a 10-digit uid | 107 (Linux), 103 (macOS) |
-| Windows | `Path.GetTempPath()` + `wiseowl-mcs\<h>\` | 91 bytes plus the user-name segment of `C:\Users\<user>\AppData\Local\Temp\` | unverified |
+| Windows | `Path.GetTempPath()` + `wiseowl-mcs\<h>\` | 91 bytes plus the user-name segment of `C:\Users\<user>\AppData\Local\Temp\` | 107 (S0) |
 
 macOS never uses its `$TMPDIR`, a per-user directory of about 49 bytes under `/var/folders`, which would make the worst
 case about 115 bytes for uid 501 against 103. `McsSocketDirectory.Resolve` falls back from an
@@ -773,9 +773,22 @@ rests on that no document read states:
 - `Socket.Select` over AF_UNIX, recorded for the fallback;
 - the communication facility's bell cases (`DESIGN-communication-facility.md` §7): `Socket.Poll` on a listening socket
   returns at a pending connection; a non-blocking connect to a listener with room completes or answers `WouldBlock`,
-  never `ConnectionRefused`; one to a listener whose backlog is full answers `WouldBlock` or `ConnectionRefused`, recorded.
+  never `ConnectionRefused`; one to a listener whose backlog is full answers `WouldBlock` (Linux), `NoBufferSpaceAvailable` (Windows) or `ConnectionRefused`, recorded; a `WouldBlock` counts as the full-backlog answer only when the connect then fails to finish.
 
 S0 lands the whole class, so the communication facility's slices add no case to it.
+
+**Witnessed on Windows (slice S0, PB4739; .NET 10, Windows 11).** A killed child's sockets end for the peer as
+`SocketException` `ConnectionReset`, both for an accepted connection and for one still in the listen backlog, so the
+transport stands on Windows with no liveness byte. A killed listener's socket file survives and `Connect` to it answers
+`ConnectionRefused` (native 10061), while a listener closed by its own process removes its file; `Bind` over a live
+listener's file answers `AddressAlreadyInUse`. A connect between `Bind` and `Listen` is `ConnectionRefused`. `File.Move` of a
+listening socket's file works: the new name reaches the listener and the old one answers `ConnectionRefused`, so Windows
+publishes by rename and needs no `McsPublishByte`. `MaxPathBytes` is 107, as on Linux. A non-blocking connect to a listener
+with room answers `WouldBlock` (Windows answers it whatever the backlog holds), then completes, and the byte arrives; so on
+Windows a `WouldBlock` does not mean a full backlog, and a ring that answers it still arrives once the connect finishes.
+A full backlog (`Listen(1)`, non-blocking connects held open) answers the sixth connect `NoBufferSpaceAvailable` (WSAENOBUFS);
+connects 0 to 4 answer `WouldBlock` and complete. A `Bind` at the path of a listener closed by its own process succeeds.
+The class's output carries each observed answer, and CI's Linux leg adds its own to this record.
 
 The class runs on macOS unchanged when a macOS leg exists, and §1's claim widens with it. The first two decide the
 transport (§9 S0); the rest set constants and mappings.

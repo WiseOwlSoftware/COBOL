@@ -983,7 +983,9 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // The intermediate is the implementor's device; every §8.8.4.2 operand rule is about the operand WRITTEN,
         // so the relation checkpoint is told which one this stands for (kb/Work PB1468 — an index-name subject's
         // intermediate is a numeric item, and `EVALUATE I1 WHEN I2 WHEN IDA` was refused as numeric-vs-index).
-        var intermediate = new BoundFieldOperand(frozen);
+        // ExpressionAsWritten follows the written operand: the intermediate stands for it, and an arithmetic or
+        // parenthesized subject is not identifier-1 of a class partial (§8.8.4.4.2; kb/Work PB4804, PB4763).
+        var intermediate = new BoundFieldOperand(frozen) { ExpressionAsWritten = value.ExpressionAsWritten };
         host.Cond.RecordIntermediate(intermediate, value);
         return intermediate;
     }
