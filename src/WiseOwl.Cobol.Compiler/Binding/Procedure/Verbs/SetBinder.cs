@@ -552,12 +552,14 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// operand's entry already draws the COBOL0900 introduction gate, which fails the compile.
     /// DESIGN-message-control.md §7.1: each refusal also runs at 2014, "where COBOL0900 is the expected diagnosis and no
     /// second one may appear", so the statement binds to a no-op there and the SR35 class refusals below speak only
-    /// where the usage exists.</para></summary>
+    /// where the usage exists. A sender that is a function's or method's RETURNED TEMPORARY has no declaration in this
+    /// compilation (an imported one carries its usage from the repository), so no gate fires on it and the statement is
+    /// bound and checked at every edition: SR35 refuses it as at 2023 rather than the SET vanishing unrefused.</para></summary>
     private BoundStatement BindMessageTagSet(
         IReadOnlyList<Core.DataReferenceContext> receivers, SetSender? sender, bool toNull, string senderText)
     {
-        if (!ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.UsageMessageTag2023))
-            return new BoundNop();   // no-op: the operands' usage-message-tag-2023 gate (COBOL0900) refuses this compile (kb/Work PB916, PB4771)
+        if (sender?.TemporaryItem is null && !ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.UsageMessageTag2023))
+            return new BoundNop();   // no-op: a DECLARED operand's usage-message-tag-2023 gate (COBOL0900) refuses this compile (kb/Work PB916, PB4771)
         string written = SetFormatSelection.Written(receivers);
         if (receivers.Count != 1)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
