@@ -185,14 +185,14 @@ internal sealed class PagedFile
     /// then the file is neither the previous store nor certainly the created one ('30'; R6 decides what the next OPEN adopts:
     /// the empty store at N while the commit slot holds it). A caller that keeps state over the previous store (a CLOSE under
     /// commit control's, <c>KeyedConnector.Recreate</c>) ends it exactly when this is true.</para></summary>
-    public static StoreStatus Create(IPageMedium medium, FixedFileAttributes attributes, bool coherent, IKeyOrder holdingsOrder,
+    public static StoreStatus Create(IPageMedium medium, StoreKind kind, bool coherent, IKeyOrder holdingsOrder,
         out PagedFile? store, out bool replaced, int cachePages = PageCache.DefaultPages)
     {
-        if (!MetaPage.Fits(attributes))
-            throw new ArgumentException("the key descriptors exceed the meta page; the OPEN refuses the declaration first", nameof(attributes));
+        if (!kind.Fits)
+            throw new ArgumentException("the key descriptors exceed the meta page; the OPEN refuses the declaration first", nameof(kind));
         store = null;
         replaced = false;
-        var creator = new PagedFile(medium, writable: true, coherent, holdingsOrder, MetaPage.Empty(attributes), cachePages);
+        var creator = new PagedFile(medium, writable: true, coherent, holdingsOrder, MetaPage.Empty(kind), cachePages);
         long length;
         try { length = medium.Length; }
         catch (Exception e) when (IsRefusal(e)) { return StoreStatus.PermanentError; }
@@ -206,7 +206,7 @@ internal sealed class PagedFile
         }
         ulong n = previous.OfType<MetaPage>()
             .Select(m => Math.Max(m.Generation + GenerationCeiling + 1, m.StampMint + 1)).DefaultIfEmpty(0ul).Max();
-        var meta = MetaPage.Empty(attributes) with { Generation = n, CommittedGeneration = n, StampMint = n };
+        var meta = MetaPage.Empty(kind) with { Generation = n, CommittedGeneration = n, StampMint = n };
         uint target = MetaPage.Committed(previous[MetaPage.SlotA], previous[MetaPage.SlotB]) is { Slot: MetaPage.SlotA }
             ? MetaPage.SlotB : MetaPage.SlotA;
         var written = new List<uint>((int)MetaPage.MetaPages);
@@ -257,9 +257,13 @@ internal sealed class PagedFile
     /// (base G), the PROMOTION SOURCE (base below G, generation G) or FOREIGN; a DESCENDANT whose every <c>fresh</c> page
     /// verifies is adopted, anything else gives C. A writable store then promotes the adopted meta at
     /// F = G + 4 097 (above every stamp a history based on G can have issued, R2) with its retirement, which also reclaims
-    /// a rejected DESCENDANT's readable ledger; an INPUT store adopts in memory and writes nothing.</summary>
+    /// a rejected DESCENDANT's readable ledger; an INPUT store adopts in memory and writes nothing.
+    /// <para>⛔ A STORE OF THE OTHER FAMILY IS NOT ADOPTED (DESIGN-communication-facility.md §8): <paramref name="messageStore"/>
+    /// says which family the caller opens (the message control system's <c>M</c> store, or a keyed file's <c>R</c> or <c>I</c>
+    /// one), and a committed slot of the other is '30' with nothing written, so a keyed file someone put at <c>mcs.store</c> is
+    /// refused rather than misread, and a message store is never adopted by a keyed connector.</para></summary>
     public static StoreStatus Open(IPageMedium medium, bool writable, bool coherent, IKeyOrder holdingsOrder, out PagedFile? store,
-        int cachePages = PageCache.DefaultPages)
+        int cachePages = PageCache.DefaultPages, bool messageStore = false)
     {
         store = null;
         var pages = new byte[MetaPage.MetaPages][];
@@ -273,9 +277,10 @@ internal sealed class PagedFile
         if (MetaPage.Committed(MetaPage.Decode(pages[MetaPage.SlotA], MetaPage.SlotA),
                 MetaPage.Decode(pages[MetaPage.SlotB], MetaPage.SlotB)) is not { Meta: var committed })
             return StoreStatus.PermanentError;
+        if (committed.Kind.IsMessage != messageStore) return StoreStatus.PermanentError;
         var opened = new PagedFile(medium, writable, coherent, holdingsOrder, committed, cachePages) { _reads = MetaPage.MetaPages };
         ulong g = committed.Generation;
-        var workClass = work is null || work.Attributes.Conflicts(committed.Attributes) ? WorkSlotClass.Foreign
+        var workClass = work is null || work.Kind.Conflicts(committed.Kind) ? WorkSlotClass.Foreign
             : work.CommittedGeneration == g ? WorkSlotClass.Descendant
             : work.CommittedGeneration < g && work.Generation == g ? WorkSlotClass.PromotionSource
             : WorkSlotClass.Foreign;

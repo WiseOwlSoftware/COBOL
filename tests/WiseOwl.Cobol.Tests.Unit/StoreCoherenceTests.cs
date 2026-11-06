@@ -52,9 +52,9 @@ public sealed class StoreCoherenceTests
         Func<Exception?>? sync = null)
     {
         RefusingPageMedium? medium = null;
-        KeyedStore.MediumObserver.Value = inner => medium = new RefusingPageMedium(inner, write, sync, read);
+        PageMediumObserver.Value = inner => medium = new RefusingPageMedium(inner, write, sync, read);
         try { open(); }
-        finally { KeyedStore.MediumObserver.Value = null; }
+        finally { PageMediumObserver.Value = null; }
         return medium!;
     }
 
@@ -160,17 +160,17 @@ public sealed class StoreCoherenceTests
             Register(a, "A", host, org);
             Register(b, "B", host, org);
             DyingPageMedium? aMedium = null, bMedium = null;
-            KeyedStore.MediumObserver.Value = inner => aMedium = new DyingPageMedium(inner);
+            PageMediumObserver.Value = inner => aMedium = new DyingPageMedium(inner);
             try { a.OpenStatic("A", FileOpenMode.Output); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", a.Status("A"));
             a.Close("A");
-            KeyedStore.MediumObserver.Value = inner => aMedium = new DyingPageMedium(inner);
+            PageMediumObserver.Value = inner => aMedium = new DyingPageMedium(inner);
             try { a.OpenStatic("A", FileOpenMode.IO); }
-            finally { KeyedStore.MediumObserver.Value = null; }
-            KeyedStore.MediumObserver.Value = inner => bMedium = new DyingPageMedium(inner);
+            finally { PageMediumObserver.Value = null; }
+            PageMediumObserver.Value = inner => bMedium = new DyingPageMedium(inner);
             try { b.OpenStatic("B", FileOpenMode.IO); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", a.Status("A"));
             Assert.Equal("00", b.Status("B"));
 
@@ -203,7 +203,7 @@ public sealed class StoreCoherenceTests
         }
         finally
         {
-            KeyedStore.MediumObserver.Value = null;
+            PageMediumObserver.Value = null;
             TryDelete(host);
         }
     }
@@ -358,9 +358,9 @@ public sealed class StoreCoherenceTests
             var d = new FileRegistry();
             Register(d, "D", host, org);
             DyingPageMedium? dying = null;
-            KeyedStore.MediumObserver.Value = inner => dying = new DyingPageMedium(inner);
+            PageMediumObserver.Value = inner => dying = new DyingPageMedium(inner);
             try { d.OpenStatic("D", FileOpenMode.IO); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Write(d, "D", org, 3, "CCCC"));
             dying!.DieAfter = dying.Writes;   // the process dies here: nothing it hands over afterwards lands
             d.Close("D");                     // gives the dead run unit's handle back (the operating environment would)
@@ -405,9 +405,9 @@ public sealed class StoreCoherenceTests
         var d = new FileRegistry();
         Register(d, "D", host, org);
         DyingPageMedium? dying = null;
-        KeyedStore.MediumObserver.Value = inner => dying = new DyingPageMedium(inner);
+        PageMediumObserver.Value = inner => dying = new DyingPageMedium(inner);
         try { d.OpenStatic("D", FileOpenMode.IO); }
-        finally { KeyedStore.MediumObserver.Value = null; }
+        finally { PageMediumObserver.Value = null; }
         Assert.Equal("00", d.Status("D"));
         Assert.Equal("00", Write(d, "D", org, 3, "CCCC"));
         dying!.DieAfter = dying.Writes;   // the process dies here: nothing it hands over afterwards lands

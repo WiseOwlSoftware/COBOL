@@ -4,7 +4,7 @@ using WiseOwl.Cobol.Runtime.IO.Store;
 
 namespace WiseOwl.Cobol.Tests.Unit.Store;
 
-/// <summary>A REAL medium (a connector's handle, through <c>KeyedStore.MediumObserver</c>) that refuses the reads, writes
+/// <summary>A REAL medium (a connector's handle, through <c>PageMediumObserver</c>) that refuses the reads, writes
 /// and syncs a case names — the host's answers a real file cannot be made to give on demand (a full medium, a file at its
 /// maximum size, a refused flush, a read the device fails): docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.12's fault
 /// injection at the connector's level. A refused write or sync changes nothing on the medium, and a refused read hands

@@ -162,7 +162,7 @@ public sealed class FileBoundaryTests : IDisposable
         Assert.Equal(WiseOwl.Cobol.Runtime.IO.Store.StoreStatus.Ok,
             WiseOwl.Cobol.Runtime.IO.Store.PagedFile.Open(medium, writable: false, coherent: false, HoldingsKeyOrder.RecordNumbers, out var file));
         var meta = file!.Meta;
-        Assert.Equal(2, meta.Attributes.Keys.Count);
+        Assert.Equal(2, meta.Kind.Attributes.Keys.Count);
         Assert.Single(meta.AlternateRoots);
         var prime = Entries(new WiseOwl.Cobol.Runtime.IO.Store.BTree(file, WiseOwl.Cobol.Runtime.IO.Store.KeyOrders.Ordinal, meta.PrimeRoot))
             .Select(e => (Key: Encoding.Latin1.GetString(e.Key), Frame: RecordFraming.DecodeFrame(e.Value, 2, null)!.Value))
@@ -210,7 +210,7 @@ public sealed class FileBoundaryTests : IDisposable
             ? OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27     // ERROR_FILE_TOO_LARGE / EFBIG
             : OperatingSystem.IsWindows() ? unchecked((int)0x80070070) : 28;    // ERROR_DISK_FULL / ENOSPC
         bool refusing = false;
-        KeyedStore.MediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(inner,
+        PageMediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(inner,
             write: page => refusing && Grows(inner, page) ? HandlePageMedium.Refusal(new IOException("refused by the host", hresult)) : null);
         try
         {
@@ -224,7 +224,7 @@ public sealed class FileBoundaryTests : IDisposable
             Assert.Equal(tooLarge ? FileStatusCode.Success : FileStatusCode.PermanentError, c.Write("K003CCCC"));
             Assert.Equal(FileStatusCode.Success, c.Close());
         }
-        finally { KeyedStore.MediumObserver.Value = null; }
+        finally { PageMediumObserver.Value = null; }
         var r = Indexed(host);
         Assert.Equal(FileStatusCode.Success, r.Open(FileOpenMode.Input));
         Assert.Equal(FileStatusCode.RecordNotFound, r.ReadRandom(0, "    BBBB", out _));   // not released under key 1
@@ -295,7 +295,7 @@ public sealed class FileBoundaryTests : IDisposable
         bool refusing = false;
         // The host refuses to GROW the file — a write at or past its end — as a full medium and a file at its maximum
         // size both do; the pages already in the file (page 2 among them) are written as ever.
-        KeyedStore.MediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(inner,
+        PageMediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(inner,
             write: page => refusing && Grows(inner, page) ? HandlePageMedium.Refusal(new IOException("refused by the host", hresult)) : null);
         try
         {
@@ -320,7 +320,7 @@ public sealed class FileBoundaryTests : IDisposable
             Assert.Equal(tooLarge ? FileStatusCode.Success : FileStatusCode.PermanentError, c.Write("CCCC"));
             Assert.Equal(FileStatusCode.Success, c.Close());
         }
-        finally { KeyedStore.MediumObserver.Value = null; }
+        finally { PageMediumObserver.Value = null; }
         Assert.Equal(tooLarge ? ["1=AAAA", "3=CCCC"] : ["1=AAAA"], Records(host));
     }
 
@@ -338,7 +338,7 @@ public sealed class FileBoundaryTests : IDisposable
         int tooLarge = OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27;   // ERROR_FILE_TOO_LARGE / EFBIG
         bool refusing = false;
         int refused = 0;
-        RelativeStore.MediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(inner,
+        PageMediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(inner,
             write: page =>
             {
                 if (!refusing || !Grows(inner, page)) return null;
@@ -369,7 +369,7 @@ public sealed class FileBoundaryTests : IDisposable
             Assert.True(refused > 0, "the creation grew the file, and the host refused it");
             refusing = false;
         }
-        finally { RelativeStore.MediumObserver.Value = null; }
+        finally { PageMediumObserver.Value = null; }
         Assert.Equal(["1=AAAA"], Records(host));
     }
 
@@ -388,7 +388,7 @@ public sealed class FileBoundaryTests : IDisposable
         int tooLarge = OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27;   // ERROR_FILE_TOO_LARGE / EFBIG
         bool refusing = false;
         int refused = 0;
-        KeyedStore.MediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(inner,
+        PageMediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(inner,
             write: page =>
             {
                 if (!refusing || !Grows(inner, page)) return null;
@@ -417,7 +417,7 @@ public sealed class FileBoundaryTests : IDisposable
             Assert.True(refused > 0, "the creation grew the file, and the host refused it");
             refusing = false;
         }
-        finally { KeyedStore.MediumObserver.Value = null; }
+        finally { PageMediumObserver.Value = null; }
         var r = Indexed(host);
         Assert.Equal(FileStatusCode.Success, r.Open(FileOpenMode.Input));
         Assert.Equal(FileStatusCode.Success, r.ReadRandom(-1, "K001    ", out string byPrime));
