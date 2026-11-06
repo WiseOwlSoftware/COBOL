@@ -23,6 +23,7 @@ internal sealed class UnitEmitters
     public ConditionRenderer Cond { get; }
     public PlaceTable Places { get; }
 
+    public DebugTriggerEmitter Debug { get; }
     public ReceiverBracketEmitter Brackets { get; }
     public MoveEmitter Move { get; }
     public EcEmitter Ec { get; }
@@ -59,6 +60,7 @@ internal sealed class UnitEmitters
 
         // Acyclic construction order (each ctor takes only already-built collaborators); the cycles close
         // via the property wiring below.
+        Debug = new DebugTriggerEmitter(Ctx);   // the data-name and cd-name USE FOR DEBUGGING triggers (docs/CONTROL_FLOW_DESIGN.md D20)
         Brackets = new ReceiverBracketEmitter(Ctx);
         Move = new MoveEmitter(Ctx, Num, Places, Brackets);
         Ec = new EcEmitter(Ctx, ecState, dispatchState);
@@ -97,6 +99,12 @@ internal sealed class UnitEmitters
         SeqIo.Statements = Statements;
         Sort.Statements = Statements;
         Communication.Statements = Statements;
+        Communication.Debug = Debug;
+        KeyedIo.Debug = Debug;
+        SeqIo.Debug = Debug;
+        ControlFlow.Debug = Debug;
+        Call.Debug = Debug;
+        Evaluate.Debug = Debug;
         TableHold.Statements = Statements;
         ControlFlow.Statements = Statements;
         ControlFlow.Ec = Ec;   // CA36: SEARCH with EC-RANGE checking + no AT END dispatches via EcEmitter.EcDispatchExpr

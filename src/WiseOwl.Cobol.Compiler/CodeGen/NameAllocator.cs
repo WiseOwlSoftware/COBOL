@@ -29,8 +29,10 @@ internal sealed class NameAllocator
     private int _ptr;         // pointer temporaries (__ptrBy/__notAlloc)
     private int _sort;        // sort-family temporaries (__srt)
     private int _strUnstr;    // STRING/UNSTRING locals
+    private int _debugPhrases;    // the evaluated-phrase flags of a debug-triggering EVALUATE or SEARCH (__dbgPhrase)
 
     public int NextDep() => _dep++;
+    public int NextDebugPhrases() => _debugPhrases++;
     public int NextSizeErr() => _sizeErr++;
     public int NextStoreTmp() => _storeTmp++;
     public int NextRead() => _read++;

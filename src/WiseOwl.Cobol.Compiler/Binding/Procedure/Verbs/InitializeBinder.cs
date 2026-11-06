@@ -165,8 +165,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         foreach (var dref in host.Expr.ReceivingReferences(ini.initializeOperandList().receivingIdentifier()))
         {
             var actions = new List<InitializeAction>();
-            BindInitializeTarget(dref, spec, actions);   // GR3 — per identifier-1, in source order
-            members.Add(new BoundInitialize(actions) { Replacing = replacingItems });
+            BindInitializeTarget(dref, spec, actions, out var written);   // GR3 — per identifier-1, in source order
+            members.Add(new BoundInitialize(actions) { Replacing = replacingItems, Written = written });
         }
         return BoundImplicitSeries.Of(members);
     }
@@ -185,16 +185,20 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         var spec = new InitializeSpec(WithFiller: true, ToValue: true, ValueCategories: default,
             Replacements: [], HasReplacing: false, ToDefault: true);
         var actions = new List<InitializeAction>();
-        BindInitializeTarget(basedRef, spec, actions);
-        return new BoundInitialize(actions);
+        BindInitializeTarget(basedRef, spec, actions, out _);
+        return new BoundInitialize(actions) { AllocateImplicit = true };
     }
 
     /// <summary>Expand one identifier-1 (ISO §14.9.20 GR5): resolve its FULL data reference (qualification +
     /// subscripts), then walk its subtree in
     /// definition order (GR8) collecting the per-elementary stores. identifier-1 itself MAY have / sit under a
     /// REDEFINES (GR5a3's exclusion applies only BELOW it).</summary>
-    private void BindInitializeTarget(Core.DataReferenceContext dref, in InitializeSpec spec, List<InitializeAction> actions)
+    /// <param name="written">identifier-1 as the statement wrote it (the place <c>ResolveReceiving</c> answered), null when it
+    /// resolved to none (the whole-dynamic-table arm). It is the one operand the statement explicitly references; every store the
+    /// expansion adds below it is the statement's meaning (<see cref="BoundInitialize.ImplicitOperands"/>).</param>
+    private void BindInitializeTarget(Core.DataReferenceContext dref, in InitializeSpec spec, List<InitializeAction> actions, out Place? written)
     {
+        written = null;
         // INITIALIZE of a WHOLE OCCURS DYNAMIC table (ISO §14.9.20 GR10; data-model D9): the whole-table reference
         // does not resolve to an element Place (it is guarded loud), so detect it by name and expand the element's
         // stores under a RUN-TIME loop 1‥Capacity (RefReceiving within bounds does not grow). The stores are the
@@ -230,6 +234,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // receiver shape as COBOL0899), so the old run-time InitializeErrorAction staging is gone with it —
         // §4.2.2 puts a syntax-rule violation in the compile-time mechanism.
         if (host.Expr.ResolveReceiving(dref) is not { } place) return;
+        written = place;
         // ISO §14.9.20.3 SR5: "The data description entry for the data item referenced by identifier-1 shall not
         // contain a RENAMES clause." ⛔ ON THE RESOLVED PATH, WHICH IS THE ONLY ARM THAT CAN REACH IT: the check
         // used to sit in the resolve-FAILURE arm above, and a level-66 entry RESOLVES — so the rule never fired

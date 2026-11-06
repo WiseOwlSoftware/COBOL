@@ -43,33 +43,60 @@ public sealed class ImplicitRegisters
         // already realized by the runtime's single ExceptionState, which is what the place reads.
     };
 
-    /// <summary>Register the X3.23-1985 DEBUG-ITEM special-register family (idempotent) — called by the procedure table builder
-    /// when it collects a <c>USE FOR DEBUGGING</c> procedure-subject declarative under WITH DEBUGGING MODE, BEFORE statement
-    /// binding resolves the DEBUG-* references inside the debugging section. Each member is a synthesized elementary VIEW of
-    /// its fixed 1985 width over the program-instance <c>__dbgItem</c> (<see cref="WiseOwl.Cobol.Runtime.DebugItem"/>) —
-    /// carried as a STRUCTURAL <see cref="DebugRegisterMember"/> selector (the C# read text lives in the renderer); the
-    /// whole-group DEBUG-ITEM reads the concatenated image. DEBUG-SUB-n carries the S9(4) SIGN LEADING SEPARATE image WIDTH (5)
-    /// but as an alphanumeric character-image view: the procedure-trigger leg only ever renders it SPACES, and the subscripted
-    /// numeric-value population + the §14.9.25.4 GR6a "sign not moved" MOVE semantics ride the staged data-name leg
-    /// (COBOL1571). <paramref name="takeUid"/> is the binder's unique-id counter (<c>DataBinder.TakeUid</c>).</summary>
-    internal void ActivateDebugRegisters(Func<int> takeUid)
+    /// <summary>Register the X3.23-1985 DEBUG-ITEM special-register family — called by the procedure table builder when it
+    /// collects a <c>USE FOR DEBUGGING</c> declarative under WITH DEBUGGING MODE, BEFORE statement binding resolves the
+    /// DEBUG-* references inside the debugging section, and again by <c>FinalizeDebug</c> once the targets are known, to
+    /// WIDEN DEBUG-CONTENTS to the largest of 30 and every data-name or cd-name target's image width (general rule 15:
+    /// "large enough to contain the data required"; docs/CONTROL_FLOW_DESIGN.md D20). Each member is a synthesized
+    /// elementary VIEW of its 1985 implicit description over the program-instance <c>__dbgItem</c>
+    /// (<see cref="WiseOwl.Cobol.Runtime.DebugItem"/>) — carried as a STRUCTURAL <see cref="DebugRegisterMember"/> selector
+    /// (the C# read text lives in the renderer); the whole-group DEBUG-ITEM reads the concatenated image. ⛔ DEBUG-SUB-n IS A NUMERIC
+    /// ITEM: general rule 10 describes it as <c>PICTURE S9999 SIGN IS LEADING SEPARATE</c>, so its profile is that PICTURE's and it is
+    /// IMAGE-CARRIED (<see cref="StorageForm.CharImage"/>, the report sum counter's precedent): the register stores its five-character
+    /// image (<c>+0003</c>, SPACES for a reference that is not subscripted) and every numeric consumer decodes it — a comparison,
+    /// COMPUTE or DISPLAY sees the value, and a MOVE to an alphanumeric item drops the separate sign (§14.9.25.4 GR6; CCVS DB201A
+    /// moves it to X(5) and compares <c>"0005"</c>). <paramref name="takeUid"/> is the binder's unique-id counter
+    /// (<c>DataBinder.TakeUid</c>).</summary>
+    internal void ActivateDebugRegisters(Func<int> takeUid, int contentsWidth = Runtime.DebugItem.MinContentsWidth)
     {
-        if (_debugRegisters.Count > 0) return;
-        void Reg(string name, int width, DebugRegisterMember member) =>
-            _debugRegisters[name] = (new DataItem
-            {
-                Level = 49,
-                ClrName = NamingConvention.DebugRegisterName(name),
-                CobolName = name,
-                Pic = new PicInfo(PicCategory.Alphanumeric, Usage.Display, Length: width, Digits: 0, Scale: 0, Signed: false),
-                Uid = takeUid(),
-            }, member);
-        Reg("DEBUG-ITEM", Runtime.DebugItem.GroupWidth, DebugRegisterMember.Item);
-        Reg("DEBUG-LINE", Runtime.DebugItem.LineWidth, DebugRegisterMember.Line);
-        Reg("DEBUG-NAME", Runtime.DebugItem.NameWidth, DebugRegisterMember.Name);
-        Reg("DEBUG-SUB-1", Runtime.DebugItem.SubWidth, DebugRegisterMember.Sub1);
-        Reg("DEBUG-SUB-2", Runtime.DebugItem.SubWidth, DebugRegisterMember.Sub2);
-        Reg("DEBUG-SUB-3", Runtime.DebugItem.SubWidth, DebugRegisterMember.Sub3);
-        Reg("DEBUG-CONTENTS", Runtime.DebugItem.ContentsWidth, DebugRegisterMember.Contents);
+        contentsWidth = Math.Max(contentsWidth, Runtime.DebugItem.MinContentsWidth);
+        if (_debugRegisters.Count > 0 && contentsWidth <= DebugContentsWidth) return;
+        DebugContentsWidth = contentsWidth;
+        DataItem NewItem(string name, PicInfo pic) => new()
+        {
+            Level = 49,
+            ClrName = NamingConvention.DebugRegisterName(name),
+            CobolName = name,
+            Pic = pic,
+            Uid = takeUid(),
+        };
+        void Reg(string name, PicInfo pic, DebugRegisterMember member)
+        {
+            // A re-activation keeps a member that did not change (its unique id is its identity) and replaces the widened ones.
+            var item = _debugRegisters.TryGetValue(name, out var held) && held.Item1.Pic == pic ? held.Item1 : NewItem(name, pic);
+            _debugRegisters[name] = (item, member);
+        }
+        static PicInfo Alnum(int width) => new(PicCategory.Alphanumeric, Usage.Display, Length: width, Digits: 0, Scale: 0, Signed: false);
+        // General rule 10: DEBUG-SUB-n is PICTURE S9999 SIGN IS LEADING SEPARATE — a separate leading sign and four digits, five characters.
+        var sub = new PicInfo(PicCategory.Numeric, Usage.Display, Length: 4, Digits: 4, Scale: 0, Signed: true)
+        { SignKind = PicInfo.SignKindFor(Usage.Display, signed: true, new SignSpec(Leading: true, Separate: true)) };
+        Reg("DEBUG-ITEM", Alnum(Runtime.DebugItem.GroupWidthFor(contentsWidth)), DebugRegisterMember.Item);
+        Reg("DEBUG-LINE", Alnum(Runtime.DebugItem.LineWidth), DebugRegisterMember.Line);
+        Reg("DEBUG-NAME", Alnum(Runtime.DebugItem.NameWidth), DebugRegisterMember.Name);
+        // The three members share ONE description (one profile): three items of the same PICTURE that only the member a place reads tells apart.
+        DebugSubRegister ??= NewItem("DEBUG-SUB-1", sub);
+        DebugSubRegister.Storage = new StorageForm.CharImage(DebugSubRegister.ImageWidth, PicCategory.Numeric);
+        _debugRegisters["DEBUG-SUB-1"] = (DebugSubRegister, DebugRegisterMember.Sub1);
+        _debugRegisters["DEBUG-SUB-2"] = (DebugSubRegister, DebugRegisterMember.Sub2);
+        _debugRegisters["DEBUG-SUB-3"] = (DebugSubRegister, DebugRegisterMember.Sub3);
+        Reg("DEBUG-CONTENTS", Alnum(contentsWidth), DebugRegisterMember.Contents);
     }
+
+    /// <summary>The description every DEBUG-SUB-n member shares (general rule 10: <c>PICTURE S9999 SIGN IS LEADING SEPARATE</c>), null until
+    /// <see cref="ActivateDebugRegisters"/> runs; the emitter declares its numeric profile.</summary>
+    public DataItem? DebugSubRegister { get; private set; }
+
+    /// <summary>The declared DEBUG-CONTENTS width of the DEBUG-ITEM register — the width the emitted <c>__dbgItem</c> is
+    /// constructed with; 30 until <see cref="ActivateDebugRegisters"/> widens it.</summary>
+    public int DebugContentsWidth { get; private set; } = Runtime.DebugItem.MinContentsWidth;
 }

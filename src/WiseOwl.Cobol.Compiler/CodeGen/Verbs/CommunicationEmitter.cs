@@ -18,6 +18,9 @@ internal sealed class CommunicationEmitter(EmitContext ctx, NumericRenderer num,
     /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (RECEIVE's phrases nest statement lists).</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
+    /// <summary>The USE FOR DEBUGGING trigger emitter — property-wired by <see cref="UnitEmitters"/> (docs/CONTROL_FLOW_DESIGN.md D20).</summary>
+    internal DebugTriggerEmitter Debug { get; set; } = null!;
+
     private static string FormatOf(CommunicationDescription cd) => RuntimeApi.CommunicationEnum(cd.Format);
 
     /// <summary>The members of a program with a CD of the INITIAL clause: its once-per-instance flag.</summary>
@@ -90,9 +93,14 @@ internal sealed class CommunicationEmitter(EmitContext ctx, NumericRenderer num,
         // A reference-modified receiver is a window, whose write splices; the image store is for an item's whole storage.
         if (into is RefModPlace) w.Line(PlaceRenderer.Write(into, $"{receipt}.Into"));
         else seqIo.EmitImageInto(into, $"{receipt}.Into", storesIntoOwnItem: false);
-        if (n.WithData is null && n.NoData is null) return;
+        // X3.23-1985 USE FOR DEBUGGING general rule 8 b: a cd-name's section runs after a RECEIVE "that does not result in the
+        // execution of the NO DATA imperative-statement" — here the data arrived, and the WITH DATA statements have not run (D20).
+        if (n.WithData is null && n.NoData is null) { Debug.LandAfterAction(); return; }
         using (w.Block($"if ({receipt}.DataAvailable)"))
+        {
+            Debug.LandAfterAction();
             if (n.WithData is { } yes) Statements.EmitStatementList(yes);
+        }
         using (w.Block("else"))
             if (n.NoData is { } no) Statements.EmitStatementList(no);
     }

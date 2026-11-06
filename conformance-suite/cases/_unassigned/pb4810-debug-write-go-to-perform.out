@@ -1,0 +1,29 @@
+RECORD F-REC   =ABCD
+FILE ZZZZ
+RECORD F-REC   =ZZZZ
+SELECTOR SEL     =2
+AT T2
+ALL I       =1
+ALL I       =1
+BODY
+ALL I       =2
+ALL I       =2
+BODY
+ALL I       =3
+ALL I       =3
+BODY
+ALL I       =4
+ALL I       =4
+CHANGED J       =1
+BODY
+CHANGED J       =3
+BODY
+CHANGED J       =5
+TIMES
+TIMES
+COUNT N       =2
+UNTIL U       =0
+UNTIL U       =1
+UNTIL U       =1
+UNTIL U       =2
+UNTIL U       =2

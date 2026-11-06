@@ -47,4 +47,12 @@ public sealed record BoundCorresponding(
     IReadOnlyList<CorrespondingHoist> Hoists,
     IReadOnlyList<CorrespondingPair> Pairs,
     CobolRounding Rounding,
-    SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
+    SizeErrorPhrase? SizeError,
+    Place SendingGroup,
+    Place ReceivingGroup) : BoundStatement, IArithmeticStatement, IBoundImplicitOperands
+{
+    /// <summary>The statement WROTE the two group operands (<see cref="SendingGroup"/>, <see cref="ReceivingGroup"/>); the member pairs and
+    /// the hoisted anchors are what the binder expanded them into, not references the program made (X3.23-1985 USE FOR DEBUGGING
+    /// general rule 5: "explicitly references").</summary>
+    public IEnumerable<object> ImplicitOperands => [Hoists, Pairs];
+}

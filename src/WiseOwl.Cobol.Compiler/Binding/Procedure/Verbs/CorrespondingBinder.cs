@@ -119,7 +119,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             return new BoundUnsupported(fail);
         // Zero pairs is a legal EMPTY implied set (§14.7.6 selects none silently): MOVE does nothing; an arithmetic
         // statement raises no size error, so a NOT ON SIZE ERROR phrase still runs (§14.7.5 rule 3).
-        return new BoundCorresponding(verb, hoists, pairs, rounding, sizeErr);
+        return new BoundCorresponding(verb, hoists, pairs, rounding, sizeErr, src, dst);
     }
 
     /// <summary>

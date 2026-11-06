@@ -1,0 +1,28 @@
+A1: K = 1 jumps
+  DB0
+A2: K = 9 falls through
+  DB0
+FELL
+B: EXIT PROGRAM
+IN SUB
+  SB0
+BACK
+C: INITIALIZE G
+  DBG
+D: IF YC (I)
+T
+  DBI
+E1: WHEN D not reached
+ONE
+E2: WHEN D reached
+D
+  DB0
+E3: SEARCH second WHEN not reached
+HIT
+E4: SEARCH second WHEN reached
+HIT2
+  DB0
+F: unused DEBUG-SUB-1
+  DBZ [     ]
+  SPACES
+END

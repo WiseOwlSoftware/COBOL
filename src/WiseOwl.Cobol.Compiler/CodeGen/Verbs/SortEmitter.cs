@@ -774,7 +774,8 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             // MoveBinder.BindIntoPhrase (kb/Work PB348): its sender is the record area sliced to the
             // §13.18.43.4 GR16 byte count through THE SAME builder both READ arms use (kb/Work PB339), and the
             // MOVE statement's own syntax rules have already been applied to it.
-            if (rt.IntoMove is { } intoMove) move.Emit(intoMove);
+            // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs (D20).
+            if (rt.IntoMove is { } intoMove) { move.Emit(intoMove); seqIo.Debug.LandAfterAction(); }
             if (rt.NotAtEnd is { } not) Statements.EmitStatementList(not);
         }
         // §14.9.34.4 GR3 — the at end condition: control transfers to imperative-statement-1, and on return from
