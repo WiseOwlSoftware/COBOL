@@ -1,4 +1,4 @@
-## Messaging slice S3: SEND and RECEIVE are bound and their syntax rules asked (PB4743)
+## Entry 3175 — 2026-11-05 17:46 PST — Messaging slice S3: SEND and RECEIVE are bound and their syntax rules asked (PB4743)
 
 Slice S3 of `docs/rearchitecture/DESIGN-message-control.md` (§4.1, §4.3), landed on top of S1's message-tag type.
 
@@ -39,3 +39,4 @@ files: a figurative constant is a legal literal-1 (R1-3), a reference-modified i
 CONFORMANCE paragraph and the StatementBinder comment no longer name RECEIVE's unreachable CONSTANT RECORD arm or the old binder (R1-5). Goldens: the accepted SEND case gained a
 constant-name, a figurative and a FUNCTION leg; `pb4743-send-constant-numeric` (COBOL6265) and `pb4743-send-from-refmod-based` (COBOL6266) are new refusals; `MessagingSyntaxRuleTests`
 gained the constant-name, function and slice theories.
+
