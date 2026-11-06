@@ -420,7 +420,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
         if (!cls.IsCellBacked && leaves.FirstOrDefault(SlotWindow.CarriedBySlot) is { } managed)
         {
             reject = $"'{managed.CobolName ?? "FILLER"}' is of a pointer class, whose value rides the storage "
-                + "area's managed slots (ISO §14.9.3.4 GR9), and a shared area's stored backing has none "
+                + "area's managed slots (the implementor-defined D-SLOT representation, DOC-A.1-210 and DOC-A.1-216), and a shared area's stored backing has none "
                 + $"— {where}";
             return RedefinesTier.Rejected;
         }
