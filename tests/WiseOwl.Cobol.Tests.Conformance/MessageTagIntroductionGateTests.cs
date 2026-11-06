@@ -134,6 +134,131 @@ public sealed class MessageTagIntroductionGateTests
         }
     }
 
+    /// <summary>kb/Work PB4836: the statement is the gate's whatever SET format its message-tag operand reaches, not Format 17
+    /// alone. Below 2023 each of these draws ONLY the operand's COBOL0900 (DESIGN-message-control.md §7.1); at 2023 each is
+    /// refused by its own format's rule and the gate is absent. The pointer (Format 7), object-reference (Format 5), UP/DOWN
+    /// (Format 10 / Format 2) and message-tag-receiver (Format 17) arms are each reached by a tag operand, as sender or as
+    /// receiver.</summary>
+    [Theory]
+    [InlineData("SET P TO T", 2002)]
+    [InlineData("SET P TO T", 2014)]
+    [InlineData("SET O TO T", 2014)]
+    [InlineData("SET T UP BY 1", 2014)]
+    [InlineData("SET T DOWN BY 1", 2014)]
+    [InlineData("SET T TO P", 2014)]
+    [InlineData("SET T TO O", 2014)]
+    [InlineData("SET P TO T", 2023)]
+    [InlineData("SET O TO T", 2023)]
+    [InlineData("SET T UP BY 1", 2023)]
+    [InlineData("SET T DOWN BY 1", 2023)]
+    [InlineData("SET T TO P", 2023)]
+    [InlineData("SET T TO O", 2023)]
+    public void EverySetFormatAMessageTagOperandReaches_IsTheGateAloneBelowTheIntroduction(string statement, int edition)
+    {
+        var errors = EditionHarness.CompileFull($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. MTISF.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T USAGE MESSAGE-TAG.
+            01 P USAGE POINTER.
+            01 O USAGE OBJECT REFERENCE.
+            PROCEDURE DIVISION.
+            MAIN-P.
+                {statement}.
+                STOP RUN.
+            """, edition).Errors;
+        if (edition >= 2023)
+        {
+            Assert.NotEmpty(errors);
+            EditionHarness.AssertNoDiagnostic(errors, "COBOL0900");
+        }
+        else
+        {
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
+            Assert.All(errors, e => Assert.Contains("COBOL0900", e));   // the gate alone: no second message
+        }
+    }
+
+    /// <summary>kb/Work PB4837: a SAME-FILE function's returned temporary, a SAME-FILE class's object property and a same-file
+    /// method's inline result are message-tag items whose own entries THIS compilation walks, so the COBOL0900 gate refuses
+    /// the compile below 2023 and the SET naming them draws no second message. At 2023 each draws its SR35 refusal and no
+    /// gate. (The imported counterparts, which have no entry here and so no gate, are
+    /// <see cref="SetFormat17_ImportedFunctionSender_IsRefusedAtEveryEdition"/> and
+    /// <see cref="SetFormat17_ImportedPropertyOperand_IsBoundAtEveryEdition"/>.)</summary>
+    [Theory]
+    [InlineData("SET N TO FUNCTION MTF()", 2014)]
+    [InlineData("SET P TO FUNCTION MTF()", 2014)]
+    [InlineData("SET N TO TAGP OF O", 2014)]
+    [InlineData("SET TAGP OF O TO N", 2014)]
+    [InlineData("SET N TO O :: \"MGET\" (N)", 2014)]
+    [InlineData("SET N TO FUNCTION MTF()", 2023)]
+    [InlineData("SET P TO FUNCTION MTF()", 2023)]
+    [InlineData("SET N TO TAGP OF O", 2023)]
+    [InlineData("SET TAGP OF O TO N", 2023)]
+    [InlineData("SET N TO O :: \"MGET\" (N)", 2023)]
+    public void SameFileFunctionPropertyAndMethodOperands_AreTheGateAloneBelowTheIntroduction(string statement, int edition)
+    {
+        var errors = EditionHarness.CompileFull($"""
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. MTF.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 R USAGE MESSAGE-TAG.
+            PROCEDURE DIVISION RETURNING R.
+            MAIN-P.
+                SET R TO NULL.
+                GOBACK.
+            END FUNCTION MTF.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. MTP.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TAGP USAGE MESSAGE-TAG PROPERTY.
+            PROCEDURE DIVISION.
+            METHOD-ID. MGET.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 MA PIC 9(4).
+            01 MR USAGE MESSAGE-TAG.
+            PROCEDURE DIVISION USING MA RETURNING MR.
+                SET MR TO NULL.
+                GOBACK.
+            END METHOD MGET.
+            END OBJECT.
+            END CLASS MTP.
+
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. MTISAME.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                FUNCTION MTF
+                CLASS MTP PROPERTY TAGP.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 N PIC 9(4) VALUE 7.
+            01 P USAGE POINTER.
+            01 O USAGE OBJECT REFERENCE MTP.
+            PROCEDURE DIVISION.
+            MAIN-P.
+                {statement}.
+                STOP RUN.
+            """, edition).Errors;
+        if (edition >= 2023)
+        {
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
+            EditionHarness.AssertNoDiagnostic(errors, "COBOL0900");
+        }
+        else
+        {
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
+            Assert.All(errors, e => Assert.Contains("COBOL0900", e));   // the gate alone: no COBOL0869 beside it
+        }
+    }
+
     /// <summary>kb/Work PB4771 review R1-1: a message-tag SENDER that is an IMPORTED function's returned temporary has no
     /// declaration in this compilation, so no COBOL0900 gate fires on it; the SET must still be refused (§14.9.39.3 SR35,
     /// COBOL0869) at every edition, never dropped as a no-op that compiles clean below 2023.</summary>
