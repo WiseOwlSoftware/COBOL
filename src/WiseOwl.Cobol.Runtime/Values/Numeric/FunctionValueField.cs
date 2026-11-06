@@ -226,9 +226,11 @@ public readonly struct FunctionValueField
         int n = sorted.Length;
         if ((n & 1) == 1) return sorted[n / 2];
         FunctionValueField low = sorted[n / 2 - 1], high = sorted[n / 2];
-        // The mean of two middles one of which is held exactly is formed EXACTLY (kb/Work PB3953, PB4750): their exact sum times
-        // the exact one half, whatever form the sum takes.
-        if (low._shape == Shape.Exact || high._shape == Shape.Exact)
+        // ⛔ THE MEAN IS THE EXACT MEAN, THE ONE VALUE EVERY CHANNEL GIVES (§15.61.4 2), §15.4.1; kb/Work PB3953, PB4750, PB4826
+        // review R1-2): their exact sum times the exact one half, whatever form the sum takes, so DISPLAY shows what COMPUTE stores.
+        // Only two binary64 middles keep the SDIDI mean of their approximations: a sum truncated at 34 digits and then halved was
+        // 4.5 units off in its 34th digit, and MEDIAN (A B) = (A + B) / 2 was true on DISPLAY alone.
+        if (low._shape != Shape.Float || high._shape != Shape.Float)
             return OfExact(CobolExact.Mul(CobolExact.Add(low.Exact(), high.Exact()), CobolExact.From(5, 1)));
         CobolDec sum = CobolDec.Add(low._value, high._value, CobolRounding.Truncation);
         return OfValue(CobolDec.Div(sum, CobolDec.From(2, 0), CobolRounding.Truncation));

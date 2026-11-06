@@ -17,6 +17,8 @@
       *>   R1  RANGE (A C) ROUNDED into 9(26)V99    A - C = ...455.994999999            -> ...455.99   (the 34-digit value .99500000 gave 456.00)
       *>   D1  MIDRANGE (A B) ROUNDED into 9(25)V999 (A + B) / 2 = ...728.0024999995    -> ...728.002  (the 34-digit value .00250000 gave .003)
       *>   M1  MEDIAN (A B) ROUNDED into 9(25)V999, the mean of the two middle values    -> ...728.002
+      *>   M2  DISPLAY MEDIAN (A B), the same mean on the device channel (review R1-2: it was truncated at 34 digits)  -> ...728.0024999995
+      *>   D2  DISPLAY MIDRANGE (A B)                                                    -> ...728.0024999995
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4826BND.
        DATA DIVISION.
@@ -37,5 +39,7 @@
            DISPLAY "D1 " H
            COMPUTE H ROUNDED = FUNCTION MEDIAN (A B)
            DISPLAY "M1 " H
+           DISPLAY "M2 " FUNCTION MEDIAN (A B)
+           DISPLAY "D2 " FUNCTION MIDRANGE (A B)
            STOP RUN.
        END PROGRAM PB4826BND.
