@@ -8,7 +8,7 @@ occurrence, came back space filled. 8.5.1.9.5 says otherwise for an INITIALIZED 
 referenced as receiving operands in a statement that creates new elements in that table are first initialized as though
 they had been the subject of a statement of the form INITIALIZE ... WITH FILLER ALL TO VALUE THEN TO DEFAULT".
 
-**Re-probe.** `E:\COBOL-coord\scratch\w1069c\r3.cob` on a fresh build of 2da05a28a printed `CALL=[ab|  |r ] 3` beside
+**Re-probe.** `E:\COBOL-coord\scratch\w1069c\r3.cob` on a fresh build of 58cf3af78 printed `CALL=[ab|  |r ] 3` beside
 `DIRECT=[ab|ab|rb] 3`; after the fix both read `[ab|ab|rb] 3`.
 
 **The design came out simpler than the note's sketch.** The note proposed carrying the default on the argument's carrier
@@ -56,7 +56,7 @@ nothing new; a BY REFERENCE view seeds one element per occurrence it shows past 
 renders an element's image for both the current image and the creation (`GroupImageCodec.DynElementImage`), and one
 builds the cell's element carrier (`StorageCell.ElementCarrier`). `semgrep/verify.py` PASS, no count moved.
 
-**Arch oracle.** `compare_oracle.py` against a6376c64ff94: DIFFERENT, 3456 of 7807 cases, every one classified by
+**Arch oracle.** `compare_oracle.py` against 93b50a298192: DIFFERENT, 3456 of 7807 cases, every one classified by
 script (`E:\COBOL-coord\scratch\w1072c\classify.py`): 3342 differ only by the runtime version string the module records
 ("2.0.0.0" to "3.0.0.0", the major above); 111 differ by that and by the storage-carrier emission (`AsVarImage`'s
 `__byReference` parameter, the `Created` list, `VarGroupAt(..., byReference: true)`); 3 are ADDED (this branch's goldens).
@@ -82,5 +82,5 @@ to `half` with it as REMAINING, and D-VGB names it a known departure.
 5,903/11,546, Unit 32,552/33,499, Characterization 7/36 ran in leg 1); the review finisher's re-gate:
 `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261014T024145Z-533a73; Conformance
 5,905/11,544, Unit 32,552/33,501, Characterization 7/36 ran in leg 1).
-The Linux gate is the landing's (batched gating). The landing's Linux gate (merged head 305fba0d8) was RED in characterization: the major bump above changes the runtime version every module records, and the 14 `EmittedCSharp_MatchesSnapshot` snapshots still carried "2.0.0.0" in the `CobolRepositoryAttribute` line and the `EnsureRegistered` call. Not a host difference: Windows leg 1 ran only 6 of the 36 characterization cases (no impact map for the base, so every case was tier 1 and the snapshots fell past the 2 % budget into leg 2). The finisher re-recorded the 14 snapshots (`COBOLNET_UPDATE_SNAPSHOTS=1`); the diff is exactly those two lines per snapshot, "2.0.0.0" to "3.0.0.0".
+The Linux gate is the landing's (batched gating). The landing's Linux gate (merged head 7fee0658e) was RED in characterization: the major bump above changes the runtime version every module records, and the 14 `EmittedCSharp_MatchesSnapshot` snapshots still carried "2.0.0.0" in the `CobolRepositoryAttribute` line and the `EnsureRegistered` call. Not a host difference: Windows leg 1 ran only 6 of the 36 characterization cases (no impact map for the base, so every case was tier 1 and the snapshots fell past the 2 % budget into leg 2). The finisher re-recorded the 14 snapshots (`COBOLNET_UPDATE_SNAPSHOTS=1`); the diff is exactly those two lines per snapshot, "2.0.0.0" to "3.0.0.0".
 

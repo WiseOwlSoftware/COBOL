@@ -1,6 +1,6 @@
 ## Entry 1302 — 2026-08-18 02:50 PDT — The PB68+PB69 battery's one red (NIST NC250A), attributed and closed: PB84 — one landing and one store for every consumer of a rendered intermediate — plus PB85, and PB86 registered
 
-**Battery first (PB68+PB69 batch, tree `5c429e98`):** Conformance **4632/4633** · Unit **4192/4192** ·
+**Battery first (PB68+PB69 batch, tree `5f1a0429`):** Conformance **4632/4633** · Unit **4192/4192** ·
 Characterization 33/33 · NIST-legacy 353 MATCH / 0 · GnuCOBOL differential 1323 cases, **0 per-case flips**. The ONE
 red: `NistDifferentialTests.NistProgram_MatchesGolden(NC250A)` — the whole program failed at the backend with five
 `error CS0019: Operator '>' cannot be applied to operands of type 'CobolDec' and 'int'`, every one a sign condition

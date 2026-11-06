@@ -5,7 +5,7 @@ now beats the hand-written partition classes, since DESIGN-test-build-ci.md sect
 lever was exhausted had been measured under the ANTLR lexer lock that M6 removed. This landing records the experiment
 and the determination. No code and no package change.
 
-**Re-probe.** The note's premise holds on main at `3abfbbdbb`: the profile of an arm-A trx
+**Re-probe.** The note's premise holds on main at `127563c7a`: the profile of an arm-A trx
 (`scripts/profile-test-parallelism.py`) shows every partition class with sum equal to span (serial), and xunit 2.9.2
 decompiled confirms one collection per class and the `conservative` algorithm's semaphore of `maxParallelThreads`
 collections.
@@ -37,7 +37,7 @@ was not measured, since B did not clear the bar.
 **Review round 1 and the second series.** The branch review (finding R1-1, blocking) held that the first determination
 rested on a host PB4150's protocol forbade (step 3 asks for an idle host; every arm-A run had 0–4 other gates beside
 it), stated no deviation, and left out B2's paired rounds, in which B2 beat A 5 times in 6. The review finisher rebuilt
-A, B2 and Ag at `773f18466` and ran eight more alternating rounds, sampling the gate slots every 5 s through each run.
+A, B2 and Ag at `8bd7b13d8` and ran eight more alternating rounds, sampling the gate slots every 5 s through each run.
 Only two rounds were free of other gates (and other sessions' builds still ran), and the fleet's next wave filled every
 slot from round 6, so the series stopped after round 8 rather than hold a slot four implementer gates were queued
 behind. Pooled over 14 pairs, B2 was faster than A in 10, slower in 3 and tied in 1: about 12 % faster (geometric mean
@@ -53,10 +53,10 @@ pole start and end times, the paired differences and the thread counts). One cla
 first draft listed `process-globals` classes as racing under per-row parallelism, but the package leaves an explicit
 collection serial; only `AcceptSourceTests` (`Console.In` in each of five facts) would race.
 
-**Gate.** `TestResults/build-local/000001-20261031T004941Z` on `ebd24b37f`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
+**Gate.** `TestResults/build-local/000001-20261031T004941Z` on `f2c82c25b`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
 gating, PB2515): GREEN — … Conformance 54/19,881 · Unit 5,578/38,701 · Characterization 3/36 cases ran (skipped 0) in 1
 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN …`. The review finisher's gate,
-`TestResults/build-local/000001-20261031T024558Z` on `ddb28478f`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
+`TestResults/build-local/000001-20261031T024558Z` on `9e814ba27`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
 PB2515): GREEN — … Conformance 81/19,961 · Unit 5,585/38,730 · Characterization 3/36 cases ran (skipped 0) in 1 of 2
 leg(s) · Linux half (WSL clone of HEAD) GREEN …`. The commit after it changes only this entry.
 

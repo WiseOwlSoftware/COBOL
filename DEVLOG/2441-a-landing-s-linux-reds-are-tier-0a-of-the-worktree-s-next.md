@@ -83,7 +83,7 @@ methods in `CobolBoolTests.cs` and `TierCRejectionTests.cs`), so even an added o
 It also counted test methods inside planted C# strings (`VacuousTestDriftTests.cs`). The comment in `reach_of` said a
 changed theory data source left its classes "already tier 0a", which the code did not do; now it does. A replay
 (`--head`) of a commit that deletes a test file crashed the analysis, because it read the file at the head where it
-no longer exists (`19c9289af` replayed). A deleted file now names no test, and a self-test arm pins it.
+no longer exists (`62e105a3a` replayed). A deleted file now names no test, and a self-test arm pins it.
 
 **Branch review R1-1, fixed.** The first version decided "a hunk of blank and comment lines" with a line regex, so a
 hunk inside a test's raw string, its embedded COBOL program, counted as a comment edit when its lines started `*` or

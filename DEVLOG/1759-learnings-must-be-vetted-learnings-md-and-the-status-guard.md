@@ -27,7 +27,7 @@ So all 145 items are CANDIDATES until validated.
   learning.
 
 **Also.**
-- Train 70b landed: `8a20a95ea`, DEVLOG 1758, GAP 883 → 866.
+- Train 70b landed: `2ea537afc`, DEVLOG 1758, GAP 883 → 866.
 - The U2 finisher landed PB1075 on its branch with a CURRENT status stamp, then ended without a structured result
   mid-PB1083. Its work is preserved as a labelled commit, and status_delta reports STALE by 1. U2 lands in the next
   wave's first train, which gives it the full gate it has not had.

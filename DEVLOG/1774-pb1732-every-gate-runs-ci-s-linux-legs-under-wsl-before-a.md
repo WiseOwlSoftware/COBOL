@@ -20,7 +20,7 @@ session.
   Windows build bakes in as `E:\…` paths: 363 false reds. So it builds committed HEAD on Linux in a `git archive`
   snapshot under `~/linux-gate/<tree>`. `pwsh` and Java are now in WSL, so the ANTLR pre-build runs; the build takes
   ~15 s.
-- **Measured on main at 9a0ab2dd4:** all three legs GREEN in 244 s wall.
+- **Measured on main at 0eae45921:** all three legs GREEN in 244 s wall.
   - Unit 29,746/29,746.
   - Characterization 33/33.
   - Conformance 9,319/9,319, in 91 s after the Linux build.

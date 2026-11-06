@@ -6,7 +6,7 @@ under an open handle and another made at its path; the connector's re-OPEN then 
 read its records and committed to it, and a second connector of the run unit opening the path attached to the removed file's
 store.
 
-**Re-probe.** Ten new witnesses, committed alone on the unfixed runtime (6df15af12) and run on CI's Linux unit leg under WSL,
+**Re-probe.** Ten new witnesses, committed alone on the unfixed runtime (ed94a00f3) and run on CI's Linux unit leg under WSL,
 failed and nothing else did (35588 passed): the re-OPEN kept the transaction; a re-OPEN of a file another run unit holds under
 SHARING WITH NO OTHER answered '00' where §9.1.13.9 1) owes '61'; the second connector read `0002A002`, the removed file's
 record, instead of the new file's `0002B002`. On Windows the kept handle's share mode admits no delete, so the host refuses the
@@ -37,5 +37,5 @@ outside party replacing a file mid-run). Witnesses: `CommitRollbackRuntimeTests`
 I-O, both organizations; its '39' and '61' refusals; two connectors on a replaced path), `PhysicalFileIdentityDriftTests`
 (the identity primitives on both hosts), `CrossRunUnitKeyedStoreDriftTests` (the store table). No inventory row re-verdicted.
 
-**Gates.** Windows (run 000003-20261023T173714Z): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN ... Conformance 10,427/18,190 · Unit 34,885/35,565 · Characterization 5/36 cases ran ...`, the thirteen added or changed cases among them. Linux (`--legs unit,conformance`): `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 97a867292) ===`.
+**Gates.** Windows (run 000003-20261023T173714Z): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN ... Conformance 10,427/18,190 · Unit 34,885/35,565 · Characterization 5/36 cases ran ...`, the thirteen added or changed cases among them. Linux (`--legs unit,conformance`): `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 64bef5ea0) ===`.
 

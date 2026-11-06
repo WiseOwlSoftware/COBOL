@@ -4,7 +4,7 @@ kb/Work PB4320 (campaign PB2293, DESIGN-backend-abstraction §1.3 L7). PB4265 ma
 binder sites then composed C# member-access text from them, so the model held expressions a CIL backend would have to
 parse back.
 
-**Re-probe (base 2e48863d5).** All four stood: a carrier-resident formal's `DataItem.ClrName` was overwritten with
+**Re-probe (base c83133b23).** All four stood: a carrier-resident formal's `DataItem.ClrName` was overwritten with
 `__lnk{Uid}.Value` (`CallBindLinkage`, `OoBindMethodData`); `AccessPath.Reroot` joined the `__outer.` chain or a
 container's class name onto `RootFieldSegment.CsField`; `GlobalBridgesOf` stored each bridge's `anchor + member` text;
 `SortMemberPath` joined a table-sort key's member names with `.`. The sibling sweep (`+ "."`, `string.Join(".")`,
@@ -21,7 +21,7 @@ unanchored source (`GlobalBridgeMembersOf`) that the member-name reservation rea
 chain of items (`BoundTableSortKey.MemberChain`). The Roslyn backend spells every one: `PlaceRenderer.RootStorage`,
 `PlaceRenderer.Anchored`, `ProgramEmitter.ClassRef`, the sort comparer. `BoundUnit.AnchorOf` no longer reaches into
 `CodeGen.RuntimeApi`, which was the last `Binding.Model → CodeGen` use: that is kb/Work PB2397's extract wave, landed
-here with a census record at b8e4a3b58 and the tolerated row deleted from `architecture-edges.json` by the ratchet.
+here with a census record at e513f1e5d and the tolerated row deleted from `architecture-edges.json` by the ratchet.
 The inventory rows that named the renamed members (GR-14.9.4.4-12 `RootOf`, SR-14.9.40.3-14 `SortMemberPath`) carry
 the new names through a `record_verdicts` batch that retires the old witnesses (GAP 19 → 19).
 

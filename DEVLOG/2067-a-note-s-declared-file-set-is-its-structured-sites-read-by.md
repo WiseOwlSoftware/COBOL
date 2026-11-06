@@ -10,7 +10,7 @@ expansion and its fallback, and the register's own `work.note_sites`, the one re
 **Sites** block), accepted only `src/`, `tests/` and `docs/`, so a `scripts/` site declared nothing. Fifty-seven of
 PB1754's sixty-three ready R2 notes DISCUSS `plan_wave.py` and `landing_check.py`, and every PB3160 slice says
 "cite.py --check", so the two campaigns' dry runs planned one campaign group each: the rest waited on one another's
-prose. Re-probed on the base (173dc4f35): `member_index.py --note PB3203` gave 57 C# files and neither of its two
+prose. Re-probed on the base (2dd626664): `member_index.py --note PB3203` gave 57 C# files and neither of its two
 `scripts/` sites, because its Python names, unknown to the C# index, were still widened by drift and `main` matched
 as a word in every drifted file.
 

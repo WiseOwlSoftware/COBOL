@@ -80,13 +80,13 @@ is no longer refused: it is comment wherever margin R lies. Seven self-test arms
 probes among them), and a mutation check removed each mechanism in turn and saw its arm go RED. What the lint still
 cannot see is data flow: an alphanumeric MOVE of a group holding binary into an alphanumeric item (raised as a lead).
 
-**Gate:** run `20261017T032152Z-ddd86a` (HEAD 9da27563c): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
+**Gate:** run `20261017T032152Z-ddd86a` (HEAD 1c400b598): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
 GREEN — leg 2 left to CI's whole-population run: Conformance 5,880 · Unit 661 · Characterization 31 … — Conformance
 6,019/11,899 · Unit 33,225/33,886 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) …`. The first gate
 (run `20261017T024457Z-9cbe40`, GREEN) re-ran all 82 self-tests in 1,597 s, because `scripts/self_tests.py` is an
 input of every recorded PASS; the second reused 72. `SelfTestDiscoveryDriftTests` (5 of 5) passed in a direct run on
 the gate's build: its two edited methods are leg 2. Linux gate: the lander's (batched gating).
-After the review fixes, run `20261017T051108Z-487692` (HEAD e706d8df6): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
+After the review fixes, run `20261017T051108Z-487692` (HEAD c1cd67fda): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
 gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 5,840 · Unit 473 · Characterization 31
 … — Conformance 6,078/11,918 · Unit 33,444/33,917 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) …`;
 `generate.py --self-test` re-ran GREEN in it, and `semgrep/verify.py` PASS.

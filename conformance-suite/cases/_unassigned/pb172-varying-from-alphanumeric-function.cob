@@ -17,7 +17,7 @@
       *> stay correct - one enum member, two rule regimes.
       *> 
       *> 14.9.28.3 syntax rule 2: "Each identifier shall reference a numeric
-      *> elementary item described in the data division." Measured on 9a89fbd1:
+      *> elementary item described in the data division." Measured on 02c72682:
       *> compiled clean and the loop STARTED AT ZERO - the reversed string
       *> digit-decoded to 0.
        IDENTIFICATION DIVISION.

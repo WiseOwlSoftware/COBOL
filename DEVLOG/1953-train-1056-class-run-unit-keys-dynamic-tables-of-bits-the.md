@@ -68,16 +68,16 @@ pb156_float_literal_exact_native and D owned `AnnexA1RegisterDriftTests.EveryDoc
 and `SpecTraceabilityInventoryDriftTests.EveryCodeLocation_ResolvesInTheTree`, attributed in about 10 minutes from the
 Linux red verdict. Two Unit harness non-observations (`GateSlotDriftTests`, `GateLegDriftTests`: subprocess timeouts)
 and the `test_orchestrate_startup.ps1` self-test were host load. Each fix was folded into its cluster's own commit.
-Gate 2 on 6994ce119 (run 20261011T042135Z-46a50c): Conformance 11,408/11,408, Unit 33,306/33,306 and Characterization
+Gate 2 on fa08eeb4b (run 20261011T042135Z-46a50c): Conformance 11,408/11,408, Unit 33,306/33,306 and Characterization
 36/36 EXACT with no failed case. The verdict line read RED only because six python and PowerShell self-tests hit
 subprocess timeouts under host load (`landing_lease.py`, `gate_slot.py`, `test_alloc.py` and three hook tests). The
-train touches no script, and each one re-run alone was GREEN. Linux gate GREEN on 6994ce119. Review: 3 findings (the
-three gate reds), 3 fixed in the train, 0 clusters dropped. Arch-oracle: 180 of 7723 cases differ from 69041f6c6683,
+train touches no script, and each one re-run alone was GREEN. Linux gate GREEN on fa08eeb4b. Review: 3 findings (the
+three gate reds), 3 fixed in the train, 0 clusters dropped. Arch-oracle: 180 of 7723 cases differ from ba17ba249eac,
 plus 7 ADDED goldens, every one attributed by class. E: 131 ref-mod sites lose the `CobolNum.Position32(...)`
 narrowing. C: 21 operands of unknown or wide bound (NIST IF*, the standard-decimal goldens) lift through
 `CobolDec.FromParsed`. D: 12 hex literals containing FF now image U+FFFF, plus the re-derived goldens. B: 10 class keys
 rooted at `/<externalized name>` (`::FACT::`, `::INST::`, `::SORT::`, `/OBJECT` describers). F: 1, the pb2691
-negative's message. Re-recorded as 6994ce119e40. Semgrep 44/2/268/3 before and after. GAP 103 → 103. Leads filed:
+negative's message. Re-recorded as fa08eeb4bae3. Semgrep 44/2/268/3 before and after. GAP 103 → 103. Leads filed:
 PB2964 (F: LENGTH of a bit-bearing group with a runtime-length subordinate is a named stage), PB2965 (C:
 STANDARD-DECIMAL exact-family functions keep the Int128 arm; needs an owner call on D3's residue), PB2966 (C: no
 unsigned-wide SDIDI landing) and PB2967 (C: a binary64 result saturates silently into a 16-byte COMP-5 receiver).

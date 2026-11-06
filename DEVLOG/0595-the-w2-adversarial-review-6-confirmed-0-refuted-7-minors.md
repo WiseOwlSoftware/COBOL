@@ -1,7 +1,7 @@
 ## Entry 595 — 2026-07-03 21:02 PDT — The W2 adversarial review: 6 confirmed / 0 refuted / 7 minors — every actionable finding FIXED in-session
 
 **Three refute-oriented lenses (spec / regression / test-quality) + per-finding adversarial verification (9
-agents, 760k tokens) over commit a3e29b6. Every serious finding verified REAL; fixes landed with the W1.5
+agents, 760k tokens) over commit 13a5c6d. Every serious finding verified REAL; fixes landed with the W1.5
 batch (one commit — the tree interleaves shared files):**
 1. **Trailing `,` separator misbind** — the `;` bug's exact twin (`77 X PIC 99, VALUE 3.` silently classifies
    numeric-edited "99,"; §8.3.5 r2 + §13.18.40.3 SR7 prove the source conforming). Analyze CANNOT fix it

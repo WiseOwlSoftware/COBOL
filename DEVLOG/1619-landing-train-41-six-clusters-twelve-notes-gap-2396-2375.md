@@ -47,7 +47,7 @@ file to carry SIGN IS SEPARATE, and the compiler was raising COBOLNET1672 at the
 records; the new `DataBinder.CodeSetRecords.cs` runs as a `BindPipeline` pass at `PassPhase.SignResolved`, where
 the sign representation is actually known, and `ValidateDag` asserts that ordering. PB554 and PB564 did NOT
 reproduce: PB554's premise ("`PicCategory.NationalEdited` is a distinct member") is false on today's tree since
-`fafeadb8`/`609e1e71`, and PB564's two paths both draw COBOLNET1639 at bind since `1aa1310e` — both closed on
+`72c0271d`/`fde2458f`, and PB564's two paths both draw COBOLNET1639 at bind since `09d48a1f` — both closed on
 measurement, which is what a re-probe is for. Goldens `pb513_type_entry_composition` (2002),
 `pb536_code_set_group_sign` (85) and two negatives; three rows re-verdicted; 2151–2154 returned.
 
@@ -101,7 +101,7 @@ is bound as an expression and draws COBOLNET0828 on an alphanumeric function int
 rule 2d, not 2a — to be filed with the sole-inline-invocation recovery.
 
 **The train.** Six clusters is the top of the 4–6 band and the largest train run so far; all six landed, none
-dropped. Every cluster was cut from `01062f29` and rebased across trains 39 and 40 by the lander. EVERY conflict
+dropped. Every cluster was cut from `3a54a1af` and rebased across trains 39 and 40 by the lander. EVERY conflict
 in the train was a registry TAIL — `DiagnosticCatalog.cs`, `docs/DIAGNOSTICS.md` and four corpus `manifest.json`
 files, in every case both sides appending to the same list — and the textual three-way merge produced a
 syntactically BROKEN JSON tail twice before the lander stopped merging registries as text: the corpus manifests

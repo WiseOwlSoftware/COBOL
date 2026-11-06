@@ -4,7 +4,7 @@
 (approved 2026-10-14), whose slices S0a to S2 built the tree it extends (§13). Revision 3 answers kb/Work PB4614: what a test covers (§3.4), how a diagnosis is judged (§3.2), how
 a test is placed at each edition (§3.5), how completeness and NIST-85 subsumption are measured (§4.1, §6.3), and how
 every test is derived from the text (§6.1, §6.2). Seventeen owner decisions and the seventeenth's ten
-sub-decisions bind it (§1.1). Figures were measured on main at 8e2fd034a, decision 17's at 8e9635f5a, by the scripts in
+sub-decisions bind it (§1.1). Figures were measured on main at 33f2c1ecc, decision 17's at 022838e99, by the scripts in
 `E:/COBOL-coord/scratch/pb4614/`, to which a path below with no root is relative.
 
 ## 1. The direction and the decisions
@@ -75,7 +75,7 @@ Decision 17's sub-decisions, approved by the owner 2026-11-04 ("approve 17a-17j"
 - 17i. **Migration** (§6): one slice, S5b, neutral by WiseOwl's verdicts.
 - 17j. **The WiseOwl layer** (§3.2, §4): a file per case file, keyed by test id.
 
-## 2. What exists (main at 8e2fd034a)
+## 2. What exists (main at 33f2c1ecc)
 
 Revision 1's adapter passed 5 of 40 positive 2002 programs on GnuCOBOL 3.2, mostly not for GnuCOBOL non-conformances,
 which shaped revision 2's portable model. GnuCOBOL's `-std` (no 2023) selects "warnings/features for a specific
@@ -109,7 +109,7 @@ dialect", not a conformance mode.
 
 **A case file holds the tests of one clause** (decision 17). A test, also called a case, is one program or the few
 source units it needs (callees, functions, classes), witnessing one rule or a few tightly related ones, with its own
-placement and verdict. At 8e9635f5a each of 6,333 tests (6,114 in `cases/`) is a file; with 2,959 outputs, 3,376
+placement and verdict. At 022838e99 each of 6,333 tests (6,114 in `cases/`) is a file; with 2,959 outputs, 3,376
 WiseOwl diagnosis files, 7 options files and 83 library and data texts, the suite holds 12,758 tracked files
 (`rev3e/group_files2.py`). CCVS85's 389 programs with paragraph-name units hold a median of 9 (`check17/ccvs_units.py`,
 counting 6,958 units case-insensitively against §2's 6,929). A test keeps its own program, not a paragraph of a shared
@@ -528,7 +528,7 @@ tests/nist/crosswalk/<program>.json    each NIST-85 program's units and disposit
   one refusal-adding pull request at a time (61 of 79 driver-file holds); a WiseOwl file per case file is shared only
   by branches editing that case file. No merge driver is needed: git's line merge conflicts only when two branches
   edit neighbouring lines of one case file, its `.out` or its `.jsonl`, which every branch adding a test to the clause
-  now shares. Of 778 landings since 2026-10-21 (main at 09a17275f), 200
+  now shares. Of 778 landings since 2026-10-21 (main at 04b40a165), 200
   touched a clause folder, and 9 times two consecutive ones touched one folder within an hour
   (`check17/merge_contention.py`). `merge_drivers.py --self-test` keeps suite paths driver-free.
 - **The generator and its siblings.** `harness/generate.py` (with `harness/cobol_source.py` for facts read from program

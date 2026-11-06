@@ -6,11 +6,11 @@ close-out (tree green). Three grammar-cleanup steps, each a green commit boundar
 **Step 1 — delete 5 dead top-level grammars.** `Grammar/{CobolParserJsonXml,CobolParserGenerics,CobolParserOO,
 CobolDialect,CobolPreprocessor}.g4` — stale duplicates neither fed to ANTLR (only `Core/CobolLexer.g4` +
 `CobolParserCore.g4` are) nor referenced by any C#. Verified: the only match outside build output was one inert comment
-in `CobolExtensionsJsonXml.g4` (deleted in step 3). Forced clean regen + frontend build 0-err (−588 lines). `8b1236e`.
+in `CobolExtensionsJsonXml.g4` (deleted in step 3). Forced clean regen + frontend build 0-err (−588 lines). `1fd7c5d`.
 
 **Step 2 — remove committed `.antlr` IDE caches.** The 9 `Grammar/**/.antlr/*.{java,interp,tokens}` files (ANTLR
 IDE-plugin java-target caches — build output) `git rm -r`'d + `**/.antlr/` gitignored. 0 tracked `.antlr` remain; build
-0-err (−11,345 lines). `a261533`.
+0-err (−11,345 lines). `be756db`.
 
 **Step 3 — hard-delete the non-ISO JSON/XML grammar.** `Core/CobolExtensionsJsonXml.g4` deleted; its `jsonStatement`/
 `xmlStatement`/`jsonXmlExceptionPhrases` rules + the two `{is2014()}?` dispatch arms removed from `CobolParserCore.g4`

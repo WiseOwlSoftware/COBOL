@@ -24,5 +24,5 @@ translation over the alpha rendering.
 connector → `"  "`; `EXCEPTION-FILE-N` national `35INF`; a non-file argument → COBOLNET1574; `--std 2014` → COBOLNET0900.
 Golden `tests/conformance/2023/exception_file_arg` (GreenfieldOnly — a greenfield EC + FileRegistry feature the frozen
 legacy has no EC model for) + the two matrix rows. Registered COBOLNET1574 in DiagnosticCatalog (DIAGNOSTICS.md
-regenerated). Gated with the FULL Conformance project (the `04c32a93`/`cf1fcaa2` lesson).
+regenerated). Gated with the FULL Conformance project (the `9e64113f`/`36b3518b` lesson).
 

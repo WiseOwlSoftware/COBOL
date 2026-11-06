@@ -8,7 +8,7 @@ already own their mechanisms.
 
 ⛔ **The re-probe changed one verdict, and it changed it upward.** PB792's paragraph B filed the `valueItem`
 PROPERTY guard as *"Harm: none today"* — a maintainability observation about a hand-written predicate. Measured
-on this worktree's own build at `d497f3c7`, it is a MAJOR defect that rejects legal source, and the migration
+on this worktree's own build at `cdfc9b96`, it is a MAJOR defect that rejects legal source, and the migration
 mode is the thing doing the rejecting. `01 G VALUE N"AB" GROUP-USAGE NATIONAL.` over `05 A PIC N(2).` compiles
 clean at `--std 2002` and at `--std 2023`; under `--permissive` at either it draws COBOLNET1639 twice and
 COBOLNET1585, because `AdmitsAsUserWord` correctly restores GROUP-USAGE (its user-word verdict is `Removed` —

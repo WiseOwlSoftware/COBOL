@@ -6,18 +6,18 @@ characterization gate — see below). Continues DEVLOG 668 (steps 1–3: dead-gr
 
 **Step 4 — generated ANTLR package → `CobolNet.Frontend.Generated`.** Single-sourced via a csproj `<AntlrNamespace>`
 threaded into the generation `Exec` + both `.ps1` `-PackageName` params; repo-wide flip of the fully-qualified
-`CobolSharp.Compiler.Generated` (59 files incl. the `superClass` base decl + legacy consumers). `61812b7`.
+`CobolSharp.Compiler.Generated` (59 files incl. the `superClass` base decl + legacy consumers). `a46b732`.
 
 **Step 5 — the four hand-written sub-namespaces** `CobolSharp.Compiler.{Common,Diagnostics,Parsing,Preprocessor}` →
 `CobolNet.Frontend.*` (decls + all consumers; the legacy tree keeps its OWN 76 namespaces and only flips its
-shared-front-end imports, §2.1). Per-segment segment-literal seds (74 files). `b98d3b04`.
+shared-front-end imports, §2.1). Per-segment segment-literal seds (74 files). `d357c8ac`.
 
 **Step 6 — `Frontend.cs`:** corrected the false "reuses the legacy `CobolSharp.Compiler` assembly" banner, and narrowed
 the SLL-bail `catch (Exception)` → `when (e is ParseCanceledException or RecognitionException)` — the ONE deliberate P1
-behavior change (a non-parse internal bug now propagates instead of being silently retried under LL). `9be00fe`.
+behavior change (a non-parse internal bug now propagates instead of being silently retried under LL). `289f02d`.
 
 **Step 7 — banners:** the stale "namespaces stay `CobolSharp.Compiler.*` until G8 / big-bang" comments in both csprojs +
-`COBOLNET_DESIGN.md` §1.4 + the §17 paragraph (marked SUPERSEDED, history retained). `db6ae722`.
+`COBOLNET_DESIGN.md` §1.4 + the §17 paragraph (marked SUPERSEDED, history retained). `b4adf188`.
 
 **⚠ TRANSPARENCY — two corrections beyond the phase recipe, both caught by verify-by-building** (the phase doc assumed
 the fully-qualified sed sufficed; it did not, because the legacy tree used namespace-relative shorthands):

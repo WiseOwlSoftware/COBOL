@@ -38,7 +38,7 @@ and stops at the period or at a token in the rule's context-free FOLLOW set, rea
 cached FOLLOW computation, now also behind `UsageFollowSet`). That one semantic serves both callers, so the `wholeSentence`
 flag is gone: `dataDescriptionBody` is followed by the period alone, so its complete reading is still the whole entry. Witness:
 five new rows of `AReservedVerbWrittenAsAnOperand_DrawsOneDiagnostic` (GOBACK x2, VALIDATE, RAISE, FREE; each drew two
-diagnostics on the round-2 head fff655202) and `ReadingParsesFollowDriftTests` (FOLLOW(dataDescriptionBody) = {DOT};
+diagnostics on the round-2 head d3144f15f) and `ReadingParsesFollowDriftTests` (FOLLOW(dataDescriptionBody) = {DOT};
 FOLLOW(statement) holds the period, DISPLAY, END-IF and ELSE and never TO, '=', GIVING or FROM).
 
 **PB4120 (and PB4172, the same defect filed from the slot side) — a bare ZERO in an arithmetic-expression-only slot.** Re-probe:

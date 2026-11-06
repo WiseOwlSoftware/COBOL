@@ -26,5 +26,5 @@ constructs is an accepted consequence — it is a soon-deleted (G8) differential
 (P0), and the authoritative greenfield gates correctly. If the owner would rather the legacy compiler retain gating,
 the alternative is adding the Check to the legacy binder too (work on a dying codebase) — not recommended.
 Verified GREEN: legacy unit 1196 · characterization 32 · greenfield conformance 2055 · greenfield unit 224 · FULL
-legacy guard NIST 353 MATCH. Migration commits `0e4251e2`→`b3a4e8e8` (Clusters 1–11) now have a green CI head.
+legacy guard NIST 353 MATCH. Migration commits `aaa5a01d`→`354cef5f` (Clusters 1–11) now have a green CI head.
 

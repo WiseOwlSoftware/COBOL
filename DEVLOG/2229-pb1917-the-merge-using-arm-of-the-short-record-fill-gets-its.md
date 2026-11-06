@@ -5,7 +5,7 @@ MERGE USING transfers through one emitter arm (`SortEmitter.EmitInputFile`, the 
 `FileModel.ShortRecordFillNational`), but its golden's only MERGE leg used a VARYING SD, so the fill of a MERGE into a
 FIXED-length merge file (§14.9.24.4 GR2) ran in no test.
 
-**Re-probe.** On the w1126h build (base 6e2244f3d) a program with fixed SDs already answers correctly: a USING file whose one
+**Re-probe.** On the w1126h build (base 76ef19443) a program with fixed SDs already answers correctly: a USING file whose one
 record is N(2), and one whose one record is `PIC 9(2) USAGE NATIONAL`, fill their 4 bytes to the SD's 6 with 00 20 (GR2 a);
 an X(4) record fills with 20 20 and so does a USING file of two record descriptions, N(2) and X(4), because the national
 record is then not the only description (GR2 c); an OUTPUT PROCEDURE RETURNs the already-filled record. So the note was a

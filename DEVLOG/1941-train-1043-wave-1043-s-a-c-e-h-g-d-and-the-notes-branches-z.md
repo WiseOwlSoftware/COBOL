@@ -24,7 +24,7 @@ describes the current one.
 an orphaned STOP RUN `<summary>` in `StatementBinder.cs` that had attached itself to `BindRetry` (the edition gate is
 `VersionConformancePass`'s).
 
-**E — PB2199.** `ZeroTokenRewriter.ArithmeticOperators` was dead from the commit that introduced it (`00f6421c3`, where
+**E — PB2199.** `ZeroTokenRewriter.ArithmeticOperators` was dead from the commit that introduced it (`6091a14c1`, where
 the two adjacency sets were written as copies of it). Deleted; the class summary, which still said the pass rewrites to
 `INTEGERLIT("0")`, now names `ZERO_ARITH`, all three figurative-zero spellings and the ref-mod COLON arm. Its lead
 (no build rule stops a new unread private member: IDE0051/IDE0052 are off) is **PB2781**.
@@ -51,7 +51,7 @@ own fix-lane commit.
 reads WAITING TO LAND) and records ten superseded branches ABANDONED in their notes (PB2169, PB2688, PB1636, PB2230,
 PB2193, PB2605, PB1722, PB2617, PB2639, PB2708), appends PB2701 (the six wide `Workflow:` ledger entries were the R2
 review fleet), and adds train 1042b's ledger trend point. Y files PB2707 (an R2 relaunch transcribed ~95 KB of per-pair
-state inline; R2 batches are not sized against the session window and the week). X files R2 batch 2 (pin 8be230068,
+state inline; R2 batches are not sized against the session window and the week). X files R2 batch 2 (pin cd85e4901,
 65 pairs: PB2719–PB2766 and the invalid-record triage PB2770–PB2777, MAJOR PB2729, PB2734, PB2748, PB2757, PB2773),
 records the owner's answers to PB468 Q5–Q8 (PB2767–PB2769), corrects the stale owner statuses of PB1099, PB935 and
 PB2557, and files PB2778 and PB2779 from the 14:32 wind-down.

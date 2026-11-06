@@ -4,7 +4,7 @@ PHASE-11 closes. Every ISO/IEC 1989:2023 §15 intrinsic function is LIVE — `In
 (every catalog row binds `Runtime` / `Fold` / `Unsupported`) — and the Tier-C REDEFINES decision is made
 (the rejection is single-sourced; the confined-`byte[]` codec deferred). All five exit criteria met.
 
-**The nine battery-gated commits (2a0ab666→19dfe579):** Step 1 (IntrinsicBind.Unsupported for A.4.9) · Step 2
+**The nine battery-gated commits (bb79d0f9→d7af1c44):** Step 1 (IntrinsicBind.Unsupported for A.4.9) · Step 2
 (boolean conversions §15.13/§15.45 — the Boolean result-category channel made real) · Step 5 (the Y2K
 windowing trio §15.23/25/100 on ONE YearToYyyy core + SECONDS-PAST-MIDNIGHT §15.80 on the RunUnit.Clock seam) ·
 Step 6 (the TEST validator quartet §15.90/91/93/94) · Step 7 (BYTE-LENGTH §15.14 fold + SMALLEST-ALGEBRAIC

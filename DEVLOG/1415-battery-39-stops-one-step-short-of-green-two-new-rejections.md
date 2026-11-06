@@ -1,6 +1,6 @@
 ## Entry 1415 — 2026-08-31 08:35 PDT — Battery #39 stops one step short of green: two new rejections are RIGHT, and the sweep that cleared them read two files out of a corpus of 1,323
 
-**Four legs green, and the fifth is the interesting one.** The comprehensive battery ran on tree `3bc4e4db` —
+**Four legs green, and the fifth is the interesting one.** The comprehensive battery ran on tree `ac7690b2` —
 the accumulated batch of burn-down cluster A (PB173 + PB177 + PB178, DEVLOG 1413) and the PB184 + PB188 seed wave
 (DEVLOG 1414). FULL greenfield Conformance **5152 / 5152**, Unit **5091 / 5091**, characterization **33 / 33**
 concurrent with no host crash, NIST **353 MATCH / 0 REGRESSION** with a CLEAN audit and the guard's own

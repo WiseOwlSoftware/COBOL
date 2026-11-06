@@ -2,7 +2,7 @@
 
 **What was wrong.** A reserved or context-sensitive word the lexer carries no token for reaches the binder as a bare identifier, and the directive's retype cannot reach a synonym of it (DESIGN-cobol-words-directive §2.1). Three binder sites decided by the written spelling. `DECIMAL-POINT IS CMA` after `EQUATE "COMMA" WITH "CMA"` was refused with COBOL0894 (`SpecialNamesBinder.SwitchBindDecimalPoint`). `IF EXO = NULL` after `EQUATE "EXCEPTION-OBJECT" WITH "EXO"` drew COBOL1639 (the resolver's `IsExceptionObjectRegister` compared the spelling) and COBOL0901 (the funnel's exemption in `VersionConformancePass` called the same spelling test). The sweep found a third, the `PICTURE SYMBOL` word of the CURRENCY clause (`EQUATE "SYMBOL" WITH "SYM"`, COBOL0892). §7.3.10.4 GR2 makes the synonym usable "in any syntax requiring the use of the reserved word". The same spelling tests also ran the other way: `UNDEFINE "COMMA"` left `DECIMAL-POINT IS COMMA` accepted, and `SUBSTITUTE "EXCEPTION-OBJECT" BY "EXO"` left EXCEPTION-OBJECT the register (GR3, GR4).
 
-**Re-probe (9f5f0a1ae).** Both note witnesses reproduced exactly (COBOL0894; COBOL1639 + COBOL0901 for `q10.cob`).
+**Re-probe (86a4ec282).** Both note witnesses reproduced exactly (COBOL0894; COBOL1639 + COBOL0901 for `q10.cob`).
 
 **Fix.** Each site asks `CobolWordsMap.Is(written, word)`, the one reading of GR2-GR4. `OoBinder.OoIsExceptionObject` takes the map (callers: `ReferenceResolver.IsExceptionObjectRegister`, the funnel), `SwitchBindDecimalPoint` and `SwitchBindCurrency` use `_host.CobolWords`. A COMMA the directive withdrew now draws COBOL0894 with a message that names the directive, where "the only form is DECIMAL-POINT IS COMMA" would have been false about the cause.
 

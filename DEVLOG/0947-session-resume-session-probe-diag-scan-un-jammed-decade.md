@@ -22,7 +22,7 @@ both scans (`max(grepNum, catNum) + 1`); the one real anomaly the cross-check st
 catalog descriptor above every emitted code = an orphan reserved-but-never-emitted at the ceiling). Re-ran: `diag:
 src-grep max COBOLNET1619 · catalog max COBOLNET1619 → next free = COBOLNET1620`. ✓
 
-**Green baseline confirmed at HEAD `63c1fc6f`** (before any Wave-D code): `dotnet build CobolSharp.sln` 0W/0E · greenfield
+**Green baseline confirmed at HEAD `d43f4433`** (before any Wave-D code): `dotnet build CobolSharp.sln` 0W/0E · greenfield
 unit **447/447** · characterization **33/33** byte-exact. Ready for the Wave-D remainder (real FLAG-14/FLAG-02 flagging ·
 >>COBOL-WORDS · CC-directives-inside-COPY).
 

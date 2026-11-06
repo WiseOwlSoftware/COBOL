@@ -7,7 +7,7 @@ The answer, after reading plan §0, `DESIGN-architecture-review.md`, PB1754 and 
 three pieces (the fix lane in `kb/Work`, the review's R0–R5 design, the approved §8.13 external-repository design); what was
 missing was two artifacts, one ordering decision and a rule for when a frontier model is worth 2.5× Opus.
 
-**The legacy engine, measured (session on Mythos 5.1, main `e36c9c9da`).** The owner: "I'm not convinced the legacy engine
+**The legacy engine, measured (session on Mythos 5.1, main `bf88a4efe`).** The owner: "I'm not convinced the legacy engine
 provides any real value anymore." Measured rather than asserted: its only build edge into the greenfield tree is the two
 `ProjectReference`s in `tests/Cobol.Net.Tests.Conformance.csproj` (the `LegacyCompiler` oracle, used only under
 `COBOLNET_DIFF_MODE=verify`) plus an `InternalsVisibleTo` in `Cobol.Net.Frontend.csproj`; no `src/Cobol.Net.*` source names a

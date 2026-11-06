@@ -9,7 +9,7 @@ built one itself. A CIL backend addresses a local by slot and a member by field,
 the item's section and owner, and DESIGN-backend-abstraction §1.2 and L8's DONE mark claimed more than the code did. It was
 the root kind PB4380 did not reach (PB4380 converted the carrier local and the backend's two cell locals).
 
-**Re-probe (base cb668eca7).** A unit probe printed each method root's place for the fixture now in
+**Re-probe (base 4a51cd367).** A unit probe printed each method root's place for the fixture now in
 `ModelAccessStructureTests`: `LS-G` and `L-R` at `RootFieldSegment { MemberClrName = LS_G }` / `L_R`, the Tier-B class
 `LS-R`/`LS-V` a window over `RootFieldSegment { MemberClrName = _redef_LS_R }`, each one a local in the emitted method.
 

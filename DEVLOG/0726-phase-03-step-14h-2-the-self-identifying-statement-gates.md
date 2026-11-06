@@ -14,7 +14,7 @@ grammar rule move from the bound-arm (and one from bind-time) to the `ParseArm`,
 
 Two of these are the DEVLOG-724 bug FIXES, not mere relocations: `DeleteFile2023` (an undeclared file returns a
 `BoundUnsupported` before a `BoundKeyedDeleteFile` — the bound-arm dropped the 0900) and `Allocate2002` (a bad
-RETURNING returns a `BoundNop`; that is exactly why 4bfa1418 reverted it to bind-time — now the parse-arm carries it
+RETURNING returns a `BoundNop`; that is exactly why cc6959d2 reverted it to bind-time — now the parse-arm carries it
 correctly). `SetAddress2002` unifies its TWO former bound shapes (receiver `SET ADDRESS OF x TO p` + sender `SET p TO
 ADDRESS OF x`) under the ONE `setAddressStatement` rule → one override, one Check per statement. Each gate fires once
 per statement on presence (never per operand — a compound ALTER / multi-pointer FREE is one node); byte-identical to

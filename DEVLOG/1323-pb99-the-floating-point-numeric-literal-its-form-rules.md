@@ -47,7 +47,7 @@ intermediate — the literal's exact value, not a binary64's shadow.
   in-carrier binary64 product of the float→fixed landing, the CONFORMANCE.md §3 conversion-manner determination
   whose open analysis is kb/Work PB90.
 
-**Battery #18** (the PB66 + PB97 + PB98 batch, tree `684ec6f3`, recorded in §0 with `ef9cbc17`): Conformance
+**Battery #18** (the PB66 + PB97 + PB98 batch, tree `0d5502b4`, recorded in §0 with `aff1dc09`): Conformance
 4788/4788 · Unit 4238/4239 — the one red was `ConstructRegistryDriftTests` catching that `ConstructRegistry.g.cs`
 still carried the row's pre-correction citation after the post-generation `§13.18.40.3 SR13 b)` → `§13.18.40.4
 GR13 b)` fix (regenerated; the drift test did its job) · Characterization 33/33 · NIST 353/0 audit-clean ·

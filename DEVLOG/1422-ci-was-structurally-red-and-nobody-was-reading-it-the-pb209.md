@@ -1,6 +1,6 @@
 ## Entry 1422 — 2026-08-31 17:32 PDT — CI was structurally red and nobody was reading it: the PB209 gate met the GPL never-commit doctrine, and the fetch script's own contract is the fix
 
-Every `Build and Test` run since `66615f70` failed — both platforms, the same two tests — and five landings
+Every `Build and Test` run since `2890593a` failed — both platforms, the same two tests — and five landings
 pushed past it because the local battery is not a superset of CI (§0's own caution, now demonstrated). The
 failing tests were PB209's `ExternalCorpusPopulationDriftTests`: built on the never-skip rule (a population the
 gate cannot see must FAIL — a silent zero is the very defect PB209 registered), they collided with the

@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Binding;
 ///
 /// <para><b>Why this exists as its own pass.</b> Three rules of one clause, all with the same subject — a
 /// WRITTEN data description entry — and not one of them was written down anywhere in the compiler. Measured on
-/// 2acbd842, every one of these compiled and ran:</para>
+/// 41bf3492, every one of these compiled and ran:</para>
 /// <list type="bullet">
 ///   <item><c>01 G. 05 P USAGE POINTER.</c> — a pointer member of an ORDINARY group, SR14's headline case.</item>
 ///   <item><c>01 G USAGE POINTER. 05 A PIC X. 05 B PIC X.</c> — the same violation acquired through

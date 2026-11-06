@@ -13,7 +13,7 @@ clauses", rule 6 the returning item the same, and §11.7.3 SR9 makes an override
 prototype name: `USAGE PROGRAM-POINTER TO q1` and `TO q2` are two USAGE clauses whatever the signatures. The signature class
 answers a different question (what a pointer may CONTAIN, §13.18.60.4 GR25 / GR26, so SET).
 
-**Re-probe.** On main (174ac1048) `pb2495_pointer_type_in_signature_checks` compiled and ran ("px null / override null /
+**Re-probe.** On main (b1f39bdc0) `pb2495_pointer_type_in_signature_checks` compiled and ran ("px null / override null /
 implements null"); a minimal override probe compiled clean.
 
 **Fix.** The class arm of `ActivationRelations.SignatureDifference` is now reached only when the caller passes

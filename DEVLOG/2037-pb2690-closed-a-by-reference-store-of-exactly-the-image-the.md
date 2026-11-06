@@ -7,7 +7,7 @@ stored exactly that image (`MOVE "a" TO FE (3)` with `AE VALUE "a"`, or SPACES i
 capacity where it was. ISO 8.5.1.9.3 raises it for any data item "referenced as a receiving item" past the capacity,
 whatever is stored (14.2.3 GR8 makes the formal's store that reference).
 
-**Re-probe.** `E:\COBOL-coord\scratch\w1077a\p\p1.cob` (`--std 2014`) on a6744fa4d: `CALL=1 DIRECT=3 NUM=3`; after the
+**Re-probe.** `E:\COBOL-coord\scratch\w1077a\p\p1.cob` (`--std 2014`) on 59b34c4cd: `CALL=1 DIRECT=3 NUM=3`; after the
 fix `CALL=3 DIRECT=3 NUM=3`.
 
 **Fix shape.** The receiving references are recorded where they are made. Every store through a Tier-B view of a class
@@ -47,7 +47,7 @@ positions, not its fixed run, and the comments now say so. Re-gate: run 20261014
 LEG 1 ONLY (batched gating, PB2515): GREEN`; `PlaceStorageFormSwitchDriftTests` was again planned into leg 2, and it passed
 when run on its own.
 
-**Landing stop (Linux gate RED on 917df8e03).** Three 2002 table-SORT goldens over a BASED table
+**Landing stop (Linux gate RED on aaf12e936).** Three 2002 table-SORT goldens over a BASED table
 (`pb1175_table_sort_shared_storage`, `pb1922_table_sort_pointer_element`, `pb1951_table_sort_pointer_table_element`)
 no longer compiled: CS0103 on the loop variable `__eN`. `PlaceRenderer.Write` returns ONE C# statement, and the table
 SORT's place-back loop embeds it as the loop body (`for (…) <store>`), but `Received` appended the record as a second bare
@@ -82,11 +82,11 @@ table), and every occurrence the argument lacked is the argument's created eleme
 GF `[Q] 2 2`, GD `4` and the caller twin DW `2 4 2`; `_invoke` lanes NW `1 4`, NU `1 4`, NX `2 2`. On the reviewed
 head the same lanes printed GW `1 2`, GI `1 2`, GX `2 4`, GF `2 4`, GD `2`, NW `1 2`, NU `1 2`, NX `2 4`.
 
-**Landing stop (Linux gate RED on dc0214b9f).** Characterization 14 of 36: every `EmittedCSharp_MatchesSnapshot` case.
+**Landing stop (Linux gate RED on 118606369).** Characterization 14 of 36: every `EmittedCSharp_MatchesSnapshot` case.
 The runtime major went from 3 to 4 above, and every emitted module records the runtime version in its
 `CobolRepositoryAttribute` and its `EnsureRegistered` call, so the committed snapshots still carried "3.0.0.0". The
 finisher re-recorded them from the emitter (`COBOLNET_UPDATE_SNAPSHOTS=1`); the diff is exactly those two lines per
 snapshot, "3.0.0.0" to "4.0.0.0", and all 36 characterization cases then pass on Windows. This is the second time the
-branch stopped this way (the 2.0.0 to 3.0.0 bump stopped at 305fba0d8): Windows leg 1 again ran 6 of 36 cases, because a
+branch stopped this way (the 2.0.0 to 3.0.0 bump stopped at 7fee0658e): Windows leg 1 again ran 6 of 36 cases, because a
 `<Version>` change does not raise the snapshot cases into leg 1 (kb/Work PB3144, open).
 

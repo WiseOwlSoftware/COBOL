@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB576 — ISO 13.18.63.4 GR1, "If the usage of the subject of the entry is float-short, float-long
       *> or float-extended, the actual value given to the item is an approximation of the arithmetic value of the
-      *> literal", ON EVERY OCCASION A VALUE CLAUSE TAKES EFFECT. Until kb/Work PB420 (commit c2f0c4c50) the
+      *> literal", ON EVERY OCCASION A VALUE CLAUSE TAKES EFFECT. Until kb/Work PB420 (commit 2a9832f4b) the
       *> INITIALIZE emitter staged every non-ZERO sender into a floating-point receiver LOUD, so GR1's value could
       *> be given on GR4c's FIRST bullet and on no other path: GR3 (linkage), GR4a (external), GR4b (based, under
       *> ALLOCATE) and GR4c's second bullet (any INITIALIZE) all aborted at run time. No spec-derived test targeted

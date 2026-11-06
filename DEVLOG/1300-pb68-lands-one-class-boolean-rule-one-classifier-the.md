@@ -1,6 +1,6 @@
 ## Entry 1300 — 2026-08-18 02:01 PDT — PB68 lands: one class-boolean rule, one classifier — the computed boolean operand at every checkpoint (and the PB62+PB63 battery is green)
 
-**Battery first (PB62+PB63 batch, tree `21af3703`):** Conformance **4628/4628** · Unit **4187/4187** ·
+**Battery first (PB62+PB63 batch, tree `b2906526`):** Conformance **4628/4628** · Unit **4187/4187** ·
 Characterization 33/33 · NIST 353 MATCH / 0 · GnuCOBOL differential 1323 cases, **0 per-case flips**. All green.
 
 **PB68 — RV-15.13.4-1 → CONFORMS; GAP 4048 → 4047.** §15.13.1 "The function type is boolean" and §15.2 item 2 make

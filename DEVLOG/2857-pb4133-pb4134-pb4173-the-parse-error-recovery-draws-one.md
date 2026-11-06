@@ -51,7 +51,7 @@ host's END PROGRAM (adaptive prediction at `nestedProgram*` chooses the exit, no
 as COBOL1941 at TO where the refused operand should be COBOL5506; a refused operand that is a verb (`MOVE DISPLAY "X" TO W-N`,
 `SEARCH WHEN DISPLAY "X" END-SEARCH`) cascades; `COMPUTE W-N = ("A" + 1) * 2` names the `+` ("expected `)`") instead of the literal.
 
-**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — Conformance 843/19,988 · Unit 6,035/38,809 · Characterization 3/36 cases ran · Linux half (WSL clone of HEAD) GREEN` (run `000001-20261031T024053Z`, head fd448a47b). Semgrep `verify.py`: PASS (no rule's count rose; `raw-diagnostic-code-literal` fell 225 to 216).
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — Conformance 843/19,988 · Unit 6,035/38,809 · Characterization 3/36 cases ran · Linux half (WSL clone of HEAD) GREEN` (run `000001-20261031T024053Z`, head 038afe7cb). Semgrep `verify.py`: PASS (no rule's count rose; `raw-diagnostic-code-literal` fell 225 to 216).
 
 **Self-review.** Architecture: one override for both arms of the deletion; one policy and one unit definition for the tail discard,
 read from the ATN, with a drift test; `ResimulationWalk.After` reuses the walk rather than a second follow computation. Full code: the

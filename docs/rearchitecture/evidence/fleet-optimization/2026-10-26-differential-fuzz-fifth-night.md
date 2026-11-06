@@ -22,7 +22,7 @@ section.
 | Started | 2026-10-25 22:09 PDT (`run.json` `started` 05:09:01 UTC on 2026-10-26), `--hours 8 --jobs 4`, seed 20261026 |
 | Generator | `qwen3.6:35b`, temperature 0.3, 3 variations, up to 3 repair rounds |
 | Seeds | 235 clauses of the prefixes `14.9`, `15`, `13.18`, `8.8` (23 declined seeds) |
-| Judges | WiseOwl `--std 2014` from `E:\tmp\fuzz-judge-20261026\cobol.exe` (main 6ed90bd1c); GnuCOBOL 3.2 `-std=cobol2014` under WSL |
+| Judges | WiseOwl `--std 2014` from `E:\tmp\fuzz-judge-20261026\cobol.exe` (main cb0e5cede); GnuCOBOL 3.2 `-std=cobol2014` under WSL |
 | Programs | 6,274 written and judged; median model time 13 s a program |
 | Usable (both compiled) | 3,922 (63 % of judged), 2,021 of them after a repair round; 1,901 (30 %) usable on the first attempt |
 | The model's failures | 2,352 (1,698 ended early on a repeated diagnostic) |
@@ -34,7 +34,7 @@ were 1,773 programs in 314 signatures, and the slices decided 258 signatures cov
 ## Triage method (the fourth night's, with one change)
 
 - **No re-judge.** The fourth night re-ran its output-difference and refusal rows on a fresh judge built from main. This
-  night the judge was built from main 6ed90bd1c, and `src/` was identical between that judge and main at triage, so the
+  night the judge was built from main cb0e5cede, and `src/` was identical between that judge and main at triage, so the
   re-judge could not have changed a verdict and was skipped. Each adjudicator recompiled its first programs on the judge
   anyway to read every diagnostic.
 - **Slicing.** Twelve slices: A1 (§8.x output differences, 14 signatures), B1 to B4 (the other output differences, 86),

@@ -4,7 +4,7 @@
 is +0.01 (kb/Work PB3860, the sibling PB3839's review left open; owner decision 2026-10-26: "We should always be consistent with ourself barring
 an explicit requirement differently"). Wave 20261717, group A.
 
-**Re-probe on the wave's build (main `aefeb9a5c` plus the reviewed PB3839 head `c3df83b51`).** The note's repro reproduced as filed. The golden found
+**Re-probe on the wave's build (main `92817a3fe` plus the reviewed PB3839 head `8854df95e`).** The note's repro reproduced as filed. The golden found
 more than the note listed: `IF FUNCTION MEAN(...) > 0` was FALSE for that mean, `ROUNDED MODE TOWARD-GREATER` into `PIC S9V99` stored +0.00 (owed
 +0.01), `TOWARD-LESSER` of the negative mean stored +0.00 (owed -0.01), and a `table(ALL)` argument list stored +0.00. The cause is the native
 `MeanScaled` arm: it cut the quotient at `max(receiver scale, sum scale + 1, 6)` places, at the receiver's scale when that was the maximum, and let the

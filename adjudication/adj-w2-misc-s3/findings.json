@@ -61,7 +61,7 @@
   "harm": "rejects-legal-source",
   "repro": "probe/base1.cob: CLASS-ID. BSX INHERITS FROM BASE. REPOSITORY. CLASS BASE. -> COBOLNET0821 at --std 2023; probe/new1.cob: INVOKE B1 \"FactoryObject\" RETURNING F1 -> COBOLNET0825.",
   "expected_from_spec": "§16.1 'A standard class BASE shall be provided by the implementation'; §16.2.2.2 GR1 FactoryObject returns the factory of the object's class.",
-  "observed_or_reasoning": "ALREADY OWNED - kb/Work PB1506 (open). Re-measured on 0caa7d5, unchanged. Listed only so the registrar can attach the two rows; do not file again.",
+  "observed_or_reasoning": "ALREADY OWNED - kb/Work PB1506 (open). Re-measured on 0c24de7, unchanged. Listed only so the registrar can attach the two rows; do not file again.",
   "code_site": "src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build; src/Cobol.Net.Compiler/Oo/OoNameResolution.cs#Lookup",
   "clause": "16.2.2.2",
   "owning_note": "PB1506"

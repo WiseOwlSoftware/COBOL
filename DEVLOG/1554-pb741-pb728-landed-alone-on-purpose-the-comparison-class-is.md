@@ -7,7 +7,7 @@ main.** The landing-train economics say five clusters per landing; a blocking fi
 been landing on a main that answers a relation condition incorrectly. Trains 17 and 18 now rebase onto a correct
 main instead.
 
-**The mechanism: one classifier answering two questions.** `f798397f` folded the relation renderer's collating
+**The mechanism: one classifier answering two questions.** `6b47703e` folded the relation renderer's collating
 argument onto `CollatingSelection.Of`. That classifier is correct — for the question it was written for: *which of
 §14.9.40.4 GR5's two separately-determined sequences does this SORT KEY take*, where a numeric key takes neither.
 A relation asks a different question, and asks it of BOTH operands: §8.8.4.2.5 makes a numeric integer operand
@@ -63,7 +63,7 @@ report was false: the attribution was accurate end to end, including the exact c
 minimal discriminator, and the two additions it reported (the missing `deSign`, and taking the note's proposed
 signature literally by deleting the one-argument overload) both held.
 
-**The landing.** One cluster, one gate, in a fresh worktree cut from `3d75a747`. The row's base `0a24276f`
+**The landing.** One cluster, one gate, in a fresh worktree cut from `3f177eea`. The row's base `8f4a1332`
 predates train 16, and the plain patch applied clean — main had touched none of `ConditionRenderer.cs`,
 `CollatingModel.cs` or `EmitCore.cs`. The inventory hunk was **excluded from the patch on purpose** and
 `GR-8.8.4.2.7-1` re-verdicted from `batch-gr-88427-1.json` on the post-train-16 4,348-row tree instead — the

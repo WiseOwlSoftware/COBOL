@@ -1,4 +1,4 @@
-"""PB1708 counterfactuals over the 20 replayed clusters of trains 65-69 (map dbea12428):
+"""PB1708 counterfactuals over the 20 replayed clusters of trains 65-69 (map dad934c91):
 
   T0  today's rule (impacted_tests.py as landed), per-file union — reproduces replay3.txt;
   T1  the owner's layer 2 as decided: a registry change selects only the tests that read a CHANGED ENTRY (the methods

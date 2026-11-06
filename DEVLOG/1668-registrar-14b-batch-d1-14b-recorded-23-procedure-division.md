@@ -5,7 +5,7 @@ division: ACCEPT, alignment and transfer of data (§14.6.8), the common phrases 
 CORRESPONDING, §14.7.7), elementary-item and parameter conformance (§14.8.2), exception conditions and their
 handling (§14.6.13), execution (§14.6.3/§14.6.4/§14.6.11), FREE, GENERATE, INITIATE, INSPECT p1–p3, INVOKE p1–p3,
 initial and last-used states (§14.6.2.3), MERGE p1–p2, MULTIPLY, dynamic-capacity tables (§14.6.9) and the
-procedure division structure (§14.2). The adjudicators worked on the pinned tree `adj-d1` @68bbdb00f; trains
+procedure division structure (§14.2). The adjudicators worked on the pinned tree `adj-d1` @79ca43df8; trains
 58/59's src diff since the pin was checked and fixes none of the findings. Landed on top of Registrar 14a
 (rebased; the inventory was re-recorded with `record_verdicts` on 14a's tree, never merged as JSON hunks).
 

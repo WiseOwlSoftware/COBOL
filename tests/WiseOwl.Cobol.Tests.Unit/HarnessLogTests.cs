@@ -8,10 +8,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// <c>tests/_shared/HarnessLog.cs</c> loses no line (kb/Work PB3194). Its appends were "best-effort": one that met another
 /// append on the file was dropped, so <c>ScratchDirectory.Remove</c>'s report of a directory it could not remove vanished
-/// when a parallel test class recorded at the same moment (the gate at 8c4eccfe5, run 000005: the RETRY lines of the
+/// when a parallel test class recorded at the same moment (the gate at 2df3d8fc8, run 000005: the RETRY lines of the
 /// process-observation tests landed beside it, the SCRATCH-LEFT line did not, and
 /// <c>ScratchDirectoryTests.Remove_ReportsWhatItCannotRemove_AndReturns</c> was red). The log's file system must
-/// keep that promise too: the Linux gate at c89014b6b wrote the log onto WSL's 9P mount of the Windows tree, where this
+/// keep that promise too: the Linux gate at 30edab0ea wrote the log onto WSL's 9P mount of the Windows tree, where this
 /// test's reader failed with ENODATA, so the gate now writes it on the Linux file system (<c>linux-gate.sh</c>'s
 /// <c>test_leg</c>).
 /// </summary>

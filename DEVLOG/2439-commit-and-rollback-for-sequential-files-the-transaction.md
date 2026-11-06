@@ -104,9 +104,9 @@ it, so the medium now owns the column locks established under `OwnColumnLocks()`
 also found the WSL filesystem out of inodes, filled by 394 `~/linux-gate` clones that `linux-gate.sh` never removes. The ones
 older than three hours were pruned, and the leak is a lead in the report.
 
-Gates at a18dc8b55: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population
+Gates at b74ad371e: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population
 run: Conformance 8,632 · Unit 922 · Characterization 31 ...` (run 000004-20261024T013348Z) and `=== LINUX GATE: GREEN (legs
-selftests unit characterization conformance guard selftests-built; HEAD a18dc8b55) ===`.
+selftests unit characterization conformance guard selftests-built; HEAD b74ad371e) ===`.
 
 ### Branch review round 1, answered (review finisher w1157a2)
 
@@ -148,13 +148,13 @@ Design 2.2.1.10 (5), 2.2.2.3, 2.2.2.7 and 2.2.2.13 state the rules as built.
 
 ### Merging main: its revert of PB3340 and the abandoned loop-branch journal neutralized
 
-Main gained two changes that would have undone this branch silently: c44a069c2 (PR #465, worktree-wf_37d4041f-6f7-1), which
-reverted f3aaa207c..f53efd90b, this branch's steps 1-4, on a branch that shared their history; and 7d5a7e220..c860b0a96, the
+Main gained two changes that would have undone this branch silently: 30830701c (PR #465, worktree-wf_37d4041f-6f7-1), which
+reverted 388cbb537..03e041a51, this branch's steps 1-4, on a branch that shared their history; and b03ff0800..766e0dfa8, the
 loop's worktree-wf_f6f89a51-99e-1 steps 1-2 (a second `SequentialJournal`, `Sharing/IHostMedium.cs`, `Sharing/HostDirectory.cs`,
 `Journal/FaultingHostMedium.cs`, `Journal/SequentialJournalTests.cs`), which kb/Work PB3340 records ABANDONED and which reached
 main through worktree-wf_f6f89a51-99e-15 (Entry 2426 describes it). A plain merge would have deleted every file this branch
 added and kept the abandoned duplicate. The merge resolved each path the two touched as a three-way merge of this branch,
-c44a069c2's tree (the base) and main, so main's own later changes (PB3576, PB3578, PB670) are kept and the revert is not,
+30830701c's tree (the base) and main, so main's own later changes (PB3576, PB3578, PB670) are kept and the revert is not,
 then reverse-applied the abandoned journal's hunks and deleted its five files (no forwarder: this branch's `IO/IHostMedium.cs`,
 `Sharing/SequentialJournal.cs` and `FaultHostMedium.cs` are the one seam, journal and medium). Verified by
 `git diff <the pre-merge head>` over src, tests, conformance-suite and docs: only main's changes differ.

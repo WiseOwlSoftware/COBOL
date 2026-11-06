@@ -4,7 +4,7 @@ A lead-filing pass over everything that landed after registrar #7: the six **wav
 (PB455, PB415, PB395, PB587, PB394, PB388), the **train-43 lander report**, the **battery-81 record** and
 **DEVLOG 1622–1625**. Twenty-two leads. **Every one was grepped against `kb/Work/` FIRST**, every probe was
 REBUILT and RE-RUN on this worktree's own `dotnet build CobolSharp.sln -c Debug` (0 warnings, 0 errors) at main
-`c774def44`, and every citation was re-derived with `python scripts/spec/cite.py --check` rather than inherited.
+`904c2abc4`, and every citation was re-derived with `python scripts/spec/cite.py --check` rather than inherited.
 No compiler code changed and no diagnostic code was allocated — a registrar changes neither. Eleven leads became
 notes, eight were folded into notes that already owned them, and three were dropped because the measurement said
 so.

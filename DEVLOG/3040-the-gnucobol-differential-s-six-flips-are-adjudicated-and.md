@@ -1,7 +1,7 @@
 ## Entry 3040 — 2026-11-03 11:07 PST — The GnuCOBOL differential's six flips are adjudicated and its baseline is re-recorded
 
 The nightly differential had been red since 2026-11-01 (run 41679939118 on 11-03): six per-case flips against the
-baseline, three of them kb/Work PB4346's. A local run at main 3e62b1816 reproduced exactly the six. Each was adjudicated
+baseline, three of them kb/Work PB4346's. A local run at main 12620aaa7 reproduced exactly the six. Each was adjudicated
 against the ISO text (PB4346 holds the record), and none is a compiler defect:
 
 - `run_extensions:2172`, `run_misc:5307`: COBOL0899 on `CALL "x" USING ... OMITTED`. The printed §14.9.4.2 Format 1

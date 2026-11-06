@@ -4,7 +4,7 @@
 their BY REFERENCE arguments and RETURNING items with `OoConformance.DescriptionMismatch`, a comparator over `DataItem`
 fields, while a CALL located at run time and both INVOKE lanes asked `ActivationRelations` over the
 `ActivationDescription`s `ActivationDescriptions` builds. The two copies disagreed where ISO/IEC 1989:2023 does not.
-Re-probed on `a6744fa4d`: `FUNCTION F5(Y(1:5))` into a `PIC X(5)` formal ran (`F5=ABCDE`), and so did `CALL P5 USING
+Re-probed on `59b34c4cd`: `FUNCTION F5(Y(1:5))` into a `PIC X(5)` formal ran (`F5=ABCDE`), and so did `CALL P5 USING
 Y(1:5)` (Format 2) and `CALL "S" AS NESTED USING Y(2:3)` into a `PIC X ANY LENGTH` formal, though the slice §8.4.3.3.4
 GR5 creates has no PICTURE clause and §14.8.2.3.2 rule 2 requires the same one (docs/CONFORMANCE.md D-RM1, decision
 PB3098). The run-time relation had its own fault (PB3127): its ANY LENGTH arm compared only category and usage, so a
@@ -40,7 +40,7 @@ produce their outputs.
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `20261014T195501Z-c8027a`; Conformance 6,097/11,669, Unit 32,911/33,618, Characterization 6/36 in leg 1; every added golden and negative passed in leg 1). LINUX GATE: the lander's (batched gating).
 
-**Wave 1078 (the BY CONTENT / BY VALUE arm).** Wave 1077's four commits were cherry-picked onto `c29af1704` and re-gated
+**Wave 1078 (the BY CONTENT / BY VALUE arm).** Wave 1077's four commits were cherry-picked onto `a79f3612d` and re-gated
 GREEN first (run `20261014T214044Z-9d057d`). The bind-time BY CONTENT copy was the `OoConformance` comparator family
 (`ContentMismatch`, `ContentValueMismatch`, two literal arms). Re-probed on this build, it disagreed with the run-time
 relation in both directions. It refused a group argument BY CONTENT into a `PIC 9(4)` formal, which §14.8.2.2 rule 2's
@@ -64,7 +64,7 @@ golden, negative and drift test passed). LINUX GATE: the lander's (batched gatin
 once (PB613), pair mode on `SameSignature`, the `DescriptionMismatch` deletions and `OneRelationDriftTests`.
 
 **Wave 1079 (the GR8 reduction written once; PB613 landed).** Waves 1077-1078's six commits were cherry-picked onto
-`de8cf80db` and re-gated GREEN first (run `20261015T002536Z-f59672`). §14.9.4.4 GR8 and its INVOKE twin §14.9.23.4 GR4
+`d33ab3927` and re-gated GREEN first (run `20261015T002536Z-f59672`). §14.9.4.4 GR8 and its INVOKE twin §14.9.23.4 GR4
 ("An argument that consists merely of a single identifier or literal is regarded as an identifier or literal rather than
 an arithmetic or boolean expression") were reduced twice over the parse tree: `CallBinder.Gr8Classify` and an inline block
 in `OoBinder.OoBindInvocationArg`. They are now one reduction, `ConditionBinder.ReduceArgument`, asked by every CALL
@@ -85,7 +85,7 @@ identity is supplied. The note records the two shapes. PB3101 stays open for ite
 `OneRelationDriftTests`.
 
 **Wave 1080 (group A): pair mode outside the signature classification asks the description relation.** The w1077b-w1079a
-commits were cherry-picked onto `2b60d9fa9` and re-gated GREEN (run `20261015T010311Z-2ae3a9`). The re-probe found a
+commits were cherry-picked onto `5ad76f90f` and re-gated GREEN (run `20261015T010311Z-2ae3a9`). The re-probe found a
 wrong answer in the pair-mode comparator: an OVERRIDE whose base formal (or returning item) was `PIC X(4)` and whose
 override's was a 4-byte alphanumeric group compiled, and so did a property whose get method returned such a group and
 whose set method took a `PIC X(4)`. `OoConformance.DescriptionMismatch` had carried §14.8.2.2 rule 1's activation
@@ -106,7 +106,7 @@ relation's. Gate run `20261015T012455Z-4e90c2`: `LEG 1 ONLY (batched gating, PB2
 
 
 Wave 1082 (group A) finished PB3101, which lands with this entry. It carried the twelve commits of waves 1077 to 1080 onto
-`aba8f0454` and re-gated them green (run `20261015T191148Z-e983e0`). The prototype signature classes are now a partition
+`409f57088` and re-gated them green (run `20261015T191148Z-e983e0`). The prototype signature classes are now a partition
 refinement (`PrototypeSignatureClasses.Classify`). Every resolved prototype starts in one block per namespace. Each round
 stamps every restricted program- or function-pointer with its prototype's current block, then splits each block by
 `PrototypeSignatures.Same`. A round that splits nothing is the greatest fixed point that PB2495's bisimulation used to
@@ -149,7 +149,7 @@ Branch review round 3 (R3-1, comment accuracy): the note said the re-applied bat
 `w1082a-pb3101-comparator-resite-on-pb55-fold` covered 25 rows. It covers 24: the original batch has 26 records, and
 the fold drops the GR-9.3.6-L4.1 and L4.2 records because their re-site lands on L3.3, which the batch already carried
 (counted from the batch file: 24 records, 24 distinct rule-ids). The note's forensic line and its `closes_rows_reason`
-now give both batches and both counts. The finisher also merged main `bfb2eb47e`: `2002/manifest.json` conflicted
+now give both batches and both counts. The finisher also merged main `dc2142361`: `2002/manifest.json` conflicted
 (both sides prepended to `enabled`) and was resolved as the union; the inventory auto-merged with no overlapping row
 (main 3 rows, the branch 34).
 

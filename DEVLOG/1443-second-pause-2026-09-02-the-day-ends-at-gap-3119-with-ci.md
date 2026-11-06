@@ -7,17 +7,17 @@ witnesses (108 rows), folding the three "declined facility" seams three implemen
 (`EditionContext.Declined`, the `--permissive` policy moved onto the descriptor as `PermissiveInert`, the EC-name
 refusal one table in `Advise`), and cluster D's raw band codes became catalogue descriptors — semgrep
 `raw-diagnostic-code-literal` 475 → 439, PB175's first recorded decrease. The PB280 selector landed concurrently
-(`a68d959f`): an A.1-OPTIONAL item whose §7 determination reads "Not provided." is DOCUMENTED-NON-SUPPORT by
+(`26c332ca`): an A.1-OPTIONAL item whose §7 determination reads "Not provided." is DOCUMENTED-NON-SUPPORT by
 predicate, and the anchor exemption is keyed on "has a §7 row" instead of on the verdict. Day total: GAP 3636 → 3119,
 DOCUMENTED-NON-SUPPORT 36 → 340, closed 675 → 1192.
 
-CI had been red on both conformance shards from the screen-witness landing (`60bf02d7`) through cluster D:
+CI had been red on both conformance shards from the screen-witness landing (`af18afbb`) through cluster D:
 `ReservedWordPositionConformanceTests.DataItemNamedColumn_Rejected0901_EvenAt85` — B1's `{!screenPositionAhead()}?`
 guarded the mandatory FIRST iteration of `displayStatement`'s operand loop, so an illegal `DISPLAY COLUMN.` died as a
 raw COBOL0001 "failed predicate" instead of reaching the §8.9 funnel's COBOLNET0901. The comment beside it said
 "nothing legal is lost", which was true and beside the point: illegal source must still reach its NAMED diagnostic.
 Fixed in the B2 landing by requiring the first operand unconditionally and letting the predicate stop only the
-continuation (the memory `left_edge_predicates` shape, met once more); run 33724112469 on `56878ebf` is green, first
+continuation (the memory `left_edge_predicates` shape, met once more); run 33724112469 on `07e6bc74` is green, first
 attempt. A second, older red is named rather than dismissed: `Collation.CollationKeyCacheTests.ConcurrentCallers_
 GetOneKeyPerText_AndNeverAWrongOne` failed on two of seven Linux unit runs today and passed the rest — a
 schedule-dependent test in the A12 shape, to be registered and fixed on resume, never re-run into silence.

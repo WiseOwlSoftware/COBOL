@@ -32,7 +32,7 @@ below-2002 negative, and `ActiveClassReturningUniversalSenderTests` (the relatio
 guard that every BASE method storing a RETURNING box asks the check). `docs/COBOLNET_OO_DESIGN.md` states the arm; the
 work note PB2985 is landed with `closes_rows: []` (no inventory row claims this corner).
 
-**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at 74c7d8072, run 000001-20261025T221909Z: Conformance 8,139/18,587, Unit 36,807/38,285, Characterization 8/36, Linux half (WSL clone of HEAD) GREEN. The new golden and its negative, the re-derived pb2463 golden and the 8 new unit cases all passed in leg 1.
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at 54f00b2dd, run 000001-20261025T221909Z: Conformance 8,139/18,587, Unit 36,807/38,285, Characterization 8/36, Linux half (WSL clone of HEAD) GREEN. The new golden and its negative, the re-derived pb2463 golden and the 8 new unit cases all passed in leg 1.
 
 **Review round 1.** The branch reviewer recorded two blocking findings. R1-2 was right: an ACTIVE-CLASS formal reached
 through a universal INVOKE is the same invocation read at §14.8.2.3.2 rule 4 (a universal invoking reference is none of
@@ -47,7 +47,7 @@ answered no_change_needed: §16.2 requires BASE to implement the COBOL interface
 non-COBOL method is ever invoked; the reviewer's other point, that the choice was not written down, was right, so
 DOC-A.1-101 and the design doc now record BASE as a COBOL method with its checking half always enabled.
 
-**Gate after review round 1.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at 42ed7a8a6, run
+**Gate after review round 1.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at b008a802e, run
 000001-20261025T231508Z: Conformance 8,458/18,626, Unit 36,823/38,324, Characterization 8/36, Linux half (WSL clone of
 HEAD) GREEN. `pb2985_active_class_formal_universal_invocation`, the revised `pb1112_active_class_universal` and
 `ActiveClassFormalUniversalInvocationTests` Passed in leg 1; `scripts/semgrep/verify.py` PASS, no count increased.

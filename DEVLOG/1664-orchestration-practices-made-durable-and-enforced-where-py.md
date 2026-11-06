@@ -49,5 +49,5 @@ adjudication first, or keep defects-first; the owner chose adjudication first. M
 lane-3 adjudication fleets until the unadjudicated mass (~1,991 rows of GAP 2,060) is mapped; the fix lane takes only
 wrong-answer and crash defects; supersedes the 2026-09-13 "defects to zero first" order. Both lane-3 templates now
 honour the graceful STOP file (`args.stopFile`) and `check_practices.py` covers them. The first burst started at
-09:52: 68 dossier-fed subject files (§14 + §12) against pinned tree `E:\CobolSharp-pins\adj-d1` at `68bbdb00f`.
+09:52: 68 dossier-fed subject files (§14 + §12) against pinned tree `E:\CobolSharp-pins\adj-d1` at `79ca43df8`.
 

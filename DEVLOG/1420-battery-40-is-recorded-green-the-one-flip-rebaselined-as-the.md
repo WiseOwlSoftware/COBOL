@@ -8,7 +8,7 @@ record — the convention batteries #38 and #39 both followed. This entry is tha
 
 [[PB262]] item 3 raised the objection itself, and it is the right one: *"rewriting the baseline in the same
 breath as discovering the list was wrong destroys the only record that it happened."* That is precisely why the
-stop was committed **first and separately**, at `645b25bb` — DEVLOG 1419, the `PB262` note, and the refutation
+stop was committed **first and separately**, at `255555ea` — DEVLOG 1419, the `PB262` note, and the refutation
 block appended to `kb/Work/PB169.md` are all durable, in git, ahead of any baseline rewrite. The regeneration
 now moves one row in a file whose every changed row the commit must attribute; the record that bucket 8 was
 refuted lives in three places the rewrite cannot reach.
@@ -39,14 +39,14 @@ identifier referencing a **numeric** data item, a numeric literal or `ZERO`; §8
 operand in class alphanumeric. The flip **converges onto GnuCOBOL's own rejection** of a case they ship as a
 negative test titled *"Non-numeric subscript"*, and it closes an under-reject — before the batch the compiler
 accepted the program and digit-decoded alphanumeric bytes into an occurrence number. Attributed to
-`ReferenceResolver.ScreenPositionOperandClass`, new in `1884ba1e` ([[PB170]]).
+`ReferenceResolver.ScreenPositionOperandClass`, new in `4f15f60d` ([[PB170]]).
 
 ### The four legs are NOT re-run, and the licence is mechanical
 
 Conformance **5235 / 5235**, Unit **5106 / 5106**, characterization **33 / 33** (concurrent, no host crash),
 NIST **353 MATCH / 0 REGRESSION** with the audit CLEAN and the guard verdict **ALL GREEN** — all earned on tree
-`6f8461d9` and carried forward unchanged. The licence to carry them is checkable, not editorial:
-`git diff --name-only 6f8461d9 645b25bb -- src/ tests/` is **empty**, and this commit adds only `DEVLOG.md`,
+`d960f308` and carried forward unchanged. The licence to carry them is checkable, not editorial:
+`git diff --name-only d960f308 255555ea -- src/ tests/` is **empty**, and this commit adds only `DEVLOG.md`,
 `docs/`, `kb/`, `CLAUDE.md` and the baseline TSV. No compiler behaviour the four legs measured can have moved.
 This is the same two-tree split battery #39 recorded, for the same reason — and, as there, the one leg whose
 input *did* change (the baseline) is precisely the leg that was re-run.
@@ -72,7 +72,7 @@ worth a note of its own if a fifth ever appears.
 
 ### Rider (b) — CLAUDE.md rule 8 had stopped enumerating its own frontmatter
 
-The registration wave (`6f8461d9`, DEVLOG 1418) added **`inventory_rows`** as a register frontmatter field and
+The registration wave (`d960f308`, DEVLOG 1418) added **`inventory_rows`** as a register frontmatter field and
 put `DefectiveRowCoverageDriftTests` on it. Rule 8's own sentence enumerates what the frontmatter carries, and
 after that wave the enumeration was incomplete — **50 notes carry the field**, a unit test requires every
 non-resolving traceability-inventory row to be claimed through it, and the rule describing the register did not

@@ -1,7 +1,7 @@
 ## Entry 3052 — 2026-11-03 14:35 PST — PB4483: who answers for the text of an expansion (imported, placement (b), two places of one text)
 
 PB4469 made a placement-(a) expansion report its text's warnings once, from its own compilation. Three siblings of the same root stayed
-open, and the re-probe on `11c6abfb1` reproduced all three with the CLI. (1) An IMPORTED expansion: CLIENT1 wrote `HOLD-BOX.dll`, and a
+open, and the re-probe on `32d4e4db1` reproduced all three with the CLI. (1) An IMPORTED expansion: CLIENT1 wrote `HOLD-BOX.dll`, and a
 second client of the same triple, which imports it and compiles nothing of it, printed COBOL3146 at its own EXPANDS entry. (2) Placement
 (b) of the same repository skeleton printed COBOL3146 but not the COBOL0903 for NEXT SENTENCE that placement (a)'s own compilation prints:
 the edition pass's parse-tree arm walked only the written tree, which does not hold an expansion lexed from the recorded text. (3) A
@@ -36,7 +36,7 @@ PB4469 paragraph. No inventory row is owned (closes_rows: []). The frontend's tw
 
 Self-review (architecture, full code, performance, duplication): the rule lives on the region and in `EditionContext.Render` / `KeyOf`,
 the suffix has one spelling, the same-state test has one home (`CompileState.BindsAs`), and the once-key allocates only for a repository
-text; two comments that described the old shape were corrected in a trailing commit. Gate at `86200486c`:
+text; two comments that described the old shape were corrected in a trailing commit. Gate at `4973fb3a2`:
 `=== BUILD-LOCAL GATE: GREEN — Conformance 21,333/21,333 · Unit 39,633/39,633 · Characterization 37/37 cases ran (skipped 0) ===`
 (run `000001-20261103T215106Z`); the head's own gate re-ran the whole population after the comment commit.
 

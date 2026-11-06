@@ -5,8 +5,8 @@ including the report writer's CODE, COLUMN, CONTROL, GROUP INDICATE and LINE cla
 58 DIVERGES, 53 CONFORMS, 25 PARTIAL, 11 NOT-IMPLEMENTED. GAP 1900 → 1875.** Of the 53 CONFORMS, 27 closed their row
 with a spec-derived witness; 26 are CONFORMS-but-untested and go to the golden lane's next input set.
 
-**Main had moved under the adjudicators.** They worked on the pinned tree `adj-d1` at `68bbdb00f`. Trains 58 and 59
-landed since, so every finding was re-run on this worktree's own build of `071ff04ea` before filing. Seven rows were
+**Main had moved under the adjudicators.** They worked on the pinned tree `adj-d1` at `79ca43df8`. Trains 58 and 59
+landed since, so every finding was re-run on this worktree's own build of `9cd3b32ba` before filing. Seven rows were
 already fixed on main and were DROPPED from the batch instead of being recorded over newer closures:
 - CONTROL FINAL position (`FMT-13.18.16.2`) is now COBOLNET2421, from PB483.
 - The EXTERNAL placement screen (`SR-13.18.22.3-1`) is now COBOLNET2404, from PB518.
@@ -89,7 +89,7 @@ re-init loop), PB1254 → PB1115 (user-function arguments never reach the §14.8
 EC-REPORT-* conditions with no raise site) and PB1239 → PB1171 (FileModel.IsReportFile read only by OPEN). Each folded
 note is `status: retired` with `closes_rows: []` and a `closes_rows_reason` naming its successor, which now claims its
 rows and carries its evidence verbatim. That leaves 37 open notes from this batch. The table and bullets above list the
-drafts by their filed ids. PB1193 (14c) was also re-probed on `8bd4c7c9f`. Its premise, that a record-level GLOBAL
+drafts by their filed ids. PB1193 (14c) was also re-probed on `86d08dffd`. Its premise, that a record-level GLOBAL
 under a non-GLOBAL FD is dropped, no longer reproduces (`p6.cob` prints `C R1=OUTER` / `OUT R1=INNER`). The re-probe
 is appended to the note for its implementer's I3 check. PB1199 (14c) duplicates PB1153 and is left to its owner.
 
@@ -120,5 +120,5 @@ defects:
 - The optional-words audit missed constantEntryBody's required `AS`.
 - COBOLNET_REPORT_WRITER_DESIGN §5 records under-rejections as prose.
 
-Gate: `dotnet build CobolSharp.sln -c Debug` is green. Gate on the rebased tree (origin/main `8bd4c7c9f`): `dotnet build CobolSharp.sln -c Debug` green; the WHOLE Unit assembly 29188/29190, the two reds being ExternalCorpusPopulationDriftTests naming their cause ("EXTERNAL POPULATION ABSENT - no corpus at tests/external/gnucobol/tests/testsuite.src"); `work.py check` ✓ 1260 well-formed. `work.py check` is well-formed.
+Gate: `dotnet build CobolSharp.sln -c Debug` is green. Gate on the rebased tree (origin/main `86d08dffd`): `dotnet build CobolSharp.sln -c Debug` green; the WHOLE Unit assembly 29188/29190, the two reds being ExternalCorpusPopulationDriftTests naming their cause ("EXTERNAL POPULATION ABSENT - no corpus at tests/external/gnucobol/tests/testsuite.src"); `work.py check` ✓ 1260 well-formed. `work.py check` is well-formed.
 

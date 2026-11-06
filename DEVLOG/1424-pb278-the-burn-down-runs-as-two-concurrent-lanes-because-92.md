@@ -37,7 +37,7 @@ pointer bullet and `kb/Work/PB278` the decision and its measurements. **Every la
 the inventory — no new list, table or tracker anywhere** (rule 8), which is the whole reason the doctrine can
 live in one section instead of a spreadsheet. This commit carries no code.
 
-**Battery #41 is recorded ALL GREEN** on tree `2acbd842`, one run, one tree, no split and no rebaseline: FULL
+**Battery #41 is recorded ALL GREEN** on tree `41bf3492`, one run, one tree, no split and no rebaseline: FULL
 greenfield Conformance 5241/5241 (12 m) · Unit 5143/5143 (2 m 51 s) · characterization 33/33 · NIST 353 MATCH /
 0 REGRESSION with a CLEAN audit · GnuCOBOL differential 1323 cases and `=== DIFFERENTIAL: 0 PER-CASE FLIP(S) ===`
 · `=== BATTERY: ALL GREEN ===`. The part worth reading is the **refuted prediction**: the accrual bullet had
@@ -52,7 +52,7 @@ because the batch notes had quoted +116 / +79 against some other baseline. No ga
 
 Lanes launched in parallel this session and still IN FLIGHT: the golden-lane drafts, the A.4 derived-verdict
 selectors, and the dossier tooling for `phase_b_batch.py`. The **worktree-aware fleet build guard LANDED in the
-preceding commit** (`f7e8382e`, PB279) — which is what makes the two-lane model mechanically possible at all:
+preceding commit** (`4ae5df07`, PB279) — which is what makes the two-lane model mechanically possible at all:
 until today the guard froze the whole session on any live agent, so an adjudication lane reading a pinned
 worktree would have blocked the fix lane's every build.
 

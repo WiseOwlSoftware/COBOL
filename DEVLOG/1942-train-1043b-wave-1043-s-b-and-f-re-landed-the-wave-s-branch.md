@@ -47,7 +47,7 @@ unreported wave's number is never reused. `test_plan_wave.py` reports 119/119 ch
 X had no gate of its own; this train's gates are its gate.
 
 **The train.** Four clusters, brought in from their branches without a conflict. Origin/main was still the base
-(685b44315) when the lease was taken, so no rebase was needed. The whole-population gate was GREEN on the first run:
+(977a0216b) when the lease was taken, so no rebase was needed. The whole-population gate was GREEN on the first run:
 Conformance 11,269/11,269 · Unit 32,929/32,929 · Characterization 36/36 (run 20261008T233820Z-660f56), and its
 self-tests (67, including the softcap case) were GREEN. B and F had gated LEG 1 ONLY under the batched-gating trial,
 so this was their first whole-population run, and nothing outside their own tests broke. The arch oracle was DIFFERENT

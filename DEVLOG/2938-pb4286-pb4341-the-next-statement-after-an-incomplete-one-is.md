@@ -1,6 +1,6 @@
 ## Entry 2938 — 2026-11-01 04:54 PST — PB4286, PB4341: the next statement after an incomplete one is read as written; an EXEC block is named
 
-**PB4286 (wave 20261804 group B).** Re-probed on base 2ce2e70a2: `RECEIVE FROM W-X GIVING` then `DISPLAY W-Y.` drew
+**PB4286 (wave 20261804 group B).** Re-probed on base 90e53ed28: `RECEIVE FROM W-X GIVING` then `DISPLAY W-Y.` drew
 COBOL0001 at DISPLAY and a false second COBOL0001 at the period, where `ADD 1 TO` then `DISPLAY W-Y.` drew one. The note
 named the reserved-operand consume (`IsReportedReservedOperand`), but DISPLAY is not reservation-gated and no COBOL0901
 is made; the cascade came from two other mechanisms, one after the other.
@@ -70,7 +70,7 @@ used: COBOL5818; COBOL5819 and COBOL5820 returned.
 `Sync`, `Report`); a block is found in one place, before the parse, and reported in one place, after it; the reading is
 one linear scan that reads the text only of a four-character IDENTIFIER and of a block's own tokens, and the strategy's
 hot path gains one token-type test; the "not program text" channel rule is written once (`ProgramText`) for its four
-readers. The first shape's gate (run 000001-20261101T111516Z on 45b42a830) read `=== BUILD-LOCAL GATE: LEG 1 ONLY
+readers. The first shape's gate (run 000001-20261101T111516Z on 63e2f277f) read `=== BUILD-LOCAL GATE: LEG 1 ONLY
 (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run ===`; the review finisher's head carries its
 own leg-1 gate record, which `enqueue.py land` reads, and the targeted Unit tests (692) and the conformance generator
 check ran green on it before that gate.

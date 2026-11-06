@@ -5,7 +5,7 @@ Two diagnostic-quality notes of the DiagnosticCatalog group, fixed in order of h
 **PB911 (empty imperative-statement in PERFORM).** The re-probe on this build did not reproduce the headline. `PERFORM
 WHEN EC-ALL ...` (Format 3, empty imperative-statement-1) already drew `COBOL2072: cannot parse construct near 'WHEN'`
 naming the PERFORM statement and §5.2.6.2 / §5.2.6.3, the same code and rule as `PERFORM UNTIL ... END-PERFORM`: kb/Work
-PB3832 (`70be735c0`) had made the ATN detector read the parse at the offending token, and the detector was never a
+PB3832 (`191ee08ad`) had made the ATN detector read the parse at the offending token, and the detector was never a
 per-format table. The re-probe found a different defect in the same mechanism, in both formats alike: with a statement
 after the PERFORM (`PERFORM UNTIL X = 0 END-PERFORM STOP RUN.`, `PERFORM 3 TIMES END-PERFORM`, and every Format-3 WHEN,
 WHEN OTHER, WHEN COMMON and FINALLY phrase with an empty body) the compile drew a SECOND, false `COBOL0001: unexpected

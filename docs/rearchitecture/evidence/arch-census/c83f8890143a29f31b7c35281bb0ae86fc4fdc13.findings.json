@@ -1,6 +1,6 @@
 {
  "_frozen": "⛔ FROZEN EVIDENCE — the architecture census of ONE commit, recorded by scripts/arch/census.py and never edited to stay current (owner decision, kb/Work/PB785): a newer measurement is a new census run and a new file named by its commit. Findings are actioned through kb/Work/ notes, never by editing this record. A claim the tree has since REFUTED carries a `superseded_by` object — note · devlog · date · why — as the FIRST key of the object holding it. ⚠ Every path:line coordinate is a coordinate AS OF the measured commit — resolve the NAME.",
- "commit": "b8e4a3b5833864190849c4dd9c9eb29f80037da9",
+ "commit": "c83f8890143a29f31b7c35281bb0ae86fc4fdc13",
  "schema": 1,
  "findings": [
   {
@@ -41,13 +41,13 @@
     ]
    },
    "measure": {
-    "lines": 23045,
-    "members": 807,
+    "lines": 23147,
+    "members": 810,
     "fields": 91,
-    "nestedTypes": 32,
+    "nestedTypes": 31,
     "fanIn": 94,
-    "fanInTests": 28,
-    "fanOut": 485
+    "fanInTests": 27,
+    "fanOut": 491
    },
    "responsibilities": {
     "concerns": [
@@ -98,7 +98,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "23045 lines and 807 members in one type that 94 product types depend on: a change to any one concern (Aligned, ClausePlacement, CodeSetRecords, ConditionName, ConstantRecord, Constants) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "23147 lines and 810 members in one type that 94 product types depend on: a change to any one concern (Aligned, ClausePlacement, CodeSetRecords, ConditionName, ConstantRecord, Constants) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0001"
   },
@@ -112,12 +112,12 @@
     ]
    },
    "measure": {
-    "lines": 7782,
+    "lines": 7781,
     "members": 578,
     "fields": 577,
     "nestedTypes": 0,
     "fanIn": 102,
-    "fanInTests": 13,
+    "fanInTests": 12,
     "fanOut": 4
    },
    "responsibilities": {
@@ -129,7 +129,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "7782 lines and 578 members in one type that 102 product types depend on: a change to any one concern (577 field definitions) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "7781 lines and 578 members in one type that 102 product types depend on: a change to any one concern (577 field definitions) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "move the data into a declarative table loaded once, with the code keeping only the lookup",
    "id": "R0-0002"
   },
@@ -207,13 +207,13 @@
     ]
    },
    "measure": {
-    "lines": 3616,
+    "lines": 3603,
     "members": 140,
     "fields": 9,
     "nestedTypes": 18,
     "fanIn": 59,
-    "fanInTests": 2,
-    "fanOut": 135
+    "fanInTests": 1,
+    "fanOut": 134
    },
    "responsibilities": {
     "concerns": [
@@ -221,12 +221,12 @@
     ],
     "subjects": [
      "Position (7)",
+     "Of (5)",
      "Ref (5)",
      "Counter (4)",
      "For (4)",
      "Item (4)",
      "Object (4)",
-     "Of (4)",
      "Table (4)"
     ],
     "depends": [
@@ -237,7 +237,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "3616 lines and 140 members in one type that 59 product types depend on: a change to any one concern (ObjectProperty, Position (7), Ref (5), Counter (4), For (4), Item (4)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "3603 lines and 140 members in one type that 59 product types depend on: a change to any one concern (ObjectProperty, Position (7), Of (5), Ref (5), Counter (4), For (4)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0004"
   },
@@ -294,7 +294,7 @@
     "members": 464,
     "fields": 12,
     "nestedTypes": 1,
-    "fanIn": 47,
+    "fanIn": 48,
     "fanInTests": 2,
     "fanOut": 103
    },
@@ -318,7 +318,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "3047 lines and 464 members in one type that 47 product types depend on: a change to any one concern (Adapt (20), Group (20), Field (13), Store (13), To (12), Arg (11)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "3047 lines and 464 members in one type that 48 product types depend on: a change to any one concern (Adapt (20), Group (20), Field (13), Store (13), To (12), Arg (11)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0006"
   },
@@ -414,7 +414,7 @@
     ]
    },
    "measure": {
-    "lines": 2726,
+    "lines": 2720,
     "members": 21,
     "fields": 2,
     "nestedTypes": 1,
@@ -433,7 +433,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "2726 lines and 21 members in one type that 2 product types depend on: a change to any one concern (2 field definitions) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "2720 lines and 21 members in one type that 2 product types depend on: a change to any one concern (2 field definitions) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0009"
   },
@@ -451,7 +451,7 @@
     ]
    },
    "measure": {
-    "lines": 2454,
+    "lines": 2453,
     "members": 57,
     "fields": 0,
     "nestedTypes": 0,
@@ -478,7 +478,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "2454 lines and 57 members in one type that 17 product types depend on: a change to any one concern (InlineInvocation, ObjectView, OoIdentifier, PropertyObject, Bind (22), Object (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "2453 lines and 57 members in one type that 17 product types depend on: a change to any one concern (InlineInvocation, ObjectView, OoIdentifier, PropertyObject, Bind (22), Object (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0010"
   },
@@ -527,13 +527,13 @@
     ]
    },
    "measure": {
-    "lines": 2176,
+    "lines": 2170,
     "members": 173,
     "fields": 7,
     "nestedTypes": 0,
     "fanIn": 0,
     "fanInTests": 0,
-    "fanOut": 218
+    "fanOut": 217
    },
    "responsibilities": {
     "concerns": [],
@@ -555,7 +555,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "2176 lines and 173 members in one type that 0 product types depend on: a change to any one concern (Report (8), Set (5), Call (4), Perform (4), Record (4), Program (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "2170 lines and 173 members in one type that 0 product types depend on: a change to any one concern (Report (8), Set (5), Call (4), Perform (4), Record (4), Program (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0012"
   },
@@ -569,7 +569,7 @@
     ]
    },
    "measure": {
-    "lines": 2167,
+    "lines": 2168,
     "members": 71,
     "fields": 1,
     "nestedTypes": 0,
@@ -592,7 +592,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "2167 lines and 71 members in one type that 3 product types depend on: a change to any one concern (Univ (10), Cell (4), External (4)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "2168 lines and 71 members in one type that 3 product types depend on: a change to any one concern (Univ (10), Cell (4), External (4)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0013"
   },
@@ -854,18 +854,18 @@
     ]
    },
    "measure": {
-    "lines": 1668,
-    "members": 46,
+    "lines": 1676,
+    "members": 44,
     "fields": 2,
     "nestedTypes": 1,
     "fanIn": 4,
     "fanInTests": 0,
-    "fanOut": 134
+    "fanOut": 136
    },
    "responsibilities": {
     "concerns": [],
     "subjects": [
-     "Set (15)"
+     "Set (14)"
     ],
     "depends": [
      "WiseOwl.Cobol.Binding.Bound",
@@ -875,7 +875,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "1668 lines and 46 members in one type that 4 product types depend on: a change to any one concern (Set (15)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "1676 lines and 44 members in one type that 4 product types depend on: a change to any one concern (Set (14)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0020"
   },
@@ -994,42 +994,6 @@
    "kind": "god-class",
    "wave": "extract",
    "site": {
-    "type": "WiseOwl.Cobol.Binding.Model.DataItem",
-    "files": [
-     "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs"
-    ]
-   },
-   "measure": {
-    "lines": 1524,
-    "members": 144,
-    "fields": 5,
-    "nestedTypes": 0,
-    "fanIn": 234,
-    "fanInTests": 43,
-    "fanOut": 36
-   },
-   "responsibilities": {
-    "concerns": [],
-    "subjects": [
-     "Odo (3)",
-     "Table (3)"
-    ],
-    "depends": [
-     "WiseOwl.Cobol.Binding.Model",
-     "WiseOwl.Cobol.Runtime",
-     "WiseOwl.Cobol.Binding",
-     "WiseOwl.Cobol.Editions"
-    ]
-   },
-   "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "1524 lines and 144 members in one type that 234 product types depend on: a change to any one concern (Odo (3), Table (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
-   "target": "extract each named concern into its own type, its partial files becoming the first seams",
-   "id": "R0-0024"
-  },
-  {
-   "kind": "god-class",
-   "wave": "extract",
-   "site": {
     "type": "WiseOwl.Cobol.Runtime.IO.CobolReport",
     "files": [
      "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs"
@@ -1062,7 +1026,7 @@
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
    "scenario": "1518 lines and 115 members in one type that 2 product types depend on: a change to any one concern (Control (6), Page (4), Group (3), Line (3), Sum (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
-   "id": "R0-0025"
+   "id": "R0-0024"
   },
   {
    "kind": "god-class",
@@ -1077,13 +1041,13 @@
     ]
    },
    "measure": {
-    "lines": 1496,
-    "members": 63,
+    "lines": 1506,
+    "members": 64,
     "fields": 21,
     "nestedTypes": 5,
     "fanIn": 10,
     "fanInTests": 3,
-    "fanOut": 182
+    "fanOut": 181
    },
    "responsibilities": {
     "concerns": [
@@ -1099,11 +1063,47 @@
      "WiseOwl.Cobol.Binding.Bound",
      "WiseOwl.Cobol.Frontend.Generated",
      "WiseOwl.Cobol.Binding.Procedure",
-     "WiseOwl.Cobol.Binding"
+     "WiseOwl.Cobol.Binding.Model"
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "1496 lines and 63 members in one type that 10 product types depend on: a change to any one concern (ArgOmitted, ExceptionPerform, RaiseDeclarations, Has (4), Raisable (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "1506 lines and 64 members in one type that 10 product types depend on: a change to any one concern (ArgOmitted, ExceptionPerform, RaiseDeclarations, Has (4), Raisable (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "target": "extract each named concern into its own type, its partial files becoming the first seams",
+   "id": "R0-0025"
+  },
+  {
+   "kind": "god-class",
+   "wave": "extract",
+   "site": {
+    "type": "WiseOwl.Cobol.Binding.Model.DataItem",
+    "files": [
+     "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs"
+    ]
+   },
+   "measure": {
+    "lines": 1489,
+    "members": 141,
+    "fields": 5,
+    "nestedTypes": 0,
+    "fanIn": 233,
+    "fanInTests": 41,
+    "fanOut": 36
+   },
+   "responsibilities": {
+    "concerns": [],
+    "subjects": [
+     "Odo (3)",
+     "Table (3)"
+    ],
+    "depends": [
+     "WiseOwl.Cobol.Binding.Model",
+     "WiseOwl.Cobol.Runtime",
+     "WiseOwl.Cobol.Binding",
+     "WiseOwl.Cobol.Editions"
+    ]
+   },
+   "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
+   "scenario": "1489 lines and 141 members in one type that 233 product types depend on: a change to any one concern (Odo (3), Table (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0026"
   },
@@ -1151,7 +1151,7 @@
     ]
    },
    "measure": {
-    "lines": 1385,
+    "lines": 1384,
     "members": 28,
     "fields": 0,
     "nestedTypes": 0,
@@ -1172,7 +1172,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "1385 lines and 28 members in one type that 4 product types depend on: a change to any one concern (Unit (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "1384 lines and 28 members in one type that 4 product types depend on: a change to any one concern (Unit (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0028"
   },
@@ -1395,44 +1395,6 @@
    "kind": "god-class",
    "wave": "extract",
    "site": {
-    "type": "WiseOwl.Cobol.Frontend.Preprocessor.ReferenceFormatProcessor",
-    "files": [
-     "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs",
-     "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs",
-     "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs"
-    ]
-   },
-   "measure": {
-    "lines": 1307,
-    "members": 29,
-    "fields": 7,
-    "nestedTypes": 8,
-    "fanIn": 6,
-    "fanInTests": 14,
-    "fanOut": 24
-   },
-   "responsibilities": {
-    "concerns": [
-     "LogicalConversion",
-     "LogicalLineBuilder"
-    ],
-    "subjects": [],
-    "depends": [
-     "WiseOwl.Cobol.Frontend.Preprocessor",
-     "WiseOwl.Cobol.Editions",
-     "WiseOwl.Cobol.Frontend.Common",
-     "WiseOwl.Cobol.Runtime"
-    ]
-   },
-   "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "1307 lines and 29 members in one type that 6 product types depend on: a change to any one concern (LogicalConversion, LogicalLineBuilder) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
-   "target": "extract each named concern into its own type, its partial files becoming the first seams",
-   "id": "R0-0035"
-  },
-  {
-   "kind": "god-class",
-   "wave": "extract",
-   "site": {
     "type": "WiseOwl.Cobol.Runtime.IO.KeyedConnector",
     "files": [
      "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs"
@@ -1462,6 +1424,44 @@
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
    "scenario": "1283 lines and 93 members in one type that 6 product types depend on: a change to any one concern (Kept (7), Store (5), File (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
+   "id": "R0-0035"
+  },
+  {
+   "kind": "god-class",
+   "wave": "extract",
+   "site": {
+    "type": "WiseOwl.Cobol.Frontend.Preprocessor.ReferenceFormatProcessor",
+    "files": [
+     "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs",
+     "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs",
+     "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs"
+    ]
+   },
+   "measure": {
+    "lines": 1269,
+    "members": 29,
+    "fields": 7,
+    "nestedTypes": 8,
+    "fanIn": 6,
+    "fanInTests": 14,
+    "fanOut": 24
+   },
+   "responsibilities": {
+    "concerns": [
+     "LogicalConversion",
+     "LogicalLineBuilder"
+    ],
+    "subjects": [],
+    "depends": [
+     "WiseOwl.Cobol.Frontend.Preprocessor",
+     "WiseOwl.Cobol.Editions",
+     "WiseOwl.Cobol.Frontend.Common",
+     "WiseOwl.Cobol.Runtime"
+    ]
+   },
+   "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
+   "scenario": "1269 lines and 29 members in one type that 6 product types depend on: a change to any one concern (LogicalConversion, LogicalLineBuilder) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0036"
   },
   {
@@ -1474,13 +1474,13 @@
     ]
    },
    "measure": {
-    "lines": 1259,
-    "members": 81,
+    "lines": 1244,
+    "members": 79,
     "fields": 0,
     "nestedTypes": 0,
-    "fanIn": 27,
+    "fanIn": 26,
     "fanInTests": 0,
-    "fanOut": 72
+    "fanOut": 67
    },
    "responsibilities": {
     "concerns": [],
@@ -1500,7 +1500,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "1259 lines and 81 members in one type that 27 product types depend on: a change to any one concern (Group (14), Var (4), Image (3), Leaves (3), Length (3), Target (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "1244 lines and 79 members in one type that 26 product types depend on: a change to any one concern (Group (14), Var (4), Image (3), Leaves (3), Length (3), Target (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0037"
   },
@@ -1559,7 +1559,7 @@
     "fields": 9,
     "nestedTypes": 1,
     "fanIn": 7,
-    "fanInTests": 9,
+    "fanInTests": 7,
     "fanOut": 13
    },
    "responsibilities": {
@@ -1593,7 +1593,7 @@
     ]
    },
    "measure": {
-    "lines": 1159,
+    "lines": 1160,
     "members": 39,
     "fields": 13,
     "nestedTypes": 11,
@@ -1614,7 +1614,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "1159 lines and 39 members in one type that 3 product types depend on: a change to any one concern (Copy (4)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "1160 lines and 39 members in one type that 3 product types depend on: a change to any one concern (Copy (4)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0040"
   },
@@ -1664,8 +1664,8 @@
     ]
    },
    "measure": {
-    "lines": 1152,
-    "members": 26,
+    "lines": 1154,
+    "members": 27,
     "fields": 0,
     "nestedTypes": 8,
     "fanIn": 3,
@@ -1677,9 +1677,9 @@
      "Display"
     ],
     "subjects": [
+     "With (4)",
      "Cce (3)",
-     "Operand (3)",
-     "With (3)"
+     "Operand (3)"
     ],
     "depends": [
      "WiseOwl.Cobol.Frontend.Generated",
@@ -1689,7 +1689,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "1152 lines and 26 members in one type that 3 product types depend on: a change to any one concern (Display, Cce (3), Operand (3), With (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "1154 lines and 27 members in one type that 3 product types depend on: a change to any one concern (Display, With (4), Cce (3), Operand (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0042"
   },
@@ -1932,46 +1932,6 @@
    "kind": "god-class",
    "wave": "extract",
    "site": {
-    "type": "WiseOwl.Cobol.Validation.FlagConformancePass",
-    "files": [
-     "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.FileStatus.cs",
-     "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs"
-    ]
-   },
-   "measure": {
-    "lines": 985,
-    "members": 90,
-    "fields": 17,
-    "nestedTypes": 4,
-    "fanIn": 1,
-    "fanInTests": 0,
-    "fanOut": 110
-   },
-   "responsibilities": {
-    "concerns": [
-     "FileStatus"
-    ],
-    "subjects": [
-     "Condition (3)",
-     "Literal (3)",
-     "Ref (3)"
-    ],
-    "depends": [
-     "WiseOwl.Cobol.Frontend.Generated",
-     "WiseOwl.Cobol.Binding.Model",
-     "WiseOwl.Cobol.Binding",
-     "WiseOwl.Cobol.Editions"
-    ]
-   },
-   "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "985 lines and 90 members in one type that 1 product types depend on: a change to any one concern (FileStatus, Condition (3), Literal (3), Ref (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
-   "target": "extract each named concern into its own type, its partial files becoming the first seams",
-   "id": "R0-0050"
-  },
-  {
-   "kind": "god-class",
-   "wave": "extract",
-   "site": {
     "type": "WiseOwl.Cobol.Binding.Procedure.InitializeBinder",
     "files": [
      "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs"
@@ -1999,7 +1959,7 @@
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
    "scenario": "977 lines and 24 members in one type that 2 product types depend on: a change to any one concern (1 field definitions) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
-   "id": "R0-0051"
+   "id": "R0-0050"
   },
   {
    "kind": "god-class",
@@ -2011,7 +1971,7 @@
     ]
    },
    "measure": {
-    "lines": 977,
+    "lines": 976,
     "members": 26,
     "fields": 0,
     "nestedTypes": 0,
@@ -2033,7 +1993,47 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "977 lines and 26 members in one type that 2 product types depend on: a change to any one concern (Bind (3), Sort (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "976 lines and 26 members in one type that 2 product types depend on: a change to any one concern (Bind (3), Sort (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "target": "extract each named concern into its own type, its partial files becoming the first seams",
+   "id": "R0-0051"
+  },
+  {
+   "kind": "god-class",
+   "wave": "extract",
+   "site": {
+    "type": "WiseOwl.Cobol.Validation.FlagConformancePass",
+    "files": [
+     "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.FileStatus.cs",
+     "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs"
+    ]
+   },
+   "measure": {
+    "lines": 976,
+    "members": 89,
+    "fields": 17,
+    "nestedTypes": 4,
+    "fanIn": 1,
+    "fanInTests": 0,
+    "fanOut": 107
+   },
+   "responsibilities": {
+    "concerns": [
+     "FileStatus"
+    ],
+    "subjects": [
+     "Condition (3)",
+     "Literal (3)",
+     "Ref (3)"
+    ],
+    "depends": [
+     "WiseOwl.Cobol.Frontend.Generated",
+     "WiseOwl.Cobol.Binding.Model",
+     "WiseOwl.Cobol.Binding",
+     "WiseOwl.Cobol.Editions"
+    ]
+   },
+   "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
+   "scenario": "976 lines and 89 members in one type that 1 product types depend on: a change to any one concern (FileStatus, Condition (3), Literal (3), Ref (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0052"
   },
@@ -2111,39 +2111,6 @@
    "kind": "god-class",
    "wave": "extract",
    "site": {
-    "type": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
-    "files": [
-     "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs"
-    ]
-   },
-   "measure": {
-    "lines": 924,
-    "members": 32,
-    "fields": 7,
-    "nestedTypes": 0,
-    "fanIn": 3,
-    "fanInTests": 2,
-    "fanOut": 64
-   },
-   "responsibilities": {
-    "concerns": [],
-    "subjects": [],
-    "depends": [
-     "WiseOwl.Cobol.Binding.Model",
-     "WiseOwl.Cobol.CodeGen",
-     "WiseOwl.Cobol.Binding",
-     "WiseOwl.Cobol.Binding.Bound"
-    ]
-   },
-   "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "924 lines and 32 members in one type that 3 product types depend on: a change to any one concern (7 field definitions) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
-   "target": "extract each named concern into its own type, its partial files becoming the first seams",
-   "id": "R0-0055"
-  },
-  {
-   "kind": "god-class",
-   "wave": "extract",
-   "site": {
     "type": "WiseOwl.Cobol.Runtime.IO.IndexedConnector",
     "files": [
      "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs"
@@ -2174,6 +2141,39 @@
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
    "scenario": "918 lines and 72 members in one type that 1 product types depend on: a change to any one concern (Of (8), Store (4), Random (3), Sequential (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "target": "extract each named concern into its own type, its partial files becoming the first seams",
+   "id": "R0-0055"
+  },
+  {
+   "kind": "god-class",
+   "wave": "extract",
+   "site": {
+    "type": "WiseOwl.Cobol.CodeGen.ProgramEmitter",
+    "files": [
+     "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs"
+    ]
+   },
+   "measure": {
+    "lines": 910,
+    "members": 30,
+    "fields": 7,
+    "nestedTypes": 0,
+    "fanIn": 3,
+    "fanInTests": 1,
+    "fanOut": 63
+   },
+   "responsibilities": {
+    "concerns": [],
+    "subjects": [],
+    "depends": [
+     "WiseOwl.Cobol.Binding.Model",
+     "WiseOwl.Cobol.CodeGen",
+     "WiseOwl.Cobol.Binding",
+     "WiseOwl.Cobol.Binding.Bound"
+    ]
+   },
+   "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
+   "scenario": "910 lines and 30 members in one type that 3 product types depend on: a change to any one concern (7 field definitions) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0056"
   },
@@ -2218,13 +2218,13 @@
     ]
    },
    "measure": {
-    "lines": 864,
+    "lines": 862,
     "members": 55,
     "fields": 17,
     "nestedTypes": 1,
     "fanIn": 7,
     "fanInTests": 0,
-    "fanOut": 62
+    "fanOut": 63
    },
    "responsibilities": {
     "concerns": [],
@@ -2239,7 +2239,7 @@
     ]
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "864 lines and 55 members in one type that 7 product types depend on: a change to any one concern (Procedure (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "scenario": "862 lines and 55 members in one type that 7 product types depend on: a change to any one concern (Procedure (3)) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0058"
   },
@@ -2358,37 +2358,6 @@
    "kind": "god-class",
    "wave": "extract",
    "site": {
-    "type": "WiseOwl.Cobol.Runtime.Collation.Cldr.CldrTailoringBuilder",
-    "files": [
-     "src/WiseOwl.Cobol.Runtime/Collation/CLDR/CldrTailoringBuilder.cs"
-    ]
-   },
-   "measure": {
-    "lines": 842,
-    "members": 6,
-    "fields": 3,
-    "nestedTypes": 6,
-    "fanIn": 1,
-    "fanInTests": 5,
-    "fanOut": 5
-   },
-   "responsibilities": {
-    "concerns": [],
-    "subjects": [],
-    "depends": [
-     "WiseOwl.Cobol.Runtime.Collation",
-     "WiseOwl.Cobol.Runtime.Collation.Cldr"
-    ]
-   },
-   "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
-   "scenario": "842 lines and 6 members in one type that 1 product types depend on: a change to any one concern (3 field definitions) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
-   "target": "extract each named concern into its own type, its partial files becoming the first seams",
-   "id": "R0-0062"
-  },
-  {
-   "kind": "god-class",
-   "wave": "extract",
-   "site": {
     "type": "WiseOwl.Cobol.CodeGen.ArithmeticEmitter",
     "files": [
      "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs"
@@ -2416,7 +2385,7 @@
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
    "scenario": "841 lines and 35 members in one type that 13 product types depend on: a change to any one concern (0 field definitions) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
-   "id": "R0-0063"
+   "id": "R0-0062"
   },
   {
    "kind": "god-class",
@@ -2451,6 +2420,37 @@
    },
    "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
    "scenario": "831 lines and 98 members in one type that 31 product types depend on: a change to any one concern (SubscriptSegments) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
+   "target": "extract each named concern into its own type, its partial files becoming the first seams",
+   "id": "R0-0063"
+  },
+  {
+   "kind": "god-class",
+   "wave": "extract",
+   "site": {
+    "type": "WiseOwl.Cobol.Runtime.Collation.Cldr.CldrTailoringBuilder",
+    "files": [
+     "src/WiseOwl.Cobol.Runtime/Collation/CLDR/CldrTailoringBuilder.cs"
+    ]
+   },
+   "measure": {
+    "lines": 821,
+    "members": 6,
+    "fields": 3,
+    "nestedTypes": 6,
+    "fanIn": 1,
+    "fanInTests": 5,
+    "fanOut": 5
+   },
+   "responsibilities": {
+    "concerns": [],
+    "subjects": [],
+    "depends": [
+     "WiseOwl.Cobol.Runtime.Collation",
+     "WiseOwl.Cobol.Runtime.Collation.Cldr"
+    ]
+   },
+   "rule": "single responsibility per type (DESIGN-architecture-review §5.1); a type over ~800 lines across its partials is a god-class candidate (§3 R0)",
+   "scenario": "821 lines and 6 members in one type that 1 product types depend on: a change to any one concern (3 field definitions) edits and re-reviews all of them, and a rule added to one arm is not seen by the others",
    "target": "extract each named concern into its own type, its partial files becoming the first seams",
    "id": "R0-0064"
   },
@@ -2562,8 +2562,8 @@
    "kind": "clone-family",
    "wave": "unify",
    "site": [
-    "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs:575-636 (SetBinder.BindSetProgramPointer)",
-    "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs:727-782 (SetBinder.BindSetFunctionPointer)"
+    "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs:618-679 (SetBinder.BindSetProgramPointer)",
+    "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs:770-825 (SetBinder.BindSetFunctionPointer)"
    ],
    "measure": {
     "copies": 2,
@@ -3067,24 +3067,6 @@
    "kind": "test-only-family",
    "wave": "delete",
    "site": {
-    "family": "WiseOwl.Cobol.Binding.StorageClaimScan",
-    "members": [
-     "P:WiseOwl.Cobol.Binding.StorageClaimScan.TreesWalked @ src/WiseOwl.Cobol.Compiler/Binding/StorageClaimScan.cs:70"
-    ]
-   },
-   "measure": {
-    "members": 1,
-    "lines": 1
-   },
-   "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
-   "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
-   "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0096"
-  },
-  {
-   "kind": "test-only-family",
-   "wave": "delete",
-   "site": {
     "family": "WiseOwl.Cobol.CodeGen.EcEmitter",
     "members": [
      "F:WiseOwl.Cobol.CodeGen.EcEmitter.ActivatingHalfGates @ src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs:592"
@@ -3097,7 +3079,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (2 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0097"
+   "id": "R0-0096"
   },
   {
    "kind": "test-only-family",
@@ -3115,7 +3097,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0098"
+   "id": "R0-0097"
   },
   {
    "kind": "test-only-family",
@@ -3133,7 +3115,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (5 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0099"
+   "id": "R0-0098"
   },
   {
    "kind": "test-only-family",
@@ -3152,7 +3134,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (8 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0100"
+   "id": "R0-0099"
   },
   {
    "kind": "test-only-family",
@@ -3170,7 +3152,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0101"
+   "id": "R0-0100"
   },
   {
    "kind": "test-only-family",
@@ -3188,7 +3170,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0102"
+   "id": "R0-0101"
   },
   {
    "kind": "test-only-family",
@@ -3208,7 +3190,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "3 member(s) (3 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0103"
+   "id": "R0-0102"
   },
   {
    "kind": "test-only-family",
@@ -3226,7 +3208,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (5 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0104"
+   "id": "R0-0103"
   },
   {
    "kind": "test-only-family",
@@ -3245,7 +3227,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (7 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0105"
+   "id": "R0-0104"
   },
   {
    "kind": "test-only-family",
@@ -3264,7 +3246,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (11 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0106"
+   "id": "R0-0105"
   },
   {
    "kind": "test-only-family",
@@ -3282,7 +3264,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0107"
+   "id": "R0-0106"
   },
   {
    "kind": "test-only-family",
@@ -3300,7 +3282,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0108"
+   "id": "R0-0107"
   },
   {
    "kind": "test-only-family",
@@ -3318,7 +3300,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (2 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0109"
+   "id": "R0-0108"
   },
   {
    "kind": "test-only-family",
@@ -3336,7 +3318,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0110"
+   "id": "R0-0109"
   },
   {
    "kind": "test-only-family",
@@ -3355,7 +3337,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (3 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0111"
+   "id": "R0-0110"
   },
   {
    "kind": "test-only-family",
@@ -3386,7 +3368,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "14 member(s) (72 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0112"
+   "id": "R0-0111"
   },
   {
    "kind": "test-only-family",
@@ -3404,7 +3386,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0113"
+   "id": "R0-0112"
   },
   {
    "kind": "test-only-family",
@@ -3423,7 +3405,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (2 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0114"
+   "id": "R0-0113"
   },
   {
    "kind": "test-only-family",
@@ -3442,7 +3424,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (6 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0115"
+   "id": "R0-0114"
   },
   {
    "kind": "test-only-family",
@@ -3460,7 +3442,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (7 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0116"
+   "id": "R0-0115"
   },
   {
    "kind": "test-only-family",
@@ -3480,7 +3462,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "3 member(s) (4 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0117"
+   "id": "R0-0116"
   },
   {
    "kind": "test-only-family",
@@ -3505,25 +3487,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "8 member(s) (36 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0118"
-  },
-  {
-   "kind": "test-only-family",
-   "wave": "delete",
-   "site": {
-    "family": "WiseOwl.Cobol.Runtime.Collation.CollationRuntime",
-    "members": [
-     "M:WiseOwl.Cobol.Runtime.Collation.CollationRuntime.ConfigureCache(WiseOwl.Cobol.Runtime.Collation.Cache.CacheConfig) @ src/WiseOwl.Cobol.Runtime/Collation/CollationRuntime.cs:70"
-    ]
-   },
-   "measure": {
-    "members": 1,
-    "lines": 8
-   },
-   "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
-   "scenario": "1 member(s) (8 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
-   "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0119"
+   "id": "R0-0117"
   },
   {
    "kind": "test-only-family",
@@ -3544,7 +3508,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "4 member(s) (4 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0120"
+   "id": "R0-0118"
   },
   {
    "kind": "test-only-family",
@@ -3562,7 +3526,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0121"
+   "id": "R0-0119"
   },
   {
    "kind": "test-only-family",
@@ -3583,7 +3547,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "4 member(s) (4 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0122"
+   "id": "R0-0120"
   },
   {
    "kind": "test-only-family",
@@ -3601,7 +3565,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0123"
+   "id": "R0-0121"
   },
   {
    "kind": "test-only-family",
@@ -3624,7 +3588,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "6 member(s) (18 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0124"
+   "id": "R0-0122"
   },
   {
    "kind": "test-only-family",
@@ -3632,9 +3596,9 @@
    "site": {
     "family": "WiseOwl.Cobol.Runtime.Collation.TailoringRules",
     "members": [
-     "M:WiseOwl.Cobol.Runtime.Collation.TailoringRules.Defines(System.Int32[])~System.Boolean @ src/WiseOwl.Cobol.Runtime/Collation/TailoringRules.cs:79",
-     "M:WiseOwl.Cobol.Runtime.Collation.TailoringRules.Find(System.Int32[])~WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry @ src/WiseOwl.Cobol.Runtime/Collation/TailoringRules.cs:82",
-     "M:WiseOwl.Cobol.Runtime.Collation.TailoringRules.Apply(WiseOwl.Cobol.Runtime.Collation.CollationTable)~WiseOwl.Cobol.Runtime.Collation.CollationTable @ src/WiseOwl.Cobol.Runtime/Collation/TailoringRules.cs:85"
+     "M:WiseOwl.Cobol.Runtime.Collation.TailoringRules.Defines(System.Int32[])~System.Boolean @ src/WiseOwl.Cobol.Runtime/Collation/TailoringRules.cs:77",
+     "M:WiseOwl.Cobol.Runtime.Collation.TailoringRules.Find(System.Int32[])~WiseOwl.Cobol.Runtime.Collation.TailoringRules.Entry @ src/WiseOwl.Cobol.Runtime/Collation/TailoringRules.cs:80",
+     "M:WiseOwl.Cobol.Runtime.Collation.TailoringRules.Apply(WiseOwl.Cobol.Runtime.Collation.CollationTable)~WiseOwl.Cobol.Runtime.Collation.CollationTable @ src/WiseOwl.Cobol.Runtime/Collation/TailoringRules.cs:83"
     ]
    },
    "measure": {
@@ -3644,7 +3608,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "3 member(s) (3 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0125"
+   "id": "R0-0123"
   },
   {
    "kind": "test-only-family",
@@ -3662,7 +3626,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0126"
+   "id": "R0-0124"
   },
   {
    "kind": "test-only-family",
@@ -3680,7 +3644,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0127"
+   "id": "R0-0125"
   },
   {
    "kind": "test-only-family",
@@ -3698,7 +3662,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0128"
+   "id": "R0-0126"
   },
   {
    "kind": "test-only-family",
@@ -3716,7 +3680,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0129"
+   "id": "R0-0127"
   },
   {
    "kind": "test-only-family",
@@ -3734,7 +3698,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (10 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0130"
+   "id": "R0-0128"
   },
   {
    "kind": "test-only-family",
@@ -3752,7 +3716,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0131"
+   "id": "R0-0129"
   },
   {
    "kind": "test-only-family",
@@ -3771,7 +3735,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (2 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0132"
+   "id": "R0-0130"
   },
   {
    "kind": "test-only-family",
@@ -3793,7 +3757,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "5 member(s) (5 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0133"
+   "id": "R0-0131"
   },
   {
    "kind": "test-only-family",
@@ -3811,7 +3775,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1518 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0134"
+   "id": "R0-0132"
   },
   {
    "kind": "test-only-family",
@@ -3829,7 +3793,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (9 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0135"
+   "id": "R0-0133"
   },
   {
    "kind": "test-only-family",
@@ -3852,7 +3816,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "6 member(s) (12 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0136"
+   "id": "R0-0134"
   },
   {
    "kind": "test-only-family",
@@ -3872,7 +3836,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "3 member(s) (3 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0137"
+   "id": "R0-0135"
   },
   {
    "kind": "test-only-family",
@@ -3891,7 +3855,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (7 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0138"
+   "id": "R0-0136"
   },
   {
    "kind": "test-only-family",
@@ -3909,7 +3873,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (4 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0139"
+   "id": "R0-0137"
   },
   {
    "kind": "test-only-family",
@@ -3927,7 +3891,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0140"
+   "id": "R0-0138"
   },
   {
    "kind": "test-only-family",
@@ -3945,7 +3909,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0141"
+   "id": "R0-0139"
   },
   {
    "kind": "test-only-family",
@@ -3964,7 +3928,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (21 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0142"
+   "id": "R0-0140"
   },
   {
    "kind": "test-only-family",
@@ -3982,7 +3946,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0143"
+   "id": "R0-0141"
   },
   {
    "kind": "test-only-family",
@@ -4005,7 +3969,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "6 member(s) (20 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0144"
+   "id": "R0-0142"
   },
   {
    "kind": "test-only-family",
@@ -4023,7 +3987,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (2 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0145"
+   "id": "R0-0143"
   },
   {
    "kind": "test-only-family",
@@ -4041,7 +4005,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0146"
+   "id": "R0-0144"
   },
   {
    "kind": "test-only-family",
@@ -4060,7 +4024,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (2 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0147"
+   "id": "R0-0145"
   },
   {
    "kind": "test-only-family",
@@ -4078,7 +4042,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (7 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0148"
+   "id": "R0-0146"
   },
   {
    "kind": "test-only-family",
@@ -4097,7 +4061,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (2 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0149"
+   "id": "R0-0147"
   },
   {
    "kind": "test-only-family",
@@ -4116,7 +4080,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (8 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0150"
+   "id": "R0-0148"
   },
   {
    "kind": "test-only-family",
@@ -4134,7 +4098,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0151"
+   "id": "R0-0149"
   },
   {
    "kind": "test-only-family",
@@ -4152,7 +4116,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0152"
+   "id": "R0-0150"
   },
   {
    "kind": "test-only-family",
@@ -4170,7 +4134,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (7 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0153"
+   "id": "R0-0151"
   },
   {
    "kind": "test-only-family",
@@ -4188,7 +4152,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (6 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0154"
+   "id": "R0-0152"
   },
   {
    "kind": "test-only-family",
@@ -4212,7 +4176,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "7 member(s) (24 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0155"
+   "id": "R0-0153"
   },
   {
    "kind": "test-only-family",
@@ -4233,7 +4197,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "4 member(s) (20 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0156"
+   "id": "R0-0154"
   },
   {
    "kind": "test-only-family",
@@ -4253,7 +4217,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "3 member(s) (26 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0157"
+   "id": "R0-0155"
   },
   {
    "kind": "test-only-family",
@@ -4271,7 +4235,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0158"
+   "id": "R0-0156"
   },
   {
    "kind": "test-only-family",
@@ -4289,7 +4253,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (25 lines) that only tests use: the tests pin code no product path runs, so they keep it alive and reviewed for nothing",
    "target": "delete them and the tests that exercise only them, or name the product path that should use them",
-   "id": "R0-0159"
+   "id": "R0-0157"
   },
   {
    "kind": "unreachable-family",
@@ -4307,7 +4271,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0160"
+   "id": "R0-0158"
   },
   {
    "kind": "unreachable-family",
@@ -4315,8 +4279,8 @@
    "site": {
     "family": "WiseOwl.Cobol.Binding.Bound.BoundBoolError",
     "members": [
-     "M:WiseOwl.Cobol.Binding.Bound.BoundBoolError.Report(WiseOwl.Cobol.Binding.EditionContext,WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor,System.String,System.String)~WiseOwl.Cobol.Binding.Bound.BoundBoolError @ src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs:809",
-     "M:WiseOwl.Cobol.Binding.Bound.BoundBoolError.Unbuilt(WiseOwl.Cobol.Binding.EditionContext,System.String)~WiseOwl.Cobol.Binding.Bound.BoundBoolError @ src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs:817"
+     "M:WiseOwl.Cobol.Binding.Bound.BoundBoolError.Report(WiseOwl.Cobol.Binding.EditionContext,WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor,System.String,System.String)~WiseOwl.Cobol.Binding.Bound.BoundBoolError @ src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs:808",
+     "M:WiseOwl.Cobol.Binding.Bound.BoundBoolError.Unbuilt(WiseOwl.Cobol.Binding.EditionContext,System.String)~WiseOwl.Cobol.Binding.Bound.BoundBoolError @ src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs:816"
     ]
    },
    "measure": {
@@ -4326,7 +4290,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (11 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0161"
+   "id": "R0-0159"
   },
   {
    "kind": "unreachable-family",
@@ -4344,7 +4308,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0162"
+   "id": "R0-0160"
   },
   {
    "kind": "unreachable-family",
@@ -4363,7 +4327,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (2 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0163"
+   "id": "R0-0161"
   },
   {
    "kind": "unreachable-family",
@@ -4381,7 +4345,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (2 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0164"
+   "id": "R0-0162"
   },
   {
    "kind": "unreachable-family",
@@ -4399,7 +4363,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0165"
+   "id": "R0-0163"
   },
   {
    "kind": "unreachable-family",
@@ -4418,7 +4382,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (2 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0166"
+   "id": "R0-0164"
   },
   {
    "kind": "unreachable-family",
@@ -4436,7 +4400,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (6 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0167"
+   "id": "R0-0165"
   },
   {
    "kind": "unreachable-family",
@@ -4454,7 +4418,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (8 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0168"
+   "id": "R0-0166"
   },
   {
    "kind": "unreachable-family",
@@ -4472,7 +4436,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0169"
+   "id": "R0-0167"
   },
   {
    "kind": "unreachable-family",
@@ -4490,7 +4454,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (2 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0170"
+   "id": "R0-0168"
   },
   {
    "kind": "unreachable-family",
@@ -4498,7 +4462,7 @@
    "site": {
     "family": "WiseOwl.Cobol.Binding.Procedure.OoBinder",
     "members": [
-     "M:WiseOwl.Cobol.Binding.Procedure.OoBinder.OoUnscaledDigitCount(System.String,System.Int32)~System.Int32 @ src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs:2082"
+     "M:WiseOwl.Cobol.Binding.Procedure.OoBinder.OoUnscaledDigitCount(System.String,System.Int32)~System.Int32 @ src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs:2081"
     ]
    },
    "measure": {
@@ -4508,7 +4472,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (11 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0171"
+   "id": "R0-0169"
   },
   {
    "kind": "unreachable-family",
@@ -4526,7 +4490,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0172"
+   "id": "R0-0170"
   },
   {
    "kind": "unreachable-family",
@@ -4545,7 +4509,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (2 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0173"
+   "id": "R0-0171"
   },
   {
    "kind": "unreachable-family",
@@ -4563,7 +4527,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (2 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0174"
+   "id": "R0-0172"
   },
   {
    "kind": "unreachable-family",
@@ -4581,7 +4545,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0175"
+   "id": "R0-0173"
   },
   {
    "kind": "unreachable-family",
@@ -4599,7 +4563,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0176"
+   "id": "R0-0174"
   },
   {
    "kind": "unreachable-family",
@@ -4607,7 +4571,7 @@
    "site": {
     "family": "WiseOwl.Cobol.CodeGen.OoEmitter",
     "members": [
-     "P:WiseOwl.Cobol.CodeGen.OoEmitter.Cond @ src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs:104"
+     "P:WiseOwl.Cobol.CodeGen.OoEmitter.Cond @ src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs:105"
     ]
    },
    "measure": {
@@ -4617,7 +4581,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0177"
+   "id": "R0-0175"
   },
   {
    "kind": "unreachable-family",
@@ -4638,7 +4602,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "4 member(s) (8 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0178"
+   "id": "R0-0176"
   },
   {
    "kind": "unreachable-family",
@@ -4656,7 +4620,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0179"
+   "id": "R0-0177"
   },
   {
    "kind": "unreachable-family",
@@ -4674,7 +4638,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0180"
+   "id": "R0-0178"
   },
   {
    "kind": "unreachable-family",
@@ -4687,23 +4651,23 @@
      "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.EditionRemovedConstruct @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:66",
      "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.EditionObsoleteFlag @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:69",
      "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.DigitCapacityOver31 @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:74",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.DigitCapacityOver18Pre2002 @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:113",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:121",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.TurnFileNameNonIo @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:127",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ArithmeticStandardIntrinsic @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:967",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ConstructStagedNotImplemented @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:1338",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.DefineNoOverrideRedefinition @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:1451",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.DirectiveExpressionViolation @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:1455",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ValueNumericEditedOversize @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2104",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.DebugSubFacilityStaged @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2111",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.MergeInSortMergeProc @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2118",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ExternalFileStatusConsistency @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2130",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ExternalRelativeKeyConsistency @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2137",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ExternalFileItemNotExternal @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2144",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ValueNumericOutOfRange @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2154",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.LocaleNameUndeclared @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2771",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.AreaAItemOutsideAreaA @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:7754",
-     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ProgramTextInAreaA @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:7769"
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.DigitCapacityOver18Pre2002 @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:112",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:120",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.TurnFileNameNonIo @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:126",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ArithmeticStandardIntrinsic @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:966",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ConstructStagedNotImplemented @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:1337",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.DefineNoOverrideRedefinition @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:1450",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.DirectiveExpressionViolation @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:1454",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ValueNumericEditedOversize @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2103",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.DebugSubFacilityStaged @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2110",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.MergeInSortMergeProc @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2117",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ExternalFileStatusConsistency @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2129",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ExternalRelativeKeyConsistency @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2136",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ExternalFileItemNotExternal @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2143",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ValueNumericOutOfRange @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2153",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.LocaleNameUndeclared @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:2770",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.AreaAItemOutsideAreaA @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:7753",
+     "F:WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ProgramTextInAreaA @ src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs:7768"
     ]
    },
    "measure": {
@@ -4713,7 +4677,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "22 member(s) (125 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0181"
+   "id": "R0-0179"
   },
   {
    "kind": "unreachable-family",
@@ -4731,7 +4695,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0182"
+   "id": "R0-0180"
   },
   {
    "kind": "unreachable-family",
@@ -4749,7 +4713,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0183"
+   "id": "R0-0181"
   },
   {
    "kind": "unreachable-family",
@@ -4777,7 +4741,7 @@
      "F:WiseOwl.Cobol.Frontend.Generated.CobolParserCore.COMMENT_END @ src/WiseOwl.Cobol.Frontend/Generated/CobolParserCore.cs:137",
      "F:WiseOwl.Cobol.Frontend.Generated.CobolParserCore.COMMENT_TEXT @ src/WiseOwl.Cobol.Frontend/Generated/CobolParserCore.cs:137",
      "F:WiseOwl.Cobol.Frontend.Generated.CobolParserCore.PIC_COMMENT @ src/WiseOwl.Cobol.Frontend/Generated/CobolParserCore.cs:137",
-     "M:WiseOwl.Cobol.Frontend.Generated.CobolParserCore.performTarget~WiseOwl.Cobol.Frontend.Generated.CobolParserCore.PerformTargetContext @ src/WiseOwl.Cobol.Frontend/Generated/CobolParserCore.cs:42568"
+     "M:WiseOwl.Cobol.Frontend.Generated.CobolParserCore.performTarget~WiseOwl.Cobol.Frontend.Generated.CobolParserCore.PerformTargetContext @ src/WiseOwl.Cobol.Frontend/Generated/CobolParserCore.cs:42767"
     ]
    },
    "measure": {
@@ -4787,7 +4751,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "21 member(s) (61 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0184"
+   "id": "R0-0182"
   },
   {
    "kind": "unreachable-family",
@@ -4795,8 +4759,8 @@
    "site": {
     "family": "WiseOwl.Cobol.Frontend.Generated.CobolParserCore+CompilationUnitContext",
     "members": [
-     "M:WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CompilationUnitContext.Eof~Antlr4.Runtime.Tree.ITerminalNode @ src/WiseOwl.Cobol.Frontend/Generated/CobolParserCore.cs:738",
-     "M:WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CompilationUnitContext.compilationGroup(System.Int32)~WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CompilationGroupContext @ src/WiseOwl.Cobol.Frontend/Generated/CobolParserCore.cs:742"
+     "M:WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CompilationUnitContext.Eof~Antlr4.Runtime.Tree.ITerminalNode @ src/WiseOwl.Cobol.Frontend/Generated/CobolParserCore.cs:740",
+     "M:WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CompilationUnitContext.compilationGroup(System.Int32)~WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CompilationGroupContext @ src/WiseOwl.Cobol.Frontend/Generated/CobolParserCore.cs:744"
     ]
    },
    "measure": {
@@ -4806,7 +4770,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (4 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0185"
+   "id": "R0-0183"
   },
   {
    "kind": "unreachable-family",
@@ -4826,7 +4790,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "3 member(s) (3 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0186"
+   "id": "R0-0184"
   },
   {
    "kind": "unreachable-family",
@@ -4845,7 +4809,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (2 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0187"
+   "id": "R0-0185"
   },
   {
    "kind": "unreachable-family",
@@ -4864,7 +4828,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (2 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0188"
+   "id": "R0-0186"
   },
   {
    "kind": "unreachable-family",
@@ -4882,7 +4846,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0189"
+   "id": "R0-0187"
   },
   {
    "kind": "unreachable-family",
@@ -4900,7 +4864,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0190"
+   "id": "R0-0188"
   },
   {
    "kind": "unreachable-family",
@@ -4918,7 +4882,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (6 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0191"
+   "id": "R0-0189"
   },
   {
    "kind": "unreachable-family",
@@ -4944,7 +4908,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "9 member(s) (21 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0192"
+   "id": "R0-0190"
   },
   {
    "kind": "unreachable-family",
@@ -4962,7 +4926,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0193"
+   "id": "R0-0191"
   },
   {
    "kind": "unreachable-family",
@@ -4982,7 +4946,25 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "3 member(s) (3 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0194"
+   "id": "R0-0192"
+  },
+  {
+   "kind": "unreachable-family",
+   "wave": "delete",
+   "site": {
+    "family": "WiseOwl.Cobol.Runtime.Collation.CollationRuntime",
+    "members": [
+     "M:WiseOwl.Cobol.Runtime.Collation.CollationRuntime.ConfigureCache(WiseOwl.Cobol.Runtime.Collation.Cache.CacheConfig) @ src/WiseOwl.Cobol.Runtime/Collation/CollationRuntime.cs:65"
+    ]
+   },
+   "measure": {
+    "members": 1,
+    "lines": 5
+   },
+   "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
+   "scenario": "1 member(s) (5 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
+   "target": "delete them with every caller-free dependency they keep alive",
+   "id": "R0-0193"
   },
   {
    "kind": "unreachable-family",
@@ -5002,7 +4984,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "3 member(s) (13 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0195"
+   "id": "R0-0194"
   },
   {
    "kind": "unreachable-family",
@@ -5020,7 +5002,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0196"
+   "id": "R0-0195"
   },
   {
    "kind": "unreachable-family",
@@ -5038,7 +5020,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0197"
+   "id": "R0-0196"
   },
   {
    "kind": "unreachable-family",
@@ -5046,7 +5028,7 @@
    "site": {
     "family": "WiseOwl.Cobol.Runtime.Collation.WeightMap",
     "members": [
-     "P:WiseOwl.Cobol.Runtime.Collation.WeightMap.IsIdentity @ src/WiseOwl.Cobol.Runtime/Collation/CollationTable.cs:857"
+     "P:WiseOwl.Cobol.Runtime.Collation.WeightMap.IsIdentity @ src/WiseOwl.Cobol.Runtime/Collation/CollationTable.cs:797"
     ]
    },
    "measure": {
@@ -5056,7 +5038,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (8 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0198"
+   "id": "R0-0197"
   },
   {
    "kind": "unreachable-family",
@@ -5074,7 +5056,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0199"
+   "id": "R0-0198"
   },
   {
    "kind": "unreachable-family",
@@ -5095,7 +5077,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "4 member(s) (4 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0200"
+   "id": "R0-0199"
   },
   {
    "kind": "unreachable-family",
@@ -5113,7 +5095,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (5 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0201"
+   "id": "R0-0200"
   },
   {
    "kind": "unreachable-family",
@@ -5131,7 +5113,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (6 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0202"
+   "id": "R0-0201"
   },
   {
    "kind": "unreachable-family",
@@ -5149,7 +5131,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (2 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0203"
+   "id": "R0-0202"
   },
   {
    "kind": "unreachable-family",
@@ -5175,7 +5157,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "9 member(s) (10 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0204"
+   "id": "R0-0203"
   },
   {
    "kind": "unreachable-family",
@@ -5193,7 +5175,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0205"
+   "id": "R0-0204"
   },
   {
    "kind": "unreachable-family",
@@ -5211,7 +5193,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0206"
+   "id": "R0-0205"
   },
   {
    "kind": "unreachable-family",
@@ -5229,7 +5211,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (78 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0207"
+   "id": "R0-0206"
   },
   {
    "kind": "unreachable-family",
@@ -5247,7 +5229,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (49 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0208"
+   "id": "R0-0207"
   },
   {
    "kind": "unreachable-family",
@@ -5265,7 +5247,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (7 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0209"
+   "id": "R0-0208"
   },
   {
    "kind": "unreachable-family",
@@ -5283,7 +5265,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0210"
+   "id": "R0-0209"
   },
   {
    "kind": "unreachable-family",
@@ -5301,7 +5283,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (5 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0211"
+   "id": "R0-0210"
   },
   {
    "kind": "unreachable-family",
@@ -5319,7 +5301,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0212"
+   "id": "R0-0211"
   },
   {
    "kind": "unreachable-family",
@@ -5337,7 +5319,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0213"
+   "id": "R0-0212"
   },
   {
    "kind": "unreachable-family",
@@ -5355,7 +5337,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0214"
+   "id": "R0-0213"
   },
   {
    "kind": "unreachable-family",
@@ -5373,7 +5355,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0215"
+   "id": "R0-0214"
   },
   {
    "kind": "unreachable-family",
@@ -5391,7 +5373,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (3 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0216"
+   "id": "R0-0215"
   },
   {
    "kind": "unreachable-family",
@@ -5410,7 +5392,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (2 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0217"
+   "id": "R0-0216"
   },
   {
    "kind": "unreachable-family",
@@ -5428,7 +5410,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (3 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0218"
+   "id": "R0-0217"
   },
   {
    "kind": "unreachable-family",
@@ -5446,7 +5428,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0219"
+   "id": "R0-0218"
   },
   {
    "kind": "unreachable-family",
@@ -5465,7 +5447,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (29 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0220"
+   "id": "R0-0219"
   },
   {
    "kind": "unreachable-family",
@@ -5484,7 +5466,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (14 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0221"
+   "id": "R0-0220"
   },
   {
    "kind": "unreachable-family",
@@ -5504,7 +5486,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "3 member(s) (15 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0222"
+   "id": "R0-0221"
   },
   {
    "kind": "unreachable-family",
@@ -5524,7 +5506,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "3 member(s) (16 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0223"
+   "id": "R0-0222"
   },
   {
    "kind": "unreachable-family",
@@ -5543,7 +5525,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (8 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0224"
+   "id": "R0-0223"
   },
   {
    "kind": "unreachable-family",
@@ -5564,7 +5546,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "4 member(s) (43 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0225"
+   "id": "R0-0224"
   },
   {
    "kind": "unreachable-family",
@@ -5582,7 +5564,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (15 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0226"
+   "id": "R0-0225"
   },
   {
    "kind": "unreachable-family",
@@ -5601,7 +5583,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (8 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0227"
+   "id": "R0-0226"
   },
   {
    "kind": "unreachable-family",
@@ -5619,7 +5601,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (65 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0228"
+   "id": "R0-0227"
   },
   {
    "kind": "unreachable-family",
@@ -5637,7 +5619,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "1 member(s) (1 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0229"
+   "id": "R0-0228"
   },
   {
    "kind": "unreachable-family",
@@ -5656,7 +5638,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured, never deduced (engineering-standards)",
    "scenario": "2 member(s) (6 lines) nothing in the solution uses (walk + SymbolFinder): they compile, are read and are maintained for nothing",
    "target": "delete them with every caller-free dependency they keep alive",
-   "id": "R0-0230"
+   "id": "R0-0229"
   },
   {
    "kind": "test-only-type",
@@ -5674,7 +5656,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured",
    "scenario": "no type outside WiseOwl.Cobol.Binding.QualifiedNameClasses uses it (test-only)",
    "target": "delete it, with its tests if they test only it",
-   "id": "R0-0231"
+   "id": "R0-0230"
   },
   {
    "kind": "test-only-type",
@@ -5692,7 +5674,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured",
    "scenario": "no type outside WiseOwl.Cobol.Binding.Repository.RepositoryReader uses it (test-only)",
    "target": "delete it, with its tests if they test only it",
-   "id": "R0-0232"
+   "id": "R0-0231"
   },
   {
    "kind": "unreachable-type",
@@ -5710,7 +5692,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured",
    "scenario": "no type outside WiseOwl.Cobol.Frontend.Parsing.CobolErrorStrategy+CaptureSink uses it (unreferenced)",
    "target": "delete it, with its tests if they test only it",
-   "id": "R0-0233"
+   "id": "R0-0232"
   },
   {
    "kind": "test-only-type",
@@ -5728,7 +5710,7 @@
    "rule": "dead and obsolete code is removed (kb/Work R69 §3); reachability is measured",
    "scenario": "no type outside WiseOwl.Cobol.Runtime.RuntimeConfig uses it (test-only)",
    "target": "delete it, with its tests if they test only it",
-   "id": "R0-0234"
+   "id": "R0-0233"
   },
   {
    "kind": "dead-artifact",
@@ -5738,7 +5720,7 @@
    "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
    "scenario": "no live caller or reader names common.md (history-only: only DEVLOG, closed notes or census records mention it)",
    "target": "delete it (verify no out-of-band consumer first)",
-   "id": "R0-0235"
+   "id": "R0-0234"
   },
   {
    "kind": "dead-artifact",
@@ -5748,7 +5730,7 @@
    "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
    "scenario": "no live caller or reader names test_orchestrate_breaker.ps1 (history-only: only DEVLOG, closed notes or census records mention it)",
    "target": "delete it (verify no out-of-band consumer first)",
-   "id": "R0-0236"
+   "id": "R0-0235"
   },
   {
    "kind": "dead-artifact",
@@ -5758,7 +5740,7 @@
    "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
    "scenario": "no live caller or reader names test_orchestrate_prompt.ps1 (history-only: only DEVLOG, closed notes or census records mention it)",
    "target": "delete it (verify no out-of-band consumer first)",
-   "id": "R0-0237"
+   "id": "R0-0236"
   },
   {
    "kind": "dead-artifact",
@@ -5768,7 +5750,7 @@
    "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
    "scenario": "no live caller or reader names test_orchestrate_wakes.ps1 (history-only: only DEVLOG, closed notes or census records mention it)",
    "target": "delete it (verify no out-of-band consumer first)",
-   "id": "R0-0238"
+   "id": "R0-0237"
   },
   {
    "kind": "dead-artifact",
@@ -5778,7 +5760,7 @@
    "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
    "scenario": "no live caller or reader names test_figure_geometry.py (history-only: only DEVLOG, closed notes or census records mention it)",
    "target": "delete it (verify no out-of-band consumer first)",
-   "id": "R0-0239"
+   "id": "R0-0238"
   },
   {
    "kind": "dead-artifact",
@@ -5788,7 +5770,7 @@
    "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
    "scenario": "the drift test names `docs/DIAGNOSTICS.md`, which exists nowhere in the tree: it pins nothing",
    "target": "correct the literal to the path it means, or drop the assertion that pins nothing",
-   "id": "R0-0240"
+   "id": "R0-0239"
   },
   {
    "kind": "dead-artifact",
@@ -5798,15 +5780,25 @@
    "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
    "scenario": "the drift test names `scripts/orchestrator/train_measure.py`, which exists nowhere in the tree: it pins nothing",
    "target": "correct the literal to the path it means, or drop the assertion that pins nothing",
+   "id": "R0-0240"
+  },
+  {
+   "kind": "dead-artifact",
+   "wave": "delete",
+   "class": "drift-literal",
+   "site": "tests/WiseOwl.Cobol.Tests.Unit/LandingPipelineDriftTests.cs:245",
+   "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
+   "scenario": "the drift test names `scripts/orchestrator/landing_lease.py`, which exists nowhere in the tree: it pins nothing",
+   "target": "correct the literal to the path it means, or drop the assertion that pins nothing",
    "id": "R0-0241"
   },
   {
    "kind": "dead-artifact",
    "wave": "delete",
    "class": "drift-literal",
-   "site": "tests/WiseOwl.Cobol.Tests.Unit/LandingPipelineDriftTests.cs:247",
+   "site": "tests/WiseOwl.Cobol.Tests.Unit/LandingPipelineDriftTests.cs:245",
    "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
-   "scenario": "the drift test names `scripts/orchestrator/landing_lease.py`, which exists nowhere in the tree: it pins nothing",
+   "scenario": "the drift test names `scripts/push-main.ps1`, which exists nowhere in the tree: it pins nothing",
    "target": "correct the literal to the path it means, or drop the assertion that pins nothing",
    "id": "R0-0242"
   },
@@ -5814,9 +5806,9 @@
    "kind": "dead-artifact",
    "wave": "delete",
    "class": "drift-literal",
-   "site": "tests/WiseOwl.Cobol.Tests.Unit/LandingPipelineDriftTests.cs:247",
+   "site": "tests/WiseOwl.Cobol.Tests.Unit/LandingPipelineDriftTests.cs:245",
    "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
-   "scenario": "the drift test names `scripts/push-main.ps1`, which exists nowhere in the tree: it pins nothing",
+   "scenario": "the drift test names `scripts/push-main.sh`, which exists nowhere in the tree: it pins nothing",
    "target": "correct the literal to the path it means, or drop the assertion that pins nothing",
    "id": "R0-0243"
   },
@@ -5824,9 +5816,9 @@
    "kind": "dead-artifact",
    "wave": "delete",
    "class": "drift-literal",
-   "site": "tests/WiseOwl.Cobol.Tests.Unit/LandingPipelineDriftTests.cs:247",
+   "site": "tests/WiseOwl.Cobol.Tests.Unit/LandingPipelineDriftTests.cs:246",
    "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
-   "scenario": "the drift test names `scripts/push-main.sh`, which exists nowhere in the tree: it pins nothing",
+   "scenario": "the drift test names `scripts/orchestrator/landing_oracle.py`, which exists nowhere in the tree: it pins nothing",
    "target": "correct the literal to the path it means, or drop the assertion that pins nothing",
    "id": "R0-0244"
   },
@@ -5834,9 +5826,9 @@
    "kind": "dead-artifact",
    "wave": "delete",
    "class": "drift-literal",
-   "site": "tests/WiseOwl.Cobol.Tests.Unit/LandingPipelineDriftTests.cs:248",
+   "site": "tests/WiseOwl.Cobol.Tests.Unit/LandingPipelineDriftTests.cs:246",
    "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
-   "scenario": "the drift test names `scripts/orchestrator/landing_oracle.py`, which exists nowhere in the tree: it pins nothing",
+   "scenario": "the drift test names `scripts/orchestrator/train_apply.py`, which exists nowhere in the tree: it pins nothing",
    "target": "correct the literal to the path it means, or drop the assertion that pins nothing",
    "id": "R0-0245"
   },
@@ -5844,9 +5836,9 @@
    "kind": "dead-artifact",
    "wave": "delete",
    "class": "drift-literal",
-   "site": "tests/WiseOwl.Cobol.Tests.Unit/LandingPipelineDriftTests.cs:248",
+   "site": "tests/WiseOwl.Cobol.Tests.Unit/LandingPipelineDriftTests.cs:250",
    "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
-   "scenario": "the drift test names `scripts/orchestrator/train_apply.py`, which exists nowhere in the tree: it pins nothing",
+   "scenario": "the drift test names `docs/rearchitecture/evidence/arch-oracle/`, which exists nowhere in the tree: it pins nothing",
    "target": "correct the literal to the path it means, or drop the assertion that pins nothing",
    "id": "R0-0246"
   },
@@ -5854,9 +5846,9 @@
    "kind": "dead-artifact",
    "wave": "delete",
    "class": "drift-literal",
-   "site": "tests/WiseOwl.Cobol.Tests.Unit/LandingPipelineDriftTests.cs:252",
+   "site": "tests/WiseOwl.Cobol.Tests.Unit/OneHostSurfaceDriftTests.cs:89",
    "rule": "dead artifacts beyond code are removed (kb/Work R69 §3, PB2119): no caller or reader, measured by a caller query per artifact",
-   "scenario": "the drift test names `docs/rearchitecture/evidence/arch-oracle/`, which exists nowhere in the tree: it pins nothing",
+   "scenario": "the drift test names `docs/manual`, which exists nowhere in the tree: it pins nothing",
    "target": "correct the literal to the path it means, or drop the assertion that pins nothing",
    "id": "R0-0247"
   },

@@ -3,7 +3,7 @@
 Wave 20261800 C, the PB2293 campaign lane. The `ICodeGenBackend` contract was Roslyn-shaped, so a direct-IL backend
 could not implement it without loading Roslyn, and PB4273's model assembly could not be built without a Roslyn package.
 
-**Re-probe (2e48863d5).** A grep over `src/WiseOwl.Cobol.Compiler` outside `CodeGen/` found the four uses the note names
+**Re-probe (c83133b23).** A grep over `src/WiseOwl.Cobol.Compiler` outside `CodeGen/` found the four uses the note names
 (`BackendArtifact`'s `IReadOnlyList<Microsoft.CodeAnalysis.Diagnostic>`, `CompilerDriver.cs:214`'s
 `Microsoft.CodeAnalysis.DiagnosticSeverity` filter, `DataItem.cs`'s `SyntaxFacts` identifier-character calls and
 `StatementBinder.cs`'s unused `using Microsoft.CodeAnalysis.CSharp`), plus one the note missed:
@@ -34,7 +34,7 @@ the scan finds every form of use while ignoring mentions in comments and strings
 checks that the keyword set equals Roslyn's, element by element.
 
 **Behavior neutrality.** `scripts/arch/compare_oracle.py`: `=== ARCH-ORACLE: IDENTICAL — 15712 cases (baseline
-2e48863d5802) ===`. No goldens: no user program's behavior changes, and no inventory row is involved
+c83133b23bdc) ===`. No goldens: no user program's behavior changes, and no inventory row is involved
 (`closes_rows: []`).
 
 **Docs.** DESIGN-backend-abstraction §2.1 (the contract block, and the statement that the seam is Roslyn-free) and §2.4,

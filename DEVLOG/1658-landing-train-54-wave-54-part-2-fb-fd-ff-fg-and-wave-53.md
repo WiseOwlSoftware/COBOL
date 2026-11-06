@@ -1,12 +1,12 @@
 ## Entry 1658 — 2026-09-23 01:37 PDT — Landing train 54: wave 54 part 2 (FB, FD, FF, FG) and wave-53 finishers (EA, EB, EC), eight notes landed, GAP −6 to 2095
 
 Train 54 was pipelined behind train 53 (workstream SKILL.md "Lander throughput"), but train 53 was already on
-origin/main (`3f535e9dd`) when this lander started, so every cluster was merged, gated and landed on that one base
+origin/main (`19665e619`) when this lander started, so every cluster was merged, gated and landed on that one base
 and no rebase was needed. Seven clusters, one over the 4–6 band. Each was brought in as a diff excluding the
-traceability inventory, and each had a checkpoint commit. FB, FD, FF and FG came from their merge-base `57d36e4c6`.
-EA came from `37f19e028`. EB came in as its arm-2 commits only (`60c05846d..af42b0a70`), because arm 1 is already
-on main as `b7870a022`. EC came in as its own commit only (`ca8f16d06..4e9ca6f64`), because its merged PB202/PB189
-predecessor is on main as `e9e36c609`. Taking EB and EC from the merge-base would have re-applied work that main
+traceability inventory, and each had a checkpoint commit. FB, FD, FF and FG came from their merge-base `475200e26`.
+EA came from `c600e5d90`. EB came in as its arm-2 commits only (`60c05846d..af42b0a70`), because arm 1 is already
+on main as `31cc2b5d6`. EC came in as its own commit only (`ca8f16d06..4e9ca6f64`), because its merged PB202/PB189
+predecessor is on main as `a74e57063`. Taking EB and EC from the merge-base would have re-applied work that main
 already carries.
 
 **FB — contained-program GLOBAL LINKAGE carriers (PB1009 landed; PB1019 program arm, PB1019 stays open).** A

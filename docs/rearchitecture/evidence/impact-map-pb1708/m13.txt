@@ -2,12 +2,12 @@ M13 (kb/Work PB1721) acceptance and M2's N (kb/Work PB1720), wave 72 group H, 20
 Every excerpt is the gate's own console lines (scripts/run_gate_legs.py); the full logs were in the agent's scratchpad.
 
 A. A real implementer gate, GREEN: its population equals --list-tests for all three assemblies
-   (branch head 0e3262237+M13 WIP; no impact map for the base, so every case tier 1; no timings: leg 1 = tier 0a).
+   (branch head a3fa4e51a+M13 WIP; no impact map for the base, so every case tier 1; no timings: leg 1 = tier 0a).
    verdict.json timings: build 13.8 s, legs 150.4 s, wall 280.2 s (the corpus fetch included).
     gate-slot: took slot 1 of 2 (ticket 14, waited 0.0 s)
-    === WITNESS LOSS vs 0e3262237662: 0 unexcused, 0 retired, 0 re-sited — GREEN ===
+    === WITNESS LOSS vs a3fa4e51a04b: 0 unexcused, 0 retired, 0 re-sited — GREEN ===
     === EXTERNAL CORPUS: absent in this worktree — fetching (GPL, git-ignored, never committed) ===
-      every case tier 1: no impact map recorded for the base 0e3262237662 or any ancestor in E:\COBOL\.git\cobol-impact — record one (record_impact_map.py --commit 0e3262237662)
+      every case tier 1: no impact map recorded for the base a3fa4e51a04b or any ancestor in E:\COBOL\.git\cobol-impact — record one (record_impact_map.py --commit a3fa4e51a04b)
       every case tier 1: tests/Directory.Build.props: a grammar, build or source-generator input — every assembly may change
     gate_plan: Conformance: 9321 cases, tiers {'0a': 2, '0u': 0, '1': 9319, '2': 0, '3': 0}; leg 1 2 cases (0.0 of 0 recorded s; floor 0.0 s in GateLegDriftTests); legs [1, 2]
     gate_plan: Unit: 29728 cases, tiers {'0a': 14, '0u': 0, '1': 29714, '2': 0, '3': 0}; leg 1 14 cases (0.0 of 0 recorded s; floor 0.0 s in GateLegDriftTests); legs [1, 2]
@@ -30,8 +30,8 @@ A. A real implementer gate, GREEN: its population equals --list-tests for all th
 B. A real implementer gate with a PLANTED red in a leg-1 test (an added Unit test method, tier 0a):
    it stops after leg 1 and names the remainder. timings: first red 11.7 s into the legs, legs 11.9 s, wall 94.2 s.
     gate-slot: took slot 1 of 2 (ticket 15, waited 0.0 s)
-    === WITNESS LOSS vs 0e3262237662: 0 unexcused, 0 retired, 0 re-sited — GREEN ===
-      every case tier 1: no impact map recorded for the base 0e3262237662 or any ancestor in E:\COBOL\.git\cobol-impact — record one (record_impact_map.py --commit 0e3262237662)
+    === WITNESS LOSS vs a3fa4e51a04b: 0 unexcused, 0 retired, 0 re-sited — GREEN ===
+      every case tier 1: no impact map recorded for the base a3fa4e51a04b or any ancestor in E:\COBOL\.git\cobol-impact — record one (record_impact_map.py --commit a3fa4e51a04b)
       every case tier 1: tests/Directory.Build.props: a grammar, build or source-generator input — every assembly may change
     gate_plan: Conformance: 9321 cases, tiers {'0a': 2, '0u': 0, '1': 9319, '2': 0, '3': 0}; leg 1 3919 cases (59.077 of 2947.543 recorded s; floor 6.423 s in CorpusRunnerTests_P1); legs [1, 2]
     gate_plan: Unit: 29729 cases, tiers {'0a': 15, '0u': 0, '1': 29714, '2': 0, '3': 0}; leg 1 28912 cases (22.027 of 926.284 recorded s; floor 3.32 s in GateLegDriftTests); legs [1, 2]
@@ -51,7 +51,7 @@ B. A real implementer gate with a PLANTED red in a leg-1 test (an added Unit tes
 
 C. A real -Mode lander gate: ONE leg, no slot (no gate-slot line), every population exact (N measurement run quiet-a,
    COBOLNET_COMPILE_CACHE=off).
-    === WITNESS LOSS vs 0e3262237662: 0 unexcused, 0 retired, 0 re-sited — GREEN ===
+    === WITNESS LOSS vs a3fa4e51a04b: 0 unexcused, 0 retired, 0 re-sited — GREEN ===
     build-local: leg 1 — Conformance, Unit, Characterization concurrently
     Passed!  - Failed:     0, Passed:  9321, Skipped:     0, Total:  9321, Duration: 2 m 20 s - Cobol.Net.Tests.Conformance.dll (net10.0)
     Passed!  - Failed:     0, Passed: 29759, Skipped:     0, Total: 29759, Duration: 1 m 16 s - Cobol.Net.Tests.Unit.dll (net10.0)

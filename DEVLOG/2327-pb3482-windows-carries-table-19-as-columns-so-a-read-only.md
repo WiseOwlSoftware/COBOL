@@ -76,10 +76,10 @@ two hosts (review lead R1-3) are current.
 
 **Gates.** Windows: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `20261021T183116Z-6cd78e`;
 Conformance 10,850/18,047, Unit 34,263/35,147, Characterization 5/36 in leg 1). Linux (`--legs unit,conformance`):
-`=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 31b7cf56d) ===`. The full Unit assembly run
+`=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 2f58d4b54) ===`. The full Unit assembly run
 once on Windows by hand before the final refinement: 35,174 of 35,176, the two reds being `ExternalCorpusPopulationDriftTests`
 (the external corpora are not in a fresh worktree). Registered: `kb/Work/PB3482.md` landed, `closes_rows: []` with its reason
-(it claims no inventory row). After the merge with PB3483 (HEAD e2e6f2cd7): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
+(it claims no inventory row). After the merge with PB3483 (HEAD d7825220a): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
 PB2515): GREEN` (run `20261021T195135Z-1c8e09`; Conformance 10,840/18,047, Unit 34,323/35,190, Characterization 5/36 in leg
-1) and `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD e2e6f2cd7) ===`.
+1) and `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD d7825220a) ===`.
 

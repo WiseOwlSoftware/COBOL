@@ -12,7 +12,7 @@
 *> The conjunction is exact, so writing a third screen would report the same line twice.
 *> kb/Work PB558 measured the hole this closes: the report-entry walk had no level-88 arm, so the entry was
 *> neither rejected nor registered but DROPPED, and a program that went on to reference the condition-name
-*> compiled and then aborted at RUN time with a not-implemented exception. PB485 (f37da577b, 2026-09-05) gave
+*> compiled and then aborted at RUN time with a not-implemented exception. PB485 (14d0b9d93, 2026-09-05) gave
 *> the level-number a domain and closed it; this test is what keeps it closed.
 *> No edition changes the rule - Annex E carries no 2023 change to SR30 or to SR4, and neither screen has a
 *> version predicate - so all four editions reject.

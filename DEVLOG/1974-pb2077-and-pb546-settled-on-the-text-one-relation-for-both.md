@@ -37,7 +37,7 @@ character positions (§15.50.4 r3, §8.4.3.3.4 GR1/GR5 a), §14.9.25.4 GR4, §14
 national character is "a uniform size equal to or a multiple of" an alphanumeric one (§13.18.60.4 GR8), two bytes
 under D-N1. GnuCOBOL 3.2 measures the same unit. So the owner is not asked and DOC-A.1-57 stands as a derivation.
 
-Re-measured on `ddee217e3`, the note's consumer list is mostly green: LENGTH, BYTE-LENGTH, reference modification,
+Re-measured on `adba52e02`, the note's consumer list is mostly green: LENGTH, BYTE-LENGTH, reference modification,
 ORD per byte, a group MOVE, a CALL BY REFERENCE window, the literal-into-group move (registrar 12), the group-with-
 national-leaf INVOKE conformance on both lanes (registrar 14b), the national-form numeric item whole and sliced, and
 an FD record of national-form leaves on disk. Two sites remain, one mechanism: a byte count that decides "national" by
@@ -69,7 +69,7 @@ Since the analysis was written (2026-09-30), items 1-6 and 8 of its decompositio
 `ActivationRelations` over `ActivationDescriptions`, the string descriptor is gone, BY VALUE methods, the literal and
 expression arms, RETURNING through SET, strong groups with object leaves, ANY LENGTH returning items. What remains is
 the sentence the research agent wrote and no landing took: the bind-time lanes still ask `OoConformance.DescriptionMismatch`
-over `DataItem`s. Measured on `ddee217e3`: a reference-modified argument BY REFERENCE runs into a prototyped CALL's,
+over `DataItem`s. Measured on `adba52e02`: a reference-modified argument BY REFERENCE runs into a prototyped CALL's,
 a function's and a typed INVOKE's `PIC X(5)` formal (§14.8.2.3.2 rule 2 refuses it — the PB3098 reading), and a whole
 `PIC X(4)` runs into a typed INVOKE group formal (§9.3.6 3 e) refuses it); the universal lane is right in every row.
 The standard writes the description identity once (§9.3.5.3's eight clauses) and asks it from five places; the

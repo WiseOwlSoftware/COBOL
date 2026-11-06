@@ -1,7 +1,7 @@
 ## Entry 1937 — 2026-10-08 06:34 PDT — Train 1041: wave 1041's E, C, F, B — five dead members and the dead SourceText class deleted under the Delete program; D dropped at the landing check (PB2179, PB2168, PB2187, PB2189, PB2190, PB1821 landed; PB2678, PB2679 filed)
 
 **E — PB2179 (landed; census R0-0141).** `NameAllocator.NextVary` and its `_vary` field had no caller since PB459
-(`10f2a6be6`) moved PERFORM VARYING's FROM landing onto `SetEmitter.LandAmount(..., "pv")`, which mints its id from
+(`a6c7ce684`) moved PERFORM VARYING's FROM landing onto `SetEmitter.LandAmount(..., "pv")`, which mints its id from
 `NextSet()`. Both are deleted. The re-probe held on today's tree, and the implementer's sweep of the other 16 counters
 found a caller for each. **Train review:** the `_set` field's comment, which the implementer had corrected to name
 `__pv`, still left out the `__amt` and `__sz` temporaries the same sequence mints. It now lists all of them.
@@ -16,7 +16,7 @@ still read by `Origin`. Every other member of `SourceLineMap.cs` has a caller.
 
 **B — PB2189, PB2190, PB1821 (landed; census R0-0151, R0-0152).** The census measured 4 dead members of
 `CobolNet.Frontend.Common.SourceText` and 1 of `TextSpan`. But the whole `SourceText` class has had no consumer since
-the legacy unit project went (PB2110): the rest was test-only at a02b165da (R0-0081, R0-0198), and the 8be230068
+the legacy unit project went (PB2110): the rest was test-only at 79a4b6c58 (R0-0081, R0-0198), and the cd85e4901
 census marks the type unreachable. `Common/SourceText.cs` is deleted whole. That also lands PB1821, the same file's
 second line model with a lone-CR line end, which contradicted the one `PhysicalLines` stage. `TextSpan` loses
 `OverlapsWith` and its siblings `FromBounds` and `Contains` (R0-0082); `End` stays because `ToString` reads it.
@@ -47,13 +47,13 @@ script also scores as a site of every R3 note. Fix shape: index the tracked tree
 block when it has one.
 
 **The train.** Five clusters dispatched, four landed, one dropped (D, at the landing check); none ejected. Gating was
-batched: every implementer gated leg 1 only. All five branches applied cleanly to 440b526a3, which stayed origin/main
+batched: every implementer gated leg 1 only. All five branches applied cleanly to 4a4bd8aa9, which stayed origin/main
 throughout, so no rebase was needed. Whole-population runs: 3. The first ran on the five as brought in. The second
 ran on the five after the review's comment and doc fixes. Both were GREEN, Conformance 11,234/11,234 · Unit
 32,678/32,678 · Characterization 36/36, and the Linux gate was GREEN on that head. The third ran on the four after D
 was dropped, followed by the Linux gate again. Review: 4 findings, 4 fixed in the train (D's three leave with D), 0
 clusters dropped by review. Semgrep verify PASS with no count up. No diagnostic codes claimed: the ranges
 COBOLNET3173–3187 are returned. No traceability rows moved: inventory GAP 136 → 136. Oracle `=== ARCH-ORACLE:
-IDENTICAL — 7614 cases (baseline e2c463c4bbbe)`, as the Delete program's contract requires; re-recorded as
-23f3eb1efbe5.
+IDENTICAL — 7614 cases (baseline f81a122d29d2)`, as the Delete program's contract requires; re-recorded as
+1e804a4db639.
 

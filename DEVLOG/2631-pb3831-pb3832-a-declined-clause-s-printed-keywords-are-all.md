@@ -76,9 +76,9 @@ Self-review: the new walk methods allocate only on an error report, and the thre
 is bounded at eight frames; `cite.py --check` passed on every clause cited; `semgrep/verify.py` and the citation audits
 are unchanged.
 
-Gate (run 000001-20261026T191128Z, head 70be735c0): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 10,858/18,844, Unit 37,429/38,430, Characterization 7/36 cases ran; Linux half (WSL clone of HEAD) GREEN).
+Gate (run 000001-20261026T191128Z, head 191ee08ad): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 10,858/18,844, Unit 37,429/38,430, Characterization 7/36 cases ran; Linux half (WSL clone of HEAD) GREEN).
 
-Review-finisher gate (run 000001-20261026T201211Z, head 245a26d5f, the merge of main's PB3575 prefix rename): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 10,255/18,844, Unit 37,289/38,449, Characterization 7/36 cases ran; Linux half (WSL clone of HEAD) GREEN). Before it, the whole Conformance population (18,844) and the whole Unit population ran green on the merged tree but for the two absent-corpus environment tests.
+Review-finisher gate (run 000001-20261026T201211Z, head d13ac1751, the merge of main's PB3575 prefix rename): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 10,255/18,844, Unit 37,289/38,449, Characterization 7/36 cases ran; Linux half (WSL clone of HEAD) GREEN). Before it, the whole Conformance population (18,844) and the whole Unit population ran green on the merged tree but for the two absent-corpus environment tests.
 
 Branch review round 2 returned two blocking findings, both regressions against main that round 1's one-report rule
 exposed, both fixed at the root. R2-1: the rule keeps a fault's first report and drops the recovery's repeat at the
@@ -107,5 +107,5 @@ COMPUTE, STOP RUN, READ; a stray END-IF, END-ADD, END-PERFORM) now draws main's 
 whole Conformance population (18,857) and the whole Unit population ran green locally but for the two absent-corpus
 environment tests.
 
-Review-round-2 gate (run 000001-20261026T211413Z, head 83cb6de35): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 10,303/18,857, Unit 37,263/38,449, Characterization 36/36 cases ran; Linux half (WSL clone of HEAD) GREEN).
+Review-round-2 gate (run 000001-20261026T211413Z, head 7d77060b9): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 10,303/18,857, Unit 37,263/38,449, Characterization 36/36 cases ran; Linux half (WSL clone of HEAD) GREEN).
 

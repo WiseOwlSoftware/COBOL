@@ -1,9 +1,9 @@
 ## Entry 1433 — 2026-09-02 18:02 PDT — Cluster E: the RETRY phrase had one answer for every conflict class, the discipline ran on statuses that are not conflicts at all, and three I-O syntax rules were enforced only in the mode nobody gates on
 
 Fix-lane cluster E of the burn-down (PB142 · PB144 · PB196), landed from worktree
-`agent-a383892848abd6895` (base `2acbd842`, four WIP commits). Every mechanism below was reproduced by a CLI
+`agent-a383892848abd6895` (base `41bf3492`, four WIP commits). Every mechanism below was reproduced by a CLI
 probe on the implementer's tree before it was fixed, and re-verified here after the rebase onto the golden
-lane's `c11949e3`.
+lane's `df82b14f`.
 
 **The RETRY phrase answered `52` for everything, and `52` is the deadlock value.** `FileRegistry.RetryLoop`'s
 SECONDS/FOREVER arm never read its amount and manufactured I-O status `52` for every exhausted retry of every
@@ -116,5 +116,5 @@ it to do. `semgrep/verify.py` measured **identical** to the recorded PB175 basel
 statement the oracle does not have. A differential that appeared to confirm the 52→62 change would mean something
 else moved.
 
-**GAP 3467 → 3456** (`2acbd842` → this commit). Next free diagnostic: **COBOLNET1721**.
+**GAP 3467 → 3456** (`41bf3492` → this commit). Next free diagnostic: **COBOLNET1721**.
 

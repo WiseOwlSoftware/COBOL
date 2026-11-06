@@ -5,7 +5,7 @@
 
 groups.json:
 {
-  "wave": "58", "scratch": "E:\\\\COBOL-coord\\\\scratch\\\\fleet58", "base": "c54434a8d or later — ...",   # each spec's Scratch is <scratch>\\<slug>\\ (P16, PB4466)
+  "wave": "58", "scratch": "E:\\\\COBOL-coord\\\\scratch\\\\fleet58", "base": "5b42b5156 or later — ...",   # each spec's Scratch is <scratch>\\<slug>\\ (P16, PB4466)
   "stop_file": "E:\\\\COBOL-coord\\\\scratch\\\\fleet58\\\\STOP-w58",   # REQUIRED: this fleet's own stop (kb/Work PB2483)
   "groups": [
     {"letter": "KA", "slug": "w58a", "group": "INTRINSICS BEYOND BINARY64", "notes": "PB999, PB1000", "lead": "PB999",

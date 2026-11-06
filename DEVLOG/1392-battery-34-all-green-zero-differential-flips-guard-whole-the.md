@@ -1,6 +1,6 @@
 ## Entry 1392 — 2026-08-29 13:24 PDT — Battery #34 ALL GREEN, zero differential flips, guard whole — the PB151+PB154+PB155 batch confirmed
 
-One `bash scripts/battery.sh` run on tree `9236274e` (artifacts `/tmp/battery-20260829-130856`): FULL
+One `bash scripts/battery.sh` run on tree `2defe618` (artifacts `/tmp/battery-20260829-130856`): FULL
 greenfield Conformance **5085/5085** (population +17 over #33 — the four CANCEL goldens, the composite-edges
 golden, and the twelve PB151/PB155 negatives) · Unit **4650/4650** (CobolEditMaskGeometryTests' 14 facts
 included) · characterization **33/33** (the one intended CloseIfOpen snapshot line) · guard NIST **353

@@ -1,13 +1,13 @@
 ## Entry 1908 — 2026-10-07 02:55 PDT — The legacy engine is gone from main: Cut 2 landed (train 1027), the archive tag is on 48a44548c, four worktrees pruned by classification, wave 1028 dispatched (PB2111, PB2112, PB2113 → PB2114)
 
-**Train 1027 (Entry 1907, `25849fba7`)** landed PB2110: the five `CobolSharp.*` trees and every reference to them are gone;
+**Train 1027 (Entry 1907, `4b0b959e3`)** landed PB2110: the five `CobolSharp.*` trees and every reference to them are gone;
 PB1861 retired as moot; PB2113 and PB2114 unblocked; PB2111 gained the code-comment sweep (item 7); PB1953 recorded its third
 recurrence. The deletion commit itself (`36441a24c`) was the attended session's, after the classifier refused a subagent's
 `git rm -r` (Entry 1905); the finisher merged it. The lander's review found and fixed one more legacy artifact the grep had
 missed, `Run-Cobol85Audit.ps1` at the repository root. Wave 1027 cost 407,936 subagent tokens.
 
-**The archive tag.** `legacy-byte-engine-final` is an annotated tag on `48a44548c`, the last commit of main that holds the
-engine (verified: `git ls-tree 48a44548c src/` lists the three `CobolSharp.*` projects), pushed to origin with the WSL
+**The archive tag.** `legacy-byte-engine-final` is an annotated tag on `05aa4a3c5`, the last commit of main that holds the
+engine (verified: `git ls-tree 05aa4a3c5 src/` lists the three `CobolSharp.*` projects), pushed to origin with the WSL
 reproduction recipe in its message; `docs/rearchitecture/LEGACY-ARCHIVE.md` is the pointer on main. 46,000 lines of frozen
 oracle are now history, reachable from one tag.
 

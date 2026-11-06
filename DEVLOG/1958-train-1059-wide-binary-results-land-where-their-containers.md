@@ -1,7 +1,7 @@
 ## Entry 1958 — 2026-10-11 12:19 PDT — Train 1059: wide binary results land where their containers hold them, float stores past the carrier raise, data-item program names take the edition's spelling, and --nist keeps its columns
 
 Train 1059 is the land unit's train of six wave-1059 clusters, in `prune_worktrees.py --train` order: E PB2986, F PB2990,
-C PB2966, B PB2965, D PB2967, G PB2991. Every base was `f91823991`, two trains behind origin/main `8399765be`. Main did not
+C PB2966, B PB2965, D PB2967, G PB2991. Every base was `915e7d2cb`, two trains behind origin/main `9438ca056`. Main did not
 move under the landing lease, so the final rebase was a no-op. Every implementer gated leg 1 only (batched gating,
 PB2515), so this train's whole-population gate was each cluster's first population check. It found two reds, both
 fixed in the owning cluster's commit. No cluster was ejected or dropped.
@@ -80,15 +80,15 @@ came back, and gate 1 failed to build on both hosts with RS0017. The stale line 
 CONFORMANCE DOC-A.1-68 row, against main's edit of DOC-A.1-75 in the same hunk); the lander resolved both by hand, and
 the code-citation, doc-citation and work-register audits passed. There were four whole-population runs: 1, a build failure (RS0017, G
 with D); 2, one Unit red on both hosts (D's inventory reference); 3, Linux GREEN with Windows red only on WITNESS LOSS;
-and 4, run `20261011T190502Z-5a2fb9` on head `9dc4d50d8`, which was `GREEN — Conformance 11,468/11,468 · Unit
+and 4, run `20261011T190502Z-5a2fb9` on head `271d91987`, which was `GREEN — Conformance 11,468/11,468 · Unit
 33,432/33,432 · Characterization 36/36`, every population EXACT, WITNESS LOSS GREEN (1 retired), SELF-TESTS GREEN (74
 ran). The Linux gate on the same head was GREEN (selftests, unit, characterization, conformance, guard, selftests-built).
-Semgrep: no count moved (no-biginteger 44, no-decimal 2). The arch-oracle against `bb79e17a3fb8` was DIFFERENT in 32 of
+Semgrep: no count moved (no-biginteger 44, no-decimal 2). The arch-oracle against `ed6ced81eda0` was DIFFERENT in 32 of
 7,768 cases, all explained by class. Twenty-four (16 corpus programs below 2023, one at 85 and seven NIST IC programs)
 differ only by G's `ExternalizedNames.FormInEdition(<name>, <edition>)` wrap around a data-item name, checked line by
 line. One, `2023/pb84_sdidi_intermediate_consumers`, is D's intermediate landing changing from `CobolFloat.ToScaled` to
 `ToScaledSaturating`, the same values for an intermediate consumer. Seven are the train's new goldens. The baseline is
-re-recorded as `9dc4d50d8ab9`. The lander's review read every changed source file: the renderer lane order, the
+re-recorded as `271d91987919`. The lander's review read every changed source file: the renderer lane order, the
 `LiftRounds` predicate (equivalent to the old `DecOperand` arms), `ToUnscaledMagnitude` and the unsigned `TryStore` arm,
 every checked float-landing caller, G's six funnelled sites and E's substitution loop. It found no correctness defect
 beyond the two reds above. Inventory: one witness re-sited and no verdict changed, so the GAP stays 103. No diagnostic

@@ -57,7 +57,7 @@ sentence twice (the three that stay red are pre-existing O2 claim collisions of 
 a base reference by its full path so a bare name is not misread. Performance: nothing on a hot path. Duplication: the gate paragraph, the
 checkpoint protocol and the DEVLOG sentence now exist once in the spec; the agent definition no longer carries them.
 
-**Gate.** `pwsh scripts/build-local.ps1 -Priority BelowNormal` at `dcf15ac93` (the branch head adds only this paragraph and was gated
+**Gate.** `pwsh scripts/build-local.ps1 -Priority BelowNormal` at `06291a6e8` (the branch head adds only this paragraph and was gated
 again): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's
 whole-population run: Conformance 10,123 · Unit 1,378 … Conformance 8,801/18,924 · Unit 37,021/38,399 · Characterization 36/36 cases ran
 (skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN · slot 1 of 3 …` (run `000001-20261026T232927Z`; the FLEET PRACTICES,

@@ -1,6 +1,6 @@
 ## Entry 1816 — 2026-09-30 12:26 PDT — Runtime decisions: ADVANCING 0 overprint (R54), unchecked ref-mod terminates (R60), FIND-STRING overlap, relative-key digits
 
-Batch PB1840 (implementer, worktree branch from main 6d9cb3d4f). Items: PB1667 arms 1 and 2, PB1707 parts 1 and 2, PB1516, PB314, PB1043. Not taken (documented on their notes): PB1513, PB1562, PB1195, PB1140.
+Batch PB1840 (implementer, worktree branch from main c1b3de628). Items: PB1667 arms 1 and 2, PB1707 parts 1 and 2, PB1516, PB314, PB1043. Not taken (documented on their notes): PB1513, PB1562, PB1195, PB1140.
 
 **PB1667 / R54.** `WRITE ... ADVANCING 0` is an overprint written as a bare carriage return (GnuCOBOL `cob_seq_write_opt`), at the advance's own placement, only while a line is open (`SequentialConnector.WriteTravel`, `DeviceOnOpenLine`); LINAGE files count the zero and write it too. The report writer's empty page model is "device at line 1" only while the connector has no open line, so a re-INITIATE on an open report file starts on the line below the previous TERMINATE's last line (`CobolReport.PresentLine`; `PageFeed` writes BEFORE so a feed leaves no open line). Goldens `2023/pb1667_advancing_zero_overprint`, `2002/pb1667_reinitiate_open_report_file`; determination in docs/CONFORMANCE.md. Re-pinned: LNGBYI, the CSP test, and the NIST `Normalize`, which now drops a lone CR as its documentation always said (it mapped CR to LF, which turned SQ101M/SQ207M overprints into line breaks). Finding PB1840: a BEFORE record on an open AFTER line still appends.
 

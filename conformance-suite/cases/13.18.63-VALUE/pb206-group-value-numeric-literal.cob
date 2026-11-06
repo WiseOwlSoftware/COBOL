@@ -12,7 +12,7 @@
       *> constant, so it is neither of the two things SR13 admits.  (SR4's first sentence says the same of the
       *> same subject - "If the item is of category alphabetic, alphanumeric, or alphanumeric-edited literals in
       *> the VALUE clause shall be alphanumeric literals" - and SR16 carries SR13 to the format 2 VALUE.)
-      *> MEASURED BEFORE THIS SCREEN (kb/Work PB206, on 1d949007): this program compiled CLEAN and left N1 and
+      *> MEASURED BEFORE THIS SCREEN (kb/Work PB206, on c86e0bf1): this program compiled CLEAN and left N1 and
       *> N2 both SPACES - the VALUE silently lost, because 13.18.63.4 GR5's area deposit is defined over the
       *> operand's CHARACTERS and a numeric literal has none.  That is also why this arm is an error on BOTH
       *> dialect axes where the ELEMENTARY SR4-sentence-1 violation is a --permissive warning: the leniency

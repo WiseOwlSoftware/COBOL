@@ -31,7 +31,7 @@ false-rejects is corrected; DOC-A.1-208 carries the VALUE determination (GnuCOBO
 `wiseowl/cases/13.18.63-VALUE/pb4113_*` (run, 2002+; 85 limits a literal to 18 digits) and two refusals. Row SR-13.18.63.3-2 stays
 CONFORMS, restated, in `closes_rows`.
 
-**PB4199.** Re-probed: no longer reproduces. The PB3557 branch's `342645815` (`InheritContainerGlobalData`, PB3766's data-item
+**PB4199.** Re-probed: no longer reproduces. The PB3557 branch's `df23beb9a` (`InheritContainerGlobalData`, PB3766's data-item
 sibling) already inherits the container's GLOBAL data before `ResolveFiles` runs, so FILE STATUS, RELATIVE KEY, ASSIGN USING,
 RECORD DEPENDING ON and LINAGE naming container GLOBAL items compile and run. This landing adds the sibling golden
 `13.18.27-GLOBAL/pb4199-contained-file-clauses-name-global-data-items` (`GS=35`) and marks the note landed.

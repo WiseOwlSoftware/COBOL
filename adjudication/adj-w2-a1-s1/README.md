@@ -1,6 +1,6 @@
 # adj-w2-a1-s1 — Annex A.1 adjudication, wave 2 (kb/Work PB1522)
 
-- **Pinned sha:** `0caa7d54004e81c4e34529d95764cdc1ccec1779` (0caa7d5)
+- **Pinned sha:** `0c24de7d9f8579093e6016c0fe4973b8ec115b3e` (0c24de7)
 - **Rows:** 18 (DOC-A.1-114, 116, 117, 118, 119, 120, 121, 122, 124, 126, 130, 131, 132, 138, 139, 141, 142, 143)
 - **Probes:** `/tmp/adj/adj-w2-a1-s1/probe/` (ls1, ls2, lst, loc, mn, nx1, nx2, int1, int2, pg, pg3, sh, pl, pa)
 

@@ -4,7 +4,7 @@
 subjects (COPY, REPLACE, text-words, compile-time arithmetic/boolean expressions, the constant conditional expression,
 the defined condition, and the CALL-CONVENTION, COBOL-WORDS, DEFINE, DISPLAY, EVALUATE, FLAG-02, FLAG-14, IF,
 LEAP-SECOND, LISTING, PAGE, POP, PROPAGATE, PUSH, REF-MOD-ZERO-LENGTH, SOURCE and TURN directives), adjudicated on the
-pinned tree `adj-d2` @071ff04ea. Nothing under `src/` landed between the pin and the registrar's base, so no finding
+pinned tree `adj-d2` @9cd3b32ba. Nothing under `src/` landed between the pin and the registrar's base, so no finding
 became a report lead. **GAP 1845 → 1812** (+33 closed of 4,348).
 
 **Verdicts.** 233 records: DIVERGES 98 · CONFORMS 80 (33 closed their row, 47 are CONFORMS-but-untested and go to the

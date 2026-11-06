@@ -6,7 +6,7 @@ locals the generated code declares and froze them into the model and the bound t
 (`__kv{Uid}`). A local's name is no ABI: no other module binds to it, and a CIL method addresses its locals by slot, so
 the name is a backend decision.
 
-**Re-probe (base 2e48863d5).** The fields were as the note found them. A probe program (INITIALIZE of a table,
+**Re-probe (base c83133b23).** The fields were as the note found them. A probe program (INITIALIZE of a table,
 `FUNCTION SUM(T(ALL))`, `MOVE CORRESPONDING GA(I) TO G2`) emits `for (long __ini0 …)`, `__all0 => …` and
 `ref var __corr0s = ref …`, each name formatted in a binder. The sibling sweep (`$"__` interpolations and string
 fields named for a local under `Binding/`) found four more of the same mechanism: `InitializeLoop.Var` (`__iniN`),
@@ -22,8 +22,8 @@ leaf loop counter, a sort index) are `CSharpLocal`s it makes. The design doc's L
 and §5 text says where a local's name now lives; DESIGN-binder-bound-tree.md §3.9.1, INTRINSICS_DESIGN.md and
 REPORT_WRITER_DESIGN.md name the identity too.
 
-**Neutrality.** `python scripts/arch/compare_oracle.py --base 2e48863d5`:
-`=== ARCH-ORACLE: IDENTICAL — 15712 cases (baseline 2e48863d5802, new 2e48863d5802-dirty) ===`. The probe's emitted
+**Neutrality.** `python scripts/arch/compare_oracle.py --base c83133b23`:
+`=== ARCH-ORACLE: IDENTICAL — 15712 cases (baseline c83133b23bdc, new c83133b23bdc-dirty) ===`. The probe's emitted
 C# is byte-identical too. `python scripts/semgrep/verify.py`: PASS, no rule's count moved.
 
 **The witness.** `MethodLocalIdentityDriftTests` (a drift rule over `src/WiseOwl.Cobol.Compiler/Binding`) holds three facts: no `WiseOwl.Cobol.Binding` type has

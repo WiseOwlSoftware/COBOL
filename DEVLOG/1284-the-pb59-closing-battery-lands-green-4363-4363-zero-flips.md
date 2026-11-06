@@ -1,6 +1,6 @@
 ## Entry 1284 — 2026-08-09 18:40 PDT — The PB59-closing battery lands green: 4363/4363, zero flips, and the register's biggest note retires
 
-One `bash scripts/battery.sh` run over `cc01a38b` (artifacts /tmp/battery-20260809-182411): FULL
+One `bash scripts/battery.sh` run over `f85db690` (artifacts /tmp/battery-20260809-182411): FULL
 greenfield Conformance 4363/4363 zero skipped — nine cases larger than the prior reference, the 7b
 golden, its two repertoire negatives, the five BASECONVERT negatives and the equal-bases theory all in
 the population — Unit 4124/4124 · characterization 33/33 · guard-fast ALL GREEN with NIST 353/0 and a

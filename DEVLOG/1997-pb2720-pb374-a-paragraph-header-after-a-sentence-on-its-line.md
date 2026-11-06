@@ -4,7 +4,7 @@ Wave 1069 group G, the parser-core cluster (`CobolParserCore.g4`, `CobolParserCo
 
 ### PB2720: no line-position predicate on a paragraph header
 
-Re-probed at ddee217e3: free-form `P1. DISPLAY "A". PERFORM P2. STOP RUN. P2. DISPLAY "B".` on one line drew
+Re-probed at adba52e02: free-form `P1. DISPLAY "A". PERFORM P2. STOP RUN. P2. DISPLAY "B".` on one line drew
 `error COBOL0001: cannot parse construct near 'P2'`, and `S1 SECTION. P1. ...` failed at P1, while a mid-line
 `S2 SECTION.` parsed. `paragraphName` carried `{IsAtLineStart()}?` on both alternatives, a guard from DEVLOG 0063
 against a WRITE that left `LINES` unconsumed. ISO §14.4.3 defines a paragraph by its name and separator period with

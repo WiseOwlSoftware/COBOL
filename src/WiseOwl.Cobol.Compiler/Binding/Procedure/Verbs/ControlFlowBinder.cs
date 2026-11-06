@@ -48,7 +48,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
     /// <para>⛔ THE POSITION IS NOT AN ARITHMETIC EXPRESSION, and binding it as one rejected legal COBOL
     /// (kb/Work PB169). The general format §14.9.42.2 writes the operand <c>{identifier-1 | literal-1}</c>, not
     /// <c>arithmetic-expression-1</c>, so §8.8.1.1 never governed it — and both arms went through
-    /// <c>host.Expr.BindExpr</c>. Measured on 9a89fbd1: <c>STOP RUN WITH ERROR STATUS "ABEND"</c> AND
+    /// <c>host.Expr.BindExpr</c>. Measured on 02c72682: <c>STOP RUN WITH ERROR STATUS "ABEND"</c> AND
     /// <c>STOP RUN WITH ERROR STATUS WS-CODE</c> with <c>WS-CODE PIC X(3)</c> each drew COBOL0844 citing
     /// §8.8.1.1, while THIS METHOD'S OWN DOC COMMENT already said the position takes "an integer literal or a
     /// display/national/integer data item" — the code rejected two of the three shapes its documentation

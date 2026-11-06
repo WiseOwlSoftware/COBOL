@@ -3,7 +3,7 @@
 PB4649 was a lead from PB4483's review: a COBOL-2023 word-character removal (COBOL0902, a warning under `--permissive`) in a
 repository skeleton printed when its expansion was placed in an assembly of its own and never when it was placed in the group's.
 
-**Re-probe** (`83365cbf3`, `--std 2023 --permissive --source-format free`): a skeleton HOLD declaring `01 ABC` + U+30FB `PIC X.` expanded
+**Re-probe** (`99022cc7e`, `--std 2023 --permissive --source-format free`): a skeleton HOLD declaring `01 ABC` + U+30FB `PIC X.` expanded
 over a repository class BOX (placement (a)) printed `CLIENT1.cob(8,5): warning COBOL0902 ... [in the expansion 'HOLD-BOX']`; the same
 skeleton expanded over the client's own LBOX (placement (b)) printed nothing.
 

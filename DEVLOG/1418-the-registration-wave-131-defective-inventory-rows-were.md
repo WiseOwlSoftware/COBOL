@@ -3,7 +3,7 @@
 The owner's burn-down directive aims at a number, and the number and the work list had nothing holding them
 together. `tests/version-matrix/traceability-inventory.json` says which spec rules this compiler does not yet
 implement correctly. `kb/Work/` — the ONE work register, CLAUDE.md rule 8 — says what is left to do. Measured on
-the cluster-B tree at `1884ba1e`: of **138** rows verdicted PARTIAL / NOT-IMPLEMENTED / DIVERGES, **131 were
+the cluster-B tree at `4f15f60d`: of **138** rows verdicted PARTIAL / NOT-IMPLEMENTED / DIVERGES, **131 were
 invisible to `work.py next`**. A defect the register cannot see cannot be ranked, cannot be scheduled, and reads
 to every later session as work nobody owes — while the burn-down counted it the entire time.
 

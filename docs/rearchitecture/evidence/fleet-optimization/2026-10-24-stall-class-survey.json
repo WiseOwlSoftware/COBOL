@@ -1338,8 +1338,8 @@
        "resumed_at": "2026-10-14T05:04Z",
        "resolution": "new head 'WIP checkpoint: merge origin/main (finisher, enqueue CONFLICT exit 4)', merge only",
        "mechanical": true,
-       "mechanical_why": "first-parent commits are merges only; I saw the union diff in b938f0379",
-       "evidence": "attempts/*db5-11.json; git show --cc b938f0379443 (manifest.json lists)"
+       "mechanical_why": "first-parent commits are merges only; I saw the union diff in df311f25a",
+       "evidence": "attempts/*db5-11.json; git show --cc df311f25a3b4 (manifest.json lists)"
       },
       {
        "branch": "worktree-wf_0e51b14b-ced-6",
@@ -1427,7 +1427,7 @@
        "idle_min": 233,
        "stopped_at": "2026-10-18T20:56Z",
        "resumed_at": "2026-10-19T00:49Z",
-       "resolution": "re-armed at the same head, reviewed CLEAN b38d4bd0b6e3 diff-only",
+       "resolution": "re-armed at the same head, reviewed CLEAN 20360681d823 diff-only",
        "mechanical": true,
        "mechanical_why": "same-head re-arm after diff-only review",
        "evidence": "attempts/*crash-matrix-close-20261018.json; landing-measurements.jsonl pr 256"
@@ -1466,7 +1466,7 @@
        "idle_min": 188,
        "stopped_at": "2026-10-16T18:55Z",
        "resumed_at": "2026-10-16T22:03Z",
-       "resolution": "merge-only head ba1cb239ffcc",
+       "resolution": "merge-only head 4e9c737ce508",
        "mechanical": true,
        "mechanical_why": "merge-only head",
        "evidence": "landing-measurements.jsonl pr 149 note"
@@ -1904,7 +1904,7 @@
        "branch": "worktree-wf_0e51b14b-ced-6",
        "pr": "467",
        "stop_kind": "REARMED but NOT QUEUED (never re-landed)",
-       "cause": "land_lane.candidates line 742 skips a re-armed NOT QUEUED row; PR DIRTY, reviewed tip 9e871991b unpushed (PB3628, still open)",
+       "cause": "land_lane.candidates line 742 skips a re-armed NOT QUEUED row; PR DIRTY, reviewed tip 729a7716d unpushed (PB3628, still open)",
        "idle_min": 602,
        "stopped_at": "2026-10-24T08:12:12Z",
        "resumed_at": "2026-10-24T18:14:42Z",
@@ -2122,7 +2122,7 @@
        "refuted": false,
        "final_proposal": "not-mechanical",
        "final_notes": "none; PB3608 keeps finishers in the enqueue unit (PB3608.md:46)",
-       "corrections": "Confirmed as judgment work. ced-16's merge 0632c7799 unifies regexes and two drift-rule mechanisms. 423-5's merge 444ab10f4 folds PB3154's guard into PB3164's ConstantScopeOf. Both heads were reviewed CLEAN before landing. ced-16's 202.8 min breaks down as 168 min waiting for the next enqueue unit (04:46Z to 07:34Z; the wave unit held the loop), about 10 min of finisher work and 25 min of review and relaunch. That dispatch wait is a separate scheduling mechanism (a finisher only starts inside an enqueue unit) that no note covers. It deserves its own class."
+       "corrections": "Confirmed as judgment work. ced-16's merge 8ec5a3298 unifies regexes and two drift-rule mechanisms. 423-5's merge f2fedb717 folds PB3154's guard into PB3164's ConstantScopeOf. Both heads were reviewed CLEAN before landing. ced-16's 202.8 min breaks down as 168 min waiting for the next enqueue unit (04:46Z to 07:34Z; the wave unit held the loop), about 10 min of finisher work and 25 min of review and relaunch. That dispatch wait is a separate scheduling mechanism (a finisher only starts inside an enqueue unit) that no note covers. It deserves its own class."
       },
       {
        "key": "DEVLOG_STAMP_NOT_ATOMIC",
@@ -2143,7 +2143,7 @@
        "coverage_correct": true,
        "refuted": false,
        "final_proposal": "covered-landed",
-       "final_notes": "PB3402 (landed: 2918e1890, main via PR #276 2026-10-19T07:44Z); PB3419 open (stale comment)",
+       "final_notes": "PB3402 (landed: 931c4c3da, main via PR #276 2026-10-19T07:44Z); PB3419 open (stale comment)",
        "corrections": "Confirmed: there are 66 'land lane: STOP-UNIT' ticks, and the longest window ran 21:18:42-22:03:28 PDT on 10-18 (44.8 min). The last tick was 10-19 00:09:56, after the PB3402 commit at 00:04. land_lane now ignores STOP-UNIT alone. The idle of 0 understates it: PB3402 records two CLEAN branches held about 47 min each. orchestrate.ps1:194 still has the stale comment (PB3419)."
       },
       {
@@ -2165,7 +2165,7 @@
        "coverage_correct": true,
        "refuted": false,
        "final_proposal": "covered-landed",
-       "final_notes": "PB3387 (landed 11f7b8ab0, 314d06415)",
+       "final_notes": "PB3387 (landed c168dd762, 27286b472)",
        "corrections": "Confirmed from the mailbox: the first message came at 14:40:32 PDT on 10-18, and the operator's reply at 17:18:32 says the watcher was 'unarmed 14:40-17:14'. That is 153.5 min, and the three landing requests waited 101-132 min. The idle of 0 understates it. inbox_guard.py is registered as the Stop hook (.claude/settings.json:134). This is an attended-operator stall, not one from the loop's records."
       }
      ]
@@ -2197,7 +2197,7 @@
        "safe_to_automate": false,
        "coverage_correct": false,
        "refuted": true,
-       "corrections": "The mechanism is real (review happens only inside the serial enqueue unit), but the numbers and the proposed extension are wrong. (1) The 1571-min maximum is false. done=10-16T13:41 PDT is the WIP commit f20624c78, because landing_measure.done_times (landing_measure.py:395,446-450) takes the EARLIEST DONE report for each lead. After it came review rounds 3, 4, R2-1, 6 and 7 plus a finisher (12 commits, 13ff04b16^1..^2). The attempted head f72e9cbaa was committed at 22:38Z and tried at 22:52Z, so the real wait was 14 min. (2) Recomputed over all 59 incidents: the attempted-head commit to first lane attempt totals 2797 min (max 188), not 8235 (v1/tail_gap.py). All 59 windows contain commits, most of them fixes for review findings. (3) The 188-min case (fb1-9) was a report with no HEAD (20261016-204022-resume.handoff.json), which is PB3476. (4) The median wave is 41 min; only 4 of 53 waves ran 180 min or longer. (5) scripts/prune_worktrees.py:615 holds only report-less branches as min-age. After 180 min they read DECISION (:655-657), never WAITING FOR REVIEW. (6) Skipping review for notes-only branches is unsafe. PR 155 (kb/Work+DEVLOG only) had 3 accuracy errors found in review (aebdfe46b). PR 212 had a review finding (R1-1) even though work.py check was clean (a9f63261d). PB3608 already designs the review lane that removes the genuine serial waits (pr457, pr167, 147 min each).",
+       "corrections": "The mechanism is real (review happens only inside the serial enqueue unit), but the numbers and the proposed extension are wrong. (1) The 1571-min maximum is false. done=10-16T13:41 PDT is the WIP commit cf0e7e4a4, because landing_measure.done_times (landing_measure.py:395,446-450) takes the EARLIEST DONE report for each lead. After it came review rounds 3, 4, R2-1, 6 and 7 plus a finisher (12 commits, b58f22fb8^1..^2). The attempted head 85b0ecf1e was committed at 22:38Z and tried at 22:52Z, so the real wait was 14 min. (2) Recomputed over all 59 incidents: the attempted-head commit to first lane attempt totals 2797 min (max 188), not 8235 (v1/tail_gap.py). All 59 windows contain commits, most of them fixes for review findings. (3) The 188-min case (fb1-9) was a report with no HEAD (20261016-204022-resume.handoff.json), which is PB3476. (4) The median wave is 41 min; only 4 of 53 waves ran 180 min or longer. (5) scripts/prune_worktrees.py:615 holds only report-less branches as min-age. After 180 min they read DECISION (:655-657), never WAITING FOR REVIEW. (6) Skipping review for notes-only branches is unsafe. PR 155 (kb/Work+DEVLOG only) had 3 accuracy errors found in review (c8582e445). PR 212 had a review finding (R1-1) even though work.py check was clean (0ca51e31b). PB3608 already designs the review lane that removes the genuine serial waits (pr457, pr167, 147 min each).",
        "final_proposal": "covered-open",
        "final_notes": "PB3608 (keep the reviewer, no bypass for notes-only branches); PB3476 (fb1-9); PB3609"
       },
@@ -2241,7 +2241,7 @@
        "safe_to_automate": false,
        "coverage_correct": false,
        "refuted": true,
-       "corrections": "The incidents have recorded causes, so this is not a class. PR 175 (834 min, 82% of the total): the raw record has pre_queue_reds=1. Its pull_request run 39003798946 failed at 04:46Z because PB3319/21/22 still had blocked:true after PB3173 landed. Commit c4ade3b34 fixed it at 18:07Z, it was queued at 18:39:12Z, and kb/Work/PB3275.md:38-52 (variant 2, open) documents it. This is the stale-blocked mechanism, the same as PR #493, and it overlaps the overnight STOP. PR 275 also has pre_queue_reds=1. PR 400 is recorded with bounces=1 (merge-group run 39867759611 failed a conformance shard); only its cause is missing. PR 385 was closed and reopened, then queued 19:47Z. Attempt 0af-17 read rc=None only because it was read while in flight: it ended ENQUEUED and merged as #496. Each of the 21 attempts carries its exit code.",
+       "corrections": "The incidents have recorded causes, so this is not a class. PR 175 (834 min, 82% of the total): the raw record has pre_queue_reds=1. Its pull_request run 39003798946 failed at 04:46Z because PB3319/21/22 still had blocked:true after PB3173 landed. Commit 3e20747c6 fixed it at 18:07Z, it was queued at 18:39:12Z, and kb/Work/PB3275.md:38-52 (variant 2, open) documents it. This is the stale-blocked mechanism, the same as PR #493, and it overlaps the overnight STOP. PR 275 also has pre_queue_reds=1. PR 400 is recorded with bounces=1 (merge-group run 39867759611 failed a conformance shard); only its cause is missing. PR 385 was closed and reopened, then queued 19:47Z. Attempt 0af-17 read rc=None only because it was read while in flight: it ended ENQUEUED and merged as #496. Each of the 21 attempts carries its exit code.",
        "final_proposal": "drop",
        "final_notes": "PB3275 (variant 2), PB3124"
       },
@@ -2274,7 +2274,7 @@
        "safe_to_automate": true,
        "coverage_correct": true,
        "refuted": false,
-       "corrections": "Idle is not 0. PR #31 was removed at 07:19:53Z and re-added at 07:22:02Z (2 min). PR #25 was removed at 06:30:32Z and re-added at 18:42:51Z (732 min), but that run also failed ArchOracleDrift (PB3107, landed). The fix 8774ae147 (stamp_floor, devlog.py:317,329; number order follows stamp order) landed in PR #38 at 2026-10-14T00:06:11Z, after both incidents. None of the 29 bounce causes recorded since involves the DEVLOG.",
+       "corrections": "Idle is not 0. PR #31 was removed at 07:19:53Z and re-added at 07:22:02Z (2 min). PR #25 was removed at 06:30:32Z and re-added at 18:42:51Z (732 min), but that run also failed ArchOracleDrift (PB3107, landed). The fix 3b5972184 (stamp_floor, devlog.py:317,329; number order follows stamp order) landed in PR #38 at 2026-10-14T00:06:11Z, after both incidents. None of the 29 bounce causes recorded since involves the DEVLOG.",
        "final_proposal": "covered-landed",
        "final_notes": "PB3123 (landed); PB3107 (landed)"
       }
@@ -2331,7 +2331,7 @@
        "refuted": false,
        "final_proposal": "covered-open",
        "final_notes": "PB3628 (open, PB1957 tier 1), PB3275 (open, PB1957 tier 2)",
-       "corrections": "Confirmed. The re-arm tool_use is at 2026-10-24T08:12:11.927Z (logs/20261024-003338-enqueue.jsonl). The queue watch LEFT the PR as BOUNCED (attempt 000037). No later attempt ran. The operator's merge 5a7f1b791 came at 18:12:23Z = 600.2 min (the claim of 602 used the lane's 18:14Z line). land_lane.py:736-741 skips NOT QUEUED in the re-arm loop. Ticks did run and skip it (PB3628 09:45Z). Only one incident is measured. PB3527 (landed) is misfiled here: it is a stuck check-run, a different mechanism. PB3275's own witnesses are unmeasured strandings of the same mechanism: PR #107 (10-16), PR #175 (>6 h from 10-17T04:46Z), PR #268 (removed 10-19T03:26Z). Safe: the re-arm is consumed by one launch and needs tip == re-arm head, and enqueue re-checks review (exit 11) and re-gates."
+       "corrections": "Confirmed. The re-arm tool_use is at 2026-10-24T08:12:11.927Z (logs/20261024-003338-enqueue.jsonl). The queue watch LEFT the PR as BOUNCED (attempt 000037). No later attempt ran. The operator's merge 743fd8d41 came at 18:12:23Z = 600.2 min (the claim of 602 used the lane's 18:14Z line). land_lane.py:736-741 skips NOT QUEUED in the re-arm loop. Ticks did run and skip it (PB3628 09:45Z). Only one incident is measured. PB3527 (landed) is misfiled here: it is a stuck check-run, a different mechanism. PB3275's own witnesses are unmeasured strandings of the same mechanism: PR #107 (10-16), PR #175 (>6 h from 10-17T04:46Z), PR #268 (removed 10-19T03:26Z). Safe: the re-arm is consumed by one launch and needs tip == re-arm head, and enqueue re-checks review (exit 11) and re-gates."
       },
       {
        "key": "EXIT3_DESIGNED_WAIT",
@@ -2364,7 +2364,7 @@
        "refuted": true,
        "final_proposal": "extend-note",
        "final_notes": "PB3446 (open; its fix direction is the one shared reader plus a drift test): fold PB3509, PB3118, PB3404 into it and give it a PB1957 tier; PB3267/PB3625 are PB1957 tier 2; landed: PB3380, PB3394, PB3508, PB3528",
-       "corrections": "Idle is NOT 0. PB3118: notes-PB3084-t1065 got FINDINGS at 10-12T02:37:51Z, and only the resume unit answered them, by hand (merge 97603aec7, 23:15 PDT) = ~1657 min. PB3509: wave 1144 planned 0 groups (~07:05Z); a hand-planned w1145a finisher followed, and fix-pb3504 merged 08:49:25Z = ~104 min (approximate). The 15 notes are not one mechanism: PB3126, PB3258, PB3487, PB3456 and PB3150 are others. The open members (PB3509, PB3118, PB3446, PB3404) have no tier and no running cluster, so covered-open means unplanned. Safety: one reader must also read ownership (PB3379) and min-age, or a second finisher gets planned on a branch another lane is writing."
+       "corrections": "Idle is NOT 0. PB3118: notes-PB3084-t1065 got FINDINGS at 10-12T02:37:51Z, and only the resume unit answered them, by hand (merge 8a1ff0cad, 23:15 PDT) = ~1657 min. PB3509: wave 1144 planned 0 groups (~07:05Z); a hand-planned w1145a finisher followed, and fix-pb3504 merged 08:49:25Z = ~104 min (approximate). The 15 notes are not one mechanism: PB3126, PB3258, PB3487, PB3456 and PB3150 are others. The open members (PB3509, PB3118, PB3446, PB3404) have no tier and no running cluster, so covered-open means unplanned. Safety: one reader must also read ownership (PB3379) and min-age, or a second finisher gets planned on a branch another lane is writing."
       },
       {
        "key": "REGATE_AND_GATE_DURATION",
@@ -2419,7 +2419,7 @@
        "refuted": false,
        "final_proposal": "not-mechanical",
        "final_notes": "PB1957 (open). PB3107 (landed) covers the misfiled exit-7 members.",
-       "corrections": "Both examples hold. 423-17: GATE RED (Linux) ended 01:55:11Z, re-attempt 18:16:39Z = 981.5 min. ced-6: bounced 03:40:12Z, code fix 3c4865564 at 03:59Z. The class uses 'the next head carried a code commit' as its test for not-mechanical, and that test misfiles 6 incidents (1343 of 5137 min). 104-9, 104-11, 104-3 (exit 7), db5-4 and f46-3 (745 and 70 min) were all fixed by 'merge origin/main + re-record the arch-oracle baseline': the exit-7 stale oracle (enqueue.py:88), removed by PB3107. 872-19 was a snapshot re-record. Most of the remaining idle is lane dormancy: 941 of 423-17's 982 min."
+       "corrections": "Both examples hold. 423-17: GATE RED (Linux) ended 01:55:11Z, re-attempt 18:16:39Z = 981.5 min. ced-6: bounced 03:40:12Z, code fix e5f39d1a8 at 03:59Z. The class uses 'the next head carried a code commit' as its test for not-mechanical, and that test misfiles 6 incidents (1343 of 5137 min). 104-9, 104-11, 104-3 (exit 7), db5-4 and f46-3 (745 and 70 min) were all fixed by 'merge origin/main + re-record the arch-oracle baseline': the exit-7 stale oracle (enqueue.py:88), removed by PB3107. 872-19 was a snapshot re-record. Most of the remaining idle is lane dormancy: 941 of 423-17's 982 min."
       },
       {
        "key": "QUEUE_REMOVAL_TO_FINISHER",
@@ -2474,7 +2474,7 @@
        "refuted": true,
        "final_proposal": "covered-landed",
        "final_notes": "PB3186 (landed 10-15 21:04Z), PB3465, PB3114, PB3263 landed. PB3171 is fixed in code but its note still reads open. PB3452 and PB3291 are open but are dispatch-side or under-holds.",
-       "corrections": "'Idle 0, register only' is false. The PB3186 HAND-entry over-hold held 7 finished branches for 961-1193 min each on 10-14/15 (3a0-5 log:4, 'shares BitLayout.cs with dispatched whand'; 00:23:30Z to 17:43:21Z = 1040 min). The classifier filed them under LANE_TICK_UNIT_BOUND. That fix landed after the incidents. PB3171's case fold is in plan_wave.py:745-748 (a06d6a6de). PB3263 and PB3291 are under-holds."
+       "corrections": "'Idle 0, register only' is false. The PB3186 HAND-entry over-hold held 7 finished branches for 961-1193 min each on 10-14/15 (3a0-5 log:4, 'shares BitLayout.cs with dispatched whand'; 00:23:30Z to 17:43:21Z = 1040 min). The classifier filed them under LANE_TICK_UNIT_BOUND. That fix landed after the incidents. PB3171's case fold is in plan_wave.py:745-748 (0f7efb6c9). PB3263 and PB3291 are under-holds."
       },
       {
        "key": "LATE_RED_GATE_COVERAGE",

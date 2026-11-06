@@ -64,7 +64,7 @@ two Claude config directories it names (`C:\Users\brent\.claude` and `.claude-ac
 1. `python extract.py` walks the Workflow transcript directories under the Claude config directory and writes
    `all_agents.json` (every agent: label, model per message, counted tokens, result).
 2. `git log origin/main --format='%H|%cI|%P|%s' > gitlog.txt` and `git rev-list origin/main > mainshas.txt` (this record:
-   origin/main deae52c90, 8,539 commits).
+   origin/main 7c779b70e, 8,539 commits).
 3. `python analyze.py` joins them with `kb/Work` and writes `rows.json` and `results.csv`; `stats.py`, `stats2.py` and
    `stats3.py` print the tables from `rows.json`.
 

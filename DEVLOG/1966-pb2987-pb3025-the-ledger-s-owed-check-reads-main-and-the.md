@@ -23,7 +23,7 @@ The landing checks (`enqueue.py checks`, exit 6, which `push-main.sh` runs too) 
 `landing_devlog.py` and `prepend-devlog.py` are deleted.
 
 The migration splits the committed `DEVLOG.md` (mixed CRLF and LF line ends) into a README and one LF entry file per
-header; on main 01f392184 that was 1,982 files through Entry 1962, and rendering them reproduces the LF-normalized
+header; on main 9fb0ad7b8 that was 1,982 files through Entry 1962, and rendering them reproduces the LF-normalized
 monolith byte for byte (sha256 72a60802…). The landing re-runs it on main's `DEVLOG.md` and deletes the script.
 
 The branch review found two holes, both fixed before landing. `check` counted a deleted entry only against the base's
@@ -102,7 +102,7 @@ step and are deleted by PB3024's remaining step; the landing measurement with PB
 **Train 1067 (the lander's paragraph).** One cluster, A2, carrying A through it (operator steer: A2 alone through the
 merge queue). `train_apply.py` stopped before applying anything: `git apply -3` could not apply DEVLOG.md and three
 files A2 deletes (`lander-brief.md`, `lander-train-brief.md`, `units/land.md`) that train 1066 had modified, so the same
-base..head change came in by `git merge --squash` onto main 424e699ec, fourteen conflicts resolved by hand, every path
+base..head change came in by `git merge --squash` onto main 9c80e9569, fourteen conflicts resolved by hand, every path
 only one side touched verified byte-identical to its side (silent-loss check). DEVLOG.md: main's file (through Entry
 1965) taken and the branch's `devlog_migrate.py` re-run, 1,985 entry files rendering IDENTICAL to the LF-normalized
 monolith (sha256 e6248fd4...), README range 001-1965, both pending entries kept; the script is deleted in this landing

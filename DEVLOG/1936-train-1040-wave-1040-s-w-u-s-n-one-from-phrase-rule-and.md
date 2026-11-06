@@ -44,7 +44,7 @@ doubled blank line in `RuntimeApi.cs`.
 
 **N — notes (PB2665, PB2672 filed; PB2609, PB2426 records).** PB2665: the resume/meter livelock behind a lander's kept
 lease. PB2672: a landed train's members have no LANDED path in `prune_worktrees.py`. PB2609's resolution time, and the
-PB2426 ledger trend points through c799a62b1.
+PB2426 ledger trend points through 6bf60da86.
 
 **The train.** Four clusters, none dropped or ejected; batched gating (every implementer gated leg 1 only). Whole-population
 gate runs: 2. The first was RED on the one DeepNesting case (attributed to S in about 3 minutes by three per-cluster
@@ -61,5 +61,5 @@ its two diagnostics move down two lines because W edited its source); CSHARP 402
 take the category-default seed, the `unbound` factory argument of `CobolArgAdapt.Text`/`TextValue`, or the
 `ICobolProgram.Activate` block (S); 159 gain the method prologue `ActivationStack.RequireForMethod` or
 `EC-PROGRAM-RESOURCES` in a CALL's catch filter under EC checking (U); 54 both (S and U); 3 are W's edited 85 sources.
-Re-recorded as `arch-oracle/e2c463c4bbbe`.
+Re-recorded as `arch-oracle/f81a122d29d2`.
 

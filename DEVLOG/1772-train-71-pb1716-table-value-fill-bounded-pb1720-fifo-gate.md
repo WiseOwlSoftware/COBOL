@@ -1,7 +1,7 @@
 ## Entry 1772 — 2026-09-28 22:52 PDT — Train 71: PB1716 (table VALUE fill bounded), PB1720 (FIFO gate cap, half), PB1718 (one population check)
 
 Train 71 carries three clusters of wave 71, the first implementation wave of the PB1708 "order, don't skip" pivot.
-All three cut from `bf2e5b43f`, and main had not moved, so each patch applied with no conflict except the generated
+All three cut from `217bda2f0`, and main had not moved, so each patch applied with no conflict except the generated
 `docs/DRIFT_RULES.md`, which was regenerated (229 drift tests), never hand-merged.
 
 **B: PB1716 (pivot M7), a table VALUE fill is now bounded by the phrase.** `TableValueOdometer.Resolve` filled a

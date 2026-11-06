@@ -1,7 +1,7 @@
 ## Entry 2519 — 2026-10-24 21:44 PDT — PB3638 + PB3446 + PB3641 + PB3650: the loop's fix-cycle bar in code (tier-ordered chains, one link per wave, a 60-minute hand-off, progress lines, per-stage landing measure), one report-coverage reader, the group cap's honest measurement
 
 Wave 20261106 group A (PB1957 campaign), finishing wave 20261031 A, which the operator's 16:39 fleet stop split.
-The predecessor's one commit (c90a3f3a0, PB3446 + PB3650) was cherry-picked onto main 302648e01; its conflicts with
+The predecessor's one commit (c90a3f3a0, PB3446 + PB3650) was cherry-picked onto main f3e97f7e0; its conflicts with
 PB3653's `locked` and PB3652's survey rows were resolved (the self-test's branch count 66 -> 67).
 
 **PB3446** (planner and survey disagreed on a resumed FINDINGS branch). For a FINDINGS-stamped DONE report followed by
@@ -47,7 +47,7 @@ Self-review: one background starter instead of three copies; `_spread` replaces 
 `landing_measure._when` became `iso_time` (progress.py reads it); a stage stamp that would break the record's order is
 left null so `validate` never refuses the whole record at enqueue.
 
-Gate (run 000002-20261025T042734Z, on 11f9c688e): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN —
+Gate (run 000002-20261025T042734Z, on 1206e9ebb): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN —
 … Conformance 8,158/18,508 · Unit 36,898/38,220 · Characterization 36/36 cases ran (skipped 0) in 1 of 2 leg(s) · Linux
 half (WSL clone of HEAD) GREEN …`. The first gate (000001) was RED at the LINE ENDINGS audit (two self-test writes in
 turns_by_group_size.py stated no `newline=`), fixed before any leg ran.

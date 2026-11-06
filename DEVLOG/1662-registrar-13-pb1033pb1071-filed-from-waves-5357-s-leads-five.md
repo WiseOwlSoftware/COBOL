@@ -3,7 +3,7 @@
 **What.** The leads of waves 53–57 and trains 51–57 (`leads-w53-w57.md`, about 110 lines, many duplicated across a
 wave's lander and its implementers, plus the train-57 lander report) became **39 new notes, PB1033–PB1071**, one per
 mechanism, plus **5 extensions** (PB310, PB674, PB244, PB165, PB651). Every probe was re-run on this worktree's own
-Debug build of main `c54434a8d` at BelowNormal priority: about 60 compile-and-run probes, 50 of them on programs written
+Debug build of main `5b42b5156` at BelowNormal priority: about 60 compile-and-run probes, 50 of them on programs written
 fresh. Every citation went through `cite.py --check`: 47 checks, all OK after one re-addressing (§8.8.4.2.2's OR-EQUAL
 lines carry `<u>` markup, so the figure note is the checkable text). Wave 58's 24 in-flight notes were not touched;
 PB1041 names PB999, which wave 58 is implementing.

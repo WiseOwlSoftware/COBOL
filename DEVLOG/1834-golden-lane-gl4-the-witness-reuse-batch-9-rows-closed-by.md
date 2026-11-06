@@ -7,7 +7,7 @@ reached the tree passed: 10 corpus programs (7 positive, 3 negative), 6 Conforma
 cases, all named in the lander gate's trx.
 
 **Pipeline.** Writers drafted, a refuter attacked each candidate close, a fixer applied the refuter's corrections and
-a validator compiled and ran every draft on a compiler pinned at `b8e076a24`. The refuter overturned **8 of the 9
+a validator compiled and ran every draft on a compiler pinned at `72d55e7f8`. The refuter overturned **8 of the 9
 candidate closes**: seven `does-not-exercise-rule` and one `expected-value`. Examples: the three live-clock
 LEAP-SECOND goldens cannot fail on a seconds value of 60, so they were taken out of every `test-ref` and kept as layout
 witnesses only. The writer's "WHEN-COMPILED cannot be pinned" was false, because `IntrinsicBinder.CompileClock` is

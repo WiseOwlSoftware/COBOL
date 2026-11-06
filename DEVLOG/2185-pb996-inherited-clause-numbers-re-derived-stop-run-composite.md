@@ -7,7 +7,7 @@ clause. Each citation was re-derived with `cite.py --check` against the sentence
 **Re-probe.** Five of the note's sites were already fixed on main and are recorded as such: SortEmitter's GIVING
 space-fill cite (w1003b), `SortBinder.TableSortKeyUnsupported` (w1004c), the `sortCollatingPhrase` grammar comment
 (PB1139), the retired CBL3617/CBL3618 descriptors (PB756) and StatementBinder's orphaned STOP status-phrase comment
-(PB1178). The rest still read wrong on base `ea3d015b9`.
+(PB1178). The rest still read wrong on base `aa486e120`.
 
 **What changed.** STOP RUN cited §14.9.43, which is the STRING statement, at five sites (the note counted four:
 `ProgramEmitter.EmitEntryWrapper` was the fifth) and in the pipeline design doc; all now cite §14.9.42.4 GR1.

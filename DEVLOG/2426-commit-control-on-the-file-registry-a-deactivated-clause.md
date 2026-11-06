@@ -3,7 +3,7 @@
 ### Commit control on the file registry: a deactivated clause releases its files (PB3541)
 
 **PB3541 (wave 1157, group A).** A file connector put under commit control by an APPLY COMMIT clause stayed under it after
-the clause was deactivated. Re-probed on 07bfc3606: a main program whose clause names only WS-X calls a subprogram whose
+the clause was deactivated. Re-probed on dea60c6cd: a main program whose clause names only WS-X calls a subprogram whose
 clause names the EXTERNAL RELATIVE file RELF, CANCELs it and COMMITs, so §14.9.7.4 GR3 (*"The COMMIT statement also
 deactivates any APPLY COMMIT clauses in exited initial programs and canceled runtime elements"*) deactivates the
 subprogram's clause; a third program, with no clause, then writes record 1 of RELF, and the main program's ROLLBACK undid
@@ -36,7 +36,7 @@ it), and it records the one primitive the journal design assumes and the runtime
 `IHostMedium` seam to own.
 
 **PB3340, the journal and its medium (wave 20261024, group A).** The predecessor's five commits were cherry-picked onto
-5229bde65 and re-gated GREEN (run 000001). The sequential journal of DESIGN-runtime-library.md 2.2.2 is now code, written
+eb4d9b010 and re-gated GREEN (run 000001). The sequential journal of DESIGN-runtime-library.md 2.2.2 is now code, written
 from the executable model (`scripts/models/sequential_journal_model.py`) operation for operation:
 `IO/Sharing/SequentialJournal.cs` holds the three transient files, the id drawing, the record format (a 24-byte header with
 its CRC-32C, then `L`, `R`, `K` and `D` records each CRC-framed, a torn tail ending the records), the write-ahead rules R1 to
@@ -101,11 +101,11 @@ one-argument `ImplementorDefaultSharing` was changed at every caller (no overloa
 question)" sentence in `pb143_shared_visibility`, PB322's open observation now answered here. Silent failures: the status mapping of a host refusal is the only place
 a new value could hide, and it is pinned both ways.
 
-Gate: first run 000001-20261023T223458Z RED on two unit rows of my own GR5 test (a 5-character payload in an 8-byte record), fixed; run 000002-20261023T223918Z: `LEG 1 ONLY (batched gating, PB2515): GREEN` at aedca289b, the golden `SuiteTest_IsNoWorseThanItsVerdictAllows(edition: "85", id: "pb670_cobol85_no_sharing_facility")` Passed; Linux (unit, conformance, self-tests): `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD aedca289b) ===`.
+Gate: first run 000001-20261023T223458Z RED on two unit rows of my own GR5 test (a 5-character payload in an 8-byte record), fixed; run 000002-20261023T223918Z: `LEG 1 ONLY (batched gating, PB2515): GREEN` at 8f793dc2e, the golden `SuiteTest_IsNoWorseThanItsVerdictAllows(edition: "85", id: "pb670_cobol85_no_sharing_facility")` Passed; Linux (unit, conformance, self-tests): `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 8f793dc2e) ===`.
 
-Review round 1 (R1-1): gate run 000001-20261023T230921Z RED on `StoreCoherenceTests` (it pins which file asks `AdmitsAnotherRunUnit`; the question moved to `FileConnector.OtherConnectorsMayShare`), fixed in 2c49a574e; run `TestResults/build-local/000002-20261023T231857Z`: `LEG 1 ONLY (batched gating, PB2515): GREEN` (Unit 35,166/35,807 incl. the 5 new `SharingFacilityEditionTests` rows Passed, Conformance 10,436/18,327); `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 2c49a574e) ===` (the /dev/full arm of the refusal test ran there); semgrep verify PASS.
+Review round 1 (R1-1): gate run 000001-20261023T230921Z RED on `StoreCoherenceTests` (it pins which file asks `AdmitsAnotherRunUnit`; the question moved to `FileConnector.OtherConnectorsMayShare`), fixed in b68a58ccb; run `TestResults/build-local/000002-20261023T231857Z`: `LEG 1 ONLY (batched gating, PB2515): GREEN` (Unit 35,166/35,807 incl. the 5 new `SharingFacilityEditionTests` rows Passed, Conformance 10,436/18,327); `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD b68a58ccb) ===` (the /dev/full arm of the refusal test ran there); semgrep verify PASS.
 
 **Review round 2 (R2-1).** Narrowing the 85 reader to the release generation (R1-1) made a sibling OPEN OUTPUT's truncation invisible: `OpenCore`'s OUTPUT arm announced nothing, so an open INPUT reader kept serving read-ahead records the file no longer held (the reviewer's tr.cob: 50 records, OPEN INPUT + READ, OPEN OUTPUT on a second SELECT of the same path, READ answered 00 OLD-0002 where the file is empty; at the round-1 head the per-frame re-anchor answered 10). Root fix: the OUTPUT arm calls `NoteRelease()` (a truncation is a writer of the medium; the old comment "a truncating sibling cannot arise" is true only from 2002, where Table 19 refuses it). Pinned by `AtCobol85_ASiblingOutputThatTruncatesTheFileIsHeardByAnOpenReader` (fails without the call: the READ answers 00) and, as the sibling-arm sweep, `AtCobol85_ASiblingOutputThatTruncatesAKeyedStoreIsHeardByAnOpenReader` (RELATIVE, INDEXED: already correct, the store is read per statement). Other writers of the medium swept: EXTEND appends (reader finds them through the release generation), REWRITE (NoteRelease), the delete/replace of a keyed store (per-statement coherence). Citation checked: 14.9.30.4 21) c) "existing record in the physical file".
 
-Review round 2 gate: run `TestResults/build-local/000001-20261023T234903Z`: `LEG 1 ONLY (batched gating, PB2515): GREEN` (Unit 35,180/35,811 incl. the 4 new truncation rows Passed, Conformance 10,461/18,327); `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD ec063deb2) ===`; semgrep verify PASS.
+Review round 2 gate: run `TestResults/build-local/000001-20261023T234903Z`: `LEG 1 ONLY (batched gating, PB2515): GREEN` (Unit 35,180/35,811 incl. the 4 new truncation rows Passed, Conformance 10,461/18,327); `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 47bba6f57) ===`; semgrep verify PASS.
 

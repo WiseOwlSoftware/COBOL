@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// two: <c>PicInfo.DefaultInitializer</c> (the native-field arm) and <c>GroupImageCodec</c>'s fall-through (the
 /// Tier-B image arm) each hardcoded <c>' '</c> / <c>'0'</c> / <c>0L</c> and never consulted the OPTIONS model at
 /// all. Worse, the landed arm's fill decoder was PRIVATE to <c>PtrEmitter</c>, so the two dead arms could not
-/// have reused it even if someone had tried. Measured on 2acbd842: with
+/// have reused it even if someone had tried. Measured on 41bf3492: with
 /// <c>OPTIONS. INITIALIZE ALL TO X"5A".</c> a VALUE-less <c>PIC X(4)</c> displayed four SPACES.
 /// After this, every storage form added later inherits the background by construction, because there is exactly
 /// one choke point to route through — and a drift test asserts the two arms agree.</para>

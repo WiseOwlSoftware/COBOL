@@ -24,7 +24,7 @@ a signed literal and §8.3.3.3.2 2) makes a literal that uses a sign a signed on
 `signedLiteral = t[0] is '-' or '+'`. One funnel (`ScreenValueLiteral`) asks the rule for the item, table, level-88 and
 report VALUE, so there is no second arm. INITIALIZE REPLACING and MOVE convert and are not this rule.
 
-**PB3555** was fixed on main by the PB3338 branch (d79d98771: SR9 walks `CommitControlledFiles`). Re-probed on this
+**PB3555** was fixed on main by the PB3338 branch (3bc949f75: SR9 walks `CommitControlledFiles`). Re-probed on this
 build: under `--permissive` a declined SEQUENTIAL operand leaves the status item at 10 after ROLLBACK. Closed with that
 test as its witness; no code change.
 

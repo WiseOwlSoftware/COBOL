@@ -200,8 +200,8 @@ jobs:
           # would pay for the matrix TWICE per landing — the exact waste the owner flagged on 2026-08-08 over a single
           # spent run. A workflow run is keyed by its head sha, so a green run on this sha is a verdict on this exact
           # tree whatever ref earned it. Any failure of the lookup leaves verified=false and the matrix runs.
-          # Measured on the first three queued landings (kb/Work PB3024 item 3): PR 7 → 79d760ab6, PR 8 → 424e699ec,
-          # PR 9 → 9d18aa9ab each found its one `merge_group` run green and skipped the matrix on main's `push` run.
+          # Measured on the first three queued landings (kb/Work PB3024 item 3): PR 7 → a2c6c495e, PR 8 → 9c80e9569,
+          # PR 9 → d3ed2f05e each found its one `merge_group` run green and skipped the matrix on main's `push` run.
           # ⛔ ONLY A RUN THAT COULD HAVE RUN THE MATRIX COUNTS (kb/Work PB3024): a `pull_request` run is the cheap jobs
           # only, and its green `ci-gate` is attached to the PR's head commit — a commit main itself may later point at — so a
           # check-run lookup would read it as a verdict on the matrix. A successful run of THIS workflow (whose

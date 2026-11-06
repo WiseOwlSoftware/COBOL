@@ -57,7 +57,7 @@ wave-70 U2's branch: it merged U2's committed work onto train 72 rather than red
 - **Rows.** Four batches: 3 rows closed plus witness rows. All five notes landed.
 - **Open question.** The 18-digit image is a documented determination; the GnuCOBOL survey of its width is PB1746.
 
-**The train.** The three branches (base 86cdf4456, content-equal to main's train-72 head cc538bc0b) were applied as
+**The train.** The three branches (base 86cdf4456, content-equal to main's train-72 head ec6c0a630) were applied as
 patches in manifest order.
 - **Merge.** The only conflicts were whole list elements in the 2002 and negative manifests, and both sides were
   kept (counts 565 and 1772, each the sum of the clusters' additions). The inventory was never merged as JSON: the

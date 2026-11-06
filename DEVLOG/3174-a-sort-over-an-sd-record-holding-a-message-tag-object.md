@@ -35,7 +35,7 @@ inheriting nothing, a failing cascade merge closing every run. docs/CONFORMANCE.
 the USING/GIVING deferral.
 
 **Gate.** The first gate was red before any test ran (an audit: DOC-A.1-210 written as a token in CONFORMANCE.md prose), the
-second on two drift tests (the ABI pin and the documented-facts file, both fixed above). The third, on 85a576e55:
+second on two drift tests (the ABI pin and the documented-facts file, both fixed above). The third, on 4b42c328b:
 `=== BUILD-LOCAL GATE: GREEN — Conformance 22,193/22,193 · Unit 40,209/40,209 · Characterization 37/37` (run
 000003-20261106T005059Z); both new goldens ran in its Conformance.trx. `semgrep/verify.py` reports DiagnosticCatalog.cs
 unreadable, a file this change does not touch.

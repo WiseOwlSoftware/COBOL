@@ -1,6 +1,6 @@
 ## Entry 738 — 2026-07-10 00:20 PDT — PHASE-03 Step 14g.4 review: class-scope env-clause count is now the spec-correct 1× (surfaced a latent OO-env bind bug)
 
-An adversarial find→verify review of the 14g.4 commit (`81dd6c37`, one subagent, H1–H5) found **1 confirmed COUNT
+An adversarial find→verify review of the 14g.4 commit (`37265743`, one subagent, H1–H5) found **1 confirmed COUNT
 divergence** — but investigation shows the parse-arm is MORE correct than the code it replaced, so this is a
 disposition + regression-pin, not a parse-arm fix. (H1 shared-rule, H2 PD RETURNING/RAISING scope partition [incl.
 nested-program included / interface-method excluded], H4 where-strings, H5 CheckOnly parity — all cleanly refuted.)

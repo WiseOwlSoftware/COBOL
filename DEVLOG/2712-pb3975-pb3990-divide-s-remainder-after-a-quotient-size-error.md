@@ -1,6 +1,6 @@
 ## Entry 2712 — 2026-10-28 18:17 PDT — PB3975 + PB3990: DIVIDE's remainder after a quotient size error follows GnuCOBOL, and ROUNDED MODE IS PROHIBITED never stores a value it cut
 
-Wave 20261740 group A, the arithmetic emitter's two notes, each re-probed on main 1da5e0d6b against GnuCOBOL 3.2.
+Wave 20261740 group A, the arithmetic emitter's two notes, each re-probed on main fa305bc4f against GnuCOBOL 3.2.
 
 **PB3975 (DIVIDE ... GIVING q REMAINDER r).** The filed case (`DIVIDE 1000 BY 4 GIVING A REMAINDER R`, A `PIC 99`) is not
 a defect: main and GnuCOBOL both print `50 0`. The cases that differed: with no SIZE ERROR phrase and checking off,
@@ -38,7 +38,7 @@ keeps 07) and 0.1 into a COMP-1 (it stores it), both ISO's. `SizeErrorDispositio
 Inventory: two `record_verdicts` batches (witnesses, notes, three `DivideOrThrow` code-locations retired), no verdict
 moved, GAP 31 -> 31. The fleet stop (STOP-loop) arrived before the gate.
 
-Wave 20261744 group B finished the branch: the two commits were cherry-picked cleanly onto main 9920cfec5 and the re-probe
+Wave 20261744 group B finished the branch: the two commits were cherry-picked cleanly onto main 9f1a834e2 and the re-probe
 matched. The first gate was RED on one case, `RuntimeApiGuardTests.Bare_runtime_accesses_do_not_increase`: the rule-7 catch
 arm named `CobolSizeError.IsProhibitedInexact` in `ArithmeticEmitter`, a bare runtime access the P7 ratchet forbids in a
 CodeGen file. The arm now renders through `RuntimeApi.ProhibitedInexactKeepCatch`, the facade's one anchor for it. The same

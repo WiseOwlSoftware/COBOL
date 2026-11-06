@@ -1,6 +1,6 @@
 # adj-w2-a1-s3 — Annex A.1 DOC rows, wave 2 (18 rows)
 
-- Pinned sha: `0caa7d54004e81c4e34529d95764cdc1ccec1779`
+- Pinned sha: `0c24de7d9f8579093e6016c0fe4973b8ec115b3e`
 - Adjudication phase: 2026-09-24 22:18:09 UTC → 22:32:47 UTC (~15 min wall clock, 18 rows)
 - Refute phase: ~22:33 UTC → 22:37 UTC (~4 min, 3 CONFORMS rows attacked). **Result: 3 of 3 upheld, 0 overturns.** One correction without a verdict change: DOC-A.1-194's test-ref `conformance:2023/pb164_index_group_image` never subscripts with the index (it pins item 211's image), so final.jsonl uses `conformance:85/pb215_index_windows` (E(IX + 1) -> occurrence 4). DOC-A.1-201 residual: the after-text-manipulation ordering is witnessed only by refute probes r201a/r201b, not by a committed golden.
 - Record shape: all 18 lines pass `scripts/spec/record_verdicts.py --dry-run` (SHAPE-ADDENDUM rules)

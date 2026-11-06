@@ -65,7 +65,7 @@ def sha_field(word: str) -> tuple[re.Pattern[str], re.Pattern[str]]:
     """(the FIELD, the fallback) for a header's `word <sha>` field, read like BRANCH_FIELD: first at a field position
     (a line's start, or after the template's ` · ` or a ` | ` separator: `HEAD: x`, `**head:** `x``, `· head x`), and
     only when no field holds it, the first `word <sha>` anywhere in the header (`Base x  Head y`), any case. Prose
-    before the field must not win: w1080f's header says "(reviewed head db7e19186 merged in) · head 5df3c56a3", and the
+    before the field must not win: w1080f's header says "(reviewed head 1e7b95d95 merged in) · head 182b8124d", and the
     unanchored first match read the predecessor's head as the report's (kb/Work PB3181; measured over the 360 reports
     on disk 2026-10-15: this rule changes that one and reads 17 the old one missed, 12 name no head)."""
     return (re.compile(r"(?im)(?:^|[·|])[ \t]*\**" + word + r"\b:?\**[ \t]*`?([0-9a-f]{7,40})\b"),

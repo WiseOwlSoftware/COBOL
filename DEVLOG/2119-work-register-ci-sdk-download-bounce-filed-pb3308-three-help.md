@@ -7,7 +7,7 @@ no cache), bounced PR #139 out of the queue and PR #149 behind it. The note carr
 in `.github/workflows/build-and-test.yml`, the fix shape, and the PB1957 row 8 obligation.
 
 PB1546, PB2615, PB2915 (merged): one mechanism, argparse `--help` with non-ASCII text crashing on a cp1252 stdout
-because the reconfigure runs after `parse_args()` or never. Verified on main 0c53cc440: `work.py` and
+because the reconfigure runs after `parse_args()` or never. Verified on main a19ba5c23: `work.py` and
 `filter_population.py` still crash, `gen_ledger.py` does not; 107 scripts call `reconfigure`, 11 argparse scripts never
 do. PB1546 is the one open note (shared helper plus drift test); PB2615 and PB2915 are retired. Two script comments that
 named PB2615 now name PB1546.

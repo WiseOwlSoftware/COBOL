@@ -255,7 +255,7 @@ made with the owner's credentials. It is the terminal job: `if: always()`, `need
 only when each of them is `success` or `skipped` (a whitelist, so `cancelled` and any future result value fail).
 It is the only name in the file a protection rule can require — the conformance jobs are matrices whose check
 names carry the shard AND its filter text (`Greenfield conformance (Linux, sharded) (corpus-nist, FullyQualified…`,
-measured on `5bf5a7f1`), so any shard edit renames the context, and every matrix job is skipped on a docs-only
+measured on `ed31486d`), so any shard edit renames the context, and every matrix job is skipped on a docs-only
 push, which a required check reads as "never reported".
 
 **Whether the matrix runs is the inert lane's decision (§3.18).** `changes` decides it by calling `scripts/inert_lane.py classify` over `base .. github.sha` (§3.18: the one
@@ -1310,7 +1310,7 @@ assembly's code, its goldens, the build properties). It is built only if the med
 newest 20 non-runtime landings is under 10 % (`python scripts/arch/emit_fraction.py`, which captures each landing and its
 first parent through the architecture oracle, `scripts/arch/capture_oracle.py`: one capture mechanism).
 
-**What was measured on 2026-11-01** (the oracle's capture of each of the 20 newest non-runtime landings of `8fd4ad387`,
+**What was measured on 2026-11-01** (the oracle's capture of each of the 20 newest non-runtime landings of `c4a831833`,
 2026-10-31 to 2026-11-01, and of its first parent: a population of about 15,700 cases of which about 4,700 emit a
 program; evidence in kb/Work PB4333): the
 median fraction of changed programs is 0.00 % (0.03 % counting the programs a landing adds, which have no entry in main's

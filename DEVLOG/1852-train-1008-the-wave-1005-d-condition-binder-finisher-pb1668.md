@@ -1,6 +1,6 @@
 ## Entry 1852 — 2026-10-03 13:44 PDT — Train 1008: the wave 1005 D condition-binder finisher (PB1668, PB1412, PB1464, PB1034, PB1391) and PB1946
 
-Two clusters, landed as two commits plus this entry. Both implementer branches were cut at `b6993f400`, which was still
+Two clusters, landed as two commits plus this entry. Both implementer branches were cut at `7f74f0677`, which was still
 origin/main when the lander applied them, so neither needed a rebase.
 
 **Cluster A — wave 1005 group D's condition binder, finished (PB1668, PB1412 half, PB1464, PB1034, PB1391).** Train
@@ -37,7 +37,7 @@ lanes) and four negatives. No codes were used (2727–2729 were returned) and no
 **The train.** Lander gate (whole population, one leg): `=== BUILD-LOCAL GATE: GREEN — Conformance 9,980/9,980 · Unit
 30,405/30,405 · Characterization 35/35 cases ran (skipped 0) in 1 of 1 leg(s) · lander mode (no plan (lander); run
 20261003T203949Z-2e59d5) ===`. The legacy integration assembly ran 503 passed and 1 skipped. Semgrep counts were
-unchanged (BigInteger 46, decimal 2, raw diagnostic code 288). The Linux gate under WSL was GREEN on `d8b703dd5` (unit 30,436, characterization 35, conformance 9,980). Its first
+unchanged (BigInteger 46, decimal 2, raw diagnostic code 288). The Linux gate under WSL was GREEN on `7886dbde6` (unit 30,436, characterization 35, conformance 9,980). Its first
 run, on the checkpoint head, passed all three legs but went RED on its repository-written check, because the lander
 reworded the checkpoint commits during the run. The trees were identical, and the re-run on the final head was clean.
 The CI audits all

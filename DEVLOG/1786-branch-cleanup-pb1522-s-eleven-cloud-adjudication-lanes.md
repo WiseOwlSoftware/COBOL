@@ -9,7 +9,7 @@ The owner noticed 24 open branches on GitHub and asked whether all were in use. 
 - **`claude/adj-registrar-1`, `adj-doc-rows-1`, `golden-lane-1` and `phase-14`:** already merged into main.
 
 **Archived, then to be deleted:** the eleven raw cloud-adjudication lanes of PB1522.
-- They held the only copy of the 208 original verdicts, pinned at `0caa7d5`, of which 71 were NEEDS-OWNER-DECISION.
+- They held the only copy of the 208 original verdicts, pinned at `0c24de7`, of which 71 were NEEDS-OWNER-DECISION.
 - Main's inventory has since re-adjudicated most of those rows, so its verdicts differ, but the originals are
   evidence.
 - Each branch added only its own `adjudication/<lane>/` directory, and none existed on main. They are copied

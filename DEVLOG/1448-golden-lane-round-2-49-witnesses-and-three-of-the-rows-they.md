@@ -19,7 +19,7 @@ landing is a doc comment.
 
 **Two drafts were held out of the tree** because the validator classified them `suspected-compiler-defect`, and a
 suspected defect never becomes a golden edit. Both were **re-measured here against this worktree's own built
-`cobol.exe`** rather than inherited from the pinned 5fe593a0 validator, and both reproduce.
+`cobol.exe`** rather than inherited from the pinned 1d6cc442 validator, and both reproduce.
 
 ## What the drafts collided with, and how it was resolved
 

@@ -1,7 +1,7 @@
 ## Entry 1924 — 2026-10-07 17:36 PDT — Train 1034 (wave 1034: C, E, D, A, F): BASECONVERT bases, character positions, property receivers per receiver, variable-length and slot-carried group areas, pointer member images
 
 Five clusters of wave 1034 in one landing, in the manifest's order C, E, D, A, F
-(`E:\COBOL-coord\scratch\train1034-manifest.json`), one commit each on origin/main `4dc41d0e3`. Every cluster applied
+(`E:\COBOL-coord\scratch\train1034-manifest.json`), one commit each on origin/main `3e9210928`. Every cluster applied
 cleanly onto the train; no inventory row moved, no diagnostic code was claimed, and none was dropped.
 
 **C — PB2079 + PB1931.** ISO §15.12.3 rule 1 says two things on two axes: argument-1's USAGE (display or national) and
@@ -92,7 +92,7 @@ class error that refuses it; the arm now reports through `ReportClass`, and `Int
 both fixtures refused under `--permissive` with no coercion text (and the alphanumeric control still warning). The composition
 also cleared one of F's leads: `MOVE R TO R2` between two BASED typed records with a pointer leaf (Tier-C abort when F
 reported it) prints the right values on the train, by A's leaf-vector MOVE. **Oracle** (`compare_oracle.py`, L11):
-DIFFERENT, 152 of 7,453 vs `90babefc36a7`, attributed by capturing at each cluster checkpoint. C+E+D: 17, all goldens ADDED or
+DIFFERENT, 152 of 7,453 vs `53bc1ceae4f1`, attributed by capturing at each cluster checkpoint. C+E+D: 17, all goldens ADDED or
 REMOVED plus two diagnostic streams of C's (`pb58-concat-pointer` loses the `--permissive` offer for a pointer;
 `pb59-baseconvert-noninteger-base` is now the schema's COBOLNET1627); E and D change no existing program's C#. A: 94 — 67
 only the two new `CobolArgAdapt.Area` arguments (`, null, null` for every non-variable-length formal, neutral), 24 programs

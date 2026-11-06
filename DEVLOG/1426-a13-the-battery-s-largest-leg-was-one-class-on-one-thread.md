@@ -103,7 +103,7 @@ appended a SECOND `---` rule before §4 of `DESIGN-test-build-ci.md`; and plan �
 the note stays `half`. Plan §0's Gates bullet and §3's tiered-testing bullet carry the new durations, checked
 against the after-profile rather than the report.
 
-**Gate (this worktree, rebased onto `5fe593a0`; the implementer's tree was cut from `2acbd842` and three commits
+**Gate (this worktree, rebased onto `1d6cc442`; the implementer's tree was cut from `41bf3492` and three commits
 had landed since).** Solution build clean, 0 warnings. Conformance filtered
 `~TestPartitionCoverage|~VersionMatrixTests_P0|~NistDifferentialTests_P0|~CorpusRunnerTests_P0` →
 **573/573 passed**. Unit filtered `~TestPartitionCoverage|~StorageForm|~SpecTraceabilityInventoryDriftTests` →

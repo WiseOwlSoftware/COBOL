@@ -174,7 +174,7 @@ public sealed class ArithmeticOperandClassTests
     /// <summary>The index DATA item, the arm the private category switch never had (kb/Work PB170). §8.5.2.1
     /// Table 2 puts it in class INDEX and §13.18.60.3 SR10's closed reference list — "a SEARCH or SET statement,
     /// a relation condition, an intrinsic function argument" — has no arithmetic-operand and no subscript entry,
-    /// so BOTH shapes below are illegal. Measured on 9a89fbd1: both compiled clean under STRICT, and
+    /// so BOTH shapes below are illegal. Measured on 02c72682: both compiled clean under STRICT, and
     /// <c>COMPUTE N = IDX + 1</c> returned the occurrence number. The receiving-side twin
     /// <c>ScreenResultant</c> already rejected an index item by name — two arms of one rule, one written.</summary>
     [Theory]

@@ -8,7 +8,7 @@ edition-delta coverage report, I4 negative-corpus edition-boundary coverage gate
 correctly anchored, zero architecture impact — and folded into the roadmap §7 with mechanism refinements
 (I2 generate-not-commit; I4 an [Ignore] stub is skipped→green so the gate must be a coverage assertion) + a
 reconciliation the review surfaced (the backend seam-proof is PHASE-16 M0 per DESIGN-backend-abstraction.md, NOT the
-roadmap-§3 "PHASE-07 Step 13" — P07 closed at Step 12; §3 corrected). Commits `ed491430`/`97254b2e`.
+roadmap-§3 "PHASE-07 Step 13" — P07 closed at Step 12; §3 corrected). Commits `7bfff8c8`/`9d72d2b5`.
 
 (b) EC-BOUND-OVERFLOW (§8.5.1.9.6 GR1, nonfatal): a dynamic-capacity table's IMPLICIT growth first crossing its
 expected capacity (TO) now sets EC-BOUND-OVERFLOW under CHECKING ON. GR1's "already exceeded before an implicit

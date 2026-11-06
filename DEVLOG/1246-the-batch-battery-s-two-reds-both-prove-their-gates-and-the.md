@@ -14,5 +14,5 @@ registry drift green.
 The differential flip was listings:205 drawing R39's COBOLNET1641 on REPLACE LEADING "X" BY SPACES —
 verified against the case source: the GCOS/ACU literal-REPLACE vendor form R36 adjudicated, never
 ISO-legal, now honestly rejected at the statement. Baseline regenerated, exactly 1 row; fresh
-differential 0 flips over 1323 cases. Battery reference advanced to 0cfda3fa.
+differential 0 flips over 1323 cases. Battery reference advanced to d7556507.
 

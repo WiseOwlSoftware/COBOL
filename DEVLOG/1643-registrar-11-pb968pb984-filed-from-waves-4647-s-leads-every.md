@@ -3,7 +3,7 @@
 **What ran.** A lead-filing pass over the 56 leads the orchestrator extracted from the workflow journals of waves 46
 and 47, the wave-45 finishers and landing train 47 (about 30 distinct once the lander's restatements are merged). It
 used the reports those leads cite. Every lead was grepped against `kb/Work/` first. Every probe was rebuilt and re-run
-on this registrar's own `dotnet build CobolSharp.sln -c Debug` of main `6871b6e10` (0 warnings / 0 errors). Every
+on this registrar's own `dotnet build CobolSharp.sln -c Debug` of main `13dcfc3d3` (0 warnings / 0 errors). Every
 citation went through `cite.py --check`. Leads were clustered by mechanism. **The register is 1000 → 1017 notes**, and
 `work.py check` says all are well-formed. No verdict was recorded, so GAP is unchanged at 2208.
 

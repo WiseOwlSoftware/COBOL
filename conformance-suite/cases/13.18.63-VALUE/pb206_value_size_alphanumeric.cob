@@ -18,7 +18,7 @@
       *> THE CONFORMING HALF of kb/Work PB206.  BOTH size sentences had
       *> NO implementation anywhere in the compiler while their national
       *> (SR5) and boolean (SR10) twins had theirs, so both silently
-      *> TRUNCATED: measured on 1d949007, `01 E1 PIC X(2) VALUE "ABCD".`
+      *> TRUNCATED: measured on c86e0bf1, `01 E1 PIC X(2) VALUE "ABCD".`
       *> displayed AB and `01 GZ VALUE "ABCDEF". 05 O1 PIC X(2).
       *> 05 O2 PIC X(2).` displayed ABCD, neither with a diagnostic.
       *> They are now COBOL1740 (negative fixtures

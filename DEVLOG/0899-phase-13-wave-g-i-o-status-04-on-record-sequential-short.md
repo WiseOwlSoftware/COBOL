@@ -19,7 +19,7 @@ self-contained path and an external short file (`X(10)` FD over a 5-byte file �
 greenfield-side only (the legacy runtime is untouched; the greenfield NIST differential is the sweep target) — the
 comprehensive gate adjudicates any existing SQ golden that legitimately flips '00'→'04'.
 
-**⚠ Process miss caught (folded in): the VCR 21 FULL Conformance gate surfaced 2 VCR-86 (cluster, `1123a77f`)
+**⚠ Process miss caught (folded in): the VCR 21 FULL Conformance gate surfaced 2 VCR-86 (cluster, `f8fdf397`)
 regressions the cluster's own gate had missed** — I had FILTERED the cluster gate to `CorpusRunner|VersionMatrix|
 CorpusManifest`, skipping the differential-test classes. `DecimalPointDifferentialTests.NumericValue_OnEditedItem_
 ConvertsPerMoveRules` (`PIC 99.99 VALUE 1.5`) and `IntrinsicFunctionDifferentialTests.StringChannel_NumericEditedArg_

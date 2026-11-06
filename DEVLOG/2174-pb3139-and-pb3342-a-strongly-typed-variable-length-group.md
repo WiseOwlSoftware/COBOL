@@ -2,7 +2,7 @@
 
 ### PB3139 — the COBOL boundary and the MOVE (landed; the host entry is PB3273's)
 
-**Re-probe** (fresh Debug build of main 0b8557338, repros in `E:/COBOL-coord/scratch/w1106c/`): a strong type holding
+**Re-probe** (fresh Debug build of main 962a1d385, repros in `E:/COBOL-coord/scratch/w1106c/`): a strong type holding
 `PIC X DYNAMIC LENGTH`, `USAGE POINTER` and `PIC 9(2)` passed to a program-prototype CALL drew COBOLNET1688 on the CALL
 AND COBOLNET1513 on the prototype against its own definition; the activated program's formal staged the Tier-C loud at its
 copy-out; a group MOVE of two such groups aborted with GR9's "cannot compose" loud. The fixed-length twin of the same
@@ -26,7 +26,7 @@ cell-backed group (`ViewCursor.AtElementCell`); `MoveEmitter` asks the leaf vect
 PB3261 sender-first `Ordered` form). Docs: COBOLNET_OO_DESIGN (the leaf vector and the program ABI's area), DOC-A.1-141 in
 CONFORMANCE.md and DESIGN-external-repository §4.3 (the host restriction's reason).
 
-**Carried onto main 4016a67cb (w1111b).** w1106c's three commits were cherry-picked; main's PB3177 had moved
+**Carried onto main 4d48832d7 (w1111b).** w1106c's three commits were cherry-picked; main's PB3177 had moved
 `tests/conformance/` into `conformance-suite/`, so the goldens were re-filed with their metadata blocks:
 `cases/14.8.2.2-Group-items/pb3139_strong_vlg_pointer_call` (CALL BY REFERENCE / BY CONTENT / RETURNING, a user-defined
 function's result, MOVE between a cell-backed formal and a record struct; a pointer in a dynamic-capacity table's
@@ -38,7 +38,7 @@ refuses at 85 and 2002 with COBOLNET0900 (`wiseowl/diagnostics.json`). Main had 
 (PB1099 to 8, PB3339 to 9), and this branch changes shipped members (`CopyArea`, `StoreArea`, `ContentRecord`, `StoreReturnArea`, and
 PB3342's `BASE.__FactoryObject`), so the major is 10 and `RuntimeAbiPinDriftTests` re-pins the measured surface hash.
 
-**Carried onto main a0a2ff24f (w1114a).** The seven commits were cherry-picked again (never merged); main's PB3339 had
+**Carried onto main 16edcaabc (w1114a).** The seven commits were cherry-picked again (never merged); main's PB3339 had
 taken the runtime major to 9, so the major is 10 here and the surface hash re-pins to `7B86AAFDF5884757`. Re-probed:
 both goldens MATCH. **Rows:** none claimed by the note (`closes_rows: []`; `SR-14.8.2.2-2` and `GR-14.9.25.4-9`, which
 the goldens witness, were already CONFORMS). PB3139 lands with its own mechanism, the COBOL boundary. The .NET host entry
@@ -80,12 +80,12 @@ COBOLNET4213 `OverrideNamedLikeItsClass` is deleted with a retirement comment; C
 union reads the same roster key the conformance check pairs by; duplication — the AddMethods special case is gone;
 performance — one pass over the rosters per compilation group. Codes: none of COBOLNET4244-4246 used.
 
-**Gate** (w1114a, at 8b57d399d, run `20261018T034820Z-37ceab`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
+**Gate** (w1114a, at 1b9a0854e, run `20261018T034820Z-37ceab`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
 GREEN ===`; the four goldens and both refusals ran in leg 1 and passed. Codes: none of COBOLNET4274-4276 used.
 
 **Branch review round 1** (kb/Work PB3027): one finding, R1-1 — `OoClassTable.LeafCarried`'s summary still named the
 deleted static `OfLeaves`; it now names the sender's `AsLeaves` and the receiver's instance `WithLeaves` and why the
 store is an instance one (§14.6.9.2). `git grep OfLeaves` over src, tests, docs and scripts finds no other stale use.
-Re-gate (review finisher, at 5caf3e852, run `20261018T040904Z-45bc9a`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
+Re-gate (review finisher, at 1d36a502d, run `20261018T040904Z-45bc9a`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
 PB2515): GREEN ===`; the goldens and refusals ran in leg 1 and passed.
 

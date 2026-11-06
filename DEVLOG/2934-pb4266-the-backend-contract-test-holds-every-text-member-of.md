@@ -69,8 +69,8 @@ Duplication: the parse-context half asserts the edges rule and does not restate 
 cached for the fixture. No goldens: the change is behavior-neutral apart from the internal renames, so it
 adds no inventory row (closes_rows: []).
 
-**Gates.** The first branch head, `70f7bcada`, gated in run `000003-20261101T081251Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY
-(batched gating, PB2515): GREEN`. The review round's code head, `a4470fd91`, gated in run `000002-20261101T091904Z`
+**Gates.** The first branch head, `1936c7b8a`, gated in run `000003-20261101T081251Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY
+(batched gating, PB2515): GREEN`. The review round's code head, `49bbc9616`, gated in run `000002-20261101T091904Z`
 on the whole population, because a source-generator change cannot be attributed (kb/Work PB4269): `=== BUILD-LOCAL
 GATE: GREEN — Conformance 20,404/20,404 · Unit 39,135/39,135 · Characterization 36/36 cases ran (skipped 0)`, all 13
 BackendContractDriftTests passing. Its first run, `000001-20261101T090110Z`, was RED on one Unit case:

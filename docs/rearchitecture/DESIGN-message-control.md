@@ -841,7 +841,7 @@ lands:
 git grep -l -E "COBOL1578|COBOL1943|COBOL2205|McsFacilityUnsupported|MessageTagUsageUnsupported|McsMessageTagSetUnsupported|mcs-only|MessageTagRecovery" -- conformance-suite tests src docs
 ```
 
-At origin/main 485c15326 it finds 130 files: 35 under `conformance-suite` (26 in `wiseowl/cases`, among them nine `pb4118-*` and six
+At origin/main 7ccb2822b it finds 130 files: 35 under `conformance-suite` (26 in `wiseowl/cases`, among them nine `pb4118-*` and six
 `pb4090-*`), 49 non-C# files under `tests` (45 inventory rows, `inventory-schema.json`, `constructs.json`,
 `conformance-register.json`, `tests/doc-facts/compiler-facts.json`), 16 test classes (among them
 `DeclinedFacilityDriftTests`, `DerivedVerdictDriftTests`, `IntrinsicArgumentClassDriftTests`,

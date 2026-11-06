@@ -3,7 +3,7 @@
 The repository root tracked thirteen files that are program output, not source: `oo-ext.dat`, `oo-fac.dat`, `oo-obj.dat`,
 `oo-sort-in.dat`, `oo-sort-out.dat`, `oo-two.dat`, `pb673oo.dat`, `l1m8rp-f.rpt`, `l1m8rp-fn.rpt`, `l1m8rp-o.rpt`,
 `l1m8rp-p.rpt`, `pb1044.txt` and `pb1137ia.txt`. Each is the file a conformance golden's relative `ASSIGN` names. A
-by-hand run from the root wrote them, and the `git add -A` of `d8f9168e7` (2026-10-04) committed them. The owner asked
+by-hand run from the root wrote them, and the `git add -A` of `9139170ff` (2026-10-04) committed them. The owner asked
 for them gone before the morning: "Let's start the morning as clean as possible."
 
 - All thirteen are deleted. Each name was grepped first: the only references are the goldens that write it and the

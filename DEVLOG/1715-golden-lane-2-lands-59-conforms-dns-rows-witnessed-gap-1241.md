@@ -3,7 +3,7 @@
 **What landed.** Golden lane 2 took the 117 inventory rows verdicted CONFORMS but still GAP (test-needed) plus the 3
 DOCUMENTED-NON-SUPPORT rows owing a witness — 120 rows in eleven slugs (dns-witness, misc-p1, gl2-misc-p2,
 misc-p3 … misc-p10). Writers drafted spec-derived goldens, independent refuters re-derived each one, a fixer applied
-the corrections, and a validator compiled and ran every draft on a compiler pinned at dac7c9d67. This landing brings
+the corrections, and a validator compiled and ran every draft on a compiler pinned at 5a6bc93e1. This landing brings
 in only what the validator classified `pass`: **37 positive goldens** (85: 5 · 2002: 11 · 2023: 21, plus their
 copybooks, including the four UTF-16/UTF-32 and one UTF-8-BOM copybooks of `l1_encoding_per_file_bom`), **25
 negatives**, and **five xUnit witness classes** (`DocA1Item218WitnessTests`, `TransferOfControlFatalDeclarativeTests`,

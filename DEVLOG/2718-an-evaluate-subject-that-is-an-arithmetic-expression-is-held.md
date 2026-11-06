@@ -2,7 +2,7 @@
 
 Wave 20261735, group B. One mechanism, one checkpoint commit.
 
-**Re-probe on base `7121f254f`.** The repro from the PB3953 review (`EVALUATE A * B * C WHEN 1 ... WHEN A * B * C`, A, B and C
+**Re-probe on base `bcf6e8e84`.** The repro from the PB3953 review (`EVALUATE A * B * C WHEN 1 ... WHEN A * B * C`, A, B and C
 PIC 9(10) all 9999999999) took WHEN OTHER; so did `EVALUATE BIG * BIG WHEN 1 ... WHEN BIG * BIG` (BIG PIC 9(18)). A wider probe
 found the fraction side of the same defect: `EVALUATE SM * SM WHEN 0 ... WHEN SM * SM` (SM PIC V9(12), the product 1E-24) took
 `WHEN 0`, because the subject was held at 17 fraction digits and read as zero. `A * B` (20 digits, inside the 21 integer digits)

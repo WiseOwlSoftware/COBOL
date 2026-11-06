@@ -131,7 +131,7 @@ either answer, so nothing in this landing pre-empts the decision.
 
 **⛔ THE TRAIN'S ONE RED, AND WHY THE CLUSTER WAS RECONCILED RATHER THAN DROPPED.** The first union gate failed
 exactly one case: `CorpusRunnerTests_P2(edition: "2002", name: "pb254_total_integer_arguments")`, COBOLNET1627 on
-its T7 and U7 legs. PB254 was cut at `1563ccf5`, BEFORE landing train 5 put **PB248** on main, and PB248
+its T7 and U7 legs. PB254 was cut at `b17110de`, BEFORE landing train 5 put **PB248** on main, and PB248
 re-derived §15.3 type 6 as "an integer data item or an always-integral arithmetic expression" — a floating-point
 item is neither, because §14.6.8.3 makes its declared value set contain non-integers whatever a given reference
 holds. PB254's golden knew it was leaning on the old latitude; its own header said the float carrier is one

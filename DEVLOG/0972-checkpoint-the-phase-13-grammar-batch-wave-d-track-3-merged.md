@@ -2,7 +2,7 @@
 
 **Owner-directed checkpoint: commit → push → merge to main → delete the branch → new branch → update context docs.**
 
-**The merge.** `main` advanced `febce554 → 1f56f572` (a `--no-ff` merge commit, project convention). The
+**The merge.** `main` advanced `90b8edeb → 5373975d` (a `--no-ff` merge commit, project convention). The
 `phase-13-grammar-batch` branch (60 commits ahead of main, main a strict ancestor — a clean merge) delivered: the
 PHASE-13 GRAMMAR BATCH 7/7 (Wave H · RW SUPPRESS · file-control COLLATING · SUPPRESS WHEN alt-key · PICTURE EDITING ·
 VALUE Format 2 · PERFORM Format 3, COBOLNET1578–1617), the WAVE-D directives (>>DEFINE · the compile-time expression
@@ -22,6 +22,6 @@ real remaining feature — OO pc-slice wiring, deliberately NOT rushed).
 **⏭ NEXT (on `phase-14`, per §0):** ① the Track ③ residue = F3-in-a-method (OO pc-slice wiring) · ② the §24 fix-queue
 (`PHASE-13-plan-vs-spec-review.md` §24 = the verified defect/fix SSOT) · ③ PHASE-14 Step 0 = the traceability
 inventory (definition of DONE = zero GAP). **Process note (repeat miss):** a backtick in an earlier `git commit -m`
-message triggered bash command-substitution and dropped one line (commit `27ef39df`); use the `git commit -F <file>`
+message triggered bash command-substitution and dropped one line (commit `82a29a72`); use the `git commit -F <file>`
 path (memory `feedback_commit_message_via_file`) for any message with backticks/`$`.
 

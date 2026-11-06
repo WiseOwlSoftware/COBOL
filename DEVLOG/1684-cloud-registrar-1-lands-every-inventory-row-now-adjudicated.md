@@ -30,7 +30,7 @@ aborts · PB1528 unpositioned screen ACCEPT/DISPLAY ON EXCEPTION → generic par
 before clamp · PB1530–PB1533 · PB1534 (41 A.1 determinations no item note owns) · PB1535/PB1536 decisions; 44 owning
 notes extended. Leads were re-probed before filing.
 
-**Landing.** Merged locally onto main (the branch was cut from 0caa7d5; only PB1522.md overlapped, auto-merged); the
+**Landing.** Merged locally onto main (the branch was cut from 0c24de7; only PB1522.md overlapped, auto-merged); the
 committed `__pycache__/*.pyc` dropped. Gate on the merged tree: solution build green; filtered
 `SpecTraceabilityInventory|DefectiveRowCoverage|DerivedVerdict|AnnexA1|WorkRegister` **50/50**; `work.py check` clean
 (1474 items); the full matrix runs in push-main's CI. Plan §0: every row adjudicated at least once, GAP 1652, 186

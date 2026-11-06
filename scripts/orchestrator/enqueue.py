@@ -1162,7 +1162,7 @@ def self_test() -> int:
         rlog: list[list[str]] = []
         ok_rerun = rerun_check("o/r", 39834070835, gh=remedy_gh(rlog))
         qlog: list[list[str]] = []
-        head385 = "fb899d188e35" + "0" * 28
+        head385 = "3b1e7d6406af" + "0" * 28
         ok_requeue = requeue("o/r", 385, head385, gh=remedy_gh(qlog, runs='[{"databaseId": 1, "status": "completed"}]'),
                              state=active)
         idle: list[list[str]] = []
@@ -1221,7 +1221,7 @@ def self_test() -> int:
                and hung_reopen[0] is False and hung_reopen[1].startswith("gh pr reopen #385: GitHub gave no answer")
                and [a[:2] for a in reopen_log] == [["run", "list"], ["pr", "close"], ["pr", "reopen"]]
                and hung_state[0] is False and "merge queue's state" in hung_state[1] and not unread
-               and hung_runs[0] is False and hung_runs[1].startswith("gh run list --commit fb899d188e35: GitHub gave no answer"),
+               and hung_runs[0] is False and hung_runs[1].startswith("gh run list --commit 3b1e7d6406af: GitHub gave no answer"),
                f"{hung_rerun} {hung_reopen} {reopen_log} {hung_state} {unread} {hung_runs}")
         m = QUEUED_LINE.match(QUEUED.format(number=17, sha="ab12", branch="fix", url="https://github.com/o/r/pull/17"))
         expect("the queued line `queue` prints is the one its reader parses (the lane records the pull request's number)",

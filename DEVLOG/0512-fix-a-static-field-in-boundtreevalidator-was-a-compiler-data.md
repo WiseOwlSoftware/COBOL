@@ -1,6 +1,6 @@
 ## Entry 512 — 2026-06-09 13:35 PDT — Fix: a static field in BoundTreeValidator was a compiler data race → spurious CBL1603 (the recurring CI flake)
 
-CI went red on a **docs-only** commit (`c9f0065`) — the Linux Guard job failed on
+CI went red on a **docs-only** commit (`46de193`) — the Linux Guard job failed on
 `SpecFixTests.ReadPrevious_AfterStartEqual_ReturnsTheEqualKey`, while the Windows job passed and the immediately
 preceding docs-only commit was green. No code changed between them, so this was non-deterministic, not a regression —
 the "CI breaking again" the owner flagged. The base-class comment already named the two recurring flakes:

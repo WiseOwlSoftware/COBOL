@@ -12,7 +12,7 @@ from the model: it writes plausible COBOL from a spec clause, WiseOwl and GnuCOB
 disagreement survives. The owner: "Build the harness, but we'll try a small test run today."
 
 **Hardware and software.** RTX 5090 (32 GB), 128 GB RAM, Ollama 0.35.1, GnuCOBOL 3.2.0 under WSL Ubuntu, WiseOwl built from
-main at 5bec30cd2. Generator in these runs: `qwen3-coder:30b` (a mixture of experts, about 3B active parameters), temperature
+main at 24d80fabd. Generator in these runs: `qwen3-coder:30b` (a mixture of experts, about 3B active parameters), temperature
 0.6, 16k context, 6000 output tokens. Both compilers pinned to the 2014 edition, free reference format, through the
 conformance suite's adapters (`conformance-suite/adapters/*.json`, run by the harness's own `Run.operation`); the GnuCOBOL steps
 cross into WSL through the adapter's hook interface.
@@ -103,7 +103,7 @@ following the standard where GnuCOBOL's default dialect is wider, one is an impl
 
 Raw, in `2026-10-20-differential-fuzz/`: `bakeoff1-bake-off.md`, `bakeoff2a-qwen3.6-prompt-v1-report.md`, `bakeoff3-*`,
 `bakeoff4-*` (each bake-off's scoreboard and every model's report). Every bake-off: 20 programs per model, seed 20261020,
-two in flight, the WiseOwl build of main at 0421be4df, GnuCOBOL 3.2 under WSL.
+two in flight, the WiseOwl build of main at 54854cb17, GnuCOBOL 3.2 under WSL.
 
 **Bake-off 1 (20:36–21:2x PDT; the harness as landed in PB3463: one correction round, temperature 0.6, 394 seeds).** The
 owner's choice of models after the evening's web research; the two lowest were removed afterwards.

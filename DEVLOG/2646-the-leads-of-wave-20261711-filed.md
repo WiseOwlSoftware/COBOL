@@ -11,5 +11,5 @@ PB3838 gained a dated paragraph naming GnuCOBOL's unedited `MOVE ALL "lit"` into
 candidate record, with the repro and the WiseOwl golden that pins our result. PB3468's Class 5 text is corrected: fz04932's
 reference modification is `WS-SRC (1:WS-LEN)`, a run-time length, not the literal `WS-SRC (1:5)`. Two review leads were
 not filed: w20261711b R1-2 and R1-3 (the drift tests' prose) were already fixed on main by the group's round-2 commit
-c3df83b51.
+8854df95e.
 

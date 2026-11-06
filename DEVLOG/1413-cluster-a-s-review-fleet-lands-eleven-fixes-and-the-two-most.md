@@ -86,7 +86,7 @@ characters, and the review fleet found every one:
   where the debt gets paid.
 - **The CALL/INVOKE boundary carried a bit group's OPERAND value into a `FromImage` that reads its PACKED image.**
   11001010 crossed BY REFERENCE, arrived in the callee as 00110001 — the eight bits of the character `'1'` — and
-  came home as 00110000. Silent argument corruption, and a worktree at `876d8ab0` produced byte-identical output,
+  came home as 00110000. Silent argument corruption, and a worktree at `cefa0e12` produced byte-identical output,
   so it is PRE-EXISTING and the refuter who said so was right. §14.2.3 GR8 makes the formal occupy "the same
   storage area", so the carrier is the STORAGE image.
 - **`FUNCTION CONVERT(XM(1:3) ANY ANUM HEX)` returned `313130`** — the characters `'1','1','0'` — where §15.19.3 r7

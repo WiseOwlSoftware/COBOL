@@ -2,7 +2,7 @@
 
 kb/Work PB3492 (cluster PB3353), wave 20261028 group A, the fourth attempt at the note and the keyed half of PB3340's journal.
 
-**Re-probe.** On the base (9f815f941) the note's program printed `RECORD 1 ABSENT FS=23` after a ROLLBACK of an OPEN OUTPUT
+**Re-probe.** On the base (5ccde417c) the note's program printed `RECORD 1 ABSENT FS=23` after a ROLLBACK of an OPEN OUTPUT
 that replaced a RELATIVE file (§14.9.36.4 GR3 restores *"the state they were in at the execution of the last COMMIT
 statement"*: record 1 present) and `DELETE AFTER CLOSE FS=62` (the NOTE under §14.9.10.4 GR15: *"Such files can still be
 deleted"*; GR15's conflict is a file *"locked by another file connector"*). A sibling of the same root reproduced too: an OPEN

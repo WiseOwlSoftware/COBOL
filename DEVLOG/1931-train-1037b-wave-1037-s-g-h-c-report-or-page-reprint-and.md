@@ -55,7 +55,7 @@ the whole population, first run): `=== BUILD-LOCAL GATE: GREEN — Conformance 1
 Characterization 36/36`, run 20261008T060417Z-f4431f; no red, so no attribution. semgrep PASS before and after. Oracle:
 DIFFERENT, 59 of 7,560 cases, every one explained: 32 report programs whose ONLY change is the sum counter's `NumProfile`
 (Binary to Zoned, trailing overpunch: G's PB1943); 4 goldens whose source C re-derived (pb1667 x2, pb489_85, pb523_85);
-22 added goldens and negatives and 1 renamed negative. Re-recorded as `868aaaf24f0b`. Review of the merged diff: one finding,
+22 added goldens and negatives and 1 renamed negative. Re-recorded as `afe24e389e1e`. Review of the merged diff: one finding,
 a stale comment in `SequentialConnector.WriteRecord` (it still said a plain WRITE on a line sequential LINAGE file does not
 reach `WriteAdvancingRecord`), fixed in C's commit; no cluster dropped. Leads filed: PB2553 (a non-digit stored into a sum
 counter through a modifier decodes silently to zero), PB2554 (an INVOKE formal's PICTURE uses the caller's DECIMAL-POINT

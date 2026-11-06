@@ -172,7 +172,7 @@ public sealed class StopGobackExitCodeTests
     /// ⛔ THE NON-NUMERIC STATUS OPERAND — LEGAL COBOL THIS COMPILER USED TO REJECT (kb/Work PB169).
     /// <para>§14.9.42.2 writes the operand <c>{identifier-1 | literal-1}</c>, not
     /// <c>arithmetic-expression-1</c>, so §8.8.1.1 never governed the position — yet both arms were bound
-    /// through <c>ExpressionBinder.BindExpr</c>. Measured on 9a89fbd1: <c>STATUS "ABEND"</c> AND
+    /// through <c>ExpressionBinder.BindExpr</c>. Measured on 02c72682: <c>STATUS "ABEND"</c> AND
     /// <c>STATUS WS-DISPLAY</c> (PIC X(3)) each drew COBOL0844 citing §8.8.1.1, while §14.9.42.3 SR2
     /// explicitly admits "a data item with usage display or usage national" and SR3's conditional ("If literal-1
     /// IS numeric …") presupposes the non-numeric literal. The rejection quoted a rule the programmer had not
@@ -367,7 +367,7 @@ public sealed class StopGobackExitCodeTests
     /// shall be an integer item or a display/national item — which a BIT group is not, and which §8.5.2.1 gives
     /// an ALPHANUMERIC group, so that shape moved to the positive theory above), and §13.18.38.3 r7
     /// (the STATUS phrase is not one of the five contexts admitting an index-name). Each compiled CLEAN on
-    /// 9a89fbd1 — the screen that WAS there rejected the legal shapes and admitted the illegal ones, in both
+    /// 02c72682 — the screen that WAS there rejected the legal shapes and admitted the illegal ones, in both
     /// directions at once. (The corpus fixtures pin the same rules at every edition; these assert the MESSAGE
     /// names the rule broken, which a reject-only fixture cannot.)</summary>
     [Theory]

@@ -589,7 +589,7 @@ for drain in (False, True):
 # report's own HEAD stands for the tip: a report rewritten after the review (HEAD past the stamp) is not covered.
 SV = TMP / "reports-stale-stamp"
 SV.mkdir()
-for head, stamp in (("314d06415aa", "11f7b8ab0c0e"), ("11f7b8ab0c0e", "11f7b8ab0c0e")):
+for head, stamp in (("314d06415aa", "c168dd762798"), ("c168dd762798", "c168dd762798")):
     (SV / "w1127a-PB7-report.md").write_text(
         f"Status: DONE\n**Review:** FINDINGS 1 w1127a-review-r1 {stamp} E:/s/review-w1127-a.jsonl\n"
         f"Branch: worktree-wf_dr-2\nHEAD: {head}\n\n## X\n", encoding="utf-8", newline="\n")
@@ -3592,7 +3592,7 @@ check("PB3653 R1-1: an unfinished report's finisher is not merged into a newer D
 # (parse_report) is read by the branch survey, the landing lane and the landing measure.
 HD = TMP / "reports-head"
 HD.mkdir()
-STAMP = "**Review:** CLEAN w1136c-review-r1 bf1cfafc7981"
+STAMP = "**Review:** CLEAN w1136c-review-r1 9d9980b0e922"
 
 
 def head_of(name, header):
@@ -3603,8 +3603,8 @@ def head_of(name, header):
 
 check("PB3476: a HEAD field that gives no sha ('see the trailing commit') takes the head of the review stamp",
       head_of("w1136c-PB3471-report.md",
-              f"Status: DONE\n{STAMP}\n**Branch:** worktree-x-1\n**HEAD:** see the trailing commit (code at `ac4f3be8`)\n"),
-      "bf1cfafc7981")
+              f"Status: DONE\n{STAMP}\n**Branch:** worktree-x-1\n**HEAD:** see the trailing commit (code at `b4c53e5a`)\n"),
+      "9d9980b0e922")
 check("PB3476: ... a header with a HEAD sha keeps it, the stamp notwithstanding",
       head_of("w1136d-PB3472-report.md", f"Status: DONE\n{STAMP}\n**Branch:** worktree-x-2\n**HEAD:** 1234567abc\n"),
       "1234567abc")

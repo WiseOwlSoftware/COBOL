@@ -36,7 +36,7 @@ batch `batch-pb2549-witnesses` re-applied (GR-14.2.3-9/-10, already CONFORMS). T
 leg is missing on every lane (PB2587).
 
 **B — PB667 (discharged), PB1942 (landed), PB1941 (main shape landed, residual arms open), PB1722 (not started).**
-PB667 did not reproduce: PB666 (861110338) already refuses it, and the stale witness header was fixed. PB1941: a
+PB667 did not reproduce: PB666 (7bb3395f7) already refuses it, and the stale witness header was fixed. PB1941: a
 constant's LENGTH OF operand that is a later entry of a record still being bound now binds ahead of the walk and
 attaches at its position (w1032a's fa4e414b9, cherry-picked); COBOLNET0899 now names only an operand subordinate to
 the referencing entry, or an unreached report group. Batch `w1032a-pb1941` re-applied (SR-13.10.3-4 stays CONFORMS).
@@ -63,7 +63,7 @@ definition. Nine goldens; no row, no code.
 cherry-picked: `plan_wave.py next_wave` counts `Train NNNN` labels as taken wave numbers, and a SPLIT report on an
 unlanded branch now makes a finisher instead of waiting for a landing. `test_plan_wave.py` covers both.
 
-**The train.** Every cluster's diff applied with `git apply -3` onto ea20c28e3 and, after train 1037t landed (PB2537's hold), rebased onto b6d771c3a; D's own DEVLOG entry was dropped and
+**The train.** Every cluster's diff applied with `git apply -3` onto 66ff39778 and, after train 1037t landed (PB2537's hold), rebased onto 5e21179e3; D's own DEVLOG entry was dropped and
 folded in here. Conflicts: the 2002, 85 and negative corpus manifests (whole string elements, unioned; net +1, +2, +6
 for E, as its patch adds), `docs/DRIFT_RULES.md` (regenerated, 296 drift tests, and again after the rebase onto 1037t, 298); `gen-cobol-words.ps1` re-run
 (total=205, no change). The inventory hunks of F, C and B were discarded and their batches re-applied in order, each
@@ -84,7 +84,7 @@ OK. **Oracle: DIFFERENT, 386 of 7,588 cases, every one classified by a script ov
 text in activation descriptions gaining `DecimalPointIsComma = False` (9 cases); and D's `commaMode: true` dropped
 from `CobolEdit.Format` calls in `nist/NC107A` and `2023/pb490_simple_insertion_comma_mode`, whose masks carry no
 period or comma, so the mode cannot change an edited character (both programs' outputs are unchanged at the gate).
-No fragment was left unexplained; recorded as `f7ae0509b168`, then re-recorded on the rebased commit as `9803cd950d0f` (compare: IDENTICAL, 7,588 cases). Review of the merged diff (correctness, then the
+No fragment was left unexplained; recorded as `f7ae0509b168`, then re-recorded on the rebased commit as `7abbf383e799` (compare: IDENTICAL, 7,588 cases). Review of the merged diff (correctness, then the
 drift rules, then citations): no correctness finding was confirmed, and no cluster was dropped. One premise was
 corrected: F's lead called the PIC A defect "STRING/UNSTRING", and §14.9.43.3 has no category rule, so it is UNSTRING
 SR2 only (SR4 admits alphabetic for the INTO receiver). Leads filed: PB2586 (UNSTRING SR2 admits PIC A; owner

@@ -4,7 +4,7 @@
 code-generation backend would consume, and keyed its three sets and `AlignmentMayLeaveCarrier` on the Roslyn renderer's runtime
 methods (`"ModScaled"`, `"MeanScaled"`, `"Numval"`). DESIGN-backend-abstraction.md section 1.2 bullet 2 forbids runtime spellings on
 the bound layer, and the PB4266 contract test carried the three sets as an L9 leak row. The re-probe found them unchanged at
-51a9ba52f.
+ab63c898e.
 
 **The fix.** Every key is now the intrinsic-function-name as its catalog row spells it (`IntrinsicSig.Name`: `"MOD"`, `"MEAN"`,
 `"NUMVAL-C"`), and `RenderNum`, `RenderDec`, the renderer's `AlignmentMayLeaveCarrier` and `FunctionValueLane.Of` pass `sig.Name`.

@@ -2,7 +2,7 @@
 
 Train 74 carries the three wave-73 groups whose implementers died near the end (A, B, D). Finishers completed each
 from its checkpoint: B2 and D2 are SPLIT, A2 is DONE. Each cluster was applied from its branch diff onto train 73's
-main (`66c0eebac`), with the implementers' own DEVLOG hunks left out in favour of this one entry.
+main (`c45e159a8`), with the implementers' own DEVLOG hunks left out in favour of this one entry.
 
 **Cluster B2 — PB1163, PB1194, PB1077 (+PB1237, PB1290); SPLIT (PB322 and PB833 not started).**
 - **PB1163.** RETRY FOREVER now waits for a holder outside the run unit. The loop used to assume that no holder could

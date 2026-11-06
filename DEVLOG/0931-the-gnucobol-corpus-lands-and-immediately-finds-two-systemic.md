@@ -4,7 +4,7 @@ The owner pulled PHASE-14 Step 13 forward: retrieve the GnuCOBOL testsuite and r
 because "they should identify places where we got the grammar wrong." They did, within minutes of the harness
 working — and the harness itself taught the sharper lesson.
 
-**THE INFRASTRUCTURE** (committed `fb6538b4`): `fetch-gnucobol-tests.ps1` (GnuCOBOL 3.2 pinned, SHA256-verified,
+**THE INFRASTRUCTURE** (committed `187f7904`): `fetch-gnucobol-tests.ps1` (GnuCOBOL 3.2 pinned, SHA256-verified,
 into the git-ignored tree) · `gnucobol_extract.py` (a bracket-balanced m4/autotest parser — regex cannot do it,
 the quoting nests; validated at **1346 groups / 3503 checks / ZERO extraction failures**) ·
 `gnucobol_differential.py`. Licensing per the owner's ruling: their SOURCE and EXPECTED OUTPUT never leave the

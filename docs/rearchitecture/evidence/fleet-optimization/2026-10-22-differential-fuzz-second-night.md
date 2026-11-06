@@ -27,7 +27,7 @@ Classes: `BOTH_REJECT` 2,326 · `AGREE` 1,042 · `WE_REJECT` 707 · `OUTPUT_DIFF
 ## Triage method
 
 The standard decides (CLAUDE.md rule 1); GnuCOBOL is a net. Because the judge predated three overnight landings, every
-lead was first re-run on a fresh build of main at fd407980f (a detached worktree, `E:\COBOL-wt\fuzz-triage-20261022`,
+lead was first re-run on a fresh build of main at 8fe3f8948 (a detached worktree, `E:\COBOL-wt\fuzz-triage-20261022`,
 built at 09:25). The crash-class rows (hangs, the crash, the exit differences) were read by the session itself. Every
 `OUTPUT_DIFFERS`, `EXIT_DIFFERS` and `THEY_FAIL_RUN` row (392) was re-judged mechanically on the fresh build against
 GnuCOBOL's recorded output with the harness's normalization (per-line trailing blanks stripped, NUL read as space): 144

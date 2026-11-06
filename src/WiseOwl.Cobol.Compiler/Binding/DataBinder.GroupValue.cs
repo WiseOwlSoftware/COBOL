@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Binding;
 ///
 /// <para><b>Why this exists as its own pass.</b> Three rules, all with the same subject, and NONE of them was
 /// written down anywhere in the compiler — the inverse of the usual [[one_rule_one_place]] finding, where a rule
-/// is written twice. Measured on 8ca74a3d, every one of these compiled clean and ran:</para>
+/// is written twice. Measured on 99bc08c8, every one of these compiled clean and ran:</para>
 /// <list type="bullet">
 ///   <item><c>01 GV VALUE "40537". 05 GB PIC 9 COMP-5 OCCURS 5.</c> — every occurrence initialized ZERO (the
 ///     group VALUE dropped on the floor). This is kb/Work PB184's measured symptom.</item>

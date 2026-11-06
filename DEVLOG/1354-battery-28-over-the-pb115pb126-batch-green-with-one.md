@@ -1,6 +1,6 @@
 ## Entry 1354 — 2026-08-29 00:49 PDT — Battery #28 over the PB115–PB126 batch: green with ONE attributed-and-fixed unit flake — and the flake's mechanism widened PB126's fix (the sweep's complement had been measured too narrowly)
 
-`bash scripts/battery.sh` over `6c177947`: FULL Conformance 4934/4934 · characterization 33/33 · guard-fast
+`bash scripts/battery.sh` over `047169fb`: FULL Conformance 4934/4934 · characterization 33/33 · guard-fast
 ALL GREEN (NIST 353 MATCH / 0 REGRESSION, audit CLEAN) · GnuCOBOL differential 0 PER-CASE FLIP(S) (1323
 cases). Unit 4588/4589 — the one red is the PB126 family caught from its OTHER side:
 CollationTailoringTests' `Assert.Same` on CollationEngine's per-locale collator cache raced

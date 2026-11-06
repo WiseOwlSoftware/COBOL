@@ -1481,7 +1481,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // Pinned by conformance-suite/cases/13.18.63-VALUE/pb558-condition-name-in-report-section, all four editions.
             //
             // The finding this replaced WAS real when it was measured: the walk dropped an 88 entry in silence,
-            // and a later `IF condition-name` compiled and then aborted at RUN time. PB485 (f37da577b,
+            // and a later `IF condition-name` compiled and then aborted at RUN time. PB485 (14d0b9d93,
             // 2026-09-05) gave the level-number a domain on both its axes and closed it — measured again here
             // before writing this, not assumed.
             // The entry's SUBTREE: itself plus every following entry of a higher level number (§13.15 — the

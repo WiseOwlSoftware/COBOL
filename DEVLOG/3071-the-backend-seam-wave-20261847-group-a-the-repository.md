@@ -26,7 +26,7 @@ and `RepositoryCodec.KindOf` at emit time). The fix moves the encode, not only t
 - The record members are now on the backend input, so `BackendContract.cs` classifies them (`PicRecord.SignKind` joins
   `PicInfo.SignKind` on PB3252's L9 row).
 
-Neutrality: `python scripts/arch/compare_oracle.py` = `=== ARCH-ORACLE: IDENTICAL — 16435 cases (baseline 0fa5f7201acd) ===`.
+Neutrality: `python scripts/arch/compare_oracle.py` = `=== ARCH-ORACLE: IDENTICAL — 16435 cases (baseline c1633c629522) ===`.
 The ratchet emptied the row's 26 walked pairs; the landing's census deletes the census-only row (DESIGN-architecture-review
 §8.1 "The landing of a remover"). New witness: `RepositoryCodecTests.TheBoundCompilation_CarriesEachPublishedUnitsRecord_OnlyWhenItUpdatesTheRepository`
 (every entry unit, class and interface carries exactly the codec's record under the option, none without it). Docs:
@@ -50,8 +50,8 @@ ratchet, deleted four census-only rows at zero (`CodeGen → Binding.Repository`
 `CodeGen → Frontend.Generated`, `CodeGen → Frontend.Preprocessor`) and the dead allowance `frontend.pipeline → runtime`. The
 census also showed five tolerated rows ABOVE the edges file's `uses` (`Binding → CodeGen` 4 → 5, `Binding → Validation`
 15 → 20, `Binding.Bound → Binding` 39 → 50, `CodeGen → Binding` 105 → 140, `CodeGen.Emit → Binding` 38 → 48), which
-`ArchCensusDriftTests` refused at the first gate. A census of the base `0fa5f7201` measures the same five (`CodeGen → Binding`
-at 142, which this branch lowered to 140), so the growth predates the branch: landings between census `b8e4a3b58` and main
+`ArchCensusDriftTests` refused at the first gate. A census of the base `c1633c629` measures the same five (`CodeGen → Binding`
+at 142, which this branch lowered to 140), so the growth predates the branch: landings between census `e513f1e5d` and main
 added uses to already-tolerated pairs, which the per-gate walk (pairs, not uses) cannot see and no census measured. The
 five rows' `uses` are set to the measured counts, their removers unchanged, and the gap is a lead in the wave report.
 
@@ -93,7 +93,7 @@ binder-side home first.
 ### The backend seam, wave 20261851 group A: the OO symbols and their closure move to compiler.model (PB2402)
 
 **Carried in.** This branch continues the PB2293 campaign: the predecessor branches' PB4319, PB2398 and PB2401 commits were
-cherry-picked onto main `a9f2c2897`, and the PB4509 branch (`worktree-wf_3feef266-b02-2`, PR 1086, its DEVLOG already
+cherry-picked onto main `c9bfddd3f`, and the PB4509 branch (`worktree-wf_3feef266-b02-2`, PR 1086, its DEVLOG already
 stamped 3056) was merged with the merge drivers. The first gate on the combined head was RED on one Unit test: the edges
 file's `Binding.Bound → Binding` row said 49 walked pairs where the walk measures 48 (main removed one after the
 predecessor's base). The ratchet lowered it; the re-gate was GREEN.
@@ -146,7 +146,7 @@ do the class lists, the imported types and the RAISING class names.
 ### PB2403 step 2: the backend reads the OO answers as bound data, and no emitter names WiseOwl.Cobol.Compiler.Oo
 
 Wave 20261854 A carried the predecessor branches forward: the 13 unlanded commits of w20261852a (PB4319, PB2398, PB2401,
-PB2402, PB2182, PB4517 and PB2403 step 1) were cherry-picked onto main c1f649345, and w20261852d's PB4512 branch was merged
+PB2402, PB2182, PB4517 and PB2403 step 1) were cherry-picked onto main 62073feb3, and w20261852d's PB4512 branch was merged
 with the merge drivers. The carried head gated GREEN (run 000001) before any new work.
 
 Step 2 of PB2403 ends the backend's reads of the class table and of the binder's description rules. The emitters asked
@@ -273,7 +273,7 @@ PB2361's carrier half (the entry above) put `DataBindResult` on the backend inpu
 ten `DataBinder` extract steps widened from `private` to `internal` so the carved binders and passes could reach them.
 The note asked that none stay wider than its readers need, and that a drift test make a new reader a conscious change.
 
-**Measured, not grepped.** Against main before the first extract landing (`1f60f2503`, before #1042) about 100 members
+**Measured, not grepped.** Against main before the first extract landing (`8418dc1b8`, before #1042) about 100 members
 private then are non-private now, spread over `DataBinder` and the six binders carved from it. A text census over-counts:
 names such as `Of`, `All` and `LiteralPosition` collide across types. So the edges test's metadata walk
 (`TypeReferenceWalk`) learned one more answer. Given owner types, `MemberReaders` records each owner's non-private members
@@ -311,6 +311,6 @@ the bound tree name compiler.binding types in tolerated rows (`CodeGen → Bindi
 `Binding.Model → Binding` 21, `Binding.Bound → Binding` 46, and three smaller rows). Its `blocked_by` now names those
 rows' removers: PB2320, PB2347, PB2399, PB2405, PB2406, PB2407, PB2418, PB2419 and PB2420.
 
-**Witnesses.** `=== ARCH-ORACLE: IDENTICAL — 16536 cases (baseline 5ee45df108fc, new 5ee45df108fc-dirty) ===`. No
+**Witnesses.** `=== ARCH-ORACLE: IDENTICAL — 16536 cases (baseline c0006ed96123, new c0006ed96123-dirty) ===`. No
 inventory row changed (`closes_rows: []`, behavior-neutral). The gate's verdict line is in the wave report.
 

@@ -35,7 +35,7 @@ rows joined their selectors: five in `validate-only`, three in `screen-handling-
 prints no band). All eight already carried DOCUMENTED-NON-SUPPORT by hand, so no verdict moved. `$format-band-residue` is deleted
 and `DESIGN-spec-conformance-review.md` states the mechanism.
 
-**Rows.** Catalog 4,195 → 4,214 (+18 paragraph rows, +FMT-14.9.7.2); GAP 56 → 67 on main's inventory (counted: origin/main at `fbe2d15a7` has 4,195 rows and 56 GAP; this branch 4,214 and 67) after
+**Rows.** Catalog 4,195 → 4,214 (+18 paragraph rows, +FMT-14.9.7.2); GAP 56 → 67 on main's inventory (counted: origin/main at `d02b096af` has 4,195 rows and 56 GAP; this branch 4,214 and 67) after
 the batch `pb284-new-rows`: the landing RAISES the burn-down GAP by 11, because the 11 new DOCUMENTED-NON-SUPPORT rows wait for
 module witnesses, while 8 new rows were CONFORMS at birth. (An earlier draft said 75 → 67; 75 was an intermediate count of the
 working tree that never existed on main.) Editions: record locking 2002,2014,2023 on its decided siblings; commit and
@@ -77,7 +77,7 @@ lower-case keyword list in `BoundDeferralDriftTests` as a copy of the heading pa
 only as a regex, and a theory proves it flags each spelling of the pattern and passes the keyword list.
 
 
-**Merge-queue bounce (finisher).** Pull request #216's merge group (run 39107407998, base `d06dc4fd2`) went red on
+**Merge-queue bounce (finisher).** Pull request #216's merge group (run 39107407998, base `b5316f04d`) went red on
 `SpecTraceabilityInventoryDriftTests.EveryCodeLocation_ResolvesInTheTree`: the new paragraph row `GR-9.1.16-p4` named
 `FileRegistry.cs#ReadLockGovern`, a method kb/Work PB338 replaced and that file names only in a comment. The branch's gate
 passed it because the word search then read comments; kb/Work PB762, which landed in the group just ahead, reads code only.

@@ -65,7 +65,7 @@ rewritten: the length field is big-endian, 4 characters for PREFIXED and 2 for S
 of zeros. Four 2014 goldens (`pb1094_dynamic_length_structure_{record_image,elementary_record,organizations,record_size}`)
 and `CobolDynStructureTests` (31). GR-12.3.7.4-19 went DIVERGES → CONFORMS.
 
-**The train.** The four clusters were applied in order B, D, C, A onto `9b764bdc1` (unchanged origin/main) from their
+**The train.** The four clusters were applied in order B, D, C, A onto `f14357d1a` (unchanged origin/main) from their
 branch diffs. DEVLOG and the inventory were excluded from those diffs; the inventory was instead re-applied from
 `batch-w1003b.json` (GAP 675 → 670) and `batch-pb1094.json` (670 → 669). The only conflicts were two whole-element
 manifest entries (`2002`, `2023`), resolved keep-both, with the entry counts checked (597 and 774, all distinct). The

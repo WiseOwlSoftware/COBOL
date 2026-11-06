@@ -1,8 +1,8 @@
 """The PB1708 pivot's ORDERING, replayed on the one dropped branch whose reds are named: train 68b X.
 
-    python b4.py > b4.txt           (needs the 4b0f3e22a map; see common.py for how to record it)
+    python b4.py > b4.txt           (needs the ba3aba6b9 map; see common.py for how to record it)
 
-X (`5171c6872`, base `4b0f3e22a`) went red at the lander's whole-assembly gate on two tests its name-guessed filter
+X (`5171c6872`, base `ba3aba6b9`) went red at the lander's whole-assembly gate on two tests its name-guessed filter
 never ran: DiagnosticPositionTests.Copy_MainLinesStayMain_CopiedLinesNameTheCopybook and
 ParseErrorInsideCopybook_NamesTheCopybookLine. Ordered by the §3.13 rank (tier 1: tests executing a directly
 changed method body, by specificity; tier 2: tests reached only through a widening — a static constructor, a
@@ -21,7 +21,7 @@ import math
 import tempfile
 from common import *
 
-m, ix = load("4b0f3e22ae272ae6f5163b42b45b0bbd3ad1d707")
+m, ix = load("ba3aba6b989e2443acc07ff124c65aa8cf936f54")
 M = m["commit"]
 RED = ["DiagnosticPositionTests.Copy_MainLinesStayMain_CopiedLinesNameTheCopybook",
        "DiagnosticPositionTests.ParseErrorInsideCopybook_NamesTheCopybookLine"]
@@ -29,7 +29,7 @@ N = len(ix.by_assembly["Conformance"])
 dur = {i: ix.tests[i][5] for i in ix.by_assembly["Conformance"]}
 total = sum(dur.values())
 
-base = git("rev-parse", "4b0f3e22a").strip()
+base = git("rev-parse", "ba3aba6b9").strip()
 head = git("rev-parse", "5171c6872").strip()
 rows = per_file(ix, M, base, head)
 direct = 0

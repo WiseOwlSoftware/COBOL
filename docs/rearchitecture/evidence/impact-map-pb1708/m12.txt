@@ -1,4 +1,4 @@
-M12 acceptance on ef645ba057e5 (base bf2e5b43f84b)
+M12 acceptance on ef645ba057e5 (base 217bda2f0751)
 Characterization: --list-tests discovered 35 cases
 Unit: --list-tests discovered 29715 cases
 Conformance: --list-tests discovered 9319 cases
@@ -13,7 +13,7 @@ A. no handshake
   PASS  Conformance: definitions == --list-tests as a multiset (9319 vs 9319)
       outcomes {'Passed': 9319}
 B. a full handshake
-  every case tier 1: no impact map recorded for the base bf2e5b43f84b or any ancestor in E:\COBOL\.git\cobol-impact — record one (record_impact_map.py --commit bf2e5b43f84b)
+  every case tier 1: no impact map recorded for the base 217bda2f0751 or any ancestor in E:\COBOL\.git\cobol-impact — record one (record_impact_map.py --commit 217bda2f0751)
     every case tier 1: tests/Directory.Build.props: a grammar, build or source-generator input — every assembly may change
   gate_plan: Characterization: 35 cases, tiers {'0a': 2, '0u': 0, '1': 33, '2': 0, '3': 0}; leg 1 35 cases (3.071 of 3.071 recorded s; floor 1.925 s in EmittedCSharpSnapshotTests); legs [1] — its whole recorded time 3.1 s fits the collection cap
   gate_plan: Unit: 29715 cases, tiers {'0a': 14, '0u': 0, '1': 29701, '2': 0, '3': 0}; leg 1 28754 cases (31.132 of 1250.078 recorded s; floor 3.108 s in ImpactedTestsDriftTests); legs [1, 2]

@@ -1,4 +1,4 @@
-"""The static constructors of the dbea12428 map ranked by how many Conformance tests the static-constructor rule
+"""The static constructors of the dad934c91 map ranked by how many Conformance tests the static-constructor rule
 makes a change to them reach, with their owned-line span (a proxy for 'a table')."""
 from common import *
 

@@ -3,7 +3,7 @@
 **What.** The second differential fuzz night (`conformance-suite/results/fuzz-20261021-211424`: qwen3.6:35b, seed
 20261022, 8 hours, 4,931 programs, judge built from main at 20:38 on 2026-10-21, before PB3489, PB3504 and PB3505 landed)
 ended at 05:14. Survivors: 1,260 programs in 314 signatures. This landing files the three WiseOwl defects it found, each
-reduced and re-confirmed on a fresh build of main at fd407980f:
+reduced and re-confirmed on a fresh build of main at 8fe3f8948:
 
 - **PB3510, a compiler crash.** `OCCURS … DEPENDING ON` naming the group that CONTAINS the table overflows the binder's
   stack (`ReferenceResolver.WrapIfOdoGroup` resolves the depending item, which is the group it is wrapping, which resolves

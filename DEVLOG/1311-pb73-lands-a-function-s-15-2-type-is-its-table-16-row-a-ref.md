@@ -41,6 +41,6 @@
 **2049/2049** · Unit `Table16|Move|RefMod|Place|Intrinsic|Registry|Manifest|Guard|SpecTraceabilityInventory|Boolean`
 **245/245** · CLI probes. Docs: CONFORMANCE.md item 92, COBOLNET_INTRINSICS_DESIGN.md, COBOLNET_DATA_MODEL_DESIGN.md,
 kb/Work PB73 → landed, PB72 corrected, plan §0. Battery owed for the PB77 + PB73 batch with the next landing
-(battery #9, tree `ac71c27a`, was ALL GREEN: Conformance 4676/4676 · Unit 4218/4218 · Characterization 33/33 ·
+(battery #9, tree `0ba4084d`, was ALL GREEN: Conformance 4676/4676 · Unit 4218/4218 · Characterization 33/33 ·
 NIST 353/0 audit-clean · differential 0 flips).
 

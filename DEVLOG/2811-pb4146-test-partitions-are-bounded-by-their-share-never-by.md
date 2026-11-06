@@ -4,7 +4,7 @@
 absolute size bounds in `ConformancePartitioningDriftTests` (500 rows a suite partition, 3 formats an optional-word
 partition). The suite only grows, so every crossing turned the drift test red on every golden-adding branch until
 someone raised `Partitions` by hand (#811's merge group at 12,005 rows, 24 × 500), and it pushed an implementer to trim
-a golden to one edition to stay under the bound (PB4096). Re-probe at base 90da780ef, after the operator's bump to 32:
+a golden to one edition to stay under the bound (PB4096). Re-probe at base 89e4e15ac, after the operator's bump to 32:
 3,113 test rows and 8,900 refusal rows, 12,013 in all, 376 a partition, so the bound would turn red again 3,987 rows
 later.
 

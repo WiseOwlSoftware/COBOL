@@ -1,7 +1,7 @@
 ## Entry 2105 — 2026-10-16 13:04 PDT — PB2099: the .NET host surface lands (parts 1-7): the outermost activation boundary, R48's run-unit-ended result, the host type table, the door rules, the host entry, the published record struct with OCCURS DEPENDING, reference and variable-length members, the library output kind and the one host surface
 
 Wave 1077 group E took kb/Work PB2099, slice 3 of DESIGN-external-repository: the typed host entry and the one host
-surface. Two earlier waves had left it unstarted. The re-probe at a6744fa4d found none of the slice in the tree:
+surface. Two earlier waves had left it unstarted. The re-probe at 59b34c4cd found none of the slice in the tree:
 `ProgramTable.CallProgram` and `Cancel` took a non-null `callerPath`, `RunUnitEndedException`, `HostSurface`,
 `HostLanding` and `HostEntryEmitter` did not exist, and `RoslynBackend` always emitted a console application. The
 slice is five mechanisms. This branch lands the first one, the runtime boundary, and stops at that boundary for a
@@ -56,7 +56,7 @@ Conformance 6,126/11,665 · Unit 32,981/33,617 · Characterization 6/36 cases ra
 
 ### Part 2: the host type of a description and the door rules (wave 1078 group C)
 
-Wave 1078 group C cherry-picked part 1 onto main (c29af1704) and took the second mechanism: the one function that
+Wave 1078 group C cherry-picked part 1 onto main (a79f3612d) and took the second mechanism: the one function that
 names a description's .NET host type and the one runtime class that lands and decodes host values. The re-probe found
 neither in the tree (`HostSurface`, `HostLanding` absent; part 1's boundary present and building 0/0).
 
@@ -154,7 +154,7 @@ of 2 leg(s)`. `HostEntryTests` and `HostEntryShapeDriftTests` passed in leg 1.
 
 ### Part 4: the published record struct (wave 1080 group B)
 
-Wave 1080 group B cherry-picked wave 1079 B's thirteen commits onto main (2b60d9fa9) with no conflicts and re-gated
+Wave 1080 group B cherry-picked wave 1079 B's thirteen commits onto main (5ad76f90f) with no conflicts and re-gated
 them GREEN (`20261015T010318Z-bd98a1`). The re-probe: `HG1`, whose formal is a group with a FILLER, a COMP-3 member,
 a nested group and a table, compiled to a module with no host entry at all, because `ElementaryOnly` refused the unit.
 
@@ -255,7 +255,7 @@ the entry. The rest is the next implementer's: DOC-A.1-116 with its witness, con
 
 ### Part 6 (wave 1085 group A): the one host surface, one renderer, the published names
 
-Wave 1085 group A cherry-picked wave 1082 B's 22 commits onto main f5fec711b with no conflict. The build was 0/0, and the
+Wave 1085 group A cherry-picked wave 1082 B's 22 commits onto main 1ad0a9821 with no conflict. The build was 0/0, and the
 ABI pins and the host-entry shape test passed on the merged tree before any new work.
 
 **The untyped host route is retired.** The four tests that hosted COBOL through `ProgramRegistry.CallProgram`,
@@ -304,7 +304,7 @@ creates `docs/manual/`.
 
 ### Part 7 (wave 1093 group B): variable-length groups, and the slice lands
 
-**Cherry-pick.** Wave 1085 A's 28 commits went onto main bfb2eb47e. Main had landed kb/Work PB3163 (a run unit under a
+**Cherry-pick.** Wave 1085 A's 28 commits went onto main dc2142361. Main had landed kb/Work PB3163 (a run unit under a
 host no longer writes the process exit code) in the meantime, so `ProgramTable` conflicted three times. The merged
 `AbnormalTermination` writes the run unit's `ExitStatus` (PB3163) through the predecessor's `AbnormalTerminationStatus`
 and report, and `RunModule` keeps PB3163's one exit-code write with the predecessor's non-null `mainPath`. PB3163's new
@@ -354,13 +354,13 @@ The parameters are now claimed in the class's one scope beside the records, in s
 `CsNameScope.Nested` is deleted. The collision fixture gains `L-G-2-Record` beside `L-G-2`. A wider sibling stays open
 and is reported as a lead: a COBOL word spelling a runtime or `System` type the generated code names unqualified
 (`HostLanding`, `CobolString`, …) shadows that type in every scope, including the internal program class on main.
-Gate: `TestResults/build-local/20261016T142356Z-cf0513` at db31969fc: `LEG 1 ONLY (batched gating, PB2515): GREEN`
+Gate: `TestResults/build-local/20261016T142356Z-cf0513` at 43b4e4191: `LEG 1 ONLY (batched gating, PB2515): GREEN`
 (Conformance 6,025/11,781, Unit 33,247/33,720, Characterization 6/36 in leg 1; the extended collision fixture passed
 in leg 1). Semgrep verify: PASS.
 
-**Gate (part 7).** `TestResults/build-local/20261016T140250Z-5116d8` at 8c067d41d: `LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 6,015/11,776, Unit 33,206/33,714, Characterization 6/36 in leg 1; every test this part added or changed ran in leg 1 and passed). The first gate (`20261016T135015Z-7dcf04`) was RED on `RuntimeApiGuardTests` only: three bare `CobolVarGroup.` accesses in `PublishedRecordEmitter`, now routed through `RuntimeApi` (8c067d41d). Semgrep verify: PASS. LINUX GATE: the lander's (batched gating).
+**Gate (part 7).** `TestResults/build-local/20261016T140250Z-5116d8` at 5e5103bed: `LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 6,015/11,776, Unit 33,206/33,714, Characterization 6/36 in leg 1; every test this part added or changed ran in leg 1 and passed). The first gate (`20261016T135015Z-7dcf04`) was RED on `RuntimeApiGuardTests` only: three bare `CobolVarGroup.` accesses in `PublishedRecordEmitter`, now routed through `RuntimeApi` (5e5103bed). Semgrep verify: PASS. LINUX GATE: the lander's (batched gating).
 
-**Finisher (the landing's Linux gate, RED on dfb23ce1c).** The Windows gate was GREEN in leg 1; the Linux gate, which
+**Finisher (the landing's Linux gate, RED on a0ccd8c1f).** The Windows gate was GREEN in leg 1; the Linux gate, which
 runs every case, was RED on three defects, each the branch's. (1) NIST IC207A no longer compiled (CS0173, exit 70;
 also the guard leg's one regression): IC207A's `PROCEDURE DIVISION USING … INDEX-1 DN3` gives an index and a `PIC 99`
 formal, both `ref long`, of different descriptions, and the entry's alias conditional joined the index's
@@ -374,23 +374,23 @@ CONFORMANCE.md §7 rows DOC-A.1-141 and DOC-A.1-167 did not name in `Pinned by` 
 Windows held none of the three: IC207A and the register audit are leg 2 with no impact map, and the NIST output
 exists only where the guard leg ran.
 
-**Review of the finisher's head (82b288267), finding R1-1, and the merge with main (w1098a).** The review found that
+**Review of the finisher's head (03d0cf0ae), finding R1-1, and the merge with main (w1098a).** The review found that
 design §4.3 promised the two-description alias refusal "before anything is landed", while the entry ran each
 `HostLanding.RequireDistinct` inside the landing loop, after every earlier formal had been landed: H1ALIAS called
 with `ref big, ref b, ref big, ref i` and `big = 123456` refused LK-A's value (`ArgumentOutOfRangeException`) and never
 reported the alias. The code now matches the design: `EmitCallBody` decides every formal pair first (a pair of one
 description becomes the landing's `Unsafe.AreSame(…) ? <cell> :` arm, a pair of two descriptions its own
 `RequireDistinct` statement, all emitted before the first landing), then lands the formals. HostEntryTests' H1ALIAS run
-gains the line `FIRST ArgumentException LK_C`. The merge with main 32f372674 took main's PB3101 change: the alias test
+gains the line `FIRST ArgumentException LK_C`. The merge with main 4c399830a took main's PB3101 change: the alias test
 asks `OoConformance.SignatureDifference` (the deleted `DescriptionMismatch` was its only caller here); DOC-A.1-141 and
 DOC-A.1-13 combine both sides; the runtime ABI pin keeps main's major 6 and re-pins the surface hash alone, the merged
 Shipped surface differing from main's only by the nullable `callerPath` annotation.
-Gate `TestResults/build-local/20261016T192507Z-8d5723` at bb4120465: `LEG 1 ONLY (batched gating, PB2515): GREEN`
+Gate `TestResults/build-local/20261016T192507Z-8d5723` at 973ed1299: `LEG 1 ONLY (batched gating, PB2515): GREEN`
 (Conformance 6,128/11,845, Unit 33,394/33,797, Characterization 5/36 in leg 1; HostEntryTests, HostEntryShapeDriftTests,
 RuntimeAbiPinDriftTests and OneRelationDriftTests among them). Run directly on the same build, being leg 2:
 `AnnexA1RegisterDriftTests` and IC207A's NIST differential and version-matrix cases, all passed. Semgrep verify: PASS.
 
-**Review of the w1098a head (0d47dd079), finding R1-1 of round 1 (wave 1098 finisher 2).** The review found that the
+**Review of the w1098a head (0e0bb60a2), finding R1-1 of round 1 (wave 1098 finisher 2).** The review found that the
 landing's one-description alias arm let a non-OPTIONAL reference-type formal share the cell of an earlier OPTIONAL one:
 `USING OPTIONAL LK-A LK-B` (both `PIC X(4)`) emits `ref string? LK_A, ref string LK_B`, and a host's
 `string s = null; PALIAS.Call(ref s, ref s)` handed LK_B the omitted LK_A's null cell, so LK_B's null refusal never ran
@@ -403,8 +403,8 @@ arm now shares only a storage that exists: an OPTIONAL later formal's omission t
 when only the earlier formal is OPTIONAL the arm also asks that its cell is not null, so the later formal lands the
 null by its own row. Design §4.3 states it. HostEntryTests gains H1OPT (`USING OPTIONAL LK-A LK-B OPTIONAL LK-P LK-Q
 LK-R OPTIONAL LK-S`) and its host lines `A [ABCD] B [ABCD]`, `P OMITTED`, `Q NULL`, `R NULL`, `S OMITTED` and
-`OPTNULL LK_B`; with the emitter at 0d47dd079 the host process dies at the first H1OPT call.
-Gate `TestResults/build-local/20261016T194523Z-cc2341` at eed17fdd7: `LEG 1 ONLY (batched gating, PB2515): GREEN`
+`OPTNULL LK_B`; with the emitter at 0e0bb60a2 the host process dies at the first H1OPT call.
+Gate `TestResults/build-local/20261016T194523Z-cc2341` at b84234654: `LEG 1 ONLY (batched gating, PB2515): GREEN`
 (Conformance 6,118/11,850, Unit 33,427/33,851, Characterization 5/36 in leg 1; HostEntryTests among them). Semgrep verify: PASS.
 
 

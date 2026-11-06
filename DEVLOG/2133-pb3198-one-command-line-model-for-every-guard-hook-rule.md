@@ -7,7 +7,7 @@ with heredoc bodies removed and quotes blanked, plus `bash -c` payloads; rule 3 
 everything after the first `<<`; rules 5-7 read the shared parser `shell_location.steps`. `worktree_rm_allow.py` split
 git's argv with `shlex`, a sixth view.
 
-**Re-probe (base 494246263, attended).** After a `cat > msg.txt <<'EOF' … EOF` heredoc, `git stash`, `git push origin
+**Re-probe (base 38a78d791, attended).** After a `cat > msg.txt <<'EOF' … EOF` heredoc, `git stash`, `git push origin
 main` and `dotnet test --filter "~Foo" > log.txt` each exited 0 (each exits 2 alone). The converse held too:
 `python -c "print(1<<2)"; printf "a\n"` and `git commit -m "never git stash"` were blocked. The live hook blocked this
 branch's own sweep (a `grep` whose quoted pattern held `<<`) during the work.
@@ -24,7 +24,7 @@ heredoc-fed call or a drive-relative path. `fleet_active_build.py` and `status_g
 a build or a commit through the model, with no edit of their own.
 
 **Finished on resume (wave 1101 group A).** The CLI update of 2026-10-16 14:45 PDT killed wave 1098's agent before its
-gate. Its three commits were cherry-picked onto fda09da03 without conflict, and two holes its self-review had left were
+gate. Its three commits were cherry-picked onto ed83d393d without conflict, and two holes its self-review had left were
 closed in the same model. First, a heredoc that a shell reads as its SCRIPT is walked as a command line
 (`_reads_stdin_script`): `bash <<'EOF'`, `bash -s args`, `sh -e -o pipefail`, `pwsh -Command -` and `-File -`. Before
 it, `bash <<'EOF'` / `git stash` / `EOF` passed every rule. A heredoc fed to a script operand (`bash run.sh <<EOF`)
@@ -37,7 +37,7 @@ shell-read heredoc; its words inside a body or a quote; and the PB1725/PB1736 re
 on the old hook. `test_shell_location.py` 73 → 99 and `test_worktree_rm_allow.py` 45 → 56.
 
 **Register.** PB3198 landed (`closes_rows: []`: guard-hook tooling, no inventory row). PB1725 and PB1736 were
-discharged: commit 10499a6b5 had already anchored `VERDICT` at command position, and their repros are now pinned.
+discharged: commit 4da369695 had already anchored `VERDICT` at command position, and their repros are now pinned.
 
 **File set.** `shell_location.py` and `test_shell_location.py` were outside wave 1098's declared set, which named only
 the four `forbidden_commands`/`worktree_rm_allow` files. The member index does not index the hooks' Python, so the
@@ -66,7 +66,7 @@ here-string (the lead the round-0 report filed) or from the pipeline stage befor
 output (`echo`, `printf`, `Write-Output`, `cat` of a heredoc, a PowerShell literal). Rule 5 counts a substitution as
 part of its command (`echo "EXIT=$? $(date)"` stays a capture), and rule 4 reads the pipe's reader past one.
 `resolve` treats `%X%` and a PowerShell expression as undetermined. Tests: `test_forbidden_commands.py` 160 → 210 (32
-of the new cases fail on the reviewed head abc57f110), `test_shell_location.py` 99 → 120.
+of the new cases fail on the reviewed head 00bdf3bc3), `test_shell_location.py` 99 → 120.
 
 Branch review round 2 (R2-1): the round-1 fix taught rule 4 to skip every substitution step when it looked for a filtered
 `dotnet test`'s pipe reader, so a run that was ITSELF inside a substitution never found its reader, a step of that same
@@ -81,7 +81,7 @@ reads from as "the last step, if it is at my depth", so a group on either side o
 calling shell. `_walk` now passes the previous stage forward explicitly: a group hands it to its first command, the next
 stage reads a group's last step, and a Bash `{ … }` pipeline side is a subshell. Rule 5 still treats a substitution
 like a group, as one opaque part of its command. Tests: `test_forbidden_commands.py` 210 → 222 (7 of the new cases fail
-on the reviewed head e24a57545), `test_shell_location.py` 120 → 125.
+on the reviewed head 40c9f6d85), `test_shell_location.py` 120 → 125.
 
 Branch review round 3 (R3-1): round 2's stage fix handed a group's upstream stage to the group's inner walk, and
 `_command` read any upstream stage as "this command is a pipeline side", so the FIRST command inside a group on the
@@ -94,6 +94,6 @@ it. Only that local `|` makes a command transient. The sweep found the same gap 
 stage only to its first command, so `echo 'git stash' | ( cd X; bash )` passed, and neither a Bash substitution nor a
 `-c` payload inherited the stdin of the command holding it (`echo 'git stash' | bash -c 'cd X; bash'`,
 `echo 'git stash' | x=$(bash)`). Each now does; a script read from stdin consumes it. Tests: `test_forbidden_commands.py`
-222 → 232 (6 of the new cases fail on the reviewed head ff8f1c01b), `test_shell_location.py` 125 → 135 (7 fail there),
+222 → 232 (6 of the new cases fail on the reviewed head c2bdc1b8d), `test_shell_location.py` 125 → 135 (7 fail there),
 `test_worktree_rm_allow.py` 56 → 57 (a pin: a group never grants).
 

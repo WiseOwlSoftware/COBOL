@@ -2,7 +2,7 @@
 
 A GO TO ... DEPENDING ON inside a performed paragraph, whose selected target was the paragraph that physically follows the PERFORM's exit paragraph, silently ended the PERFORM: the target never ran, control resumed after the PERFORM, and the program exited 0 with no output. The overnight differential fuzz run (PB3488 harness, program fz01959) found it; GnuCOBOL printed the two lines and ISO/IEC 1989:2023 14.9.17.4 GR2 says control is transferred to the selected procedure-name.
 
-**Re-probe.** The filed reduction printed nothing on a fresh build of 2881947e8, as the note said.
+**Re-probe.** The filed reduction printed nothing on a fresh build of dad372a1a, as the note said.
 
 **Cause.** The emitter has two ways out of a paragraph body. A completion (fall-through, EXIT PARAGRAPH, EXIT SECTION, NEXT SENTENCE in a last sentence) leaves with the bare jump, and the dispatcher's return test (`__atExit && __pc == __exitPc + 1`, the 14.6.3 rule 1 implied return) is meant to fire for it. An explicit transfer (GO TO) leaves through `ExplicitTransferOut`, which first clears `__atExit`, because a GO TO to the paragraph after the exit paragraph does not complete the exit paragraph (14.9.28.4 GR5: the return mechanism sits after the last statement). The format-1 GO TO and the ALTERed GO TO used the explicit form (PB1148). `EmitGoToDepending` still used the bare jump, so its selected target was taken for the exit paragraph completing. Two arms of one dispatch, one of them wrong.
 

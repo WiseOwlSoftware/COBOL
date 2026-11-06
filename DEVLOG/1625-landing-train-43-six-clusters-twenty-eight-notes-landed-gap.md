@@ -1,7 +1,7 @@
 ## Entry 1625 — 2026-09-21 13:01 PDT — Landing train 43: six clusters, twenty-eight notes landed, GAP 2339 → 2310
 
 Train 43 carried SIX clusters into one landing from six implementer worktrees, every one of them based on
-`4da7ba02d` — the head `origin/main` still carried when the train was dispatched, so nothing needed rebasing and
+`ac2601187` — the head `origin/main` still carried when the train was dispatched, so nothing needed rebasing and
 the six diffs were brought in one at a time, each with its own commit, in the manifest's order. Three of the six
 clusters are wave-42 work that the daily-cap suspension left on a predecessor branch: clusters 1 and 6 each
 MERGE their `wf_c18987cb-f4c-*` predecessor, so those two branches carry nothing that is not in this train and
@@ -116,7 +116,7 @@ identical. The twelve verdict batches were then re-applied in landing order on t
 **rows changed 0** — the textual merge of `traceability-inventory.json` had preserved every cluster's rows
 exactly, and the re-application is the authority that says so rather than an assumption that it did.
 
-GAP was measured at BOTH ends rather than inherited: the base `4da7ba02d` inventory regenerates 4348 items /
+GAP was measured at BOTH ends rather than inherited: the base `ac2601187` inventory regenerates 4348 items /
 **2339** GAP, the merged tree 4348 / **2310**. −29, matching the 29 records exactly. Every note flipped to
 `landed` carries `closes_rows` (20 notes) or `closes_rows: []` with a `closes_rows_reason` (7), no landed note
 claims a row that is still GAP, and `backfill_closes_rows.py` finds nothing to add. All 49 new goldens are

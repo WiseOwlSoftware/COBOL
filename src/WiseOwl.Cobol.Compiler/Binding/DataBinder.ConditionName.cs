@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <para><b>Why this exists.</b> <c>DataBinder.BindCondition</c> was a VALUE decoder: it captured the level-88
 /// entry's literals and hung the <see cref="Condition88"/> off whatever <see cref="DataItem"/> the caller handed
 /// it, and the caller handed it <c>stack.Peek()</c> unconditionally. SR24's association sentence and ALL EIGHT of
-/// its lettered exclusions had no site anywhere in the compiler. Measured on 1840778e, one probe per leg, every
+/// its lettered exclusions had no site anywhere in the compiler. Measured on c113f690, one probe per leg, every
 /// one of these compiled and all but two of them then ANSWERED:</para>
 /// <list type="bullet">
 ///   <item>b) <c>66 R1 RENAMES A THRU B.</c> followed by <c>88 COND-R VALUE "CD".</c> — a level-66 entry is never

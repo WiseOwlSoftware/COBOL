@@ -67,7 +67,7 @@ numeric subject first and either errors or rewrites it. True — of `item.RawVal
 only in what was concluded from it. [[feedback_reachability_is_measured_not_deduced]], on the closing sentence
 rather than the premise.
 
-| | `8ca74a3d` | now | derived from spec |
+| | `99bc08c8` | now | derived from spec |
 |---|---|---|---|
 | `DISPLAY GL` | `AA012012CC` | `AA+012+012CC` | GR12/GR13 + GR5/GR7 + §13.18.52.4 GR6a/GR6b |
 | `DISPLAY LB(1)` | `012` | `+012` | " |
@@ -90,7 +90,7 @@ decision that format-2 literals escape SR2.
   → Unhandled System.ArgumentOutOfRangeException in GroupValueSlicer.SliceInit
 ```
 
-Measured on the wave tree AND independently in a clean worktree at `8ca74a3d`, so the crash predates PB184.
+Measured on the wave tree AND independently in a clean worktree at `99bc08c8`, so the crash predates PB184.
 Then the note's other claim — "right for a single-member bit group; only a multi-member one can observe the
 gap" — was probed and is false: `05 B1 PIC 1(4).` displayed `1`, one boolean position, against `1010` for its
 member-wise twin. The area text is truncated to the group's 1-character `ImageWidth` before it is sliced, so the

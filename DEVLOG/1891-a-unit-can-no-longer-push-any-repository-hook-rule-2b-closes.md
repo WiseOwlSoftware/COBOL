@@ -7,7 +7,7 @@ also stop cloud adjudication sessions (their brief says `git push -u origin clau
 bypassed. So the fix is `forbidden_commands.py` rule 2b: inside an orchestrator unit (the supervisor exports `COBOL_COORD_DIR`; hooks, also in subagents, inherit it) every direct `git push`, in any repository
 with any flags, is refused. It matches the subcommand after global options, scans `bash -c` and `pwsh -Command` payloads and the text after a heredoc, and ignores quoted text and heredoc bodies (my first
 version blocked a commit message that merely said "git push", found by the test I wrote for the legitimate neighbours). 74 cases; the unit's own shape is refused, `push-main.sh` and attended pushes are not. I did NOT
-touch `.claude/settings.json`; the owner can still ask for the blanket deny, with the collateral stated in PB2044. The pin move from the previous entry is on main (`06193e233`, CI green).
+touch `.claude/settings.json`; the owner can still ask for the blanket deny, with the collateral stated in PB2044. The pin move from the previous entry is on main (`fd69f0b53`, CI green).
 
 **Files:** `scripts/hooks/forbidden_commands.py`, `scripts/hooks/test_forbidden_commands.py`, `kb/Work/PB2044.md`. No diagnostic code used.
 

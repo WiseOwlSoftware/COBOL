@@ -6,7 +6,7 @@
 phrase, if specified, is ignored") governs. The test now asserts the GR3 behavior
 (`GobackRaisingFatal_InMainProgram_IsIgnored_NormalTermination`; EC suite 51/51). HONEST NOTE: Entry 913's
 commit gated wave-local (CorpusRunner + unit + characterization + legacy) and NOT the full Conformance
-project — the `04c32a93` lesson class recurring; this Entry's commit runs the full gate.
+project — the `9e64113f` lesson class recurring; this Entry's commit runs the full gate.
 
 **The V31 fix (batch-6 verdict, confirmed both lenses):** the figurative-constant store into a ref-mod slice
 (`PlaceRenderer.WriteFill`) omitted `allowZeroLength` while the sibling `Write` RefModPlace arm threads it —

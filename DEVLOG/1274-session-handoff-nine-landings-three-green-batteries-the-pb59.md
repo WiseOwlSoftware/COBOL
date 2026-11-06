@@ -4,7 +4,7 @@ Handoff for a /clear. The day's ledger: the three PB65 singles plus PB59 familie
 landings, each probed before and after, every golden's values from an independent oracle, GAP 4187 → 4166,
 the A.1 register at 21/199 (items 33 and 93 new), four incidental finds registered as PB68–PB71 before
 their DEVLOG paragraphs. Three comprehensive batteries measured ALL GREEN during the session; a FOURTH was
-in flight at handoff over the grammar-bearing batch ending 226d7a01 — §0's first-action instruction is
+in flight at handoff over the grammar-bearing batch ending 527fe612 — §0's first-action instruction is
 to read its verdict line before any new code.
 
 The session-scoped artifacts that would die with the scratchpad are FROZEN into the repo: the 7-agent

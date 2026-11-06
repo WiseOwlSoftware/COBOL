@@ -149,8 +149,8 @@ makes it receiving. Three goldens, two negatives, and `CallAbiNumericCarrierDrif
 six-carrier vocabulary (failure branch fired). `SR-14.9.4.3-17`/`-20`/`-23` and `GR-14.9.4.4-8` → CONFORMS.
 
 **The train.** Four clusters, four cluster commits plus this prose, brought in on the manifest's order —
-PB233 (base `4fac59ef`, pre-train-2) · PB598 (`f78a825a`) · PB237 (`408e360f`) · PB238 (`408e360f`) — onto main
-at `bd7910fe`. Three real merges and no cluster dropped. ① `ProgramEmitter.EmitCallMethod` against PB204: PB233
+PB233 (base `757a6b4b`, pre-train-2) · PB598 (`c5a0b552`) · PB237 (`b58e1c8f`) · PB238 (`b58e1c8f`) — onto main
+at `55a77f42`. Three real merges and no cluster dropped. ① `ProgramEmitter.EmitCallMethod` against PB204: PB233
 DELETES the in-body `__DescribeExternals();` call because GR3e moved to the activation boundary, and a merge that
 restored it would describe externals twice — verified by grepping the whole tree for the symbol (zero hits) and
 reading the emitted `ICobolProgram.Activate()`, which calls `DescribeExternals()` exactly once. ②

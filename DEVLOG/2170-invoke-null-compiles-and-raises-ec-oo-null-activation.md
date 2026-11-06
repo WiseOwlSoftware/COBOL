@@ -2,7 +2,7 @@
 
 Wave 1112 group B, the OO binder group: kb/Work PB1136's receiver half and PB3257.
 
-**PB1136 — INVOKE NULL.** Re-probed on `e679ed0a9`: the object-view receiver (`INVOKE U AS C "M"`) and the
+**PB1136 — INVOKE NULL.** Re-probed on `d42c44da9`: the object-view receiver (`INVOKE U AS C "M"`) and the
 inline-invocation receiver (`INVOKE O :: "ME" "M"`) already worked (kb/Work PB1425); `INVOKE NULL "M"` was still the
 deferral COBOLNET1756 and a run-time `NotImplementedCobolFeatureException`. ISO §14.9.23.3 SR1 asks only that
 identifier-1 be an object reference, and §8.4.3.7.3 SR2 describes NULL as "class object and category object reference,

@@ -8,7 +8,7 @@ procedure-division paragraph `REMARKS.` holds `COPY NPBOOK` (a nested program's 
 pinned both `REMARKS` and the `AUTHOR. ME COPY NOSUCHBOOK.` that follows. Run 2 expanded NPBOOK, but by then AUTHOR was pinned as
 program text, so the compiler drew CBL3620 (NOSUCHBOOK), COBOL1971 and COBOL0001 where the program prints `1` / `INNER`.
 
-**Re-probe on base 11c6abfb1.** The defect reproduced exactly as above. `np2.cob` (NPBOOK inlined) and `np4.cob` (no candidate) printed
+**Re-probe on base 32d4e4db1.** The defect reproduced exactly as above. `np2.cob` (NPBOOK inlined) and `np4.cob` (no candidate) printed
 `1` / `INNER`. After the fix, all three print `1` / `INNER`.
 
 **Fix shape.** The design question the note raised was settled against D-CE2, and the determination was corrected in the same change.

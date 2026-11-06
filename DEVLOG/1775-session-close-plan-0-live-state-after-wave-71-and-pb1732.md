@@ -1,6 +1,6 @@
 ## Entry 1775 — 2026-09-29 01:04 PDT — Session close: plan §0 live state after wave 71 and PB1732
 
-The owner ended the session for the night after wave 71 and PB1732 landed (main `2a36d33bd`, CI green on both runs).
+The owner ended the session for the night after wave 71 and PB1732 landed (main `86c8a2877`, CI green on both runs).
 
 **Plan §0** gets a live-state bullet:
 - trains 71 and 71b, and what each carried;

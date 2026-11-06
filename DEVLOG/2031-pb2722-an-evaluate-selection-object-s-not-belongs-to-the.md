@@ -2,7 +2,7 @@
 
 Wave 1077 group F (PB2722, one root: the selection-object rule in `CobolControlFlow.g4` and its binder).
 
-**The note, re-probed.** On this branch's base build (a6744fa4d) `EVALUATE X WHEN NOT ANY … WHEN OTHER` compiled clean
+**The note, re-probed.** On this branch's base build (59b34c4cd) `EVALUATE X WHEN NOT ANY … WHEN OTHER` compiled clean
 and printed OTHER, and `EVALUATE TRUE WHEN NOT TRUE … WHEN OTHER` printed OTHER3: §14.9.13.2 prints ANY, TRUE and
 FALSE with no NOT ("The bracketed `NOT` applies only to the first five alternatives, exactly as stacked"), so both are
 source no format admits and §4.2.2 owes them an indication.

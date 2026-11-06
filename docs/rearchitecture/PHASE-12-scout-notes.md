@@ -14,7 +14,7 @@
 > **severe diagnostic-band collision** (17 of the 20 planned codes are already live), a **mis-identified feature**
 > (TYPE TO is not a pointer form), and a **wrong edition span** (`>>PROPAGATE` is live-in-2023, not ≤2014). Trust
 > THIS doc over the phase plan for anchors; the plan's STEP STRUCTURE is still the execution skeleton, but every
-> step needs the corrections below applied before coding. Line numbers were captured at HEAD `91ff7301` and will
+> step needs the corrections below applied before coding. Line numbers were captured at HEAD `fe90ea87` and will
 > drift as the tree changes — re-Grep before editing.
 >
 > Companion to `PHASE-12-m3-2014-deltas.md` (the step plan). Baseline battery at scout time (green):

@@ -1,7 +1,7 @@
 ## Entry 2019 — 2026-10-14 00:53 PDT — README: the status section names every declined row by its Annex item, held to CONFORMANCE.md by a test; the test list names the oracle and benchmark projects
 
 PB3134 (docs/readme, MINOR): the owner found the root README outdated the morning after PB3100 landed it. Every claim was
-re-verified against `2da05a28a`; the tools, options, emitted files, gate, CI, tree, documents, license and plans all
+re-verified against `58cf3af78`; the tools, options, emitted files, gate, CI, tree, documents, license and plans all
 held. What did not: the status section said four facilities are declined, while `docs/CONFORMANCE.md` §2 and §5 decline
 or hold partial 24 rows. The first rewrite listed more of them by hand and was still short: the branch review (R1-1)
 found CODE-SET with an alphabet no device encodes (A.3 item 27, COBOLNET1672), a national collating sequence by literals

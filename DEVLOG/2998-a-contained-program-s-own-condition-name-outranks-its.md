@@ -5,7 +5,7 @@ source element B is the referenced item." PB4219 had ranked a file-name against 
 element that declares each; the constant-name and index-name answers of `DataBinder.NonDataDeclarationOf` still returned
 before the condition-name check whatever their depth.
 
-**Re-probe (base 101ded510, Debug build).** A contained program with `88 RELF` under a container whose GLOBAL table is
+**Re-probe (base e22ffd875, Debug build).** A contained program with `88 RELF` under a container whose GLOBAL table is
 `INDEXED BY RELF` (or whose GLOBAL `01 RELF CONSTANT`): `OCCURS DEPENDING ON RELF` was refused as "declared as an
 index-name" / "a constant-name" (COBOL0851); `DISPLAY RELF` as an index-name (COBOL1637). The note's unprobed second half
 reproduced and is worse than a wrong word: `SET RELF TO 2` and `PERFORM VARYING RELF FROM 1 BY 1 ...` compiled clean and bound

@@ -5,7 +5,7 @@ file description entry with no record description entries: a) a RECORD clause is
 REWRITE carries `FILE file-name-1` and FROM, and c) every READ carries INTO. PB345 implemented a) (COBOLNET1836)
 and left the row GAP because b) and c) were unscreened.
 
-**Re-probe** on main `32f372674`, own Debug build. A sequential `FD F RECORD CONTAINS 10 CHARACTERS.` and a relative
+**Re-probe** on main `4c399830a`, own Debug build. A sequential `FD F RECORD CONTAINS 10 CHARACTERS.` and a relative
 `FD R RECORD CONTAINS 5 CHARACTERS.`, neither with a 01. `READ F AT END …`, `READ R INVALID KEY …` and
 `READ R NEXT AT END …`, none with INTO, compiled clean and ran, so c) reproduced. `WRITE FILE F FROM W` and
 `REWRITE FILE F FROM W` drew COBOLNET1706, as the note said.

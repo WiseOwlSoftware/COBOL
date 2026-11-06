@@ -18,7 +18,7 @@ shorthand (the §0 prose example `~Corpus|~ModuleName` is shorthand the wrapper 
 **Fired, both twins:** no filter → usage + non-zero; `~NoSuchTestAnywhere` → `conformance: NO VERDICT LINE` + RED
 (exit 1) while Unit 4431/4431 and Characterization 33/33 still ran; the batch's real filter
 `~Collation|~Locale|~StandardCompare` → Conformance 17/17 · Unit 4431/4431 · Characterization 33/33 → GREEN in
-2 m 32 s. **PB108 CLOSED** (`status: landed`; items `469fd12b`, `7ab0b2a5`, this). The battery reference stays #22:
+2 m 32 s. **PB108 CLOSED** (`status: landed`; items `f48e1a83`, `c53ce160`, this). The battery reference stays #22:
 PB108 is tooling plus two behavior-neutral, unit-covered constant extractions; it rides wave-local into the T1
 batch. Next: T1 — `SET LOCALE` Format 11 / the save-locale Format 12, `LocaleSymbol`/`LocaleRef`/`LocaleFacts` over
 the ONE `LocaleState`, per `DESIGN-locale-facility.md` §12.

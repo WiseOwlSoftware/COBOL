@@ -2,9 +2,9 @@
 
 **Session-open finding:** the working tree carried a 2-line diff in `src/Cobol.Net.Frontend/Generated/CobolParserCore.cs`
 — the fresh Windows-build regen of the `typeClause` predicate (`is2023()` → `is2002()`, the DEVLOG-586 TYPE-gate fix
-at `CobolData.g4:249`). `git log` proves the violation: the `.g4` change landed in d6c8143 but the Generated parser
-was last committed at 8c1eac1 (DEVLOG 577) — **the DEVLOG-554 CI rule was broken** (Linux CI's ANTLR regen fails and
-silently falls back to the checked-in parser, so CI has been running the STALE `is2023()` TYPE gate since d6c8143).
+at `CobolData.g4:249`). `git log` proves the violation: the `.g4` change landed in 35a5da1 but the Generated parser
+was last committed at 1268f3b (DEVLOG 577) — **the DEVLOG-554 CI rule was broken** (Linux CI's ANTLR regen fails and
+silently falls back to the checked-in parser, so CI has been running the STALE `is2023()` TYPE gate since 35a5da1).
 Windows builds regenerate locally, which is why every suite stayed green here and the miss was invisible.
 
 **Fix:** commit the regen (verified byte-identical to what the committed `.g4` produces — the build regenerated it,

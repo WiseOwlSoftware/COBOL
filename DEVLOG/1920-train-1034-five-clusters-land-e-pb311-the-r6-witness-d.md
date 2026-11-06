@@ -1,7 +1,7 @@
 ## Entry 1920 — 2026-10-07 13:18 PDT — Train 1034: five clusters land (E PB311 the r6 witness, D PB1457 SEARCH ALL key ref-mod, F PB947 SR24 letters, C PB244 cell ODO tail and tables of variable-length elements, B PB2095+PB2096+PB2280 CALL-boundary aliasing); PB2468–PB2469 filed; GAP 156 → 155
 
 Wave 1033's five branches, in the manifest's order E, D, F, C, B (B SPLIT: three of its five notes), one commit each
-and this entry in the train commit. Every branch was cut at `37f2b1311`, which is still origin/main, so no rebase.
+and this entry in the train commit. Every branch was cut at `d5b61075e`, which is still origin/main, so no rebase.
 
 **E — PB311: the code was right, the witness was wrong.** The note said DATE-TO-YYYYMMDD's r6 check used the sum
 argument-2 + argument-3 where §15.23.3 r6 says "the year at the time of execution". The implementer's re-probe showed
@@ -61,7 +61,7 @@ before and after (3 / 46 / 2 / 273). The only merge conflict was `tests/conforma
 appended entries): both sides kept, 747 → 750. D's and F's inventory hunks were not merged as JSON; their batches were
 re-applied with `record_verdicts.py` on the merged tree, and each result matched the implementer's own inventory
 change line for line. No diagnostic code was claimed (COBOLNET3005-3019 all returned).
-**Oracle:** 64 of 7,430 cases differ from `e68c33651ec0`, every one attributed: 12 ADDED (the goldens above);
+**Oracle:** 64 of 7,430 cases differ from `596741ca8ed5`, every one attributed: 12 ADDED (the goldens above);
 B PB2280, 42 CSHARP: the boundary description `System.Array.Empty<int>()` / `int[]` layout literal becomes
 `System.Array.Empty<GroupAtom>()` / a `GroupAtom[]` at each group formal adoption and argument (31 corpus programs
 and NIST IC103A, IC106A, IC108A, IC112A, IC114A, IC203A, IC207A, IC209A, IC216A, IC227A, IC235A); one of the 31,
@@ -70,7 +70,7 @@ argument now carries `Area: new CellPointer(cell, (bitOffset) / 8)` where it car
 w61b_pb1166); C PB244, 5 CSHARP: the cell helpers take the `CellOdoTail` argument (`default` for a group without the
 table: pb1026, pb1042 ×2), and two groups holding a dynamic table of variable-length elements gain a `CurrentImage()`
 over `__e.CurrentImage()` (pb1411, pb1716). No DIAGNOSTICS difference. The baseline is re-recorded on the train's tree
-as `bc1b9318fa82`. **Review** (full-code pass over the five clusters): 1 finding, fixed in C's commit. The comment in
+as `e745f478b099`. **Review** (full-code pass over the five clusters): 1 finding, fixed in C's commit. The comment in
 `AcceptDisplayEmitter.EmitDisplay` still described the national-member width divergence PB327 dissolved, and it now
 contradicted the A.1 item 57 row C had just edited. No correctness finding; no cluster dropped. GAP 156 → 155.
 

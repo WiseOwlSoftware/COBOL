@@ -97,7 +97,7 @@ clause-or-computer-name ambiguity became one left-edge predicate serving both th
 changes — and proved against the PRE-fix grammar, where the tool still reports all fifteen real rows.
 
 **The train.** Six clusters, one build, one gate, six commits plus this one. Bases ASCENDED across the rows
-(973460ba, 979b670c, then four at 2c8e32cb), so every row predated trains 13 and 14 and each conflict was
+(4649080a, 5481c218, then four at 6ee2b913), so every row predated trains 13 and 14 and each conflict was
 resolved by keeping BOTH mechanisms and re-deriving the seam: the COBOLNET1720 union above; `BoundStores`
 walking PB334's READ lists AND PB691's WRITE/REWRITE lists; `EmitWrite`/`EmitRewrite` as PB683's unconditional
 governed call with PB691's §9.1.14 status snapshot riding after it; and eight conformance-manifest collisions
@@ -115,9 +115,9 @@ reds — no GPL corpus in a worktree — and nothing else), the legacy `CobolSha
 `NistDifferentialTests_P0.NistProgram_MatchesGolden("NC215A")` — the program that exists to test the ALPHABET
 literal phrase and `PROGRAM COLLATING SEQUENCE` — fails `SEQ-TEST-GF-6`, `IF NINE-DU-9V0-1 < SPACE` under
 `PROGRAM COLLATING SEQUENCE IS THE-WILD-ONE`, printing `FAIL*` where the golden requires `PASS`. It was NOT
-debugged in place and NOT assumed: it was bisected by build, one commit at a time — GREEN at `c34f01ad`
-(battery #57's tree), RED at `f798397f` (**train 14's PB678**, "SORT/MERGE resolves a collating sequence PER
-KEY CLASS"), RED at pre-train-15 main `f86a5764` with none of train 15 applied, and RED at train 15's own
+debugged in place and NOT assumed: it was bisected by build, one commit at a time — GREEN at `efed0148`
+(battery #57's tree), RED at `6b47703e` (**train 14's PB678**, "SORT/MERGE resolves a collating sequence PER
+KEY CLASS"), RED at pre-train-15 main `3d57b8c6` with none of train 15 applied, and RED at train 15's own
 row-5 boundary and head with the same single assertion at the same position. So it is a wrong-answer
 regression that train 14 landed and its gate did not see, and it needs a kb/Work note from central id
 allocation. Train 15 lands with it because it is attributed to a commit that is already on main — the brief's
@@ -135,8 +135,8 @@ pre-merge tree.
 ⛔ **A verdict was un-landed, and the reason is the one this project keeps re-learning: a finding inherited from
 a stale tree is not a finding.** PB691's batch carried `GR-14.9.41.4-6` as CONFORMS → **PARTIAL**, with the
 note *"SEQUENTIAL HALF — NOT IMPLEMENTED: the statement aborts the run unit"*. That was true on the row's base
-`973460ba` and false on today's tree: train 13's PB352 implemented START on a sequential-organization file, and
-`979b670c` had already recorded the row CONFORMS with `conformance:2002/pb352_start_sequential_first_last` as
+`4649080a` and false on today's tree: train 13's PB352 implemented START on a sequential-organization file, and
+`5481c218` had already recorded the row CONFORMS with `conformance:2002/pb352_start_sequential_first_last` as
 its closing test-ref. Applying the batch as written silently re-opened a row train 13 had earned, and
 `DefectiveRowCoverageDriftTests` caught it as the third Unit red — the row was now defective with no open note
 claiming it. The record was NOT applied: a corrective batch restores CONFORMS with main's test-ref and notes,

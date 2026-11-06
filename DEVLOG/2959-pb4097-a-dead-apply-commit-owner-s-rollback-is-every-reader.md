@@ -57,7 +57,7 @@ the documented DOC-A.1-75 posture, so a reader there is not protected.
 
 **Gate.** Windows `=== BUILD-LOCAL GATE: GREEN — Conformance 20,482/20,482 · Unit 39,239/39,239 · Characterization 37/37 cases ran
 (skipped 0)` (run 000002-20261101T175356Z); `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built inert-watch;
-HEAD 5538beb6f) ===`.
+HEAD b2a01e26f) ===`.
 
 **Review round 1 (four blocking findings, all answered).** (R1-1) A READ's settle the host refused (the file read-only to the
 reader, SHARING WITH ALL OTHER, owner killed beside it) escaped as an `UnauthorizedAccessException` out of the run unit, plain and

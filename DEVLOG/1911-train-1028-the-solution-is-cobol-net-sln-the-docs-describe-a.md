@@ -1,8 +1,8 @@
 ## Entry 1911 — 2026-10-07 03:57 PDT — Train 1028: the solution is Cobol.Net.sln, the docs describe a compiler without the legacy engine, and the grammar's legacy-forced copies are one rule each; PB2112, PB2111, PB2114
 
 Wave 1028's three legacy-retirement items land as one train (lander worktree `wf_f31b7069-6ff-5`, clusters in order
-B, A, D, each its own commit, on `db070acb5`, after train 1026). The train changes no behavior, and the proof is
-direct: the R0 oracle captured on the merged tree is IDENTICAL, case for case, to the recorded baseline `f620ccf6d43d`
+B, A, D, each its own commit, on `68da06f84`, after train 1026). The train changes no behavior, and the proof is
+direct: the R0 oracle captured on the merged tree is IDENTICAL, case for case, to the recorded baseline `ed82232a65bc`
 (7,357 cases of emitted C# and diagnostic streams), so cluster D's grammar unification moved no emitted code and no
 diagnostic.
 

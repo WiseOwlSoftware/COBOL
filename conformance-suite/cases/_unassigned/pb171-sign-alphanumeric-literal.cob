@@ -13,7 +13,7 @@
       *> LiteralContext - so BindOperandExprCore's walk had no arm for it, the
       *> queue drained, and the fallback returned BoundNumLiteral("0").
       *> 
-      *> Measured on 9a89fbd1: compiled clean and evaluated 0 > 0, printing the
+      *> Measured on 02c72682: compiled clean and evaluated 0 > 0, printing the
       *> ELSE branch. A silent wrong answer, not a crash.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB171N1.

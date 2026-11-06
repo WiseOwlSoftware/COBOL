@@ -9,7 +9,7 @@ The enqueue unit's leads clerk (PR #278) filed four leads at 00:15. Two of them 
 
 Both are retired by the register's convention (`status: retired`, "retired unlanded: a duplicate of ..."), and their
 extra evidence is folded into the notes they duplicate: PB3417's doc-comment site and re-check command, and PB3418's
-`ReadOnlyWriterReleaseDriftTests` case, the round-4 finisher's commit fe7a5cd58, the row's CONFORMS verdict and its
+`ReadOnlyWriterReleaseDriftTests` case, the round-4 finisher's commit 7913fa9bb, the row's CONFORMS verdict and its
 re-check command.
 
 PB3416 stays open. It names PB2749 and sequences against it: a small replay-rule fix of its own, while PB2749's broader

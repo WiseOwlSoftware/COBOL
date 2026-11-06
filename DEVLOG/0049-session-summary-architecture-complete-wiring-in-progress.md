@@ -34,16 +34,16 @@ COBOL-formatted print output instead of placeholder text.
 
 ### Commits This Session (27 total)
 
-Grammar: 8acb8c2, a078601, 3e85846, be3a26b, a88b9c4, 2828caa, 2cf7c8f, 01ed7cb, 31c0ade
-Architecture docs: ab7319d, 58c79cf, f112bf3, e81c6fb, 13ba57a, 82e5648, ff220bf, 2713b7c
-Clean break: 6707d05, b16325f, f14a22a, b9e703d
-Semantic: ad7cf57, 9514d94
-Flow + IR + CIL: 7ddd48e, 15d6994, 842109f, 43982ad
-PIC runtime: 9dd88fe, cc36546, 2fb67ec
-Binder + HELLO WORLD: db49c47, e809831, 4322d69
-Bound tree: db7f50f
-File I/O: 9933237
-Storage: 8f1daee, 981a033, 351339d
+Grammar: ebe2190, 94eb702, c040b3e, 090e55c, 326d195, d1b66d2, 97b5aed, e7b3917, 08e7dba
+Architecture docs: b624622, 4478cb6, 9e1a4af, 98b371f, a02622b, 320ae55, 11ad985, 4091959
+Clean break: fbfada5, af013b5, 3c32e32, 9495091
+Semantic: 13ce55f, f5d88e7
+Flow + IR + CIL: ed28204, 3e1fed5, 42f2ade, 120fe05
+PIC runtime: bb6cba5, 399103a, c9522cf
+Binder + HELLO WORLD: bce3095, b8d876d, f951768
+Bound tree: b2fbbca
+File I/O: aff020d
+Storage: ff8ddf3, c89e28b, 78c1f2a
 
 ---
 

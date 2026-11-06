@@ -65,7 +65,7 @@ tree-wide sweep with a drift test. R1-2 is the clamp described above. The finish
 `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261015T222413Z-d30b2a). semgrep verify
 PASS, no count rose.
 
-**Finisher (the landing's Linux gate, RED on 348b0926c).** All three reds were this branch's own; main had touched
+**Finisher (the landing's Linux gate, RED on a89c722ef).** All three reds were this branch's own; main had touched
 none of the files involved since the branch's base, and the leg-1 gate had run none of the cases. (1) The type-6
 intake landed an SDIDI operand on `Int128`, on the premise that "an SDIDI holds 34 digits". It holds 34
 SIGNIFICANT digits at any exponent, so MOD(10 ** 40, 3) (`2014/pb2630_integer_family_beyond_int128`) and

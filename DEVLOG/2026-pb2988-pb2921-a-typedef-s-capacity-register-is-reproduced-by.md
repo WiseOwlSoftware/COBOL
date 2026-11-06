@@ -5,7 +5,7 @@
 Wave 1069 group B (PB3030, PB2921, PB2988 — one root in the data model's naming and copy identity).
 
 **PB2988 — a CAPACITY IN register written once in a type, used by two TYPE entries.** Re-probed on the wave's build
-(ddee217e3): the note's e6 (`01 ST TYPEDEF` holding `OCCURS DYNAMIC CAPACITY IN DC`, then `01 A TYPE ST` and
+(adba52e02): the note's e6 (`01 ST TYPEDEF` holding `OCCURS DYNAMIC CAPACITY IN DC`, then `01 A TYPE ST` and
 `01 B TYPE ST`) still drew COBOLNET1523 at B's expansion and COBOLNET2127 at `DC OF B`. §13.18.38.3 SR30 says
 "Data-name-3 shall not be defined elsewhere in the source element. If qualifiers are required for uniqueness, it shall
 be treated as though implicitly defined at the same level as the entry containing the OCCURS clause" — the second
@@ -63,7 +63,7 @@ and plan §0 names the runtime base factory `__FACTORY_BASE`.
 
 ### PB546: one reader for the bytes a national position occupies (w1070 A)
 
-Wave 1070 group A carried w1069 B's unlanded branch (PB2988, PB2921; its own pending entry) onto main 92cfea452 by
+Wave 1070 group A carried w1069 B's unlanded branch (PB2988, PB2921; its own pending entry) onto main daa4cb64b by
 cherry-pick and re-gated it: `LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261013T012912Z-061c4a).
 
 **PB546.** Re-probed on this build (`E:\COBOL-coord\scratch\w1070a\p\p546a.cob`): `FUNCTION BYTE-LENGTH(BN(1:2))` of
@@ -104,17 +104,17 @@ retired that ref and named the two methods that witness the rule (verdicts uncha
 planned that drift test into leg 2, so it never ran there. Re-gate: `LEG 1 ONLY (batched gating, PB2515): GREEN`
 (run 20261013T192134Z-5a6bf2).
 
-**The same review, answered on a parallel line (wave 1072 A2).** The read-only review of the branch at `18d11007f` found one thing
+**The same review, answered on a parallel line (wave 1072 A2).** The read-only review of the branch at `577c759c2` found one thing
 (R1-1): `OoEmitter.FactoryClassOf` had been inserted between `OoUnivStop` and its §14.9.23.4 GR7c doc comment, so
 `FactoryClassOf` carried two `<summary>` blocks and `OoUnivStop` none. `FactoryClassOf` now sits above the block. The
 same file held a second instance of the shape, an orphaned `<summary>` describing a STRING-CARRIED copy-in read whose
 method no longer exists, stacked on `EmitInvokePickup`'s own; it is deleted. The tree-wide sweep for two adjacent
 `<summary>` blocks finds 54 more such members outside `OoEmitter.cs`; that mechanical sweep, with the drift test
 that keeps it at zero, is a lead for its own landing rather than a widening of this one. The finisher merged the
-branch onto main `2da05a28a` (unions in `kb/Work/PB3101.md` and two manifests), re-probed PB2921 (a class `X` and a
+branch onto main `58cf3af78` (unions in `kb/Work/PB3101.md` and two manifests), re-probed PB2921 (a class `X` and a
 class `X--FACTORY` in one compilation group: `X FACTORY`, `X--FACTORY FACTORY`) and PB2988 (two `TYPE ST` entries with
 `CAPACITY IN DC`: `0000000001 0000000003`) on the merged build, and re-recorded the arch-oracle baseline over main's
-`a6376c64ff94`. The comparison: 3,462 of 7,813 cases differ and 9 are added (this branch's goldens), every difference
+`93b50a298192`. The comparison: 3,462 of 7,813 cases differ and 9 are added (this branch's goldens), every difference
 in one of four classes: the runtime major stamp `"2.0.0.0"` → `"3.0.0.0"` in the module registration (3,187 cases
 differ by that alone); PB2921's factory family `X__FACTORY` → `__FACTORY_X` and `BASE__FACTORY` → `__FACTORY_BASE`
 (about 266 OO cases); PB546's `PicInfo.BytesPerPosition`, which appears in the §8.5.3.1 type-identity key
@@ -122,7 +122,7 @@ differ by that alone); PB2921's factory family `X__FACTORY` → `__FACTORY_X` an
 activation descriptions; and PB546's D-N8 store, `NatReadWindow(…, Length / 2)` → `NatFromStorage(…)` for a
 dynamic-length national receiver (`2014/pb1094_dynamic_length_structure_elementary_record`).
 
-**The second branch review, answered (wave 1073 A2).** The review of `0d9ddd99f` found one defect (R1-1) in
+**The second branch review, answered (wave 1073 A2).** The review of `3ab3e0b5a` found one defect (R1-1) in
 PB2988's new ambiguity arm. `CapacityRegisterFor` ranks `CapacityRefFault.Ambiguous` above `UnderATable`, and the
 reporting site's `--permissive` arm returned the place computed for the unique case, which is null when the register's
 table lies under a table. So a bare `MOVE DC` over two `TYPE ST` copies of `05 R OCCURS 2. 10 D … CAPACITY IN DC`
@@ -142,7 +142,7 @@ the merge; the four difference classes above stand as that comparison's record.
 
 **The third branch review, answered (wave 1074 A2).** Wave 1074 A2 merged the wave-1074 A branch (PB3030's bit arm,
 the R2 method-member names) with the wave-1073 A2 branch, unioning the two manifests and this entry, and answered
-the review of `c5324ec37` (R1-1). The index-name CS0131 did not come from the missing linkage screen. `ResolveIndexName`
+the review of `cf9ef94e3` (R1-1). The index-name CS0131 did not come from the missing linkage screen. `ResolveIndexName`
 reports a written reference once, and SET asks about its operand twice: it classifies the operand, then binds it. The
 second ask of an ambiguous reference answered `Failed` with no declaration, so the SET receiver was the inert
 occurrence number `1`, and `1 = __set0;` failed Roslyn. Every `--permissive` ambiguous SET of an index-name failed
@@ -163,7 +163,7 @@ PID's two low bits, so the lock named process 999996 whenever one was running. T
 
 ### PB3030's bit arm: one OCCURS DEPENDING tail counted in bits; PB2921 review round 2 (data named like a method)
 
-Wave 1074 group A, finishing the w1071 B branch (merged at 1a473341f) and taking PB3030's second half.
+Wave 1074 group A, finishing the w1071 B branch (merged at 4e8a740af) and taking PB3030's second half.
 
 **PB2921, review round 2.** R2-1: the per-method §8.3.2.2 census (round 2's fix) let an object data-name spelled
 like a METHOD-ID through to the emitter, which gave the private data field and the method one C# member name
@@ -219,7 +219,7 @@ other dangling member, and the branch deleted no other method declaration.
 Finisher gate run `20261014T072258Z-315405`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`,
 `EveryCodeLocation_ResolvesInTheTree` Passed in leg 1 (the previous red, tier 0a).
 
-Finisher (landing attempt 20261014T075420363360Z, `ENQUEUE: GATE RED` after main was merged in at a0d94a0f2): main's
+Finisher (landing attempt 20261014T075420363360Z, `ENQUEUE: GATE RED` after main was merged in at 1f33bdbc5): main's
 PB3132 landing (PR #47) had added `negative/pb3132-method-id-spells-its-class-id-and-invokes-it`, a METHOD-ID spelled
 like its CLASS-ID in a method whose body also writes `INVOKE PB3132X "NEW"`, and retired PB3132 because the shared
 class census refused the METHOD-ID. Review round 2's per-method census (rightly: a method is a source element of its own,
@@ -262,7 +262,7 @@ R4-1 gate run `20261014T100113Z-d14226`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batc
 negative and positive, both earlier PB3132 negatives and the census and runtime-pin drift tests Passed in leg 1; semgrep
 verify PASS.
 
-**Finisher: the landing's Linux gate (two reds, both this branch's).** `enqueue.py land` stopped on 739b86210 with the
+**Finisher: the landing's Linux gate (two reds, both this branch's).** `enqueue.py land` stopped on 60f0f2c75 with the
 Linux unit and conformance legs red. (1) `NulByteDriftTests.NoTrackedTextFileContainsANulByte`: the golden
 `2014/pb546_odo_national_tail.out` pinned the raw UTF-16BE bytes of `N"X"` and `N"Y"` (00 58, 00 59), two NULs, so every
 grep over the corpus read it as binary. The program now stores `NX"5831"` and `NX"5932"`, characters whose two bytes are

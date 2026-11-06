@@ -2,9 +2,9 @@
 
 The owner asked the Mythos lane on 2026-10-27 to take up kb/Work PB1086, the §8.13 external repository, which holds 18
 of the inventory's 31 GAP rows. The design (`docs/rearchitecture/DESIGN-external-repository.md`, approved 2026-10-05)
-had been sitting under three weeks of code changes. A read-only review written at main d23857d7f found 151 references
+had been sitting under three weeks of code changes. A read-only review written at main dbcc39e7b found 151 references
 still current, and 5 renamed, 3 moved, 4 gone and 16 that had changed shape. Its verdict was that slice 4 (PB2100) could
-not be implemented from the document without improvising. This change re-verifies those findings against main 832e5f512
+not be implemented from the document without improvising. This change re-verifies those findings against main 3e39bd9d1
 and corrects the design in one edit. It touches documents and kb/Work notes, plus one test fix in
 `scripts/orchestrator/test_plan_wave.py`: its R3 slice-wait case now draws its test file from the live slice set,
 because the §12 rewrite changed which files that set holds.

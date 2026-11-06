@@ -1,7 +1,7 @@
 ## Entry 1434 — 2026-09-02 18:29 PDT — Witness cluster A: two declined modules get a NAME, one of them because the compiler was quietly SHIPPING it — and landing the batch exposed a rule written in three places and read in one
 
 Module-witness cluster A (Annex A.4.8 FORMAT / SELECT WHEN, Annex A.4.13 WRITE FILE / REWRITE FILE), landed from
-worktree `agent-a4e96fdfc1f71b6ca` (base `9f11a8d6`, five WIP commits), rebased onto cluster E.
+worktree `agent-a4e96fdfc1f71b6ca` (base `32398ca1`, five WIP commits), rebased onto cluster E.
 
 **Why a declined module still costs work.** §4.2.7 lets an implementor decline any Annex A.4 element, and
 `CONFORMANCE.md` §5 declines both of these. Annex A.4.1 then says the quiet part: *"Any associated syntax rules,

@@ -4,7 +4,7 @@ On 2026-10-24 the owner asked for a top-to-bottom review of the completion ledge
 information and lacked useful information, and set its purpose: "to show the path from 0 to 100% compiler with the
 focus on what's remaining".
 
-Measured against that purpose, the page published at 430a6c8c has five problems. It shows the quota meters, using last
+Measured against that purpose, the page published at 3b4c651a has five problems. It shows the quota meters, using last
 week's reading. It shows a cost estimate in weekly points that still adds "a lander per train" two weeks after the trains
 retired. It shows battery #90's leg table from 2026-10-15, with the claim that every landing since was wave-local-gated
 only, which has been false since CI became the whole-population run. Its tiles repeat the headline or count process notes.

@@ -5,7 +5,7 @@ then its `actions/upload-artifact` step failed on the artifact service's `ETIMED
 nothing else, so its failure was the job's: `ci-gate` failed and the merge queue removed a pull request whose every
 test had passed. `always()` makes an upload run after a red test; it never made the upload's own failure harmless.
 
-**Re-probe.** On the base (24e337272) `build-and-test.yml` had five bare upload steps of that shape, no
+**Re-probe.** On the base (38a46f07c) `build-and-test.yml` had five bare upload steps of that shape, no
 `continue-on-error` and no retry anywhere, and one bare download (the population guard's) whose transient failure
 failed `ci-gate` the same way.
 

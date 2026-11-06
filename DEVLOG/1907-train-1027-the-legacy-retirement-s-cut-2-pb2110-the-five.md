@@ -14,7 +14,7 @@ keeps its "a site outside `src/Cobol.Net.*` does not implement" case with `tools
 grammar's comments that justified the additive operand alternatives by the legacy consumer now point at PB2114 (no rule changed). The
 CI guard comment, the semgrep header and three frozen-evidence claims (marked `superseded_by`) follow. CBL3617/CBL3618 needed nothing:
 PB756 had deleted both descriptors. `docs/rearchitecture/LEGACY-ARCHIVE.md` and its DOC_INDEX row name the archive tag
-`legacy-byte-engine-final` and its run recipe; the orchestrator creates that tag on `48a44548c` (this train's base, the last main commit
+`legacy-byte-engine-final` and its run recipe; the orchestrator creates that tag on `05aa4a3c5` (this train's base, the last main commit
 that holds the engine), since a lander neither tags nor pushes anything but the train. PB1861 retires as moot; PB2113 and PB2114 are
 unblocked. The implementer's gate 1 was red on two drift tests that named legacy files by relative path (the project-name grep cannot
 see them) and on the evidence-supersession audit; gate 2 was green, and its Linux gate green (NIST through `cobol`: 362 MATCH, 0

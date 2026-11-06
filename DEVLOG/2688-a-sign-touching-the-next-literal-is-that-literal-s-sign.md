@@ -2,7 +2,7 @@
 
 Wave 20261732, group A (the DataBinder group). Two mechanisms, two checkpoint commits.
 
-**PB3962 - `ZERO -1` in an operand list.** Re-probe on base `6974abd43`: `DISPLAY ZERO -1` was a bare COBOL0001, `DISPLAY N ZERO -1 N`
+**PB3962 - `ZERO -1` in an operand list.** Re-probe on base `662d11c51`: `DISPLAY ZERO -1` was a bare COBOL0001, `DISPLAY N ZERO -1 N`
 a COBOL2269, and the level-88 list `VALUE ZERO -1` and `ADD ZERO -1 TO X` read the ZERO as the numeric 0 or did not parse.
 `ZeroTokenRewriter` took any `+` / `-` right of a ZERO as a binary operator and made the ZERO arithmetic. The lexer's default mode
 splits `-1` into MINUS and INTEGERLIT outside a list region, so the token type cannot tell `ZERO - 1` from `ZERO -1`; the source
@@ -32,5 +32,5 @@ Self-review (architecture, full code, performance, duplication): the sign test r
 re-scan); the relative-sign gate is one visit of the one shared production, not a copy per clause; the SOURCE form test reuses
 `SoleOperand.DataRef`, the reduction the binder's classifier uses.
 
-Gate (batched, leg 1 plus the Linux half): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on head e727195b3, run 000001-20261028T011525Z; the added goldens (`pb3962_figurative_zero_before_a_signed_literal` at 85, 2002, 2014 and 2023; the four `pb3964-report-*-85` refusals) all Passed in `leg-1-Conformance.trx`; Linux half (WSL clone of HEAD) GREEN; `semgrep/verify.py` PASS.
+Gate (batched, leg 1 plus the Linux half): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on head a764a2f7f, run 000001-20261028T011525Z; the added goldens (`pb3962_figurative_zero_before_a_signed_literal` at 85, 2002, 2014 and 2023; the four `pb3964-report-*-85` refusals) all Passed in `leg-1-Conformance.trx`; Linux half (WSL clone of HEAD) GREEN; `semgrep/verify.py` PASS.
 

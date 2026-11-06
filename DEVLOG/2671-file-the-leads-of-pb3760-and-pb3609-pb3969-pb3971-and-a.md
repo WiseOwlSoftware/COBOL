@@ -6,5 +6,5 @@ PB3970 records that no golden pins the Format-1 BY CONTENT screen's `cBareLit` a
 
 PB3971 records that `rearm_hold` tests its LANDED arm after the no-worktree arm while `drop_stale_rearms` drops a LANDED re-arm regardless of worktree (PB3609 review lead R1-1), so the status line can promise the opposite of the next tick.
 
-PB3849 gains a 2026-10-27 witness: PB3609's notes-only commit `ac958bcfe` after a gated head forced the resume unit to re-gate the tip.
+PB3849 gains a 2026-10-27 witness: PB3609's notes-only commit `a1d53d07e` after a gated head forced the resume unit to re-gate the tip.
 

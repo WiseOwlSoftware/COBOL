@@ -160,7 +160,7 @@ file it scans; it now uses `TestRepo.Src`, the same fix the first finisher made 
 Why no local gate saw the bounce: the golden arrived with main's second merge at the landing, which by design runs no
 second gate (the merge group is the whole population on the moved main).
 
-Review finisher (branch review R2-1 at 4d1893ded): `SymbolTable.IndexCandidates` still carried the hand-written method
+Review finisher (branch review R2-1 at a2c1120f4): `SymbolTable.IndexCandidates` still carried the hand-written method
 tier that the bounce fix had replaced in `CapacityCandidates`. It asked only the method's data-names and index-names and
 then fell through to the object's index-names, so a method CAPACITY register `QI` spelled like an object index-name `QI`
 made `COMPUTE N = QI` draw COBOLNET1637, legal source refused (ISO §11.7.4 GR5: "The declaration in the containing object
@@ -210,7 +210,7 @@ the same diagnostics as a program whose only `X` or `QI` is a constant: COBOLNET
 The two stamped entries the merged branches carried (2034 and 2047) are folded into this one, because a landing adds
 exactly one entry.
 
-Gate (run 20261015T211341Z-691c81 on `3a76cd1c8`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN —
+Gate (run 20261015T211341Z-691c81 on `314467582`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN —
 leg 2 left to CI's whole-population run … Conformance 6,130/11,748 · Unit 33,225/33,674 · Characterization 6/36 cases
 ran (skipped 0) in 1 of 2 leg(s) …`. The two new negatives, `2002/pb3164_method_constant_scope`,
 `2014/pb3165_method_capacity_register_scope` and the four `GlobalNameClassDriftTests` facts passed in leg 1.
@@ -218,7 +218,7 @@ ran (skipped 0) in 1 of 2 leg(s) …`. The two new negatives, `2002/pb3164_metho
 
 ### Review round 4 of PB3153: an inherited switch-status condition-name yields to the element's own item (wave 1085 D)
 
-The reviewer of `86bba07ff` found that the bare-operand switch-status arm skipped the own-item test that every other
+The reviewer of `0d7f56bcc` found that the bare-operand switch-status arm skipped the own-item test that every other
 two-reading position asks. `SetAlterBinder.SwitchCondOf`, which `ConditionBinder.AnalyzeBareOperand` calls and SET
 Format 4's diagnostic reaches through `SwitchNameOf`, took an inherited SPECIAL-NAMES switch-status condition-name
 through `SwitchConditions.TryUse` without asking whether the referring element describes an item of that spelling. A
@@ -238,7 +238,7 @@ other procedure sites either ask already or take a name token that admits no ope
 `2002/pb3153_own_item_hides_switch_condition` and the negative `pb3153-contained-own-item-set-to-true-names-no-switch`
 (2002, 2014, 2023; COBOLNET1639).
 
-Gate (run 20261015T213220Z-be1da6 on `b3c0e87ec`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN —
+Gate (run 20261015T213220Z-be1da6 on `03176cdc4`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN —
 leg 2 left to CI's whole-population run … Conformance 6,135/11,750 · Unit 33,249/33,675 · Characterization 6/36 cases
 ran (skipped 0) in 1 of 2 leg(s) …`. The golden, the negative and both `UserWordDeclarationDriftTests` facts passed in
 leg 1.

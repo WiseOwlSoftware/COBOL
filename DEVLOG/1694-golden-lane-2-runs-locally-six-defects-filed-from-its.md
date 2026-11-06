@@ -4,7 +4,7 @@ Owner: "We should finish the remaining items the claude cloud didn't finish" —
 with 24 input files (~229 rows) unstarted and ~35 rows overturned or withheld. The lane now runs LOCALLY:
 
 - The cloud briefs are made path-agnostic instead of forked: `adjudication/golden-lane-1/scratch/WRITER.md` and
-  `REFUTER.md` take `{REPO}` (a pinned, built worktree — `E:\wt\gl2-pin` at f0d582ccd, so no landing swaps the compiler
+  `REFUTER.md` take `{REPO}` (a pinned, built worktree — `E:\wt\gl2-pin` at 19654562f, so no landing swaps the compiler
   under a writer) and `{GL}` (the lane directory); `integrate.py` reads `GL_REPO` / `GL_DIR`. Both briefs carry the P10
   public-skills pointer (spec-oracle, pr-test-analyzer).
 - WRITER.md gains "Lessons from golden lane #2 refuters" — each one an overturn that recurred: a negative must be illegal

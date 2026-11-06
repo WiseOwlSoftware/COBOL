@@ -4,7 +4,7 @@ PB3330 was the campaign lead the owner opened on 2026-10-17. It covered the whol
 indexed file into memory at OPEN and wrote it back whole, at CLOSE and after every changing statement under `SHARING WITH ALL
 OTHER`. The note was never a group of its own. It landed when its last group landed, and every group now has: PB3331 to
 PB3338, PB3340 and PB3382, with PB3492's keyed CAPTURE beside them. This branch re-probed each line of the bar on a Debug
-build of origin/main 1da5e0d6b, flipped the note and corrected the docs that still described the campaign as in progress.
+build of origin/main fa305bc4f, flipped the note and corrected the docs that still described the campaign as in progress.
 
 **The re-probe.** The 90 count-based performance witnesses pass: a load is linear through NO OTHER and through ALL OTHER, an
 OPEN reads the header, a random READ reads one path, an exception path costs no more than its success, and a transaction

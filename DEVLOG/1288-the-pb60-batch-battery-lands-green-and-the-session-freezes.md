@@ -1,6 +1,6 @@
 ## Entry 1288 — 2026-08-09 21:37 PDT — The PB60-batch battery lands green, and the session freezes its working set for the night
 
-One `bash scripts/battery.sh` run over `0c9c4ce9` (artifacts /tmp/battery-20260809-211701): FULL
+One `bash scripts/battery.sh` run over `fb5bd593` (artifacts /tmp/battery-20260809-211701): FULL
 greenfield Conformance 4367/4367 zero skipped · Unit 4124/4124 · characterization 33/33 · guard-fast
 ALL GREEN with NIST 353/0 and a CLEAN audit · GnuCOBOL differential 0 PER-CASE FLIPS. That gates the
 three-commit PB60 batch — a shared runtime seam (the one-scan rework) and two shared codegen seams

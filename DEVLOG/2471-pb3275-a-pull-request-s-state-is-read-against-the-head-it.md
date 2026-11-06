@@ -9,7 +9,7 @@ against a head it was not observed at, were still open on this build:
    request and auto-merge was off, and `lifecycle` compared the branch tip with `pr.head`, the CURRENT `headRefOid`.
    A finisher that pushes its fix moves `headRefOid` to the tip, so tip == head held again and the row read BOUNCED for
    ever. Witness: PR #268 (live timeline read with `gh api graphql`): the `RemovedFromMergeQueueEvent` at 03:26:03Z is
-   followed by `PullRequestCommit` items cc441f527, 891f8604e, c1421bf44.
+   followed by `PullRequestCommit` items 88a95adf8, 4a691166c, 3fa3278cb.
 2. **Variant 1's second half (NOT QUEUED forever on a dead head).** A pull request with auto-merge on whose head
    CONFLICTS with main or has a failed required check can never be queued at that head. `lifecycle` sent every
    auto-merge-on pull request to NOT QUEUED whatever the tip, so a finisher's tip that had moved past that head never

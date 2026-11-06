@@ -73,7 +73,7 @@ rounds carried most of the gain. One program is 5 points: the direction is firm,
 (9 of 20, before the forbidden-function seeds were removed) against bake-off 4's 14 says the seeds drawn matter as much as
 the harness. The winner for the overnight run is qwen3.6:35b, the highest share at half the others' latency.
 
-**Gate.** `BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at 8e80f29fb (21:5x PDT) and again at the
+**Gate.** `BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at 3adf46124 (21:5x PDT) and again at the
 review-answer head; `--self-test` 30 → 54 checks. The evidence record `docs/rearchitecture/evidence/fleet-optimization/2026-10-20-differential-fuzz.md` carries the
 tables and keeps every bake-off's scoreboard and report in its raw folder. The overnight run is the owner's to start with
 the table's winner.

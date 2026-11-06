@@ -1816,7 +1816,7 @@ public static class DiagnosticCatalog
         "ISO §13.18.44.3 SR5");
     // ⛔ THE GROUP-LEVEL VALUE SUBORDINATE SCREEN (kb/Work PB184). §13.18.63.3 SR13/SR14 restrict what may sit
     // UNDER an entry that carries a group-level VALUE, and NONE of the three restrictions existed: measured on
-    // 8ca74a3d, `01 GV VALUE "40537". 05 GB PIC 9 COMP-5 OCCURS 5.` compiled CLEAN and left every occurrence
+    // 99bc08c8, `01 GV VALUE "40537". 05 GB PIC 9 COMP-5 OCCURS 5.` compiled CLEAN and left every occurrence
     // ZERO; so did a JUSTIFIED / SYNCHRONIZED subordinate and a subordinate carrying its own VALUE.
     // ⚠ PB184 was registered as a §13.18.63.4 GR5 DISTRIBUTION gap — "the group area is initialized without
     // consideration for the individual elementary or group items contained within this group", so the byte-form
@@ -1884,7 +1884,7 @@ public static class DiagnosticCatalog
     // longer sits in front of that rule. Do not reintroduce the name.
     // ⛔ THE TERMINATION-STATUS PHRASE HAS ITS OWN SYNTAX RULES, and none of them existed (kb/Work PB169). The
     // operand was bound through the ARITHMETIC funnel, so §8.8.1.1 — a rule that does not govern this position —
-    // rejected the two shapes the position's own rules explicitly admit: measured on 9a89fbd1, both
+    // rejected the two shapes the position's own rules explicitly admit: measured on 02c72682, both
     // `STOP RUN WITH ERROR STATUS "ABEND"` (SR3's conditional presupposes the non-numeric literal; SR4 bars only
     // a zero-length one) and `STOP RUN WITH ERROR STATUS WS-CODE` with `WS-CODE PIC X(3)` (SR2 admits a data item
     // "with usage display") drew COBOL0844. Meanwhile the position's ACTUAL rules went unenforced in both
@@ -1901,7 +1901,7 @@ public static class DiagnosticCatalog
         "ISO §14.9.42.3 SR2/SR3/SR4");
     // ── The §13.18.60.3 USAGE DECLARATION-PLACEMENT family (kb/Work PB183) ────────────────────────────────
     // Three syntax rules about WHERE a usage phrase may be written, none of which existed anywhere in the
-    // compiler. SR14 is the headline: measured on 2acbd842, `01 G. 05 P USAGE POINTER.` compiled and ran, as
+    // compiler. SR14 is the headline: measured on 41bf3492, `01 G. 05 P USAGE POINTER.` compiled and ran, as
     // did a pointer member of a WEAK typedef template and a `05 Q SAME AS P` copy of a level-1 pointer. The
     // rule was verified against the PRINTED page (folio 505, PDF 535) before the screen was written — the
     // reading is restrictive enough that the falsely-restrictive-OCR hazard had to be excluded, and it was:
@@ -1960,7 +1960,7 @@ public static class DiagnosticCatalog
     // The OPTIONS INITIALIZE clause's ONE syntax rule (kb/Work PB152). ⛔ "hexadecimal-alphanumeric literal" is a
     // DEFINED TERM, not loose wording for "alphanumeric or hex": §8.3.3.2.2 gives the alphanumeric literal exactly
     // two formats — format 1 `"…"` / `'…'` and format 2 `X"…"` / `X'…'` — and "hexadecimal-alphanumeric" names
-    // format 2. So `INITIALIZE ALL TO "Z"` is NOT a conforming spelling; `X"5A"` is. Measured on 2acbd842, the
+    // format 2. So `INITIALIZE ALL TO "Z"` is NOT a conforming spelling; `X"5A"` is. Measured on 41bf3492, the
     // decoder took `raw[0]` for ANY shape, so `INITIALIZE ALL TO "AB"` silently became 'A' — a fill character the
     // program never asked for, from a literal the standard does not admit. (PB151's own golden was written with
     // the format-1 spelling and is repaired to X"51" by this landing.)
@@ -2241,7 +2241,7 @@ public static class DiagnosticCatalog
     // sentence pair written once per category ("… shall not exceed the size indicated by an explicit PICTURE
     // clause" for an elementary item; "… shall not exceed the size of the group item" for a group one); the
     // national and boolean arms were implemented (the COBOL0898 band) and the ALPHANUMERIC arm had no
-    // implementation anywhere, so both of its sentences silently TRUNCATED. Measured on 1d949007:
+    // implementation anywhere, so both of its sentences silently TRUNCATED. Measured on c86e0bf1:
     // `01 E1 PIC X(2) VALUE "ABCD".` displayed `AB` and `01 GZ VALUE "ABCDEF". 05 O1 PIC X(2). 05 O2 PIC X(2).`
     // displayed `ABCD`, neither with a diagnostic. Not dialect-gated — SR4 carries this sentence at every
     // edition, and Annex E.2 item 27's 2023 change is scoped to NUMERIC-EDITED items (COBOL1570), not to this.

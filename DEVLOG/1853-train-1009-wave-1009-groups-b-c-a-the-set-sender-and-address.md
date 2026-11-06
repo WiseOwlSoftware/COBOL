@@ -1,6 +1,6 @@
 ## Entry 1853 — 2026-10-03 15:31 PDT — Train 1009: wave 1009 groups B, C, A (the SET sender and address-name operand, intrinsic argument rules, the report SOURCE identifier and VARYING counter)
 
-Three clusters, landed as three commits plus this entry. All three implementer branches were cut at `e08b604ca`, which
+Three clusters, landed as three commits plus this entry. All three implementer branches were cut at `328eae564`, which
 was still origin/main when the lander applied them, so none needed a rebase. Group A came back SPLIT: four of its five
 notes (plus PB1049) are done and gated, and PB1294 (rolled totals) was not started and stays open.
 
@@ -20,7 +20,7 @@ takes §8.4.3.3.4 GR6's category). The grammar gained `functionAddressIdentifier
 `functionCall | inlineMethodInvocation | dataReference`. `PtrEmitter.NameImage` reads the name's character image (a
 group's read is a struct: CS1503). The implementer also fixed `CobolArgAdapt.StoreReturn(FunctionPointer)` (I9): a
 FUNCTION-ID RETURNING USAGE FUNCTION-POINTER drew CS0315. PB777's premise did not hold on today's tree, because PB555
-(`e76c275d0`) had already landed the gate and SET TO FALSE, so it was discharged with the re-probe as evidence. PB610 was
+(`9ecf2f7ce`) had already landed the gate and SET TO FALSE, so it was discharged with the re-probe as evidence. PB610 was
 stale (PB549). Goldens: `85/pb1399_set_index_function_sender`, `2002/pb1929_set_identifier_senders`,
 `2002/pb1452_program_address_identifier_operands`, `2014/pb1417_function_address_identifier_operands`,
 `2014/pb1929_set_function_pointer_function_sender`, and five negatives. Rows: SR-8.4.3.13.3-1 DIVERGES → CONFORMS and

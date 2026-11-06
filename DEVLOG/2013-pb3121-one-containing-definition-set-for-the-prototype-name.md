@@ -58,7 +58,7 @@ list per `UserFunctionsOf` call. No duplicate rule is left: `SpecifiesItself` an
 ### PB2937 arm 1: an unexpanded parameterized class binds its method bodies as itself
 
 Wave 1072 group B (OO binder: PB2937, PB3121), the finisher of wave 1071 group E's SPLIT. The predecessor's four commits
-(PB3121 landed; PB2937 arm 2, the edition gates over every bound data forest) were cherry-picked onto 2da05a28a; this
+(PB3121 landed; PB2937 arm 2, the edition gates over every bound data forest) were cherry-picked onto 58cf3af78; this
 change closes PB2937's other arm, so PB2937 is landed.
 
 **Re-probe.** `w1071e/oo/ed.cob` at `--std 2023` compiled clean on the base: an unexpanded `CLASS-ID. EDSK USING T.`

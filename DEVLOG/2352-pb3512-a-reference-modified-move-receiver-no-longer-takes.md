@@ -3,7 +3,7 @@
 **What.** A MOVE of a signed numeric sender into a reference-modified alphanumeric receiver stored the sender's raw
 stored form, sign included: `MOVE` of a PIC S9(4) 2468 into `X5(1:5)` gave `246H`, a packed -1234 gave `-1234`, a SIGN
 LEADING SEPARATE -1357 gave `-1357`, the literal -42 gave `-42`. The same MOVE into the whole item was right. Found by
-the second overnight differential fuzz run (fz04443, fz00248). Re-probed on this worktree's build of aef934867: the
+the second overnight differential fuzz run (fz04443, fz00248). Re-probed on this worktree's build of bb5cf2ac9: the
 note's four wrong lines reproduced exactly, and so did three shapes it did not name — a JUSTIFIED RIGHT item's slice
 (`*246Q*`), a national slice (`246Q *`) and a slice of a numeric item (`246Q 0`).
 

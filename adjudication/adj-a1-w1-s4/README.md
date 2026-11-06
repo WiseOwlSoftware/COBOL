@@ -1,6 +1,6 @@
 # adj-a1-w1-s4: Annex A.1 wave 1, session 4 of 4
 
-- **Pinned sha:** `0a83d2d22836ddf39644d0a32d5303542edbdb94` (detached from main; Debug build, 0 errors)
+- **Pinned sha:** `01c0d34b8b1d14869eba265f94bd95a1bad500f6` (detached from main; Debug build, 0 errors)
 - **Inputs:** `phase_b_batch.py A.1 --max-rules 10`, restricted to the 20 slugs named in the brief (DOC-A.1-88, 89, 91, 94–108, 111, 113)
 - **Wall-clock:** setup + build ≈ 2 min · adjudication (20 rows, including probes) ≈ 14 min · refute + finalize ≈ 5.5 min · total ≈ 22 min
 - **Files:** `adjudicate.jsonl` (checkpointed row by row) · `refute.jsonl` · `final.jsonl` (overturns applied) · `findings.json` (grouped by mechanism) · `probes/` (the probe programs)

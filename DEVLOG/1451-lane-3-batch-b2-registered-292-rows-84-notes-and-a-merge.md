@@ -2,7 +2,7 @@
 
 Batch b2 is the second adjudication batch of the burn-down's lane 3 — the procedural statements **EVALUATE ·
 EXIT · GO TO · GOBACK · IF · INITIALIZE · MOVE · PERFORM · SEARCH · SET · SUBTRACT**, twenty subject files,
-adjudicated and then independently REFUTED against the pinned `5fe593a0` compiler while the fix lane moved main
+adjudicated and then independently REFUTED against the pinned `1d6cc442` compiler while the fix lane moved main
 eight landings ahead of it. This entry is the registrar's: the merge, the clustering, what re-measurement on
 today's tree contradicted, and what the register now owes. **GAP 3054 → 3022.**
 
@@ -51,13 +51,13 @@ posture is not the documented one; `record_verdicts --dry-run` duly reported the
 this tree (`SET SCR-1 ATTRIBUTE HIGHLIGHT ON`, `--std 2023`):
 
 ```
-PIN  5fe593a0 : COBOL0001: no viable alternative at input 'SETSCR-1ATTRIBUTEHIGHLIGHTON'  (+3 cascades)
-HEAD 89044aa0: COBOLNET1707: the SET statement's screen attribute format 6 (ISO 14.9.39; Annex A.4.2 item 24)
+PIN  1d6cc442 : COBOL0001: no viable alternative at input 'SETSCR-1ATTRIBUTEHIGHLIGHTON'  (+3 cascades)
+HEAD 0731b766: COBOLNET1707: the SET statement's screen attribute format 6 (ISO 14.9.39; Annex A.4.2 item 24)
                applied to 'SCR-1': … part of the OPTIONAL screen handling module … for which COBOL.NET claims
                no support. … See docs/CONFORMANCE.md 5.
 ```
 
-Fixed between the pin and this base by **`60bf02d7` (A.4.2 screen handling: refused by name, 163 rows)**. The
+Fixed between the pin and this base by **`af18afbb` (A.4.2 screen handling: refused by name, 163 rows)**. The
 three rows keep their `DOCUMENTED-NON-SUPPORT`, state **OK**, `ScreenFacility.cs#ReportSetAttribute` and the
 `conformance:negative/a42-set-attribute` witness. The MESSAGE-TAG half of the same cluster WAS re-measured and
 still fails as a bare `COBOL0001` cascade, so `PB453` carries that half only — and the same facility's
@@ -69,7 +69,7 @@ and the program runs). One facility, one owner disposition, two postures.
 * **The grammar's per-statement section banners are already correct.** Two findings (MOVE's `// MOVE (14.9.24)`
   = MERGE, SUBTRACT's `14.9.42` = STOP, UNSTRING's `14.9.44` = SUBTRACT, 14 of 30 wrong) were the second half of
   `PB388`. On this base every banner cites its own statement — MOVE §14.9.25, SUBTRACT §14.9.44, UNSTRING
-  §14.9.48, STOP §14.9.42, and the eleven others. Fixed by **`9c08e6fe` (Citation sweep: ~200 phantom sites)**.
+  §14.9.48, STOP §14.9.42, and the eleven others. Fixed by **`cf8befd3` (Citation sweep: ~200 phantom sites)**.
   `PB388` was rewritten around what survives: the wrong §/rule numbers **PRINTED TO USERS** by the shared
   EXIT/GOBACK/RAISE diagnostics, the SET format ordinals, and the SEARCH GR numbering shift.
 * **One adjudicator probe was ILLEGAL SOURCE and had to be re-cast.** `INITIALIZE`'s pointer probes declare
@@ -82,7 +82,7 @@ and the program runs). One facility, one owner disposition, two postures.
   (`integerLiteral | functionCall | dataReference`) and the real cause is that **no** arm admits a figurative
   constant. Corrected in `PB432` so no fixer inherits it.
 * **Everything else reproduces.** Across all eight note-writing groups, every other finding and every refuter
-  record was re-run on `89044aa0` and still fails.
+  record was re-run on `0731b766` and still fails.
 
 ### 500 shape violations, and why the fix was not to weaken a record
 

@@ -8,7 +8,7 @@ Filed the open review leads of wave w20261878 (groups a, b, c, d, f, g, h) as kb
 - PB4799 (CobolEdit.Format strips V before suppression, wrong answer, pre-existing), PB4800 (BlankLandingRun comment, duplicate walk, golden citation).
 - PB4801 (CONCAT numeric literal beside national, under-rejects), PB4802 (AlgebraicRange.cs inherited quote), PB4803 (a view per activation in the arms PB4768 left; no effect stated, process only).
 - PB4804 (EVALUATE arithmetic subject drops ExpressionAsWritten, under-rejects), PB4805 (ComputedExtremeTest over a BoundBinary, crash), PB4806 (golden comment names FUNCTION E). Their sites land with PR #1198.
-- Corrections to landed notes: PB4757 Fix paragraph brought to what 50718d8bd landed; PB4750 Sites adds `CobolExact#Compare`; PB4766 Sites adds `NumericRenderer#CounterStorageImage`.
+- Corrections to landed notes: PB4757 Fix paragraph brought to what 8b316e3e1 landed; PB4750 Sites adds `CobolExact#Compare`; PB4766 Sites adds `NumericRenderer#CounterStorageImage`.
 
 Not filed, decided earlier: a R1-4, b R2-6, h R3-4 (report or DEVLOG wording). Wave group e has no open leads. Citations written into the notes were run through `cite.py --check`: 15.3 6), 15.7.4 1) b), 15.18.3 2), 13.18.40.5 6) b), 7) b) and 7) all OK.
 

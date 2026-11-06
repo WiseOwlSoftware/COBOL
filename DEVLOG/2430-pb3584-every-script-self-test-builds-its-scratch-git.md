@@ -8,7 +8,7 @@ self-test drives git reached one helper and left the others behind: run by hand 
 private global config turns automatic maintenance off), the prune_worktrees.py self-test started 74 background
 `git maintenance` processes in the repository it was still building.
 
-**Re-probe.** The new fixture's audit, run on the base tree (5e20e0801), found 65 places in 19 files: the note's list
+**Re-probe.** The new fixture's audit, run on the base tree (cba0d6625), found 65 places in 19 files: the note's list
 less self_test_inputs.py (its `"init"` names a git subcommand, there is no scratch repository) and less linux-gate.sh
 (shell; it clones), plus five siblings the note had not listed: scripts/arch/file_census_notes.py, member_index.py,
 r2_subsystems.py, scripts/spec/audit_evidence_supersession.py and gen_ledger.py. Two more copies of the fixture's rules

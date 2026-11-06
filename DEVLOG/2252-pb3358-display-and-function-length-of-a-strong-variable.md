@@ -22,7 +22,7 @@ group without a slot leaf), `RecordStructEmitter` emits `CurrentImage()` for the
 comparison, CALL and a record keep the carrier capability, so PB3139's refusals stand. A pointer leaf shows its A.1 item 216
 storage image (NULL as eight X"00"), an object reference its D-SLOT placeholder (eight spaces), exactly as in a fixed group.
 
-**Re-probe and sweep.** `WHOLE.cob` (the note's repro) reproduced on a fresh build of main b349e6d44 (`LEN 0015`, then the
+**Re-probe and sweep.** `WHOLE.cob` (the note's repro) reproduced on a fresh build of main e07f5f55a (`LEN 0015`, then the
 abort) and now prints `G=hello` + the eight pointer positions + `05`. Shapes probed after the fix, each width checked by hand
 against DOC-A.1-57: a nested fixed strong group, a nested variable-length one, a fixed table of references, an OCCURS DEPENDING
 table of fixed and of variable-length elements, a dynamic-capacity table of fixed and of variable-length elements, a fixed table
@@ -50,7 +50,7 @@ Conformance 11,384/17,952, Unit 33,994/34,641, Characterization 5/36 cases ran. 
 pb3358_vlg_display_pointer_leaf 2014, refusal pb3358-vlg-display-reference-leaf-at-2002 at 85 and 2002); the drift test ran in
 leg 1 of Unit. `scripts/semgrep/verify.py`: PASS, no rule count raised. Linux gate: the lander's (batched gating).
 
-**Finisher: the landing's Linux gate went RED, and a missed shape.** The landing stopped `GATE RED (Linux)` on 161bacdc3:
+**Finisher: the landing's Linux gate went RED, and a missed shape.** The landing stopped `GATE RED (Linux)` on a7c490492:
 `NulByteDriftTests.NoTrackedTextFileContainsANulByte` found the golden `pb3358_vlg_display_pointer_leaf.out` holding the NULL
 images (eight X"00" per pointer leaf) byte for byte. A pointer's image ALWAYS holds zero positions (NULL is all zeros and an
 address token's high-order positions are zero), so no golden can pin a displayed pointer leaf. The case was re-expressed: its

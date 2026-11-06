@@ -1,7 +1,7 @@
 ## Entry 1293 — 2026-08-17 22:22 PDT — PB60: a container's CONFIGURATION SECTION and OPTIONS now reach its contained programs
 
 **The battery first.** The four-landing batch (entries 1289–1292) measured `=== BATTERY: ALL GREEN ===` on
-`f58c7547`: Conformance 4372/4372, Unit 4164/4164, characterization 33/33, `guard-fast` NIST 353/0 audit-clean,
+`7a4944e0`: Conformance 4372/4372, Unit 4164/4164, characterization 33/33, `guard-fast` NIST 353/0 audit-clean,
 GnuCOBOL differential 0 per-case flips (1323 cases). Recorded as the §9 reference; §0 says no gate is owed.
 The next landing was drafted apply-ready in the scratchpad while it ran (memory `work_through_the_freeze`) and
 applied the minute it finished.

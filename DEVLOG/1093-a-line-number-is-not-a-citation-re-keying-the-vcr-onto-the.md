@@ -10,7 +10,7 @@ is loud. A reference that resolves to the wrong sentence is not, and that is the
 
 **Recovering what the references meant.** The line numbers were keyed to a spec revision that no longer exists in
 the working tree — `specs/` was a private submodule until 2026-07-27. `git blame` put all 135 appendix rows on a
-single commit (`0d744cba`, 2026-06-09), whose submodule gitlink is `c1435f3` — 53,731 lines, still reachable in
+single commit (`1bad8236`, 2026-06-09), whose submodule gitlink is `c1435f3` — 53,731 lines, still reachable in
 `specs-private`. Extracting it turned an archaeology problem into a lookup: read the line each reference pointed
 at, take the clause that contained it THERE, and assert the same sentence still sits inside that same clause now.
 

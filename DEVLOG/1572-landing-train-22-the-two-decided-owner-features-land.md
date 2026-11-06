@@ -130,9 +130,9 @@ DOC-A.1-183 LIVE for the first time (it was conditionally required and vacuous w
 GR-13.18.13.4-3 and -6 closed for the first time; COBOLNET1907's catalogue text was rewritten and
 `docs/DIAGNOSTICS.md` regenerated; COBOLNET1912–1913 were reserved, never used, and return to the pool.
 
-**The train.** Two clusters, brought in in manifest order onto `d4e09558` and committed one per cluster, no
+**The train.** Two clusters, brought in in manifest order onto `8d1b64e5` and committed one per cluster, no
 cluster dropped, nothing carried that its own report did not describe. Both rows were plain patches from
-`1ec771a2` and both applied clean against Q23's five intervening commits — PB785's DEVLOG hunk was excluded
+`144d8b4a` and both applied clean against Q23's five intervening commits — PB785's DEVLOG hunk was excluded
 because it had claimed Entry 1571, which Q23 now owns, and its paragraph is folded above instead; PB793's
 inventory hunk was discarded and its batch re-applied on the merged tree, `record_verdicts.py` reporting 9
 records / 9 rows changed with DOC-A.1-184 re-adjudicated DOCUMENTED-NON-SUPPORT → CONFORMS and

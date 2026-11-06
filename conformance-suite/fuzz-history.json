@@ -28,7 +28,7 @@
     "NO_PROGRAM": 2,
     "WE_FAIL_RUN": 1
    },
-   "judge": "0421be4df",
+   "judge": "54854cb17",
    "verdicts": null,
    "defects": [
     "PB3489",
@@ -246,7 +246,7 @@
     "WE_FAIL_RUN": 2,
     "BOTH_HANG": 1
    },
-   "judge": "6ed90bd1c",
+   "judge": "cb0e5cede",
    "verdicts": {
     "WISEOWL-CORRECT": {
      "signatures": 123,
@@ -317,7 +317,7 @@
     "WE_FAIL_RUN": 2,
     "WE_HANG": 1
    },
-   "judge": "deae52c90",
+   "judge": "7c779b70e",
    "verdicts": {
     "WISEOWL-CORRECT": {
      "signatures": 123,
@@ -382,7 +382,7 @@
     "WE_HANG": 2,
     "THEY_HANG": 1
    },
-   "judge": "7f0105fec",
+   "judge": "691c7ad4e",
    "verdicts": {
     "WISEOWL-CORRECT": {
      "signatures": 103,
@@ -445,7 +445,7 @@
     "EXIT_DIFFERS": 5,
     "BOTH_HANG": 2
    },
-   "judge": "1498935b6",
+   "judge": "9969a827d",
    "verdicts": {
     "WISEOWL-CORRECT": {
      "signatures": 87,
@@ -504,7 +504,7 @@
     "WE_FAIL_RUN": 2,
     "THEY_HANG": 1
    },
-   "judge": "8803a84ff",
+   "judge": "2f689176f",
    "verdicts": {
     "WISEOWL-CORRECT": {
      "signatures": 93,
@@ -565,7 +565,7 @@
     "BOTH_HANG": 13,
     "WE_HANG": 2
    },
-   "judge": "3c8b2845c",
+   "judge": "a0e05167d",
    "verdicts": {
     "GNUCOBOL-SIDE": {
      "signatures": 161,

@@ -1,6 +1,6 @@
 ## Entry 1888 — 2026-10-05 06:51 PDT — Train 1020: wave 1020 groups E, F, D (split, PB1470 held back), A, B: omitted-branch directive checks, FLAG defaults, type declarations, LINAGE-COUNTER in reports, nonstandard-extension flagging, RESERVE areas
 
-Train 1020 carried five clusters from wave 1020, in order E, F, D, A, B. Every cluster was cut at `7546af101`, so each
+Train 1020 carried five clusters from wave 1020, in order E, F, D, A, B. Every cluster was cut at `a03accb72`, so each
 patch applied without a code conflict; the only conflicts were whole-element additions to the conformance manifests and
 `docs/DIAGNOSTICS.md`, kept on both sides with the element counts checked (negative manifest 2,361 to 2,389, 2023
 manifest 800 to 803). Two clusters were also finishing an earlier wave's unlanded branch: E carried wave 1019 G (PB1373)

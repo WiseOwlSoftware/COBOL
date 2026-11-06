@@ -1,7 +1,7 @@
 ## Entry 580 — 2026-07-03 13:46 PDT — Completion-roadmap COUNCIL report persisted (docs/COMPLETION_ROADMAP_COUNCIL.md) — advisory, docs-only
 
 **Owner asked for a council to evaluate the best way to finish multi-edition support (the full G7/G8 runway).**
-Ran an 8-agent workflow over the tree at f73595f (read-only): 5 lens advisors (edition-gating, feature-catalog,
+Ran an 8-agent workflow over the tree at 45322b6 (read-only): 5 lens advisors (edition-gating, feature-catalog,
 architecture-readiness, verification, sequencing) → 2 adversarial critics (26 challenges, 14 gaps) → a chair
 synthesis that re-verified every contested claim in-repo before adjudicating (~862k subagent tokens; zero
 content-filter trips — the word-list prohibition was embedded in every brief per the DEVLOG-578 lesson).

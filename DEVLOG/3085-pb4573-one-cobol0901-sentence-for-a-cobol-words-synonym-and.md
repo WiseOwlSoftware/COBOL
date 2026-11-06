@@ -3,7 +3,7 @@
 Wave 20261860, group A (PB4573). The parser's COBOL0901 named the ORIGINAL of a retyped synonym: `MOVE "A" TO SHOW` after
 `>>COBOL-WORDS EQUATE "DISPLAY" WITH "SHOW"` said "'DISPLAY' is a reserved word", a word the source never wrote.
 
-**Re-probe (69270302d).** The note believed the funnel arm named the synonym. It does only for a synonym the lexer has no token for
+**Re-probe (0726a5045).** The note believed the funnel arm named the synonym. It does only for a synonym the lexer has no token for
 (LOCALE, COPY, ...). The lexer's retype (`CobolWordsRewriter.Plan.Apply`) makes a synonym of a word it has a token for that token and
 overwrites its `Text` with the original's, so every stage that quotes `Text` names the original: the parser (`MOVE ... TO SHOW`,
 `PERFORM fetch` after `EQUATE "READ" WITH "Fetch"`) and the funnel (`01 CNST` after `EQUATE "CONSTANT" WITH "CNST"` said 'CONSTANT').

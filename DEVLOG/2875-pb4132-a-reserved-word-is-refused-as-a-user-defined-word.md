@@ -52,9 +52,9 @@ its recovery; the listener no longer overrides a ranked diagnosis. Duplication: 
 is one member. Performance: the new reads run only on a syntax error at a reserved gated word. Silent failure: an expected set the
 parse cannot compute keeps COBOL0901, the earlier behaviour.
 
-**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on 1546da903 (run 000001-20261031T174911Z:
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on 1328c6fee (run 000001-20261031T174911Z:
 Conformance 10,376, Unit 7,127 and Characterization 6 cases; Linux half (WSL clone of HEAD) GREEN). After the merge with main, the
-same verdict on 0595f7edc (run 000003-20261031T183641Z: Conformance 10,305, Unit 7,153 and Characterization 6 cases; Linux half
+same verdict on 13496bc5b (run 000003-20261031T183641Z: Conformance 10,305, Unit 7,153 and Characterization 6 cases; Linux half
 (WSL clone of HEAD) GREEN).
 
 **Review finisher (round 1: R1-1 blocking, R1-2 and R1-3 leads).** The branch was merged, with PB4206's branch under it
@@ -79,7 +79,7 @@ all three positions at every OTHER edition that reserves the word (`RecoverySour
 generated `CobolLexer.IsReservationGated` summary (written by `scripts/gen-cobol-words.ps1`) no longer says every error on a gated
 word is COBOL0901 from the listener; it names `ReservedWordUse`. `EditionReadDriftTests` records the two new word-status sites.
 Self-review: the predicate costs one token lookup and one hash probe per header prediction; the section-header citation in its
-summary was corrected to the §14.2.1 general format. Gate on 0eebca4b8: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
+summary was corrected to the §14.2.1 general format. Gate on 336275723: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
 PB2515): GREEN` (run 000001-20261031T195428Z: Conformance 10,551, Unit 35,181 and Characterization 8 cases; Linux half (WSL clone
 of HEAD) GREEN).
 

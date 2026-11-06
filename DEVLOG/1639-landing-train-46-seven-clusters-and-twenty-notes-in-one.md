@@ -54,7 +54,7 @@ The implementer's gate DID produce a verdict, and it was RED: `SpecTraceabilityI
 - Semgrep PASS: `raw-diagnostic-code-literal` 393 → 390, baseline locked.
 - `work.py check` ✓. Citations sampled with `cite.py --check`: §14.9.13.4 3), §14.9.13.3 8), §14.9.25.3 2), §14.8.2.3.3 2) d), §13.18.45.4 2).
 - GAP 2276 → 2266 (A -4, D -3, F -1, B -1, E -1). No cluster was dropped.
-- The train was rebased twice: onto registrar #10's `2eb1bc4e3` (PB961–PB967), then onto the docs-only DEVLOG 1637/1638.
+- The train was rebased twice: onto registrar #10's `3637cafe5` (PB961–PB967), then onto the docs-only DEVLOG 1637/1638.
 - Leads from the reports that are still unfiled go to the next registrar:
   - A binary32 signaling NaN reads back quiet.
   - A line-sequential AFTER write followed by a plain WRITE welds two records onto one line.

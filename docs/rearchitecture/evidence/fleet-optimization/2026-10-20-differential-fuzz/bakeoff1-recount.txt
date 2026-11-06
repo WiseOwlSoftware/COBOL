@@ -1,5 +1,5 @@
 The recount of 2026-10-20 21:5x PDT: every program bake-off 1 recorded as GNU_REJECTS, compiled with WiseOwl
-(E:/COBOL/src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe, the build of main at 0421be4df, --std 2014 --source-format free).
+(E:/COBOL/src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe, the build of main at 54854cb17, --std 2014 --source-format free).
 67 rows: 65 with a program, 2 whose reply held no program. Of the 65, WiseOwl compiles 1.
 
 19 both refuse (COBOL0001)

@@ -31,7 +31,7 @@ reading COBOLNET1635 encodes. §0's mechanical rule classes every divergence→A
 regressions. Baseline regenerated, exactly 8 rows changed, fresh run 0 flips.
 
 ⛔ **AND THE REAL LESSON OF THIS ENTRY IS A BOM I WROTE THAT BROKE CI WHILE EVERY LOCAL GATE STAYED GREEN.**
-The R03 commit (`5797d897`) shipped `CobolLexer.g4` with a UTF-8 byte-order mark, because a tool edit used
+The R03 commit (`cff61025`) shipped `CobolLexer.g4` with a UTF-8 byte-order mark, because a tool edit used
 Python's `utf-8-sig` — an encoding that STRIPS a BOM on read and **ADDS one on write**, so a read/modify/write
 round trip introduces one into a file that never had it. ANTLR answered
 `error(50): CobolLexer.g4:1:0: syntax error: '∩' came as a complete surprise to me` and the Windows Release job

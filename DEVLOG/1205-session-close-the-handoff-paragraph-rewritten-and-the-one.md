@@ -30,7 +30,7 @@ will recur in any repo: Python's `utf-8-sig` STRIPS a BOM on read and ADDS one o
 working directory persists between calls, which silently redirected a golden registration and a whole conformance
 gate — **both reporting exit 0**, because a wrong-directory command usually succeeds at doing nothing.
 
-**GATE:** docs only. Tree clean at `0c198f92` before this commit, CI run 31220997272 green on all four push jobs
+**GATE:** docs only. Tree clean at `f7d4b19d` before this commit, CI run 31220997272 green on all four push jobs
 (Greenfield · INV-1-strong · Windows build + tests · Guard). Probe: 283 positive goldens · 180 negative fixtures ·
 inventory 3981 rows / 3903 GAP · next free diagnostic COBOLNET1636 · `work.py next` → R04 · R05 · R06, 7
 actionable.

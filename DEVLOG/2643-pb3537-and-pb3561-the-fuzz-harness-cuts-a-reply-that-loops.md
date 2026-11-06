@@ -53,9 +53,9 @@ fail under a planted mutation. Rows closed: none (`closes_rows: []`, both notes 
 inventory row). The morning's launcher still calls the scratch wrapper; it needs its one line changed to
 `scripts/fuzz_night.ps1`.
 
-**Gate.** The first gate (head `e10332bbc`) stopped at the SELF-TESTS audit before any leg ran: `scripts/temp_names.py` found
+**Gate.** The first gate (head `57b8222d1`) stopped at the SELF-TESTS audit before any leg ran: `scripts/temp_names.py` found
 the wrapper's default log, a fixed name in the machine-wide temp directory; the log now lives in the run directory
-(`wrapper.log`). The second gate, run `000002-20261027T002209Z` at `f457da1a0`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
+(`wrapper.log`). The second gate, run `000002-20261027T002209Z` at `bb75718b7`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
 gating, PB2515): GREEN — … Conformance 7,426/18,924 · Unit 37,268/38,399 · Characterization 36/36 cases ran (skipped 0) in 1
 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN …`.
 

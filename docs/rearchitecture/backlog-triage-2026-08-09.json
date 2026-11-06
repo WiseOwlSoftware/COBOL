@@ -313,7 +313,7 @@
     "edition axis: a2 re-run at --std 2002 and 2014, identical"
    ],
    "mechanism": "The BINDER's argument screen is absent for this function: IntrinsicArgumentRules.Verified (src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs) carries rows for only INTEGER-OF-DATE (line 450) and INTEGER-OF-DAY (line 451) among the date family, so IntrinsicBinder.CheckArgumentClasses returns at its `if (!Verified.TryGetValue(sig.Name, ...)) return;` guard and the PB40 15.3 type-6 arm never runs for DATE-OF-INTEGER.",
-   "attribution": "wrap half only: PB22 (kb/Work/PB22.md, status: landed, commit cf7887a7 'one unchecked (long)(Int128) cast made every range guard unreachable past 2^63'). The screen half is unattributed and unlanded.",
+   "attribution": "wrap half only: PB22 (kb/Work/PB22.md, status: landed, commit 7c011b1c 'one unchecked (long)(Int128) cast made every range guard unreachable past 2^63'). The screen half is unattributed and unlanded.",
    "_source": "prober"
   },
   {
@@ -333,7 +333,7 @@
     "editions 2002 and 2014 for d2"
    ],
    "mechanism": "Half (b) of the note: DATE-TO-YYYYMMDD still has no row in IntrinsicArgumentRules.Verified (only INTEGER-OF-DATE/INTEGER-OF-DAY were added at lines 450-451), so IntrinsicBinder.CheckArgumentClasses returns at its TryGetValue guard and no COBOL1627 is emitted; the operand then reaches IntrinsicRenderer.IntArg, which coerces an alphanumeric through CobolNum.FromAlphanumeric and rescales a scaled operand with Truncation.",
-   "attribution": "value/wrap half only: PB22 (kb/Work/PB22.md, landed, commit cf7887a7). The class/scale half is unattributed and unlanded.",
+   "attribution": "value/wrap half only: PB22 (kb/Work/PB22.md, landed, commit 7c011b1c). The class/scale half is unattributed and unlanded.",
    "_source": "prober"
   },
   {
@@ -369,7 +369,7 @@
     "the adjacent illegal boundary 1600 (f3), which fires - exposing half (d), the misattributed diagnostic"
    ],
    "mechanism": "CobolDate.YearToYyyy still carries omitted-ness IN BAND: it resolves `baseYear == 0 ? RunUnit.Current.Clock.Now().Year : baseYear` BEFORE testing `b is <= 1600 or >= 10000`, and the renderer emits only the arguments present, so the runtime cannot distinguish a written 0 from an omitted argument-3; the shared YearToYyyy core also owns the message text, which is why it names 15.100.3.",
-   "attribution": "half (b) only: PB22 (kb/Work/PB22.md, landed, commit cf7887a7). Halves (a), (c) and (d) unattributed and unlanded.",
+   "attribution": "half (b) only: PB22 (kb/Work/PB22.md, landed, commit 7c011b1c). Halves (a), (c) and (d) unattributed and unlanded.",
    "_source": "prober"
   },
   {
@@ -388,7 +388,7 @@
     "edition axis: g2 at --std 85 also parses"
    ],
    "mechanism": "",
-   "attribution": "R21 (kb/Work/R21.md, status: landed - 'CURRENT-DATE and FORMATTED-CURRENT-DATE bypass the injectable clock, so two now-functions disagree in one run unit'), commit 43da1c9d 'R21: one run unit, one clock - IClock widens to DateTimeOffset and the last two direct reads die'. The reference-modification half is PB8/PB10/PB17 (kb/Work, all status: landed).",
+   "attribution": "R21 (kb/Work/R21.md, status: landed - 'CURRENT-DATE and FORMATTED-CURRENT-DATE bypass the injectable clock, so two now-functions disagree in one run unit'), commit 3433ecbe 'R21: one run unit, one clock - IClock widens to DateTimeOffset and the last two direct reads die'. The reference-modification half is PB8/PB10/PB17 (kb/Work, all status: landed).",
    "refute": "CONFIRMED",
    "refute-expected": "The omitted-argument-3 form and (FUNCTION NUMVAL (FUNCTION CURRENT-DATE (1:4))) written in that slot must return the SAME value in the same execution, under any clock, in any call shape and any statement context. Values recomputed by hand from 15.23.4 r1 via YEAR-TO-YYYY: with argument-1 630101 and argument-2 defaulted to 50 (r3), max-year = base + 50 and the result is the year ending in 63 inside (max-100, max] - base 2026 -> 2063, 2013 -> 2063, 2012 -> 1963, 1700 -> 1663, 9949 -> 9963.",
    "refute-actual": "r235.cob, ONE program with the three shapes adjacent, under five clock settings: unpinned -> CURDATE=2026080909293275-0700, DEF3=20630101, ARITY2=20630101, R5EXPR=20630101; pin 2013-06-15 -> all 20630101; pin 2012-06-15 -> all 19630101; pin 2013-01-01T03:00:00+00:00 -> CURDATE=2013010103000000+0000 and all 20630101; pin 1700-06-15 -> all 16630101; pin 9949-06-15 -> all 99630101. Every value equals the hand-derived expectation and TRACKS the pin. r235c.cob: the identity also holds in DISPLAY (DISP-D=[19630101] at the 2012 pin, [16630101] at the 1700 pin), IF (IF-IDENTITY-OK), EVALUATE (EVAL-IDENTITY-OK), MOVE and arithmetic. The r5 expression itself parses and evaluates at --std 2002, 2014 and 2023.",
@@ -418,7 +418,7 @@
     "clock-defaulted argument-3 across three pins (g3) - the inherited r5 defect, now closed"
    ],
    "mechanism": "CobolDate.YearToYyyy computes `max = off + b` where b is the EFFECTIVE base year, and the in-band `baseYear == 0` omitted-sentinel substitutes the clock year before the sum is formed, so the r6 predicate is applied to a sum that is not the sum of the values the program wrote. Fixing AR-15.23.3-4's sentinel is what closes this; the AsInt narrowing fix does not.",
-   "attribution": "wide-value escape only: PB22 (kb/Work/PB22.md, landed, commit cf7887a7); clock escape: R21 (landed, commit 43da1c9d). The sentinel escape is unattributed and unlanded.",
+   "attribution": "wide-value escape only: PB22 (kb/Work/PB22.md, landed, commit 7c011b1c); clock escape: R21 (landed, commit 3433ecbe). The sentinel escape is unattributed and unlanded.",
    "_source": "prober"
   },
   {
@@ -437,7 +437,7 @@
     "narrow control 3067672 (v1) proving the 15.5.2 guard itself still fires"
    ],
    "mechanism": "The binder screen is still absent for this function: DAY-OF-INTEGER has no row in IntrinsicArgumentRules.Verified (only INTEGER-OF-DATE/INTEGER-OF-DAY were added, lines 450-451), so IntrinsicBinder.CheckArgumentClasses returns at its TryGetValue guard and PB40's 15.3 type-6 arm never runs; IntrinsicRenderer.AsInt then rescales a scaled operand with Truncation and coerces an alphanumeric through CobolNum.FromAlphanumeric.",
-   "attribution": "mechanisms (1) and (4) only: PB22 (kb/Work/PB22.md, landed, commit cf7887a7) and PB2/PB21 (CobolIntrinsics.RealArgs.cs line 85 now defines DayOfIntegerReal). Mechanisms (2) and (3) unattributed and unlanded.",
+   "attribution": "mechanisms (1) and (4) only: PB22 (kb/Work/PB22.md, landed, commit 7c011b1c) and PB2/PB21 (CobolIntrinsics.RealArgs.cs line 85 now defines DayOfIntegerReal). Mechanisms (2) and (3) unattributed and unlanded.",
    "_source": "prober"
   },
   {
@@ -456,7 +456,7 @@
     "editions 2002 and 2014 for j2"
    ],
    "mechanism": "DAY-TO-YYYYDDD is still absent from IntrinsicArgumentRules.Verified, so IntrinsicBinder.CheckArgumentClasses returns at `if (!Verified.TryGetValue(sig.Name, out var rule)) return;` and neither the class arm nor PB40's integer/SR11 arm runs - the identical screen DOES fire for INTEGER-OF-DAY (COBOL1627), which is the half-fix boundary.",
-   "attribution": "DEFECT A: PB22 (kb/Work/PB22.md, landed, commit cf7887a7). DEFECT C: PB2/PB21 (CobolIntrinsics.RealArgs.cs line 103 now defines DayToYyyydddReal). DEFECT B unattributed and unlanded.",
+   "attribution": "DEFECT A: PB22 (kb/Work/PB22.md, landed, commit 7c011b1c). DEFECT C: PB2/PB21 (CobolIntrinsics.RealArgs.cs line 103 now defines DayToYyyydddReal). DEFECT B unattributed and unlanded.",
    "_source": "prober"
   },
   {
@@ -508,7 +508,7 @@
     "g2.cob at --std 85 and 2023: the ref-mod expression the note said 'CANNOT BE WRITTEN in this compiler' now compiles at both"
    ],
    "mechanism": "",
-   "attribution": "R21 (kb/Work/R21.md, status: landed), commit 43da1c9d 'R21: one run unit, one clock - IClock widens to DateTimeOffset and the last two direct reads die'. The collateral - reference modification of a function-identifier - is PB8/PB10/PB17 (kb/Work, all landed).",
+   "attribution": "R21 (kb/Work/R21.md, status: landed), commit 3433ecbe 'R21: one run unit, one clock - IClock widens to DateTimeOffset and the last two direct reads die'. The collateral - reference modification of a function-identifier - is PB8/PB10/PB17 (kb/Work, all landed).",
    "refute": "CONFIRMED",
    "refute-expected": "With argument-3 omitted, DAY-TO-YYYYDDD must return exactly what (FUNCTION NUMVAL (FUNCTION CURRENT-DATE (1:4))) in that slot returns, in the same execution, under any clock and any call shape. Hand-derived from 15.25.4 r1: argument-1 63100 gives YY=63, nnn=100, argument-2 defaults to 50 (r3), so the result is (the year ending 63 in (base+50-100, base+50]) * 1000 + 100 - base 2026/2013 -> 2063100, 2012 -> 1963100, 1700 -> 1663100, 9949 -> 9963100.",
    "refute-actual": "r235.cob, same program and same execution as the DATE-TO-YYYYMMDD trio: unpinned DTYDEF=2063100, DTYAR2=2063100, DTYEXPR=2063100; pin 2013 -> all 2063100; pin 2012 -> all 1963100; offset pin 2013-01-01T03:00:00+00:00 -> all 2063100; pin 1700 -> all 1663100; pin 9949 -> all 9963100. r235c.cob: DISP-J=[1963100] at the 2012 pin and [1663100] at the 1700 pin, and EVAL-IDENTITY-OK compares the defaulted form against the r5 expression as an EVALUATE subject/object pair. Every value matches the hand-derived expectation.",
@@ -538,7 +538,7 @@
     "both r6 boundaries, rejecting (n2, sum 1699) and accepting (o2, sums 1700 and 9999)"
    ],
    "mechanism": "CobolDate.YearToYyyy forms `max = off + b` from the EFFECTIVE base year, and the in-band `baseYear == 0` omitted-sentinel substitutes the clock year first, so r6 is applied to a sum other than the one written. Closing AR-15.25.3-4's sentinel is what closes this; the AsInt fix does not.",
-   "attribution": "wide-value escape only: PB22 (kb/Work/PB22.md, landed, commit cf7887a7). The sentinel escape is unattributed and unlanded.",
+   "attribution": "wide-value escape only: PB22 (kb/Work/PB22.md, landed, commit 7c011b1c). The sentinel escape is unattributed and unlanded.",
    "_source": "prober"
   },
   {
@@ -1090,7 +1090,7 @@
     "USAGE axis COMP-2 / COMP-1 / float literal - NOT diagnosed, and COMP-1 returns a different date"
    ],
    "mechanism": "The screen is a CLASS/declared-scale screen and a floating-point item is class numeric with no declared scale, so it passes; the value then reaches CobolIntrinsics.RealArgs.cs#TryIntegerArg, whose body is `if (double.IsFinite(v) && v > -9.2e18 && v < 9.2e18) { n = (long)Math.Truncate(v); return true; }` - it screens the RANGE and silently TRUNCATES the fraction, so 15.3 type 6's integrality is never tested on the float arm.",
-   "attribution": "the five closed mechanisms: PB40 (kb/Work/PB40.md, landed - the integer/SR11 arm, commit 19a0d56a) with PB12/PB30/PB31 (commit c517f60d, which added the INTEGER-OF-DATE row), PB22 (commit cf7887a7, the wide-value guard) and PB2/PB21 (IntegerOfDateReal). The surviving float-integrality mechanism is unattributed and unlanded.",
+   "attribution": "the five closed mechanisms: PB40 (kb/Work/PB40.md, landed - the integer/SR11 arm, commit ad98a3ce) with PB12/PB30/PB31 (commit 5d4698ee, which added the INTEGER-OF-DATE row), PB22 (commit 7c011b1c, the wide-value guard) and PB2/PB21 (IntegerOfDateReal). The surviving float-integrality mechanism is unattributed and unlanded.",
    "_source": "prober"
   },
   {
@@ -1110,7 +1110,7 @@
     "edition: q1 at --std 2002 -> 0143951"
    ],
    "mechanism": "IntrinsicArgumentRules screens CLASS and declared SCALE, and a COMP-2 item is class numeric with no declared scale, so it passes; the value then reaches CobolIntrinsics.RealArgs.cs#TryIntegerArg, which range-checks and then does `n = (long)Math.Truncate(v)` - the fraction is discarded silently, so no layer ever tests 15.3 type 6 integrality on the float arm.",
-   "attribution": "the four closed mechanisms: PB12/PB30/PB31 (commit c517f60d, which added the INTEGER-OF-DAY row at IntrinsicArgumentRules.cs line 451) with PB40 (commit 19a0d56a, the integer/SR11 arm), PB22 (commit cf7887a7) and PB2/PB21 (IntegerOfDayReal, RealArgs.cs line 89). The surviving float-integrality mechanism is unattributed and unlanded.",
+   "attribution": "the four closed mechanisms: PB12/PB30/PB31 (commit 5d4698ee, which added the INTEGER-OF-DAY row at IntrinsicArgumentRules.cs line 451) with PB40 (commit ad98a3ce, the integer/SR11 arm), PB22 (commit 7c011b1c) and PB2/PB21 (IntegerOfDayReal, RealArgs.cs line 89). The surviving float-integrality mechanism is unattributed and unlanded.",
    "_source": "prober"
   },
   {
@@ -1322,7 +1322,7 @@
    ],
    "refute": "CONFIRMED",
    "refute-evidence": "Both note-delta facts re-verified independently: (1) IntrinsicCatalog.cs:225 now reads ArgKinds \"ss\" with a 15.53.3 r1 comment - read directly, not inherited; (2) the 1502 suppression is real and I read its guard at IntrinsicBinder.cs:431 (`if (sig.Bind is IntrinsicBind.Unsupported) { }`) and confirmed by run at three editions. The prober's residual - LocaleDispositionTests still writes forbidden-class integer literals - is unaffected.",
-   "attribution": "kb/Work/PB27.md (status: landed) bullet 2 for the ArgKinds fix; commit 0c198f92 for the COBOL1502 suppression.",
+   "attribution": "kb/Work/PB27.md (status: landed) bullet 2 for the ArgKinds fix; commit f7d4b19d for the COBOL1502 suppression.",
    "_source": "refuter:CONFIRMED"
   },
   {
@@ -1393,7 +1393,7 @@
    ],
    "refute": "CONFIRMED",
    "refute-evidence": "I built the decisive test the prober missed. LOCALE-TIME-FROM-SECONDS now carries IntroducedIn 2014 (IntrinsicCatalog.cs:229), so compiling at --std 2002 puts it OUTSIDE its own D8 window - the one configuration where a surviving COBOL1502 would prove the suppression incomplete. Result: a single COBOL1518, exit=70, no 1502. The suppression is genuinely keyed on Bind, exactly as the code comment at IntrinsicBinder.cs:426-431 claims. The refuter's 'unreachable, not absent' correction stands.",
-   "attribution": "kb/Work/PB27.md (status: landed) bullet 3 for the IntroducedIn 2014 move; commit 0c198f92 for the COBOL1502 suppression.",
+   "attribution": "kb/Work/PB27.md (status: landed) bullet 3 for the IntroducedIn 2014 move; commit f7d4b19d for the COBOL1502 suppression.",
    "_source": "refuter:CONFIRMED"
   },
   {
@@ -2442,7 +2442,7 @@
     "OMITTED in a nested-optional slot (s4)"
    ],
    "mechanism": "",
-   "attribution": "R22 (kb/Work/R22.md, status: landed - 'a bare catalogued-intrinsic name without a REPOSITORY declaration compiles clean and dies at run time (COBOL1543 fires for only 3 names)'), commit 0c381b81 'R22: COBOL1543 for every catalogued name - the other arm of the 8.4.3.2.3 SR2 discrimination'.",
+   "attribution": "R22 (kb/Work/R22.md, status: landed - 'a bare catalogued-intrinsic name without a REPOSITORY declaration compiles clean and dies at run time (COBOL1543 fires for only 3 names)'), commit cf541828 'R22: COBOL1543 for every catalogued name - the other arm of the 8.4.3.2.3 SR2 discrimination'.",
    "refute": "CONFIRMED",
    "refute-expected": "Without a REPOSITORY declaration naming DAY-TO-YYYYDDD (or ALL), the word FUNCTION is required, so the bare form must draw a compile-time diagnostic (8.4.3.2.3 SR2 + 4.2.2); with the name declared it must be accepted; and the permission must be NAME-SPECIFIC, so a REPOSITORY declaring some other intrinsic must not license the omission.",
    "refute-actual": "f252a.cob (no REPOSITORY) -> 'error COBOL1543: DAY-TO-YYYYDDD is written without the word FUNCTION, but the REPOSITORY paragraph does not declare it. ISO 8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY ...'. f252b.cob with 'REPOSITORY. FUNCTION DAY-TO-YYYYDDD INTRINSIC.' -> NAMEDREPO=2010004, exit 0. f252c.cob with 'REPOSITORY. FUNCTION LENGTH INTRINSIC.' and a bare DAY-TO-YYYYDDD -> COBOL1543 again, so the permission is keyed to the declared NAME and not to the mere presence of a REPOSITORY paragraph. f252a re-run at --std 2002 and 2014 -> COBOL1543 identically; at --std 85, where the name is not catalogued, it draws COBOL1639 'is not defined' - still a compile-time diagnostic, never the recorded run-time NotImplemented abort.",
@@ -2777,7 +2777,7 @@
     "the arity direction both ways (t3 two arguments, t5 zero)"
    ],
    "mechanism": "",
-   "attribution": "R19 (kb/Work/R19.md, status: landed - 'a reserved phrase word as an intrinsic argument compiles with zero diagnostics and throws at run time'), commit 24183bc6 'R19: COBOL1638 - a phrase word (or inadmissible literal form) as an intrinsic argument is reported, not staged'.",
+   "attribution": "R19 (kb/Work/R19.md, status: landed - 'a reserved phrase word as an intrinsic argument compiles with zero diagnostics and throws at run time'), commit 588ca46e 'R19: COBOL1638 - a phrase word (or inadmissible literal form) as an intrinsic argument is reported, not staged'.",
    "refute": "CONFIRMED",
    "refute-expected": "15.46.2's format admits exactly one argument and no phrase, so a reserved phrase word in the argument position must be indicated at compile time (4.2.2) - for any phrase word, at every edition, and in any argument slot - not compiled clean and thrown at run time.",
    "refute-actual": "f462e.cob FUNCTION INTEGER-OF-DATE(LEADING) -> 'error COBOL1638: the reserved phrase word LEADING is written as an intrinsic-function argument, but this function's 15.x.2 general format takes no phrase - a phrase word is not an identifier, literal, or expression (ISO 15.3)' at --std 85, 2002, 2014 AND 2023. fw_NATIONAL.cob -> the same COBOL1638 for NATIONAL. f462s.cob FUNCTION DATE-TO-YYYYMMDD(851003, LEADING, 2002) -> COBOL1638, so the arm is not scoped to a one-argument format or to argument-1. Figurative constants: SPACE and HIGH-VALUE -> 'error COBOL1627: FUNCTION INTEGER-OF-DATE argument-1 is of class alphanumeric or national; ISO 15.3 requires class numeric (15.46.3 r1)'; ZERO compiles and returns 0, correct as a figurative NUMERIC literal whose value violates 15.46.3 r1 a) and so takes 15.3's implementor-defined default with checking off. OBSERVATION (not an overturn): SEPARATE, CHARACTERS, INITIAL and ALL in the argument position are rejected by the PARSER as COBOL0001 'no viable alternative' rather than by COBOL1638 - still the compile-time indication 4.2.2 requires, but a generic one; the recorded defect (clean compile plus run-time throw) does not reproduce for any word tried.",
@@ -3367,7 +3367,7 @@
    "expected": "Re-derived from the rule text read in full at specs/ISO_COBOL_2023.md:30373 -- 15.16.4 r2: 'If more than one character has the same position in the national program collating sequence, the character returned is the first character defined for that character position. If the order of multiple characters having the same position is undefined, the implementor shall define which of those multiple characters is returned; for a given implementation, collating sequence, and ordinal position, every invocation of the CHAR-NATIONAL function shall return the same character.' HALF 1 (behaviour): 12.3.7.4 GR7 1.6 defines the order for an ALSO phrase ('Literal-1 is the first character in the sequence of multiple characters defined at that ordinal position'), so the returned character shall be literal-1 -- irrespective of its code value, of where in the alphabet the ALSO group sits, of how many members it has, and of whether the operands are literals or ordinal numbers -- and every invocation shall agree. HALF 2 (the half the record left OPEN): Annex A.1 item 22 makes the determination a REQUIRED, DOCUMENTED implementor item, so docs/CONFORMANCE.md must carry the register row.",
    "actual": "HALF 1 holds on three shapes the prober did not try. rfb1 (ALPHABET NAT-A FOR NATIONAL IS N\"C\" ALSO N\"A\" ALSO N\"B\", N\"M\" -- a THREE-member group whose literal-1 is the HIGHEST-coded member) -> T3-CN1=[C], T3-CN2=[M]. rfb2 (ALSO group at a NON-FIRST position: N\"Z\", N\"C\" ALSO N\"A\" ALSO N\"B\", N\"M\") -> MID-CN1=[Z], MID-CN2=[C], MID-CN3=[M], and a PERFORM loop over a DATA-ITEM ordinal gives INVAR01=[C] INVAR02=[C] INVAR03=[C] (the invocation-invariance sentence). rfb3 (the NUMERIC-ORDINAL alphabet operand form, a different binder path: ALPHABET NAT-C FOR NATIONAL IS 68 ALSO 66 ALSO 67, 78) -> ORDFORM-CN1=[C], ORDFORM-CN2=[M] -- ordinal 68 is code unit 67 = 'C', so literal-1 wins there too. HALF 2 is genuinely closed: docs/CONFORMANCE.md carries '| 22 | **CHAR-NATIONAL function - which one of the multiple characters is returned**, S15.16.4, required + documented | ... CHAR-NATIONAL returns **the FIRST character defined for that position** - deterministic, in the alphabet definition's own written order (CobolIntrinsics.CharNational over the emitted __COLLATE_NAT table; NationalCollation.CharAt is the one position->character reader, so the choice cannot vary by call site). |' -- read verbatim, and the documented determination MATCHES the measured behaviour rather than merely existing.",
    "derivation": "15.16.4 r2 quoted above from specs/ISO_COBOL_2023.md:30373 (read directly, not inherited). The recorded defect was specifically half 2 -- the record's own ACTION line reads 'one row in docs/CONFORMANCE.md section 7 - no code change' -- with half 1 conceded to conform. So the refute has two jobs: (i) prove half 1 does not break on any ALSO shape outside the prober's single two-member/first-position/literal-operand case, and (ii) prove the register row exists AND states the determination the implementation actually makes. Both hold.",
-   "probe": "refute-char-convert-a/rfb1.cob (RF1642A): OBJECT-COMPUTER. XX PROGRAM COLLATING SEQUENCE FOR NATIONAL NAT-A. SPECIAL-NAMES. ALPHABET NAT-A FOR NATIONAL IS N\"C\" ALSO N\"A\" ALSO N\"B\", N\"M\". / CHAR-NATIONAL(1) and (2) through DISPLAY-OF. | rfb2.cob (RF1642B): ALPHABET NAT-B FOR NATIONAL IS N\"Z\", N\"C\" ALSO N\"A\" ALSO N\"B\", N\"M\". / CHAR-NATIONAL(1)(2)(3) + PERFORM VARYING I FROM 1 BY 1 UNTIL I > 3 over CHAR-NATIONAL(K) with K PIC 9(2) VALUE 2. | rfb3.cob (RF1642C): ALPHABET NAT-C FOR NATIONAL IS 68 ALSO 66 ALSO 67, 78. Command: cobol.exe <f>.cob --std 2023 -o <f>.dll --run. Half 2: docs/CONFORMANCE.md read directly (item 22 row) and attributed with 'git log --oneline -S \"CHAR-NATIONAL function - which one of the multiple characters is returned\" -- docs/CONFORMANCE.md' -> 8cef0ea6.",
+   "probe": "refute-char-convert-a/rfb1.cob (RF1642A): OBJECT-COMPUTER. XX PROGRAM COLLATING SEQUENCE FOR NATIONAL NAT-A. SPECIAL-NAMES. ALPHABET NAT-A FOR NATIONAL IS N\"C\" ALSO N\"A\" ALSO N\"B\", N\"M\". / CHAR-NATIONAL(1) and (2) through DISPLAY-OF. | rfb2.cob (RF1642B): ALPHABET NAT-B FOR NATIONAL IS N\"Z\", N\"C\" ALSO N\"A\" ALSO N\"B\", N\"M\". / CHAR-NATIONAL(1)(2)(3) + PERFORM VARYING I FROM 1 BY 1 UNTIL I > 3 over CHAR-NATIONAL(K) with K PIC 9(2) VALUE 2. | rfb3.cob (RF1642C): ALPHABET NAT-C FOR NATIONAL IS 68 ALSO 66 ALSO 67, 78. Command: cobol.exe <f>.cob --std 2023 -o <f>.dll --run. Half 2: docs/CONFORMANCE.md read directly (item 22 row) and attributed with 'git log --oneline -S \"CHAR-NATIONAL function - which one of the multiple characters is returned\" -- docs/CONFORMANCE.md' -> b3b77ad4.",
    "variations": [
     "THREE-member ALSO group whose literal-1 is the HIGHEST-coded member (C ALSO A ALSO B) -- the prober used a two-member group; a 'return the highest code' implementation would have passed their probe and failed this one",
     "ALSO group at a NON-FIRST ordinal position (Z, then C ALSO A ALSO B, then M) -- the prober's group was always position 1, where an off-by-one in the representative index is invisible",
@@ -3376,7 +3376,7 @@
     "The documentation half read verbatim and attributed to its commit, rather than trusting the prober's line number"
    ],
    "mechanism": "",
-   "attribution": "kb/Work/R23.md verified on disk ('status: landed', kind defect, area process/traceability). Attribution MECHANICALLY confirmed, not just plausible: git log -S over the item-22 row's exact title text in docs/CONFORMANCE.md returns exactly one commit, 8cef0ea6 'R23: the citation sweep lands and immediately pays for itself - four register rows, one mis-filing corrected'.",
+   "attribution": "kb/Work/R23.md verified on disk ('status: landed', kind defect, area process/traceability). Attribution MECHANICALLY confirmed, not just plausible: git log -S over the item-22 row's exact title text in docs/CONFORMANCE.md returns exactly one commit, b3b77ad4 'R23: the citation sweep lands and immediately pays for itself - four register rows, one mis-filing corrected'.",
    "refute": "CONFIRMED",
    "refute-evidence": "CONFIRMED FIXED, with one residue the prober did not flag. Three new ALSO shapes plus the invariance loop all return literal-1, and the A.1 item 22 register row exists, says what the implementation does, and traces to R23. RESIDUE (does NOT overturn the row, because the recorded defect was the missing register row and the record itself said 'no code change'): the record's separate test-needed line is still open -- 'grep -rln \"FOR NATIONAL IS\" tests/conformance/' returns only 2002/alphabet_national.cob and three negative cases, and no .cob under tests/conformance declares an ALSO phrase on a NATIONAL alphabet, so nothing in the corpus pins this behaviour end to end. Whoever closes the row should carry that golden with it.",
    "_source": "refuter:CONFIRMED"
@@ -3427,7 +3427,7 @@
     "VALUE, not label: national receiver read back through DISPLAY-OF gives LITVAL=[PQRS] and THREEVAL=[PQ RSTU] exactly as 15.18.4 r1 computes, and the national IF relation is true"
    ],
    "mechanism": "",
-   "attribution": "kb/Work/PB15.md verified on disk ('status: landed', title 'PB15 - LANDED 2026-08-04 - the S15.x.1 RESULT-TYPE tables were ignored for TEN functions, not four', silent: true, under_rejects: true). MECHANICALLY confirmed: the catalog row is now Add(new(\"CONCAT\", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 2, inf, \"s\", \"Concat\", IntrinsicBind.Runtime, false, 2023, Result: IntrinsicResultRule.FollowsConcatArguments)) // S15.18.1 at IntrinsicCatalog.cs:279, and 'git log --oneline -S FollowsConcatArguments -- src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs' returns exactly 9d3c45a2 'PB15: the S15.x.1 result-type tables become a catalog COLUMN, and the entry's four findings were eight'.",
+   "attribution": "kb/Work/PB15.md verified on disk ('status: landed', title 'PB15 - LANDED 2026-08-04 - the S15.x.1 RESULT-TYPE tables were ignored for TEN functions, not four', silent: true, under_rejects: true). MECHANICALLY confirmed: the catalog row is now Add(new(\"CONCAT\", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 2, inf, \"s\", \"Concat\", IntrinsicBind.Runtime, false, 2023, Result: IntrinsicResultRule.FollowsConcatArguments)) // S15.18.1 at IntrinsicCatalog.cs:279, and 'git log --oneline -S FollowsConcatArguments -- src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs' returns exactly 912961e6 'PB15: the S15.x.1 result-type tables become a catalog COLUMN, and the entry's four findings were eight'.",
    "refute": "CONFIRMED",
    "refute-evidence": "CONFIRMED FIXED. Six new probes across four axes the prober did not vary (literal argument-1, mixed list with national first, nesting inside another intrinsic, the r4 three-argument form) plus a dedicated over-rejection control and a value control. The most likely overturn shapes both failed: the promotion is not blanket (rfc3 correctly stays alphanumeric) and it is not label-only (rfc6 values are exactly r1's). The prober's carried caveat is upheld verbatim: r2's 'or USAGE national' limb (a class-numeric or class-boolean item of USAGE NATIONAL) is still unreachable behind COBOL0899, so this row closes only its class-national half.",
    "_source": "refuter:CONFIRMED"
@@ -3572,7 +3572,7 @@
     "receiver shapes and a receiverless DISPLAY (c1)"
    ],
    "mechanism": "",
-   "attribution": "PB2/PB21 (float path, CobolIntrinsics.RealArgs.cs) + PB22 (kb/Work/PB22.md, landed, commit cf7887a7) for the wrap edge.",
+   "attribution": "PB2/PB21 (float path, CobolIntrinsics.RealArgs.cs) + PB22 (kb/Work/PB22.md, landed, commit 7c011b1c) for the wrap edge.",
    "refute": "CONFIRMED",
    "refute-expected": "Every returned value is in the form YYYYMMDD (15.22.4 r2) and is the standard date of argument-1 (r1). Independently recomputed for 30 arguments spanning every month end of a common year (1999) and a leap year (2000), the 1800/1900/2100 non-leap centuries, the 2400 leap century, and both 15.5.2 endpoints.",
    "refute-actual": "r22b.cob (30 references) matched a generated expectation file BYTE FOR BYTE - `diff r22b.out r22b.expected` -> ALL-MATCH, exit 0: 145397->19990131 ... 146097->20001231, 72743->18000301, 109267->19000301, 182316->21000301, 291888->24000229, 1->16010101, 3067671->99991231. r22c.cob: COMP3   =20000229, BINARY  =20000229, YYYY    =1995, MM      =02, DD      =15, ARITH   =16040229. r22d/r22e show the wrap-shaped edge stays closed on the float arm too: an out-of-range or negative float yields 0 or a fatal EC, never a well-formed-looking YYYYMMDD.",

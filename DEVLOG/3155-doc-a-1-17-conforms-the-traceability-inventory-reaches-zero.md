@@ -2,7 +2,7 @@
 
 **What.** The owner assigned the inventory's last GAP row, DOC-A.1-17 (A.1 item 17: the other effects of a CALL that was
 not successful and whose condition is handled by exception processing, §14.9.4.4 GR3 h) 2.), to the Mythos lane. Its
-2026-09-24 verdict was PARTIAL because the ARG-MISMATCH and EC-EXTERNAL arms were never reached. Re-probed at ab64e9cf7,
+2026-09-24 verdict was PARTIAL because the ARG-MISMATCH and EC-EXTERNAL arms were never reached. Re-probed at 8e30d4bbf,
 every condition GR3 h) 2. covers for a CALL behaves as docs/CONFORMANCE.md determines: the declarative runs, and after
 RESUME AT NEXT STATEMENT no program was activated, the USING and RETURNING items keep their values, NOT ON EXCEPTION is not
 executed and the last exception status names the condition. The row is now CONFORMS, the inventory is at GAP 0 of 4,214,

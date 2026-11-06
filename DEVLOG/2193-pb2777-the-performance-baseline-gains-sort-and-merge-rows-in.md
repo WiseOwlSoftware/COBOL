@@ -29,8 +29,8 @@ above the start-up floor. The self-test gained two cases: one fires on a planted
 measure sees a child's own 256 MiB against an idle child. Both pass on Windows and under WSL.
 `PerfBaselineSelfTestDriftTests` holds both arm names.
 
-**What the record shows** (`docs/rearchitecture/evidence/perf-baseline/a13ede547992.md`, 2 sessions; the R0 record
-`354c79ef3312.md` stays the architecture review's reference): above the floor, ours SORTHOT-SPILL holds 32.8 / 39.3 /
+**What the record shows** (`docs/rearchitecture/evidence/perf-baseline/b1a42fc36e8b.md`, 2 sessions; the R0 record
+`5259e660dc35.md` stays the architecture review's reference): above the floor, ours SORTHOT-SPILL holds 32.8 / 39.3 /
 42.1 MiB and MERGEHOT-SPILL 39.5 / 39.4 / 38.2 MiB at 100,000 / 200,000 / 400,000 records, while the in-memory cases
 grow from 51.9 to 125.0 MiB and from 57.9 to 133.8 MiB. SEQHOT, which sorts nothing, already sits about 28 MiB above
 the floor, so the spill cases' plateau is the file-I/O runtime plus about the 4 MiB limit. SORTHOT-SPILL's small rise

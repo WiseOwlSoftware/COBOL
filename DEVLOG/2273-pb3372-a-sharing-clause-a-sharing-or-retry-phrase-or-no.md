@@ -8,7 +8,7 @@ and OUTPUT (GR3, "the LOCK MODE clause has no effect"). The harm was cost and ho
 `OPEN EXTEND` counted every record already in the file to seed a release-ordinal mint that is read only when a lock is set, and an OUTPUT or EXTEND
 writer asked the host for a read-write handle for lock publication it never does.
 
-**Re-probe.** `RecordLockingParticipationDriftTests` first: 33 of 55 cells red on main c82c9213f (every SHARING-clause-only,
+**Re-probe.** `RecordLockingParticipationDriftTests` first: 33 of 55 cells red on main 12eb54e04 (every SHARING-clause-only,
 phrase and NO OTHER cell, in all three sequential framings).
 
 **Root cause.** Two answers to one question. `LocksEffective` asked "can this connector set locks under its open sharing mode" at every I-O

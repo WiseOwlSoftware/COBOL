@@ -6,7 +6,7 @@ ADD/SUBTRACT/MULTIPLY/DIVIDE, COMPUTE (precedence/scale/truncation), IF/ELSE (nu
 inline PERFORM (TIMES/UNTIL) — all green vs the legacy on the NIST acceptance basis. Scoped to single-paragraph,
 straight-line, truncation-only code (out-of-line PERFORM/GO-TO are G4; ROUNDED/ON SIZE ERROR are G3; signed DISPLAY
 is G2d), so every result is numeric and the legacy is a sound oracle. Conformance suite 18→36 green. (Commit
-d251c02; this entry restores the DEVLOG-per-commit record that commit omitted.)
+a489253; this entry restores the DEVLOG-per-commit record that commit omitted.)
 
 DEVLOG 476.
 

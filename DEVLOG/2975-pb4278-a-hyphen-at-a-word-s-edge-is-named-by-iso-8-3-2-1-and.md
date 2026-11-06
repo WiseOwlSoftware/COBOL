@@ -1,6 +1,6 @@
 ## Entry 2975 — 2026-11-01 19:19 PST — PB4278: a hyphen at a word's edge is named by ISO 8.3.2.1, and the NAME_BODY comment states the current rule
 
-**Re-probe (base 2ce2e70a2).** `01 A- PIC X.` drew only COBOL1941 at `PIC` and `01 -A PIC X.` only COBOL5506 at `A`,
+**Re-probe (base 90e53ed28).** `01 A- PIC X.` drew only COBOL1941 at `PIC` and `01 -A PIC X.` only COBOL5506 at `A`,
 at every `--std`. §8.3.2.1 ("The hyphen or underscore shall not appear as the first or last character in such words")
 was never named. `COMPUTE C = A -B` drew COBOL2993 (§8.7.1), which is correct.
 

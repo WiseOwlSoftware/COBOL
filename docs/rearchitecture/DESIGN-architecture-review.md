@@ -12,7 +12,7 @@
 
 ## 1. Scope
 
-**In scope: every source artifact of the greenfield compiler.** Measured at `edda57d7f` (2026-09-29):
+**In scope: every source artifact of the greenfield compiler.** Measured at `47d200326` (2026-09-29):
 
 | Area | Where | Size |
 |---|---|---|
@@ -140,7 +140,7 @@ is tracked tooling with a self-test, so the next batch is a command, never a bri
   drift test `ArchReviewFleetDriftTests` runs the check on the committed tree, so a new folder no subsystem owns is
   red until the table owns it. The check reads the tree's paths only, never a blob (kb/Work PB2882: reading every
   blob to count lines it never used ran past the test harness's 120 s budget in the Linux gate); only the shards
-  read lines, and only the domain files'. At 8be230068: 1,511 files (the root scripts and the agent role files included), 0 holes, 0 overlaps. The runtime's collation, Unicode and
+  read lines, and only the domain files'. At cd85e4901: 1,511 files (the root scripts and the agent role files included), 0 holes, 0 overlaps. The runtime's collation, Unicode and
   globalization code is a seventeenth subsystem, and the source generator belongs to the bound tree it generates for.
 <!-- r2-subsystems:begin -->
 | Subsystem (`key`) | Files: include | except |
@@ -167,7 +167,7 @@ Under review: `src/**/*.{cs,g4,ps1,csproj}`, `tests/**/*.{cs,csproj,props,py,ps1
 <!-- r2-subsystems:end -->
 - **Shards a reviewer can read whole** (B2). Each subsystem is cut by path into balanced shards of at most 6,000
   physical lines at the pin (the census `lines` column is per type, and a partial type's files fall in different
-  shards, so only a file-level size adds up); a single larger file is its own shard. At 8be230068 the binding family
+  shards, so only a file-level size adds up); a single larger file is its own shard. At cd85e4901 the binding family
   is 9 + 5 + 1 shards, code generation 5, the runtime 10, the CLI 1. A shard (or a resumed pair's unread remainder)
   over 4,000 lines gets two finders that start from opposite ends (base `review` Scale: audit) and meet in the middle:
   each skips a file any finder of its pair has marked read. Every finder records a `read` line for each file it read
@@ -262,7 +262,7 @@ Under review: `src/**/*.{cs,g4,ps1,csproj}`, `tests/**/*.{cs,csproj,props,py,ps1
   unread shard lines per dimension, the undecided lens verdicts, the verdicts the unread lines are expected to need,
   the unexamined nulls and the clone pass, priced at rates pooled from every batch recorded in `model_rules.json`
   `cost.r2.batches`. Each record is `r2_cost.py --measure <batch dir> <its Workflow runs' subagent dirs>`, the counted
-  tokens (the kinds `budget.py` counts) of every agent transcript by kind; at batches 1 and 2 of 8be230068 that is
+  tokens (the kinds `budget.py` counts) of every agent transcript by kind; at batches 1 and 2 of cd85e4901 that is
   90.3 tokens per shard line per dimension, 29,330 per lens verdict and 0.00128 findings per line (29.4 M and 52.5 M
   counted tokens for 36 and 65 pairs: about 0.8 M a pair, so a session window holds about 40 pairs). Tokens become weekly points at the Opus rate (every reviewer is
   Opus) and session points at `session_pct_per_weekly_pct`. The room is `budget.py`'s for the running account: the
@@ -521,11 +521,11 @@ only gate between restructuring waves and fix-lane trains; zero GAP stays v1.0's
 > PB2118 "Draft 10". Owner questions 1 (§8.2), 2 to 4 (§8.7) and 5 (§2, §8.7: the file-set partition is the
 > only gate between restructuring waves and fix-lane trains) were answered on 2026-10-07. The owner
 > approved it the same day (PB2118); it is the design every R2–R5 wave executes against. Every claim about the code cites the R0 census record
-> `docs/rearchitecture/evidence/arch-census/a02b165dae86b674e16399468144e1386171236b.json` (commit `a02b165da`,
+> `docs/rearchitecture/evidence/arch-census/79a4b6c58bcae74f5b22964457b2c890a0b85ed4.json` (commit `79a4b6c58`,
 > 2026-10-07; its findings file carries the `R0-nnnn` ids) by a field or an id, a `file:line`, or a number that record
 > computes; a count the census does not yet compute is marked *text scan, provisional* and §8.2 makes the census compute
 > it. Every claim about COBOL cites the standard through `cite.py --check`. The oracle (§4.1, against each wave's base) and
-> the baseline (`perf-baseline/354c79ef3312`) bound every wave below. **This section holds shapes only**: the work
+> the baseline (`perf-baseline/5259e660dc35`) bound every wave below. **This section holds shapes only**: the work
 > (each wave's order, blockers and sites) is the `kb/Work` notes that cite it (CLAUDE.md rule 8).
 
 What the census measured, in one line: 2,087 types (1,413 authored) in 6 product projects; 52 god-class candidates;
@@ -534,7 +534,7 @@ families and 1 unreachable type; 266 test-only members in 64 families and 3 test
 findings. Filed: the 103 leaf notes PB2155–PB2257 (75 Delete, 19 Move/rename, 9 Unify) and the 52 god-class findings
 as Extract notes PB2296–PB2347 (one per finding, in finding order, by `scripts/arch/file_census_notes.py --targets`
 from §8.3's shapes); and, from the same targets file, kept in the repository beside the record it refines
-(`docs/rearchitecture/evidence/arch-census/targets/a02b165dae86b674e16399468144e1386171236b.json`), 66
+(`docs/rearchitecture/evidence/arch-census/targets/79a4b6c58bcae74f5b22964457b2c890a0b85ed4.json`), 66
 more, PB2352–PB2417: the 39 later steps of the seven designed extraction orders of §8.3, and 27 designed waves no
 census finding names (the removals of §8.1's tolerated rows and the report models' parse-context extract they need,
 `BoundTree.cs`'s steps, the grammar regroup of §8.4, the NumX re-model of §8.5, the four namespace-root flips of
@@ -657,8 +657,8 @@ the assemblies contain that the file does not place fails the test. The file's c
     { "from": "WiseOwl.Cobol.Binding.Model", "to": "WiseOwl.Cobol.Compiler.Oo", "uses": 5, "removedBy": "PB2402 (move: the OO symbols with the closure they name, to compiler.model; 5 -> 2) and PB2403 (AdapterPair to compiler.model; the OoClassTable answers become BoundCompilation data; 2 -> 0)" },
     { "from": "WiseOwl.Cobol.Binding.Model", "to": "WiseOwl.Cobol.Frontend.Generated", "uses": 4, "removedBy": "PB2398 (extract: BoundCompilation.Tree and BoundUnit.Ctx, BoundCompilation.cs:34, BoundUnit.cs:34, carry parse contexts across ICodeGenBackend; each reader's fact becomes a bound-node fact, DESIGN-backend-abstraction §1.1 lists no parse context)" },
     { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Binding", "uses": 33, "removedBy": "PB2347 (move: StatementBinder and its SubscriptSegments partial out of Bound/) and PB2405 (the rule families the bound nodes read move into compiler.bound); PB2420 (move: EditionContext, SortCollation, IeeeSpecial to compiler.model) and PB2419 (BoundAllLiteral.Of leaves for ConcatFolder) end the last nine pairs (Draft 6, G1)" },
-    { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Binding.Procedure", "uses": 39, "removedBy": "PB2347 (the same move; MoveClassifier and MoveOverlap stay in compiler.bound); the walk reads 39 at 669e32aa9, two pairs more than at a02b165da (StatementBinder -> PlacementRules, UntilExitPlacement, landed after the census; Draft 7, H1)" },
-    { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Binding.Validation", "uses": 1, "removedBy": "PB2347 (StatementBinder moves to Binding/Procedure, the same layer as StatementValidation; a row landed after a02b165da by the fix lane, measured by the walk at 669e32aa9, StatementBinder.cs:446; Draft 7, H1)" },
+    { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Binding.Procedure", "uses": 39, "removedBy": "PB2347 (the same move; MoveClassifier and MoveOverlap stay in compiler.bound); the walk reads 39 at 669e32aa9, two pairs more than at 79a4b6c58 (StatementBinder -> PlacementRules, UntilExitPlacement, landed after the census; Draft 7, H1)" },
+    { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Binding.Validation", "uses": 1, "removedBy": "PB2347 (StatementBinder moves to Binding/Procedure, the same layer as StatementValidation; a row landed after 79a4b6c58 by the fix lane, measured by the walk at 669e32aa9, StatementBinder.cs:446; Draft 7, H1)" },
     { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Compiler.Oo", "uses": 6, "removedBy": "PB2402 (the OO symbols to compiler.model; 6 -> 1) and PB2347 (StatementBinder -> OoClassTable leaves Bound/)" },
     { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Frontend.Preprocessor", "uses": 1, "removedBy": "PB2347 (the StatementBinder move)" },
     { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Frontend.Generated", "uses": 18, "removedBy": "PB2347 (StatementBinder, the parse-context reader, out of Bound/) and PB2398 (BoundOo.cs's parse-context use becomes a bound-node fact)" },
@@ -684,8 +684,8 @@ Of the 207 measured edges, 48 are intra-layer, 132 are allowed and 27 cross a la
 note's "Removes" line names the rows back, both rendered from the targets file); a note a removal must wait for is in
 the remover's `blocked_by`, never in `removedBy`.
 
-**The file is keyed to the tree PB2417 lands on, not to `a02b165da`.** The census is a snapshot and the fix lane keeps
-landing: three landings after it (861110338, 8a22e2a37, cad6957d0) gave `StatementBinder` one pair onto
+**The file is keyed to the tree PB2417 lands on, not to `79a4b6c58`.** The census is a snapshot and the fix lane keeps
+landing: three landings after it (7bb3395f7, 0e215a15c, 5055d9fa2) gave `StatementBinder` one pair onto
 `Binding.Validation` and two more onto `Binding.Procedure` (the sixth refuter, H1), so a file frozen at the census fails
 its own walk on the day it lands. The rows above are the census's values plus what the walk measured at `669e32aa9`
 (the one new row, and the grown `Binding.Bound → Binding.Procedure` pairs inside its cap); they are the proposal, not the
@@ -786,7 +786,7 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   `System.Reflection.Metadata` and walks the AUTHORED type definitions only, by the census's rule: a type is generated
   only when every document that declares it is a generated output (a `Generated/` folder, a `*.g.cs` file, a source
   generator's output; `tools/ArchCensus/Program.cs:166`), so a partial with one hand-written document is authored. An
-  attribute test is not that rule: at `a02b165da` the two populations differ by 12 types — the source generator's
+  attribute test is not that rule: at `79a4b6c58` the two populations differ by 12 types — the source generator's
   `BoundNodeAttribute`, `BoundVisitor`, `BoundStatementTree` and seven `I{Root}Visitor<T>` interfaces and the generated
   `WiseOwl.Cobol.Editions.Constructs` carry no `[GeneratedCode]` (the census marks them generated), and the census counts
   `WiseOwl.Cobol.Frontend.Generated.CobolParserCore` as authored (its hand partial `Parsing/CompilationUnitTokenRetypes.cs`)
@@ -797,7 +797,7 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   types' (a nested type is declared inside a declaration of its container in the same document): `CobolParserCore`'s
   hand partial declares only a member of its nested `CompilationUnitContext`, so without that rule every document the PDB
   names for `CobolParserCore` itself is generated and the walk disagreed with the census on exactly that type
-  (kb/Work PB2417, measured at `7cb79581e`). The synthesized types are the census's too (`CompiledPopulation.cs`:
+  (kb/Work PB2417, measured at `c83f88901`). The synthesized types are the census's too (`CompiledPopulation.cs`:
   `<Module>`, `[CompilerGenerated]` and the types nested in them); a closure or state machine folds into the type it is
   nested in. Its population test asserts the rule, not the snapshot: every type both the walk and the newest census record
   name agrees on generated-ness, and the walk reads at least nine in ten of the record's types (a type a landing added
@@ -829,7 +829,7 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   namespaces — the census's unit (`RawEdge.Pairs`, `tools/ArchCensus/RawCensus.cs:64`), counted over the walk's own
   population.
 - **Two observers, two ratchets, one file.** The `uses` column of a tolerated row is the census's count (the values
-  in the block above are its measure at `a02b165da`; the landed file's are the record its `census` field names), and
+  in the block above are its measure at `79a4b6c58`; the landed file's are the record its `census` field names), and
   `ArchCensusDriftTests.TheNewestRecord_CrossesNoLayerTheEdgesFileDoesNotAllowOrTolerate` asserts that every cross-layer
   entry of the newest record's `namespaceEdges` is allowed, or tolerated by a row whose `uses` is that count, and that
   the file is keyed to the newest record: recording a census RATCHETS the file in the same change (its counts may
@@ -915,7 +915,7 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   landing of a remover in the PB4319 shape (`TheRemoversLanding_RecordsACensus_TheOnlyWayACensusOnlyRowEnds`, above);
   and both optimization levels of one compiled source (`TheWalk_ReadsEitherImage_AndAnOptimizedOneOnlyForGrowth`,
   "Two images, one file" above).
-- **The file as measured (kb/Work PB2417, census `7cb79581e`).** The walk and its checks take about half a second of
+- **The file as measured (kb/Work PB2417, census `c83f88901`).** The walk and its checks take about half a second of
   the gate; the file places two namespaces R1 did not know — `WiseOwl.Cobol.Binding.Repository` (the external
   repository's reader, codec and records, `Binding/Repository/`, which reads the binder: compiler.binding) by its folder,
   and allows `cli → compiler.binding` by the composition-root rule (the CLI parses `--numeric-display` into the
@@ -1024,7 +1024,7 @@ them). The gate is unaffected: `scripts/gate_plan.py` keys every case on its dis
 (`name_key`, gate_plan.py:16), not its namespace, and a stale impact-map key only changes the order, never what runs
 (PB1708). The oracle is unaffected: `ArchOracleDriftTests` enrolls row sources by attribute, not by name.
 
-**Scripts: an artifact the tooling reads has ONE Python reader** (kb/Work PB3204, PB3209; R2 findings at 8be230068).
+**Scripts: an artifact the tooling reads has ONE Python reader** (kb/Work PB3204, PB3209; R2 findings at cd85e4901).
 The rules above are written for C#; for `scripts/` the same "one rule in one place" reads: a script that needs a
 fact about a shared artifact imports that artifact's reader and keeps no parser of its own. The ANTLR grammar under
 `src/WiseOwl.Cobol.Frontend/Grammar` is read by `scripts/spec/grammar_source.py` (`read()` → `Rule(name, kind, file,
@@ -2110,7 +2110,7 @@ verifies alone what it can (`python scripts/spec/work.py check`): every path an 
 the COMMITTED tree, read from the git index and never the filesystem, so a built checkout and CI's decide alike (a
 file the wave creates is marked `(new)`; a generated parser file under `Generated/` is a build output no wave edits,
 and a note naming one must also name the `.g4` it comes from — PB2197, found by CI at the R1 landing), every name it moves or changes is one the member index knows (a typo or a
-member deleted since fails: the first run found PB2197's two lexer tokens, deleted by 61c1c04dd after the census), an
+member deleted since fails: the first run found PB2197's two lexer tokens, deleted by b30de9863 after the census), an
 open PB2119 note whose declared sites name a file of set (b) reaches an open slice note through `blocked_by`, and
 every Move/rename and Extract note reaches PB2417. The CALLERS' collision with set (b) is the planner's alone,
 recomputed at every plan: callers change with every landing, so a `blocked_by` written from them would be a hand list

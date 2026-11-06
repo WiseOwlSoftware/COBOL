@@ -29,6 +29,6 @@ oracle; the battery could not have been.
 
 **GATE.** Wave-local on the delta (one emitter arm + the golden's two new assertions):
 Conformance `~Corpus|~Negative|~Oo|~Invoke|~Boolean|~VersionMatrix` **2704/2704, zero skipped** · Unit filter 29/29. The
-comprehensive battery above covers this tree's parent (`548668fb`); this commit's delta is gated wave-locally
+comprehensive battery above covers this tree's parent (`198cbcf4`); this commit's delta is gated wave-locally
 per the tiered-gate rule.
 

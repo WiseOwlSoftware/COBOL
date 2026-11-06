@@ -51,7 +51,7 @@ the base scripts out in this worktree between the two. Self-review found and fix
 the code does not have, a self-test write that stated no `newline=` (the gate's LINE ENDINGS audit), and the audit's
 own blind spot (rule 6). No inventory row moved: process tooling, `closes_rows: []` with its reason.
 
-Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on 3c403f92c (run 000005-20261026T030836Z:
+Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on 839374ac4 (run 000005-20261026T030836Z:
 Conformance 8,416, Unit 36,703, Characterization 6 cases ran; Linux half, WSL clone of HEAD, GREEN), after two reds on
 the way: LINE ENDINGS (a self-test write without `newline=`) and the Linux inert watch (rule 6's first form).
 

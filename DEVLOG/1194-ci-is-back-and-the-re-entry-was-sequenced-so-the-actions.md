@@ -13,7 +13,7 @@ equally have been the bump, outage residue, or a runner that never picked up.
 ⚠ **DISPATCH, NOT PUSH — and the reason is in the workflow file.** `legacy-oracle` is guarded by
 `if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'`, so a push exercises FOUR of
 the five jobs. "Confirm all five jobs get runners" is only satisfiable by a `workflow_dispatch`. Baseline run
-**31141695885: all five SUCCESS** on `ab691eff` with the OLD action versions — Guard, Greenfield tests,
+**31141695885: all five SUCCESS** on `e9ccf9f4` with the OLD action versions — Guard, Greenfield tests,
 INV-1-strong, Windows build+tests, Legacy-oracle.
 
 **THE BUMP, on top of that baseline:** `checkout` v4→v7, `cache` v4→v6, `setup-dotnet` v4→v6 — 15 references,

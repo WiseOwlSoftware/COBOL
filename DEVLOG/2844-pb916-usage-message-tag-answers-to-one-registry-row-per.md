@@ -1,7 +1,7 @@
 ## Entry 2844 — 2026-10-31 00:26 PDT — PB916 — USAGE MESSAGE-TAG answers to one registry row per edition: the 2023 decline no longer fires below 2023, and an inherited message-tag usage is no longer reported as floating-point
 
 kb/Work PB916 filed three false statements about the MESSAGE-TAG surface. Re-probed on a fresh Debug build of main
-669f45311 (0 warnings, 0 errors), all three reproduced as filed: `01 M USAGE MESSAGE-TAG.` drew the byte-identical COBOL1943
+4d7c3b999 (0 warnings, 0 errors), all three reproduced as filed: `01 M USAGE MESSAGE-TAG.` drew the byte-identical COBOL1943
 at `--std 85`, 2002, 2014 and 2023; `01 G USAGE MESSAGE-TAG. 05 M PIC X.` drew COBOL1521 naming COMP-1/COMP-2/FLOAT-*; and
 the `CobolClass.Index` remark still said message-tag had no `Usage` member.
 

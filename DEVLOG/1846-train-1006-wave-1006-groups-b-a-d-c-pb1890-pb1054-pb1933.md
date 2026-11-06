@@ -43,7 +43,7 @@ the false premise that FUNCTION BYTE-LENGTH was deferred), and SR3 admits an int
 0899 descriptors are deleted. 11 rows closed. PB1231's forward references stay open; its note already covers the
 SPECIAL-NAMES literal positions the report flagged.
 
-**The train.** Each cluster came in as a patch against 805fb16c2 and applied cleanly, the inventory included; a row-level
+**The train.** Each cluster came in as a patch against 79c90907f and applied cleanly, the inventory included; a row-level
 comparison showed the merged inventory equal to the union of the four branches (26 rows changed, none by two clusters),
 and every landed note names its rows in `closes_rows` or carries a reason. Gate (lander mode, run
 20261003T160511Z-ac6a5d): GREEN — Conformance 9,932/9,932 · Unit 30,396/30,396 · Characterization 35/35; legacy

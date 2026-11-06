@@ -6,7 +6,7 @@ is the only local run; without a map it holds the change's own tests, the reds, 
 tests, and after those the cheapest cases of the whole population. PB3666's bounce was the evidence: two goldens its change
 reaches sat in leg 2 and went red only in the merge queue.
 
-**Re-probe (fresh build at 7d769bcc1).** No map existed and all 72 gate plans on the machine read `map none`. The first real
+**Re-probe (fresh build at 0e85c8745).** No map existed and all 72 gate plans on the machine read `map none`. The first real
 recording through the existing recorder took 13.6 minutes and wrote a 25.2 MB map (the design said about 5 MB) of 57,270
 tests, and it ended `=== IMPACT MAP: FAILED ===`: the recorder's own watchdog listed eight `UniversalCrossingShapeDriftTests`
 theory rows as never recorded, because `--list-tests` truncates a long display name with a marker and xunit's own name, which
@@ -25,7 +25,7 @@ recording already failed are skipped. A recording that does not end RECORDED (th
 would not start, a worker that died or raised) posts to the operator's mailbox once per commit and rides every later adoption
 line until one succeeds. After a RECORDED verdict the worker prunes the store to the newest 4 maps (100 MB, sized from the
 measured 25.2 MB) plus the map serving each live worktree's base. `impact_lane.py measure` counts the gate plans a map served.
-Proven end to end: the lane recorded a trial store's map for 315f9eb98 (RECORDED, 867.9 s, watchdog green).
+Proven end to end: the lane recorded a trial store's map for 1554119c2 (RECORDED, 867.9 s, watchdog green).
 
 **The staleness rule would have defeated it, so it is replaced (rule 5).** The lookup used a map only at the base or at an
 ancestor that differs from it in documentation only; any other ancestor was STALE and put every test in tier 1. Main moved 44
@@ -56,7 +56,7 @@ log, the mailbox); a worker that raises is a FAILED recording of the commit it h
 `measure` cannot read is counted and said; a map `prune` cannot remove is reported busy. The first draft let a lane exception
 escape `adopt` after the checkout had moved, which would have hidden the supervisor's restart trigger; fixed and tested.
 
-**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at head 4d1a4e348, run 000003-20261026T041742Z:
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at head 4c6875f02, run 000003-20261026T041742Z:
 Conformance 8,346/18,832, Unit 36,641/38,371, Characterization 7/36 cases ran, `Linux half (WSL clone of HEAD) GREEN`; the four
 `ImpactMapLaneDriftTests` and the six `ImpactedTestsDriftTests` Passed in `leg-1-Unit.trx`. Two earlier reds, both this change's
 own: the line-endings audit (five self-test writers lacked `newline=`) and `HostWitnessTraitDriftTests` (the new drift test reads

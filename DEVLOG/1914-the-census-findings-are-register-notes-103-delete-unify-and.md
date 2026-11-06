@@ -3,7 +3,7 @@
 **What landed.** `scripts/arch/file_census_notes.py <findings.json> --ids <ranges>` turns the R0 census's findings into
 `kb/Work` notes and is idempotent (a finding whose `R0-` id already appears in a note's `census_ids:` line is skipped: a
 second run filed 0 and skipped 115; `--self-test` proves it on a two-finding fixture). Run over
-`docs/rearchitecture/evidence/arch-census/a02b165dae86b674e16399468144e1386171236b.findings.json` it filed 103 notes,
+`docs/rearchitecture/evidence/arch-census/79a4b6c58bcae74f5b22964457b2c890a0b85ed4.findings.json` it filed 103 notes,
 PB2155–PB2257, all `kind: analysis`, `cluster: ["PB2119"]`, so `plan_wave.py --cluster PB2119` can plan them: 9 **Unify**
 (one per clone family, each marked NEEDS-OPUS because the census's own target says "triage semantically"), 75 **Delete**
 (9 dead-artifact notes grouped by class and directory, 65 unreferenced-member notes one per source file, 1 unreferenced

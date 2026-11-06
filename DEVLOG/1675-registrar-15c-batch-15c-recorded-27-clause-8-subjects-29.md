@@ -4,7 +4,7 @@
 (local and global names, scope of names, scope and life cycle of data, qualification), literals (national,
 numeric), the identifier formats (NULL, object property, object view, program-address-identifier, reference
 modification, report counters, SELF/SUPER, subscripts), reserved words, types, variable-length items, the relational
-operators and the seven simple-condition forms — adjudicated on the pinned tree `adj-d2` @071ff04ea. Everything that
+operators and the seven simple-condition forms — adjudicated on the pinned tree `adj-d2` @9cd3b32ba. Everything that
 landed since the pin is registrar-only, so no finding had been fixed in the meantime. The registrar prepared while
 14d, 14e, 14f, 15a and 15b landed, rebased onto each, and after every rebase took origin/main's traceability
 inventory and RE-RECORDED the batch with `record_verdicts` (never merged as JSON hunks). **GAP 1762 → 1723** (+39

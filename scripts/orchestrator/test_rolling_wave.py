@@ -218,7 +218,7 @@ def main() -> int:
         # EVERY WORKFLOW TEMPLATE PARSES (review R1-1). Expected from the runtime's contract (the HARNESS above): a template is the
         # body of an async function of `args`, `agent`, `parallel`, `log` and `phase`, its `export const meta` read as a constant,
         # so `node --check` of that wrapper must exit 0. A reworded string literal once carried an unescaped apostrophe that no
-        # audit saw (wf_lane1_draft.js on 633ce9389), and every dispatch of that workflow failed before any agent ran.
+        # audit saw (wf_lane1_draft.js on 26361636d), and every dispatch of that workflow failed before any agent ran.
         for template in sorted(WAVE.parent.glob("wf_*.js")):
             module = tmp / (template.stem + ".mjs")
             body = re.sub(r"^export const meta", "const meta", template.read_text(encoding="utf-8"), flags=re.M)

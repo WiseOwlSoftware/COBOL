@@ -4,7 +4,7 @@ PB4650 (filed from PB4483's report): `ExpansionPlacementPass.Place`'s import arm
 same definition, actuals, `ExpansionKey` and surface. The key hashes a class's RECORD, not the assembly the class lives in, so an
 expansion made over the library's `BOX` matched a compilation that holds a different `BOX` with the same record.
 
-Re-probe on `630b1f2fb`: LIBX (BOX, HOLD), then CLIENT1 (HOLD-BOX over the library's BOX, written to `HOLD-BOX.dll`), then CLIENT2,
+Re-probe on `d03231df1`: LIBX (BOX, HOLD), then CLIENT1 (HOLD-BOX over the library's BOX, written to `HOLD-BOX.dll`), then CLIENT2,
 which carries an identical BOX of its own and expands HOLD over it, failed with `error CS0012: The type 'BOX' is defined in an
 assembly that is not referenced ... 'LIBX'`. The sibling on the same arm: two libraries LIBB and LIBB2 holding the identical BOX,
 CLIENT1 over LIBB and CLIENT4 over LIBB2, failed the same way; had it not, placement (a) would have written `HOLD-BOX.dll` over the file

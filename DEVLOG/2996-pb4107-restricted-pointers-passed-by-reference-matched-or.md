@@ -4,7 +4,7 @@
 data-pointer passed BY REFERENCE, matched by §9.3.6 3 e) or returned (§14.8.3.3) was compared by its prototype's
 SIGNATURE, which only the SET relation asks (§14.9.39.3 SR19 / SR20 / SR22, and what sends to it: §14.8.2.3.3, §9.3.6
 4 c) / 5 c) / 6). Two pointers to two prototypes of one signature, or alike under two type-names, conformed in CALL,
-INVOKE and RETURNING. Re-probed at 273328079: the adjudication's t5, t6, t10 and t11 compiled and ran, and the pb3162
+INVOKE and RETURNING. Re-probed at a97cc8567: the adjudication's t5, t6, t10 and t11 compiled and ran, and the pb3162
 golden's BY REFERENCE CALL printed "ref ok".
 
 **The fix.** `ActivationDescription` carried one string, `Clauses`, for three facts the standard keeps apart. It now

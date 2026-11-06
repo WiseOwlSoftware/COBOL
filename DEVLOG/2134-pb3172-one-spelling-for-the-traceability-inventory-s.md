@@ -3,7 +3,7 @@
 The first slice of the PB3160 conformance-suite campaign (DESIGN-conformance-suite.md §6 step 0, §13 S0a), wave
 1104 group C.
 
-**Re-probe.** At 1a9d0435f the inventory held 4,195 rows: 3,402 in the comma-separated ascending form, 645 spaced
+**Re-probe.** At 559e57ca9 the inventory held 4,195 rows: 3,402 in the comma-separated ascending form, 645 spaced
 (`85, 2002, 2014, 2023` ×247, `2002, 2014, 2023` ×334, …; 37 of them out of order as well, such as
 `2002, 2014, 2023, 85` ×19) and 148 empty. No row named an unknown or a repeated edition. The note's 683 was the
 2026-10-14 count.

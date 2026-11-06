@@ -81,11 +81,11 @@ Unavailable. That silently grants an OPEN or READ WITH LOCK that §9.1.15 2) / �
 are past the train's fix bar, so A goes back to a finisher from branch `worktree-wf_8f6c2cfa-5a7-1`, with that test
 as its first leg-1 red. PB2917 and PB2936 stay open on main.
 
-**The train.** Gate 3 (d8c663148): `=== BUILD-LOCAL GATE: GREEN — Conformance 11,460/11,460 · Unit 33,360/33,360 ·
+**The train.** Gate 3 (abf6b31d4): `=== BUILD-LOCAL GATE: GREEN — Conformance 11,460/11,460 · Unit 33,360/33,360 ·
 Characterization 36/36` and `=== LINUX GATE: GREEN` on the same head. There were three whole-population runs. Run 1
 had the C test-ref red plus PB2989. Run 2 had A's timing red and the witness loss from the hand-edited test-ref.
 Semgrep was unchanged (44 / 2 / 268). GAP 103 → 103: no row was re-verdicted, and the one witness retirement keeps
-GR-8.1.3.2-3 CONFORMS. The arch oracle differs from baseline c95e453f2fe8 in 11 of 7,761 cases, all from C or B. The
+GR-8.1.3.2-3 CONFORMS. The arch oracle differs from baseline 707795fdc96b in 11 of 7,761 cases, all from C or B. The
 seven ADDED cases are B's two goldens and C's five. The four DIAGNOSTICS cases are C's SR3/SR4 message text:
 `pb1136-invoke-active-class-method`, `pb1136-invoke-self-method`, `l1-invoke-dotnet-member-typed` (SR4 b)) and
 `pb1548-new-without-base` (SR3). No emitted C# changed for an existing program. The baseline was re-recorded. Notes

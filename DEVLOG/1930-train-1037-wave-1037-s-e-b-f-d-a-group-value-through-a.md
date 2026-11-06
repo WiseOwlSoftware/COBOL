@@ -69,13 +69,13 @@ both fixed in the train: D's `MnemonicOperand` summary had been inserted between
 method (doc order), and B's `ScreenReportLevelNumbers` counted an 88 written in an RD (already COBOLNET1746) as a
 sibling, so `negative/pb558-condition-name-in-report-section` gained a cascade COBOLNET2771; entries outside levels
 1-49 now take no place in the hierarchy. Gate run 2: `=== BUILD-LOCAL GATE: GREEN — Conformance 11,008/11,008 · Unit
-32,614/32,614 · Characterization 36/36` (run 20261008T052252Z-33cb66). Oracle against ba9bfd1ad825: 69 of 7537
+32,614/32,614 · Characterization 36/36` (run 20261008T052252Z-33cb66). Oracle against 66c8e70acb5e: 69 of 7537
 cases differ — 38 ADDED (this train's goldens); 28 CSHARP, every differing line a `ProgramRegistry.Register`,
 `CallProgram` or `CallPointer` call (A: formals and RETURNING items register their descriptions, run-time-located
 sites describe their operands and pass the program-specifiers, `BoundaryClass` gone); 3 DIAGNOSTICS —
 `negative/pb1281-redefines-qualified` and `negative/pb513-type-entry-composition` each gain a true SR10 COBOLNET2739
 (F; both fixtures' sources hold a storage entry between the pair) and `negative/pb1301-strong-type-chain-level`'s
-SR6 COBOLNET1532 is reworded (B). Re-recorded as 82e96cfba071. Semgrep unchanged; every CI audit green locally. GAP 147 → 145. No
+SR6 COBOLNET1532 is reworded (B). Re-recorded as d98261ef1a1a. Semgrep unchanged; every CI audit green locally. GAP 147 → 145. No
 diagnostic codes claimed (COBOLNET3074-3079 and 3083-3091 returned). Leads PB2548 and PB2549 filed; PB2550-PB2552
 unused.
 

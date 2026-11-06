@@ -1,7 +1,7 @@
 ## Entry 2964 — 2026-11-01 16:54 PST — PB4383: an undefined operand on the continuation line of a statement is reported at that line, not at the statement's first token
 
 `DISPLAY W-X` on one line and `Q-ONE Q-TWO.` on the next drew COBOL1639 for both names at the DISPLAY's position
-(8,12), a line before the names stand. Re-probed on main 3b34806eb: it reproduced exactly. The note blamed
+(8,12), a line before the names stand. Re-probed on main 7d2ae1968: it reproduced exactly. The note blamed
 `AcceptDisplayBinder.BindDisplay` and the unpositioned `FieldOperand` call, but the fault was wider. The report is
 made in `ReferenceResolver.ReportUnidentified`, and positioning the cursor at an operand was each statement binder's
 job, so every verb misplaced a reference that did not start on the statement's first line.

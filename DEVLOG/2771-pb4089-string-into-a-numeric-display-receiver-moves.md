@@ -5,7 +5,7 @@ numeric item of usage display or national as identifier-3, §14.9.43.4 GR6 has t
 character positions, and GR7 changes only the positions written: the item holds `AB3456`. GnuCOBOL 3.2 agrees. The two
 compilers differed, and the PB1908 implementer carried the lead.
 
-**Re-probe (build of 20fecec14).** `N=003456`; `SS PIC S9(6) SIGN TRAILING SEPARATE` gave `003456+` where `AB3456+` is
+**Re-probe (build of 805621ac8).** `N=003456`; `SS PIC S9(6) SIGN TRAILING SEPARATE` gave `003456+` where `AB3456+` is
 right; a group receiver was already right; and a Tier-A REDEFINES pair (`A1 PIC 9(4)`, `A2 REDEFINES A1 PIC 9(4)`) lost the
 letters as well (`A1=0034` after `STRING "AB" ... INTO A1`).
 

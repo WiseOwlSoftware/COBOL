@@ -16,7 +16,7 @@
       *> DataBinder.BuildTableValueSpecs, which at the time called no screen at all - so the arm was LIVE
       *> through the format 2 (table) VALUE, and this program is the shape that measured it.
       *>
-      *> MEASURED on 8ca74a3d:  L1=[AA012012CC]  — ten characters where the group area is twelve.  The old
+      *> MEASURED on 99bc08c8:  L1=[AA012012CC]  — ten characters where the group area is twelve.  The old
       *> spelling stored `StrStore(chars, pic.Length)`, the PICTURE's DIGIT COUNT (3), into a window whose
       *> width is the item's ImageWidth (4), so every following member of the group image was displaced.
       *> 13.18.52.4 GR6a is why the two numbers differ here: with SEPARATE CHARACTER "the operational sign is

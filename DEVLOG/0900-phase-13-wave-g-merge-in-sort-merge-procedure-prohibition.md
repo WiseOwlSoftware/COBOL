@@ -22,7 +22,7 @@ proc → 1572; a standalone MERGE (GIVING, no proc) → NO false positive; `--st
 version-matrix row `merge-in-sort-merge-proc-removed-2023` (introducedIn 85, **removedIn 2023**, COBOLNET1572) — the
 matrix compiles the nested-MERGE source at every edition (85/2002/2014 clean, 2023 → 1572), the natural home for a
 "prohibited-at-2023" behavior (no runtime output → no `.out` golden). Registered in DIAGNOSTICS.md + the regenerated
-ConstructRegistry. **Gate: the FULL Conformance project** (the `04c32a93` lesson — an acceptance-semantics change needs
+ConstructRegistry. **Gate: the FULL Conformance project** (the `9e64113f` lesson — an acceptance-semantics change needs
 the differential suites, not a CorpusRunner-only filter).
 
 **The full gate caught a --permissive gap (fixed):** the first pass hard-coded `EditionSeverity.Error`, which failed

@@ -2,7 +2,7 @@
 
 **The defect.** Under native arithmetic, an expression in which an exact wide intermediate (a nested product of 39 to 77
 digits, `NumX.Wide`) met an operand the SDIDI carries (a floating-point literal, a power, a NUMVAL or function value) took
-the SDIDI lane, whose operand lift lowers the wide value to its 34-digit round-to-odd image. The re-probe on 9f5f0a1ae, with
+the SDIDI lane, whose operand lift lowers the wide value to its 34-digit round-to-odd image. The re-probe on 86a4ec282, with
 `P = BIG * BIG * K3` (39 digits): `(P + 2.0E0) - P` stored 0 (owed 2), `IF P - 1 < 2.0E0 + P` was false, `(P + 2 ** 2) - P`
 was 0, `(P + 2.5E-1) - P` 0.0000, `P * 2.0E0 - P * 2` -1000000. The relation had a sibling: `CompareWide` declined a wide
 value beside an SDIDI or unsigned 16-byte value, so `IF P < 9.989999999999999980020000000000001E38` compared P's image, which
@@ -39,7 +39,7 @@ CONFORMANCE DOC-A.1-82 and DOC-A.1-123. No inventory row was claimed or closed (
 the SDIDI returned-value carrier, rounded once to 34 digits, and the now-exact difference above it shows that rounding. That is
 PB4570's carrier question.
 
-**Self-review and gate.** The four lenses found one coverage gap, fixed: the type-6 intake of an exact value had no witness on its SDIDI and negative-scale arms (`IntegerIntake_KeepsEveryDigit_OnEitherCarrier`). Gate at d9094f2: `=== BUILD-LOCAL GATE: GREEN — Conformance 21,473/21,473 · Unit 39,746/39,746 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261104T170330Z); no existing golden moved. The branch head's own gate record is what the landing reads. LINUX GATE: not part of the per-change gate (PB4327).
+**Self-review and gate.** The four lenses found one coverage gap, fixed: the type-6 intake of an exact value had no witness on its SDIDI and negative-scale arms (`IntegerIntake_KeepsEveryDigit_OnEitherCarrier`). Gate at d96d1b6: `=== BUILD-LOCAL GATE: GREEN — Conformance 21,473/21,473 · Unit 39,746/39,746 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261104T170330Z); no existing golden moved. The branch head's own gate record is what the landing reads. LINUX GATE: not part of the per-change gate (PB4327).
 
 **Review round 1.** The branch review found two regressions, both one mechanism: an exact value entering a consumer as its
 34-digit image, harmless at the base only because the expression around it lowered its other operand to the same image.
@@ -50,5 +50,5 @@ read its image (`INTEGER (P + 0.0E0) - P` was 99001); `IntrinsicRenderer.RenderE
 DISPLAY and MOVE to an alphanumeric item show every digit, and a new drift test holds each `RenderWide` body to an exact twin. The
 golden gains twelve legs (POW1, POWX, POWS, POWEQ, INTW, IFLR, IPART, FPART, ABS, SIGN, DINT, MOVEA) and `CobolExactIntrinsicsTests`
 two facts. A power past 77 digits keeps DOC-A.1-123's SDIDI determination, now stated for powers in CONFORMANCE.
-Review-round gate at 5b1a77de4: `=== BUILD-LOCAL GATE: GREEN — Conformance 21,478/21,478 · Unit 39,752/39,752 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261104T173739Z).
+Review-round gate at 928194d7a: `=== BUILD-LOCAL GATE: GREEN — Conformance 21,478/21,478 · Unit 39,752/39,752 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261104T173739Z).
 

@@ -5,7 +5,7 @@ Three defects of the gate's impact-map planner (`scripts/spec/impacted_tests.py`
 Process tooling only: no ISO rule governs them and no inventory row is claimed.
 
 **PB3991 (the one that mattered).** PB3869's fix bounced in the merge queue on 12 CCVS85 NOT-only SIZE ERROR programs the
-local leg 1 never ran. c8afacb68 had fixed one cause (a declaration hunk now keeps the method hunks' direct hits). The
+local leg 1 never ran. 8ea6f8cde had fixed one cause (a declaration hunk now keeps the method hunks' direct hits). The
 next branch's review found the second: that branch also bumped `Directory.Build.props`, a structural input, which adds an
 `every_tier1` reason, and `impacted_tests.tiers` answered every_tier1 by returning tier 1 for every test, erasing the
 method-level reach of the emitter change beside it. `gate_plan.tier_of` already puts every case in tier 1 for that

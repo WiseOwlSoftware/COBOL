@@ -24,9 +24,9 @@ PB2881 (the Conformance leg is latency-bound, not thread-bound), PB2882 (self-te
 audit phase), PB2883 (the Linux unit leg's unbalanced NIST partition, 162 s against 54), PB2884 (the build's
 10-80 % CPU). PB2880 landed.
 
-Oracle (step 3c): `compare_oracle.py` on f3387ba8d reported DIFFERENT, 6 of 7,695 cases, every one ADDED and none
+Oracle (step 3c): `compare_oracle.py` on 0b6d7c05d reported DIFFERENT, 6 of 7,695 cases, every one ADDED and none
 CHANGED: the new conformance cases of PB2739 (3), PB2844 (2) and PB2757 (1), which train 1049 landed without
 re-recording the baseline (step 3c skipped in an operator hand-landing). This train's change compiles nothing, so none
-is its own; the baseline is re-recorded (e345db425878 to f3387ba8d9b5), and PB2885 is filed: nothing mechanical
+is its own; the baseline is re-recorded (6231f36375a0 to 0b6d7c05d2e7), and PB2885 is filed: nothing mechanical
 refuses a landing whose oracle baseline is behind the tree.
 

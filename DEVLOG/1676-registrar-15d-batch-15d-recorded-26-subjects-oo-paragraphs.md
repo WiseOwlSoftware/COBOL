@@ -1,6 +1,6 @@
 ## Entry 1676 — 2026-09-24 11:06 PDT — Registrar 15d: batch 15d recorded (26 subjects: OO paragraphs, conformance, reference format, I-O status, OPTIONS clauses), 27 notes filed (PB1491–PB1520, 4 folded into Registrar 15a/15c's), 23 extended, GAP 1723 → 1664
 
-**What.** Lane-3 adjudication batch 15d — 26 subjects adjudicated on the pin `adj-d2` @`071ff04ea`: the OO identification
+**What.** Lane-3 adjudication batch 15d — 26 subjects adjudicated on the pin `adj-d2` @`9cd3b32ba`: the OO identification
 paragraphs (CLASS-ID, FACTORY, OBJECT, METHOD-ID, INTERFACE-ID, FUNCTION-ID, PROGRAM-ID), §9.3 objects/polymorphism/
 conformance, §6 reference format (fixed form, floating indicators, logical conversion), §9.1.13 I-O status (p1/p2), §9.1
 files, end markers, the compilation group, and the OPTIONS clauses (ARITHMETIC, DEFAULT ROUNDED, ENTRY-CONVENTION,

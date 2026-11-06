@@ -1,6 +1,6 @@
 ## Entry 1305 — 2026-08-18 04:24 PDT — PB71 lands: the ALL figurative over every literal kind — one grammar arm, one classifier, one constructor — and the PB84–PB88 battery is green
 
-**Battery first (PB84–PB88 batch, tree `d35b84d5`):** Conformance **4645/4645** · Unit **4192/4192** ·
+**Battery first (PB84–PB88 batch, tree `ac0ec97a`):** Conformance **4645/4645** · Unit **4192/4192** ·
 Characterization 33/33 · NIST-legacy 353 MATCH / 0 audit-clean · GnuCOBOL differential 1323 cases, **0 per-case
 flips**. ALL GREEN — the NC250A red of battery #5 is closed.
 

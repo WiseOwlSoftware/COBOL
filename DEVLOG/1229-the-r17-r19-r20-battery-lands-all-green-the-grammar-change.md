@@ -7,7 +7,7 @@ differential at 1323 cases, 0 per-case flips. The differential was the leg the h
 — R17 rewrote the signed floating-point literal into one token across every lexer region — and it
 moved nothing: not one of 1,323 real programs changed its accept/reject verdict.
 
-Battery reference advanced to the bc739114 tree (the docs-only handoff commit e922c011 landed after
+Battery reference advanced to the 70efbcb2 tree (the docs-only handoff commit ab9729de landed after
 the battery's build phase, so the measured code tree is R20's). The R00-audit orphan wave continues
 from the top of work.py next: R21, the CURRENT-DATE / FORMATTED-CURRENT-DATE clock-seam bypass.
 

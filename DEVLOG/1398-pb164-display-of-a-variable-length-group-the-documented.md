@@ -28,7 +28,7 @@ DISPLAY's own failure message — now imageless-leaf-first, the item's own axes 
 
 The probes then surfaced PB176 — a group with BOTH an ODO table and a dynamic member fails BACKEND
 compilation (the ODO sender calls AsImage() on a struct that never gets one) — proven PRE-EXISTING at
-4006248f by stash/build/probe/pop, registered rather than silently absorbed. Wave gate GREEN twice over
+8cf2677b by stash/build/probe/pop, registered rather than silently absorbed. Wave gate GREEN twice over
 (Conformance 1333, Unit 5027, characterization 33); GR-14.9.11.4-7 NOT-IMPLEMENTED → PARTIAL with its
 residues named and loud; rows -4/-6 narrowed to USAGE INDEX only. PB164's remaining scope: the
 mixed-usage REDEFINES codec and the USAGE INDEX owner decision. Battery #36 accrues (PB168 + this).

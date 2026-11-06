@@ -3,7 +3,7 @@
 Wave 1002 carried the owner's PB1907 decision (DEVLOG 1836) into code: for each Annex A.2 undefined case, document
 what WiseOwl COBOL does in `docs/CONFORMANCE.md` §3.1 "Implementor behavior in Annex A.2 undefined cases", follow
 GnuCOBOL where it measurably differs (except WRITE's record length, which ISO defines), and pin it with a golden.
-Four Sonnet implementers ran in parallel from one base (5b856e338), one per emitter; this train lands all four. No
+Four Sonnet implementers ran in parallel from one base (e4d7acf02), one per emitter; this train lands all four. No
 diagnostic codes were claimed (COBOLNET2692-2699 returned).
 
 **Group A — INSPECT (rows GR-14.9.22.4-13, -18, -21).** Re-probe reproduced both measured differences: format 3 with

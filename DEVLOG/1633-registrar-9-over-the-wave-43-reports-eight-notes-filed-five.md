@@ -3,7 +3,7 @@
 **The lead-filing pass over wave 43's four implementer reports (PB484, PB571, PB620, PB450), the train-44
 lander report and the two workflow result files.** The register is **991 notes**; it moved no verdict, so
 **GAP is 2276 before and after**. Every probe was RE-RUN on this worktree's own `dotnet build CobolSharp.sln
--c Debug` (`0 Warning(s), 0 Error(s)`) at main `c982251df` and every citation re-derived with
+-c Debug` (`0 Warning(s), 0 Error(s)`) at main `ec501c796` and every citation re-derived with
 `cite.py --check`, which is the whole point of the pass: a registrar that copies a report's measurement
 forward is a second place for the report's mistakes to live.
 

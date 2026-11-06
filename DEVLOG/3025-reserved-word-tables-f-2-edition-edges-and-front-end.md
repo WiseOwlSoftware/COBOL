@@ -69,7 +69,7 @@ and that writes one of the relaxations; CCVS-85 stayed green. In 103 suite tests
 division or a section with a sentence. Each of those now gets `PB4305-LEAD.` where the compiler names the sentence, so
 it keeps its 85 coverage. The two pb3505 tests drop 85, because the signed DISPLAY literal is their subject.
 
-The next link (wave 20261826, cherry-picked onto main 1046b4cff) finished the fallout, each test kept at the edition
+The next link (wave 20261826, cherry-picked onto main 627eb2e35) finished the fallout, each test kept at the edition
 its subject is about. Where the relaxation IS the subject the test runs from 2002: `pb436_varying_after_from_outer`,
 `pb1523_global_linkage_redefiner`, `pb2087_by_reference_group_aliasing`, `pb1643_display_literal_decimal_comma`,
 `pb332_use_optional_words` and `pb919_index_name_qualified`; `pb394_evaluate_function_subscript_subject_85` is deleted
@@ -80,7 +80,7 @@ since get `PB4305-LEAD.`, and the C# sources at 85 write `MAIN-P.`. `IndexNameUn
 that writes a qualified index-name at 2002, and `OptionalWordSubsetDriftTests` sweeps USE Format 1 twice: from 2002
 with PROCEDURE optional, and at 85 (`use-format-1-85`) with PROCEDURE written, the format item 141 describes. The
 items 46, 75 and 133 diagnostics quote source through `WrittenSource.Of` (they printed `FUNCTIONINTEGER(1)`).
-Gate `000001-20261102T170457Z` was GREEN at 68d8361e5.
+Gate `000001-20261102T170457Z` was GREEN at 20f9715ba.
 
 ### PB4435: a word where a format specifies a literal is a constant-name, which COBOL-85 lacks
 

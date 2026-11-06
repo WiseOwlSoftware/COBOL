@@ -5,8 +5,8 @@ The owner held R2's first batch at 20:40 PDT for a Mythos adversarial review of 
 batch that had started at 20:45 with eight Opus agents was discarded: its reviewers wrote their files only at the end.
 This entry is the rebuild, as tracked tooling with self-tests, so the next batch is a command.
 
-- **B7.** The census and member index of the pin 8be230068 are recorded
-  (`docs/rearchitecture/evidence/arch-census/8be23006851a…{json,findings.json,members.json.gz}`): 1,447 authored types,
+- **B7.** The census and member index of the pin cd85e4901 are recorded
+  (`docs/rearchitecture/evidence/arch-census/cd85e4901794…{json,findings.json,members.json.gz}`): 1,447 authored types,
   53 god-class candidates, 9 clone families, 370 unreferenced and 116 test-only members, 222 findings.
 - **B1, B2 (PB2558).** `scripts/arch/r2_subsystems.py` is the subsystem table — 17 subsystems (the runtime's
   collation, Unicode and globalization is the seventeenth; the source generator joins the bound tree) — with a

@@ -33,7 +33,7 @@ and re-queued programs.
 
 ## Triage method
 
-The standard decides (CLAUDE.md rule 1); GnuCOBOL is a net. Every lead was first re-run on a fresh judge: main at e7cf38ce4, a
+The standard decides (CLAUDE.md rule 1); GnuCOBOL is a net. Every lead was first re-run on a fresh judge: main at 3205a4ac7, a
 detached worktree `E:\COBOL-wt\fuzz-triage-20261023`.
 
 - **Re-judge (the locator).** The 399 `OUTPUT_DIFFERS` (377), `EXIT_DIFFERS` (9) and `THEY_FAIL_RUN` (13) rows were

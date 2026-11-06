@@ -72,7 +72,7 @@ defects inside work that was otherwise correct. Both notes land with `closes_row
 rows can see, so the landing STRENGTHENED seven already-OK rows instead.
 
 **The train.** Brought in from the three branches in manifest order. Cluster 1's content was taken as
-`git diff b25f4dc59 <branch>`, NOT from the manifest's 8e321d13b base: that branch had already merged the
+`git diff 8ce106477 <branch>`, NOT from the manifest's 22b1022a6 base: that branch had already merged the
 PB950 landing, so the manifest base would have re-applied `push-main.sh` and `kb/Work/PB950.md` on top of
 themselves — the base a manifest names is the base the implementer STARTED at, not necessarily the merge base
 today. Four conflicts, every one a whole list element or a whole table row, resolved by UNION and then

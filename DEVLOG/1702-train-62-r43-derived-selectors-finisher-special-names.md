@@ -53,8 +53,8 @@ Infinity). DOC-A.1-179 gains its fifth checked place. PB1566's "SDIDI carrier" p
 rejected. Only `c8676ae78..65a174ed8` came in, because the branch's PB1041 merge was already on main. Rows: 6
 witness records, GAP unchanged.
 
-**The train.** The train was merged and gated on 332468ba4, then waited for train 61 (L3) and was rebased onto
-de53a62b0. The rebase had conflicts only in the manifests, which took both lists of whole entries. The inventory
+**The train.** The train was merged and gated on bb6be85ef, then waited for train 61 (L3) and was rebased onto
+8ea17e74d. The rebase had conflicts only in the manifests, which took both lists of whole entries. The inventory
 was reset to main's copy, and every cluster's verdict batches were re-applied in order with the same deltas. Since
 there were conflicts outside docs/kb, the train was re-gated. Both gates ran the whole Conformance assembly,
 unfiltered, plus full Unit, Characterization and the legacy Integration assembly, all `--no-build` after one

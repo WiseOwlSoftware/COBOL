@@ -3,7 +3,7 @@
 **What.** Registrar 14e registered adjudication batch d1-14e: 22 subjects (OCCURS p1/p2, PAGE, physical subdivisions of a
 report, PRESENT WHEN, PROPERTY, RECORD, REDEFINES, RENAMES, REPORT, RD entry, report group entry, REPORT SECTION, SAME
 AS, SD entry, SOURCE, SUM, TYPE p1/p2, TYPEDEF, VARYING, WORKING-STORAGE). The adjudicators and refuters ran on the
-pinned tree `E:\CobolSharp-pins\adj-d1` @68bbdb00f; every finding was checked against main before filing.
+pinned tree `E:\CobolSharp-pins\adj-d1` @79ca43df8; every finding was checked against main before filing.
 
 **Shape.** 220 rules recorded: DIVERGES 86 · CONFORMS 69 (37 closed the GAP, 32 still need a spec-derived test) ·
 PARTIAL 49 · NOT-IMPLEMENTED 16. No NEEDS-OWNER-DECISION rows. The refuters overturned 18 CONFORMS: 13 to PARTIAL,
@@ -12,7 +12,7 @@ never flipped: SAME AS SR3's cycle check depends on declaration order, PROPERTY 
 depends on source order, and STRONG-ness through a TYPE chain is answered two ways. GAP 1875 → 1839.
 
 **One re-verdict.** SR-13.18.44.3-9 (no VALUE in a REDEFINES entry) was DIVERGES on the pin. PB550 fixed it in train
-58: on main 071ff04ea both shapes draw COBOLNET2406. It is recorded CONFORMS against `negative/pb550-value-in-redefining-entry`.
+58: on main 9cd3b32ba both shapes draw COBOLNET2406. It is recorded CONFORMS against `negative/pb550-value-in-redefining-entry`.
 One finding needed no note: RD clause repetition, `PAGE … HEADING 1 HEADING 2`, now draws COBOLNET2423 through PB483.
 
 **Mechanisms (one note per root cause, `cluster:` lists the fill units).** 81 findings plus 32 orphan defective
@@ -62,7 +62,7 @@ diagrams (a transcription defect). §13.18.35.3 SR6 a/b/d/e and §13.18.14.3 SR7
 EC-REPORT-LINE-OVERLAP/COLUMN-OVERLAP/PAGE-WIDTH have no raise site. `docs/COBOLNET_FILES_DESIGN.md` still calls RECORD
 VARYING a 2002 introduction.
 
-**Gate.** Built `CobolSharp.sln` Debug on the rebased tree (origin/main 72dcff749, Registrar 14d), then ran the WHOLE Unit
+**Gate.** Built `CobolSharp.sln` Debug on the rebased tree (origin/main 57429b741, Registrar 14d), then ran the WHOLE Unit
 assembly: `Failed: 2, Passed: 29188` — the two reds are the environmental ExternalCorpusPopulationDriftTests (no
 GnuCOBOL corpus at `tests/external/gnucobol/tests/testsuite.src` in the worktree). `work.py check`: 1310 work items,
 all well-formed.

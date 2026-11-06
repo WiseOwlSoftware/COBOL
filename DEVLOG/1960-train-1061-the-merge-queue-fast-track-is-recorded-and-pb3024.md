@@ -2,7 +2,7 @@
 
 Train 1061 is a blocking one-cluster landing (the operator's steer under the owner's 12:58 PDT fast track, an exception
 to PB2981's trains of four to six): cluster N, lead PB3015. It carries only the commits on `pipeline-analysis-PB3015`
-after `d2795ca82`, which train 1060 landed as `3915e4ad9`. No other branch rode with it: the records branch from train
+after `d2795ca82`, which train 1060 landed as `ce765a5a8`. No other branch rode with it: the records branch from train
 1060 and the skills pin are held by the operator, and the pin lands with PB3024 phase 1.
 
 **N — PB3015 Q5 + PB3016, PB3022, PB3023, PB3024, PB3025, PB3027, PB3029: the merge queue moves to the front of the
@@ -27,7 +27,7 @@ list still had PB3024 "(after PB3023)". The citation audits and `work.py check` 
 the Windows `build-local -Mode implementer` gate (leg 1) plus the WSL Linux gate, not the lander's whole-population
 gate. CI runs the whole population. The first pair of gate runs went red, and both reds were the lander's own doing: it
 amended N's commit with the review fixes while the gates were still running. On Linux every leg was GREEN, but the
-`repository` check saw HEAD move (`a2bf5cb8c` to `75606a170`). On Windows the self-test
+`repository` check saw HEAD move (`a2bf5cb8c` to `e3b53a380`). On Windows the self-test
 `test_orchestrate_ledger.ps1` failed its check 'a published ledger is not announced again'. That test runs the loop
 against the real repository, and `ledger_state.py` stamps a ledger with the last commit touching `kb/Work`. The amend
 moved that stamp between the test's `mark-published` and its check. Both gates were re-run on the final head with no

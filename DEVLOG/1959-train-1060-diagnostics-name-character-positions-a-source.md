@@ -1,7 +1,7 @@
 ## Entry 1959 — 2026-10-11 12:59 PDT — Train 1060: diagnostics name character positions, a source debugging line inside a literal is refused, LENGTH of bit-bearing variable groups computes, and the landing-pipeline redesign is recorded
 
 Train 1060 is the land unit's train of four clusters, in `prune_worktrees.py --train` order: A PB2982, H PB2964, Z PB2426
-and N PB3015. A, H and N were cut from `f91823991` and Z from `8399765be`. Origin/main `d65a23b16` did not move under the
+and N PB3015. A, H and N were cut from `915e7d2cb` and Z from `9438ca056`. Origin/main `4d55b3f94` did not move under the
 landing lease, so the final rebase was a no-op. A and H gated leg 1 only (batched gating, PB2515). Z and N carry no code.
 No cluster was ejected or dropped.
 
@@ -57,12 +57,12 @@ doc in N's commit. Plan §0 records the decision.
 **The train.** This train used the Q1a gate shape early, by operator steer (PB3015, PB3022): Windows
 `build-local.ps1 -Mode implementer` leg 1 plus the whole WSL Linux gate, with CI the whole population. Windows run
 `20261011T194653Z-1a2bb1`: `LEG 1 ONLY (batched gating, PB2515): GREEN`, Conformance 7,559/11,488, Unit
-33,207/33,436, Characterization 36/36 run, with the rest left to CI. Linux GREEN on `3915e4ad9`: unit 33,469, characterization 36,
+33,207/33,436, Characterization 36/36 run, with the rest left to CI. Linux GREEN on `ce765a5a8`: unit 33,469, characterization 36,
 conformance 11,488, guard (NIST 362 MATCH, 2 TERMINATES declared), self-tests. The arch-oracle compare was DIFFERENT on
 35 of 7,780 cases, all H's or new. 12 ADDED are the new goldens and the five `repository-function-2002` matrix rows. 23
 DIAGNOSTICS are H's PB2589 gate, which adds a COBOLNET0900 for the REPOSITORY FUNCTION entry to each `@85` matrix
 program and below-2002 negative that writes one (each was already rejected). A changed no existing case. The baseline
-was re-recorded as `3915e4ad93af`. Semgrep counts are unchanged (268 · 3 · 44 · 2). The review of the merged diff found
+was re-recorded as `ce765a5a891e`. Semgrep counts are unchanged (268 · 3 · 44 · 2). The review of the merged diff found
 no correctness defect. Three implementer leads became notes: PB3030 (a bit-bearing ODO group beside a runtime-length
 table is still the COBOLNET1756 stage, `DataItem.CurrentExtentComposes`), PB3031 (columns after REPLACE-written text
 holding supplementary characters drift, `OriginWriter`) and PB3032 (`test_orchestrate_stop.ps1`'s stale-lock case

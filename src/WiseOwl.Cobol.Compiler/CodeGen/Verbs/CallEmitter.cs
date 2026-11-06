@@ -1449,7 +1449,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// Every call site of this helper (the BY REFERENCE carrier, BY CONTENT snapshot, callee copy-out, and
     /// RETURNING delivery) is such a boundary.
     /// <para>⛔ A GROUP CROSSES AS ITS STORAGE IMAGE, NOT AS ITS OPERAND VALUE (kb/Work PB173 — measured, and
-    /// PRE-EXISTING at 876d8ab0: `01 G GROUP-USAGE BIT. 05 B1 PIC 1(4). 05 B2 PIC 1(4).` holding 11001010 and
+    /// PRE-EXISTING at cefa0e12: `01 G GROUP-USAGE BIT. 05 B1 PIC 1(4). 05 B2 PIC 1(4).` holding 11001010 and
     /// passed BY REFERENCE arrived in the callee as 00110001 and came home as 00110000). §14.2.3 GR8 makes the
     /// formal occupy "the same storage area as the argument", so the carrier is the group's character IMAGE —
     /// the exact inverse of the write half's <c>FromImage</c>. Routing through <c>OperandText.FieldImage</c>
@@ -1470,7 +1470,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // read half's group test to `p.Item.IsGroup` (RefModPlace.Item forwards to the INNER item, so a
         // ref-modded group answers true) rendered `CobolStr.RefMod(G.AsImage(),1,3).AsImage()`, a backend
         // CS1061 on `string`, and the write half had been emitting the `.FromImage(` half of exactly that pair
-        // since before this change (measured at 876d8ab0: `CALL "S" USING G(1:3)` = one CS1061; with the group
+        // since before this change (measured at cefa0e12: `CALL "S" USING G(1:3)` = one CS1061; with the group
         // test widened, two).
         p is RefModPlace ? OperandText.FieldImage(p)
         // ⛔ A BIT / NATIONAL GROUP CROSSES AS THE ELEMENTARY ITEM IT IS TREATED AS (kb/Work PB1166). §14.8.2.1 /

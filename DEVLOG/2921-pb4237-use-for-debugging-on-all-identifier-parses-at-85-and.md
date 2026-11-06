@@ -6,7 +6,7 @@ are optional words. `useDebugTarget` (CobolControlFlow.g4) wrote `ALL REFERENCES
 format (VCR Table 7 row 7.17), so CLAUDE.md rule 1's precedence falls to GnuCOBOL, whose `-std=cobol85` accepts all
 four spellings; CCVS DB201A writes `ALL ID-2` and `ALL AB2 OF A2`.
 
-**Re-probe (05fdfc2bd).** The review's `nodbg_*` probes: `ALL W-A` and `ALL OF W-A` drew COBOL5506, the long forms ran
+**Re-probe (0606f79b6).** The review's `nodbg_*` probes: `ALL W-A` and `ALL OF W-A` drew COBOL5506, the long forms ran
 inert. DB201A `--nist`: two COBOL5506 and a 37.4 s compile (the error put it on the slow LL path).
 
 **Fix.** The arm is now `ALL REFERENCES? OF? dataReference`. Its one consumer, `ProcedureTableBuilder.FinalizeDebug`,

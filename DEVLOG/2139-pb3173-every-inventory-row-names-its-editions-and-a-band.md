@@ -55,7 +55,7 @@ All 56 were corrected in the same batch: 204 rows changed, and GAP stayed at 60.
 - DOC-A.1-202 (2014).
 
 **Branch review round 1** (kb/Work PB3027) returned three findings, all fixed in `decide.py`. The script re-ran
-against the pre-batch tree (8eca73497, extracted with `git archive`) and wrote 215 records; the 203 it already wrote
+against the pre-batch tree (66ad47861, extracted with `git archive`) and wrote 215 records; the 203 it already wrote
 are byte-identical, so the change moved exactly 12 rows:
 
 - R1-1: SR-13.4.5.3-6 and SR-14.9.27.3-9 are wholly FORMAT-clause rules but were left at 85. Both are now 2002, like

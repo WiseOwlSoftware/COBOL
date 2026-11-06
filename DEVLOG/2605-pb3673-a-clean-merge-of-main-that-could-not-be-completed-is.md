@@ -24,7 +24,7 @@ never reaches the measurement), `merge_drivers.py` (the settle failure is a `Fai
 `--keep` leaves it in progress) and `enqueue.py` (exit 2 with no report line, exit 5 with one line, the tags held to
 rows, the catch-up merge); `LandingPipelineDriftTests` and `MergeDriverDriftTests` declare them.
 
-**PB3748 discharged.** `covered_by_driver` matched from the right only until PB3727 (`1cc737801`, the same day) replaced it
+**PB3748 discharged.** `covered_by_driver` matched from the right only until PB3727 (`6095d80de`, the same day) replaced it
 with `pattern_matches`, which anchors a pattern with a `/` at the root; the note was written against the older tree. The
 `patterns:` arm now asserts the nested paths (`x/kb/Work/PB1.md` is not covered), the pin the note asked for.
 

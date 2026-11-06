@@ -32,7 +32,7 @@ measured the cap on the shared host with cold gates: one implementer gate costs 
 Implementer gates now queue repository-wide at 281–449 s each under load, so a 7-implementer wave can wait more than
 30 minutes for a gate. That is the owner's to weigh against the lander's 1.25x.
 
-**The train.** The lander rebased H's branch onto `fcfc593e3`, which had six conflicts. The four practice and brief
+**The train.** The lander rebased H's branch onto `d96890017`, which had six conflicts. The four practice and brief
 conflicts take M13's gate text and main's clone-design Linux-gate line. The design doc and `linux-gate.sh` are
 resolved as above. Four places still described the superseded Linux gate: the two self-test comments said
 `linux-gate.sh` exports `GIT_DIR`, CLAUDE.md said "about 5 minutes", and practice L10 said "on the Windows-built

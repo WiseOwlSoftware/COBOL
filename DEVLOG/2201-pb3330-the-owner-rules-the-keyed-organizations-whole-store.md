@@ -4,7 +4,7 @@ The operator explained PB1636's last unsigned derivation and quoted the design d
 `SHARING WITH ALL OTHER`, every changing statement rewrites the whole indexed or relative file, so a bulk load there is
 quadratic. The owner answered (2026-10-17): "THis is a completely unacceptable design".
 
-The quoted cost is one symptom of the model, and kb/Work PB3330 records the model as measured on origin/main 20161db10:
+The quoted cost is one symptom of the model, and kb/Work PB3330 records the model as measured on origin/main 3226976e6:
 - OPEN reads the whole file into memory (`KeyedConnector.ReadImage`), so reading one record means reading the file.
 - The file is written back whole: at CLOSE, or after every changing statement under ALL OTHER.
 - A file is capped at `RecordFraming.MaxStoreBytes` (about 2 GiB, .NET's `Array.MaxLength`), which DOC-A.1-107

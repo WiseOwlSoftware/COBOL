@@ -558,7 +558,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// category alphanumeric or national", so everything else offends BY CONSTRUCTION. It used to name the
     /// categories it REFUSED — numeric, numeric-edited, boolean and the two edited forms — and the four
     /// PICTURE categories the model gained later (data-pointer, program-pointer, function-pointer and object
-    /// reference) therefore passed as if they were admitted. MEASURED at 2f6b38c61: `UNSTRING P DELIMITED BY
+    /// reference) therefore passed as if they were admitted. MEASURED at f2bbf098b: `UNSTRING P DELIMITED BY
     /// " " INTO B` over a USAGE POINTER sender stored "Cobo" — the first four characters of the CLR carrier's
     /// type name — and `UNSTRING A DELIMITED BY P` compared every character against that type name and never
     /// found a delimiter. A blacklist is a list that a new category joins silently.</para>

@@ -39,7 +39,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // item.RawValue, which is null for a table VALUE (the two carriers are mutually exclusive on DataItem),
         // and the StrRepeat below then seeded EVERY occurrence with the same VALUE-less default: the table
         // VALUE was silently DISCARDED for every image-stored leaf — a Tier-B REDEFINES member, an EXTERNAL
-        // cell, a BASED record, an OO backing. Measured on 3324d794 with
+        // cell, a BASED record, an OO backing. Measured on 7ed14832 with
         // `05 B PIC 9(4) COMP OCCURS 2 VALUE 12 FROM (1) TO (2).` inside a REDEFINES-aliased group: the group
         // image came back `65 65 00 00 00 00 67 67`, the seed simply absent (kb/Work PB208).
         // The per-occurrence walk is now the SAME shape the record-struct lane uses — one composition per
@@ -184,7 +184,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // consolidation — Tier-B REDEFINES backings (RecordStructEmitter / PhysicalModel), EXTERNAL run-unit
             // cells (DataEmitter.ExternalCellSeed), BASED/ADDRESS-OF cells (ProgramEmitter / PtrEmitter) and the
             // OO backings — and it walked straight past the group's own RawValue into the members. Measured on
-            // 8ca74a3d: `01 G VALUE "ABCD". 05 A PIC X(2). 05 B PIC X(2). 01 R REDEFINES G PIC X(4).` left A, B
+            // 99bc08c8: `01 G VALUE "ABCD". 05 A PIC X(2). 05 B PIC X(2). 01 R REDEFINES G PIC X(4).` left A, B
             // and R all SPACES, while the identical group WITHOUT the REDEFINES initialized "AB"/"CD" — the
             // whole VALUE lost to nothing but the presence of an alias. §13.18.63.3 SR12 bars a VALUE in the
             // redefinING entry, never in the redefined one, so that program is conforming.
@@ -208,7 +208,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
 
             // ⛔ A BIT GROUP'S IMAGE IS ITS PACKED AREA, NOT ITS MEMBERS' IMAGES CONCATENATED. Each bit member
             // images as its own ceil(n/8) characters, and §8.5.1.6.3 makes same-level bit members SHARE bytes —
-            // so the concatenation is wider than the group. MEASURED at 62a36759 on
+            // so the concatenation is wider than the group. MEASURED at b7004e6b on
             // `01 K GROUP-USAGE BIT. 05 K1 PIC 1(2) VALUE B"11". 05 K2 PIC 1(2) VALUE B"01".
             //  01 KV REDEFINES K PIC X(1).`: K2 read back as `00` and the backing byte was 0xC0, because the
             // 2-character composition was truncated to the group's 1-character width and K2's byte fell off.
@@ -224,7 +224,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // BIT position, so consecutive same-level bit members SHARE a byte, and only PhysicalModel computes
             // those runs. Walking the children instead gave each bit member its OWN ceil(n/8) characters, so the
             // composition was WIDER than the group and every member after the first run shifted. MEASURED at
-            // 2f6b38c61 on `01 CTL. 05 H1 PIC 1(4) USAGE BIT VALUE B"0100". 05 H2 PIC 1(4) USAGE BIT VALUE
+            // f2bbf098b on `01 CTL. 05 H1 PIC 1(4) USAGE BIT VALUE B"0100". 05 H2 PIC 1(4) USAGE BIT VALUE
             // B"0001". 05 H3 PIC X(1) VALUE "B". 01 CV REDEFINES CTL PIC X(2).`: the members read back
             // [0100][0000][DLE] and CV's bytes were 0x40 0x10, where §8.5.1.6.3's one run gives 0x41 ('A') and
             // §13.18.44.4 GR1's storage association then puts "B" in CV(2:1). The identical group WITHOUT the
@@ -252,7 +252,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // ⛔ THE BOOLEAN ARM IS FIRST, AND THE ORDER IS THE FIX (kb/Work PB584). It used to sit BELOW the
             // generic figurative arm, so `PIC 1(4) USAGE BIT VALUE ZERO` seeded FOUR carrier characters where
             // the packed image is ONE — the figurative return knows the item's boolean POSITIONS and nothing
-            // about its storage. MEASURED at 2f6b38c61 on `01 B PIC 1(4) USAGE BIT VALUE ZERO. 01 BV REDEFINES
+            // about its storage. MEASURED at f2bbf098b on `01 B PIC 1(4) USAGE BIT VALUE ZERO. 01 BV REDEFINES
             // B PIC X(1).`: the byte came back 0x30 (the character '0') where §13.18.60.4 GR5's packed image of
             // four zero bits is 0x00, and B itself then read [0011]. One arm, one reader: the CARRIER is
             // ValueInitializer.BooleanCarrierOf's answer for every lane, and the USAGE decides only whether
@@ -995,7 +995,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// what both halves used to do. A sum is only right while every member is "immediately following … an item of
     /// the SAME LEVEL" (§8.5.1.6.3's one byte-sharing case); a member at a different level number starts at "the
     /// first bit position of the first available byte" and the skipped bits are implicit filler. MEASURED at
-    /// 62a36759 on `01 BG GROUP-USAGE BIT. 05 B1 PIC 1(2) VALUE B"11". 03 B2 PIC 1(2) VALUE B"11".`:
+    /// b7004e6b on `01 BG GROUP-USAGE BIT. 05 B1 PIC 1(2) VALUE B"11". 03 B2 PIC 1(2) VALUE B"11".`:
     /// <c>DISPLAY BG</c> printed FOUR boolean positions while <c>FUNCTION LENGTH(BG)</c> — which reads the same
     /// walk through <c>AsIfPic</c> — answered TEN. The elementary face and the length disagreed about the same
     /// group.</para></summary>
@@ -1107,7 +1107,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // ⛔ THE VALUE RULES ARE ASKED OF THE ONE READER, NOT RESTATED HERE (kb/Work PB584). This arm used to be
         // `FigurativeInitializer(raw, pic) ?? StrStoreBoolean(Decode(raw), …)` — the FIGURATIVE arm and the
         // PLAIN-LITERAL arm, with §8.3.3.6.4 GR2's Format-6 `ALL literal-1` arm missing, which the record-struct
-        // lane (ValueInitializer.InitializerFor) has always had. MEASURED at 2f6b38c61 on
+        // lane (ValueInitializer.InitializerFor) has always had. MEASURED at f2bbf098b on
         // `01 BG GROUP-USAGE BIT. 05 K1 PIC 1(4) VALUE ALL B"1". 05 K2 PIC 1(4) VALUE ZERO. 01 BV REDEFINES BG
         // PIC X(1).`: K1 read back [0000] through the alias and [1111] without it — the two-arm shape, one arm
         // short, in the lane nothing but an alias reaches.

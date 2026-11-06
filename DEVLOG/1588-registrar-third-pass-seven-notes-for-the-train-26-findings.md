@@ -42,7 +42,7 @@ admits arbitrary words. The verdicts are deliberately NOT flipped here — a FMT
 audit the note prescribes — and PB829 records that PB487's own landing is the TEMPLATE for the other six:
 `unrecognizedDataClause`, an error production that recognizes the word run and refuses it BY NAME at bind.
 
-Everything was measured twice, on both sides of train 26 (`094739b3`, then `35f86874` after the rebase), and
+Everything was measured twice, on both sides of train 26 (`78ae0916`, then `e84cbac1` after the rebase), and
 every note carries which. That second pass paid for itself: PB499's "the map lives in CodeGen and must be lifted
 to the model side" recommendation had been IMPLEMENTED by train 26 (`DataItem.TableValuePlan` / `ValueAt`), so
 the note now says the obstacle is gone and the item is one change, not two; PB826's caveat about

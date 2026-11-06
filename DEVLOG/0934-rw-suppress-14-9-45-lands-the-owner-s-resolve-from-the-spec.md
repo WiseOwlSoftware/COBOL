@@ -39,7 +39,7 @@ the MIDDLE one suppressed — its detail line never prints, yet the control foot
 + 30), not 040. That single number is the whole proof; my original design would have printed 040. GreenfieldOnly
 (legacy has no SUPPRESS grammar). Verified: greenfield corpus 296/296.
 
-**A Wave H fixture bug the local gate had missed (committed separately, `ef080854`).** Running the corpus suite
+**A Wave H fixture bug the local gate had missed (committed separately, `11d815d3`).** Running the corpus suite
 on a FRESH build surfaced a `FormatException` in the negative-case harness: my Wave H `user-word-validate.cob`
 wrote `reject-at: 2002,2014,2023` (commas), but the harness splits editions on SPACE and `int.Parse`s each
 token. Every other negative fixture uses spaces; this one was the outlier. Wave H's gate had reported 3701/0

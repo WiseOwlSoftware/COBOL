@@ -17,7 +17,7 @@ answered) land in this same change: they share the files PB4395 edits, so by the
 Step 8 of the pipeline redesign (kb/Work PB4323, PIPELINE-REVIEW.md §10 and §5.1), one implementer for the three files
 that share it (`enqueue.py`, `land_lane.py`, `landing_measure.py`).
 
-**Re-probe.** On main 8fd4ad387 `enqueue.py land` still carried the merged-head re-gate: `merge_overlap` picked the
+**Re-probe.** On main c4a831833 `enqueue.py land` still carried the merged-head re-gate: `merge_overlap` picked the
 files main and the branch both changed, `gate_once` ran `build-local` on the merged head through `run_gates`, a NOT RUN
 was measured on main by `gate_main`, and a lane I10 does not review had its tip gated by the landing. `tested_locally`
 carried `running`, consulted only on the not-ok path, so an older GREEN record let a landing write a worktree under a
@@ -99,7 +99,7 @@ left with its code. Lead: `gate_slot.py`'s landing gate class (CLASS_ENV=landing
 
 
 Wave 20261809 group C, the Mythos lane, on the branch that carries steps 8 and 11 of PB4323 (merged from
-worktree-wf_01545e8c-f44-21 at b2c7a1629, PB4396's one-file-one-step rule). The owner chose "Build the approved lane"
+worktree-wf_01545e8c-f44-21 at 70aea34c6, PB4396's one-file-one-step rule). The owner chose "Build the approved lane"
 (PIPELINE-REVIEW §13) and asked why 43 C# test files read `scripts/`. PB4395 answers it; this landing is items 2, 3 and 4
 of the note and the first part of item 1.
 
@@ -156,7 +156,7 @@ classes in the Unit assembly read the pipeline's scripts, workflows and units as
 one of those files was a compiler change that only a build could check. Each class's arms are now arms of the
 `--self-test` of the script they check, and each class is deleted (no forwarder).
 
-**Re-probe.** On the base (origin/main 1d089b67e merged with 38cad1b62) the six classes held 17 facts; `standard_streams.py
+**Re-probe.** On the base (origin/main 7add0fa40 merged with 10fa11fb0) the six classes held 17 facts; `standard_streams.py
 --check` was RED on two files the predecessor checkpoint added (`scripts/ci_workflow.py` and `scripts/self_test_arms.py`
 called no `ensure_utf8()` first in `__main__`), which `ScriptStandardStreamsDriftTests` would have shown at the gate and
 `standard_streams.py --self-test`'s rule-2 arm already did. Both now call it.
@@ -198,11 +198,11 @@ line that named a deleted class; the C# comments that named one (`SelfTestArmSou
 `TrackedTree`) too. `scripts/inert_lane.py` is the
 integrator's: its CODE_READS readers lose these classes (see the report).
 
-**Gate.** Run 000001-20261101T211212Z at c73dab4e4 ended `NOT RUN [verdict]`: its process died at the fleet stop
+**Gate.** Run 000001-20261101T211212Z at 4643b8464 ended `NOT RUN [verdict]`: its process died at the fleet stop
 (STOP-w20261810, "integrate now; one gate on the merged head"). Before it died, Unit was `Failed: 3` of 39,218 and
-Characterization was `Passed 37/37`. The three Unit reds are fixed in a04a5a5e4. Two were SparseCheckoutDriftTests: the
+Characterization was `Passed 37/37`. The three Unit reds are fixed in e18fada2a. Two were SparseCheckoutDriftTests: the
 ci-gate job's sparse checkout now lists `scripts/ci_workflow.py`, which test_population.py imports. The third was
-LandingLaneDriftTests: it now expects land_lane's classify_red label as f5b9e021e rewrote it. The integrator's gate on the
+LandingLaneDriftTests: it now expects land_lane's classify_red label as 98b172a9b rewrote it. The integrator's gate on the
 merged head is this branch's verdict.
 
 
@@ -356,7 +356,7 @@ open notes became a chain of groups, and each link built, gated, reviewed and la
 implementer re-orienting on them. The campaign planner did the same with `blocked_by`, and so did the operator by hand
 (PB4395 was filed `blocked_by` the in-flight steps 8 and 11 on the same files).
 
-**Re-probe.** On the merged base (origin/main 1d089b67e with 38cad1b62), test_plan_wave.py's own fixtures showed it:
+**Re-probe.** On the merged base (origin/main 7add0fa40 with 10fa11fb0), test_plan_wave.py's own fixtures showed it:
 check 4 asserted that a second cluster on Binder.cs is that file's successor `D2` (after `D`), the golden carried the
 `D2` group, and PB3528's two SPLIT branches sharing a file were planned as a chain `A`, `A2`.
 

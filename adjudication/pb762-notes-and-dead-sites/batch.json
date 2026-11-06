@@ -91,7 +91,7 @@
    "notes": "kb/Work PB791 LANDED. Rule: SR18 \"Literal-7 shall be an alphanumeric or national literal that is not a figurative constant\" (cite.py --check 12.3.7.3 -> OK 12.3.7.3 18)). The CURRENCY SIGN screen (CurrencyOperandOf, one CurrencyOperand rule value per operand) now decides from the TOKEN as written: a numeric literal, a boolean literal, a figurative constant (SPACE / QUOTE / ALL \"x\" ...) and the predefined NULL (COBOLNET2576, 8.4.3.10.3 SR1) are refused for literal-7 at every edition, in the bare form AND in the PICTURE SYMBOL form (where CURRENCY SIGN IS SPACE PICTURE SYMBOL \"#\" used to bind the currency string \"SPACE\" and display SPACE1.50). LiteralCharsOf lost its raw-text fallback (a word that is not a literal is not a literal; it now throws for a caller that skipped its screen) and its dead X\"...\" arm.",
    "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#CurrencyOperandOf",
    "retire-witnesses": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#CurrencyTextLiteral",
-   "retire-reason": "CurrencyTextLiteral was replaced by CurrencyOperandOf (kb/Work PB667+PB1941+PB1942, c15bcc5f5)"
+   "retire-reason": "CurrencyTextLiteral was replaced by CurrencyOperandOf (kb/Work PB667+PB1941+PB1942, 4fed97c8e)"
   },
   {
    "rule-id": "SR-12.3.8.3-14",
@@ -102,7 +102,7 @@
   {
    "rule-id": "SR-12.4.5.6.3-1",
    "retire-witnesses": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedValidateFile",
-   "retire-reason": "KeyedValidateFile was removed when the file-control KEY rules became one table, FileControlKeyRules (kb/Work PB699, 3c5b4cd4d)"
+   "retire-reason": "KeyedValidateFile was removed when the file-control KEY rules became one table, FileControlKeyRules (kb/Work PB699, 1f7244d03)"
   },
   {
    "rule-id": "SR-12.4.5.12.3-1",
@@ -111,7 +111,7 @@
    "derivation": "",
    "notes": "RE-SITED 2026-09-06 (kb/Work PB699); rule unchanged. RULE (--check 12.4.5.12.3 1): \"Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses.\" The screen is FileControlKeyRules, one table keyed by organization and key role, run from DataBinder.ResolveFiles over every declared file. conformance:cases/12.4.5.12-RECORD-KEY/pb699-record-key-occurs-entry-only is the discriminator against the older pb354 case, which contains a READ. DATA-NAME-2 is the SOURCE phrase's operand and has no reachable spelling: the grammar's recordKeyClause is `RECORD KEY? IS? dataReference` with no SOURCE alternative, and docs/CONFORMANCE.md 2 row 40 declines A.3 item 40, so honouring the ban on data-name-1 is the whole of what this rule can require here. kb/Work PB1099 Q1 (w1095i): the record-key SOURCE phrase is PROVIDED (owner rule R65); each data-name-2 is screened by the data-name-1 row.",
    "retire-witnesses": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedValidateFile",
-   "retire-reason": "KeyedValidateFile was removed when the file-control KEY rules became one table, FileControlKeyRules (kb/Work PB699, 3c5b4cd4d)"
+   "retire-reason": "KeyedValidateFile was removed when the file-control KEY rules became one table, FileControlKeyRules (kb/Work PB699, 1f7244d03)"
   },
   {
    "rule-id": "SR-12.4.5.13.3-1",
@@ -120,7 +120,7 @@
    "derivation": "",
    "notes": "RE-SITED 2026-09-06 (kb/Work PB699); rule unchanged. RULE (--check 12.4.5.13.3 1): \"Data-name-1 shall not be subject to any OCCURS clauses.\" It is screened, with its two clause-mates, by FileControlKeyRules, so the entry is screened whether or not any statement names the file.",
    "retire-witnesses": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedValidateFile",
-   "retire-reason": "KeyedValidateFile was removed when the file-control KEY rules became one table, FileControlKeyRules (kb/Work PB699, 3c5b4cd4d)"
+   "retire-reason": "KeyedValidateFile was removed when the file-control KEY rules became one table, FileControlKeyRules (kb/Work PB699, 1f7244d03)"
   },
   {
    "rule-id": "SR-14.9.41.3-4",
@@ -129,7 +129,7 @@
    "derivation": "",
    "notes": "kb/Work PB354. RULE (--check 14.9.41.3 4): 'Data-name-1 or record-key-name-1 shall not be subject to any OCCURS clauses.' The rule has two operand legs (indexed and relative) and they behave differently.\nINDEXED LEG -- ENFORCED, but only as a SIDE EFFECT and reported under the WRONG RULE. RecordLayout.OffsetOf bails to null when the item or any ancestor carries OCCURS ('if (p.Occurs is not null) return null;   // subject to OCCURS => no single fixed position'), so KeyIndexByPosition returns null and BindStart emits COBOLNET0862 '<name> neither names a record key nor begins at the leftmost character position of one with a length not greater than that key (ISO 14.9.41 SR6)'. PROBED (out-b1/probe/sr4-occ) with '05 IX-KEY. 10 IX-ELEM PIC X(3) OCCURS 2 TIMES.' and 'START IXF KEY IS = IX-ELEM (1)': rejected with exactly that message. The source IS refused, so no illegal program compiles -- but the message asserts something FALSE about this operand: IX-ELEM(1) DOES begin at IX-KEY's leftmost character position and IS shorter than it. The rule actually violated is SR4; OffsetOf's null collapses two distinct rejection reasons into one sentence, and a user reading it would look for the wrong problem.\nRELATIVE LEG -- NO CHECK AT ALL. BindStart's relative arm tests only ReferenceEquals(operand.Item, file.RelativeKeyItem) (that is SR5), which is TRUE for a SUBSCRIPTED reference to the same DataItem. PROBED (same file): with '01 WS-RKT. 05 WS-RK PIC 9(4) OCCURS 3 TIMES.' and 'RELATIVE KEY IS WS-RK', the statement 'START RLF KEY IS = WS-RK (2)' compiles with NO diagnostic. That shape is reachable only through a file control entry that already violates 12.4.5.13.3 SR1 (--check: 'Data-name-1 shall not be subject to any OCCURS clauses') -- and the keyed binder's file screen of that day implemented 12.4.5.13's SR2 (unsigned integer, no P) and SR3 (not within a record of the file) but NOT its SR1, so nothing anywhere in the chain diagnoses it. The two missing checks cover for each other.\nUNDER-REJECTS. TEST: none.\n\nLANDED 2026-09-05 (kb/Work PB354). SR4 has its own named check, on BOTH arms, ahead of the position walk: RecordLayout.IsSubjectToOccurs is the one predicate for the phrase \"subject to an OCCURS clause\" and BindStart calls it before either organization arm. The indexed leg no longer reports an OCCURS violation under SR6's message (a sentence that was FALSE of an operand which does begin at the key's leftmost position), and the relative leg - which never called OffsetOf and therefore had no check at all - now reports it too. Both legs are pinned by their own negative fixture.",
    "retire-witnesses": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedValidateFile",
-   "retire-reason": "KeyedValidateFile was removed when the file-control KEY rules became one table, FileControlKeyRules (kb/Work PB699, 3c5b4cd4d)"
+   "retire-reason": "KeyedValidateFile was removed when the file-control KEY rules became one table, FileControlKeyRules (kb/Work PB699, 1f7244d03)"
   },
   {
    "rule-id": "GR-13.5.4-3",
@@ -140,22 +140,22 @@
   {
    "rule-id": "SR-13.18.29.3-1",
    "retire-witnesses": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveIndexItems",
-   "retire-reason": "ResolveIndexItems was removed when a group's USAGE clause became each leaf's USAGE clause (kb/Work PB495+PB520+PB540, b5101f8e0)"
+   "retire-reason": "ResolveIndexItems was removed when a group's USAGE clause became each leaf's USAGE clause (kb/Work PB495+PB520+PB540, 2918273d2)"
   },
   {
    "rule-id": "SR-13.18.29.3-2",
    "retire-witnesses": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveIndexItems",
-   "retire-reason": "ResolveIndexItems was removed when a group's USAGE clause became each leaf's USAGE clause (kb/Work PB495+PB520+PB540, b5101f8e0)"
+   "retire-reason": "ResolveIndexItems was removed when a group's USAGE clause became each leaf's USAGE clause (kb/Work PB495+PB520+PB540, 2918273d2)"
   },
   {
    "rule-id": "SR-13.18.29.3-3",
    "retire-witnesses": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveIndexItems",
-   "retire-reason": "ResolveIndexItems was removed when a group's USAGE clause became each leaf's USAGE clause (kb/Work PB495+PB520+PB540, b5101f8e0)"
+   "retire-reason": "ResolveIndexItems was removed when a group's USAGE clause became each leaf's USAGE clause (kb/Work PB495+PB520+PB540, 2918273d2)"
   },
   {
    "rule-id": "GR-13.18.60.4-10",
    "retire-witnesses": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveIndexItems",
-   "retire-reason": "ResolveIndexItems was removed when a group's USAGE clause became each leaf's USAGE clause (kb/Work PB495+PB520+PB540, b5101f8e0)"
+   "retire-reason": "ResolveIndexItems was removed when a group's USAGE clause became each leaf's USAGE clause (kb/Work PB495+PB520+PB540, 2918273d2)"
   },
   {
    "rule-id": "GR-13.18.40.4-7",
@@ -165,7 +165,7 @@
    "notes": "kb/Work PB490 LANDED; kb/Work PB492 RE-POINTED the code-location 2026-09-12 and strengthened the classification. The verdict is unchanged: GR7's classification and the character-1 leg's image are both right. What changed: the renderer is CobolEdit.FormatSimpleInsertion, reached through RuntimeApi.EditFormatSimpleInsertion, because 13.18.40.5 Table 7 gives GR7's category and GR10's category the SAME single type of editing and ONE renderer now serves both -- the '...Alphanumeric' name was itself the reason the national twin had no renderer at all. AND the classification now reads the set instead of respelling it: GR7's 'at least one instance of character-1 or one of the symbols from the set B, 0, /' is CobolEdit.IsEditedCategorySymbol, the SAME predicate GR10's arm reads (they are the same sentence, word for word), so the alphanumeric arm's `expanded.Any(c => c is 'B' or '0' or '/') || char1Set.Count > 0` literal list is gone.",
    "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion",
    "retire-witnesses": "src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#FormatAlphanumeric",
-   "retire-reason": "FormatAlphanumeric is now CobolEdit.FormatSimpleInsertion (kb/Work PB492, fafeadb8b)"
+   "retire-reason": "FormatAlphanumeric is now CobolEdit.FormatSimpleInsertion (kb/Work PB492, 72c0271db)"
   },
   {
    "rule-id": "GR-13.18.40.5-1",
@@ -175,7 +175,7 @@
    "notes": "kb/Work PB490 LANDED - the refutation that held this row PARTIAL is answered. It was refuted because one of rule 1's enumerated mechanisms, SIMPLE INSERTION, was written down three times with three different symbol sets (Format pass 1, pass 2's membership test, and the second format-1 editor, now FormatSimpleInsertion), so three of the six enumerated mechanisms - simple insertion, floating insertion and zero suppression with replacement - each carried a wrong-answer defect. There is now ONE definition of the set (CobolEdit.SimpleInsertionSymbols / TrySimpleInsertion) and all four consumers read it, FormatSimpleInsertion included, which also gives it the EDITING character-1 it never had. All six mechanisms exist, each is the mechanism the rule names, and no seventh exists; format 2's locale editing (rules 9-15) remains CobolLocaleEdit's separate path with its own rows. CobolEditSimpleInsertionDriftTests derives its masks FROM the set and fails if any consumer narrows its copy again - the drift was verified to fail the tests by re-injecting it before this row was recorded.",
    "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion",
    "retire-witnesses": "src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#FormatAlphanumeric",
-   "retire-reason": "FormatAlphanumeric is now CobolEdit.FormatSimpleInsertion (kb/Work PB492, fafeadb8b)"
+   "retire-reason": "FormatAlphanumeric is now CobolEdit.FormatSimpleInsertion (kb/Work PB492, 72c0271db)"
   },
   {
    "rule-id": "GR-13.18.40.5-3",
@@ -184,12 +184,12 @@
    "derivation": "",
    "notes": "kb/Work PB490 LANDED; kb/Work PB492 RE-POINTED the code-location 2026-09-12 and added the category rule 3 could not previously reach. The verdict is unchanged. Rule 3's SET is still written down once (CobolEdit.SimpleInsertionSymbols / IsSimpleInsertionSymbol / TrySimpleInsertion) and every consumer reads it; the consumer, FormatSimpleInsertion, serves BOTH categories Table 7 gives simple insertion, reached only through RuntimeApi.EditFormatSimpleInsertion(value, pic). PB492 also puts rule 3's 'the insertion character occupying the same character position in the edited item as the associated symbol occupies in character-string-1' on the national-edited category for the first time (PIC NNBNN -> [AB CD], PIC NNTNN EDITING \"T\" IS N\":\" -> [AB:CD]), and closes a second consumer that was going AROUND the set: MoveEmitter.ConvertSource's two whole-width-fill guards returned a plain fill for a figurative or ALL-literal source, so `MOVE ALL \"X\" TO PIC XX/XX` stored XXXXX where rule 3 requires the slant to stand (measured; now XX/XX) and the figurative guard named only the alphanumeric half, so `MOVE SPACE TO PIC NN0NN` stored five spaces where the zero must stand (now [  0  ]).",
    "retire-witnesses": "src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs#FormatAlphanumeric",
-   "retire-reason": "FormatAlphanumeric is now CobolEdit.FormatSimpleInsertion (kb/Work PB492, fafeadb8b)"
+   "retire-reason": "FormatAlphanumeric is now CobolEdit.FormatSimpleInsertion (kb/Work PB492, 72c0271db)"
   },
   {
    "rule-id": "GR-13.18.54.4-10",
    "retire-witnesses": "src/Cobol.Net.Runtime/IO/ReportWriter.cs#Present",
-   "retire-reason": "ReportWriter declares no Present; the report engine was rebuilt by kb/Work PB1272+PB1296+PB1297+PB1188 (1bb25a078)"
+   "retire-reason": "ReportWriter declares no Present; the report engine was rebuilt by kb/Work PB1272+PB1296+PB1297+PB1188 (31eea108c)"
   },
   {
    "rule-id": "SR-14.9.39.3-10",
@@ -198,7 +198,7 @@
    "derivation": "",
    "notes": "PB55 FOLD (2026-10-15, owner decision 2026-08-08 'THE RULE IS THE UNIT'): the transcription printed this rule's nested list(s) at column 0, so 6 sub-item(s) held rows of their own; indented at their measured printed level, they are this rule's body and their adjudications are folded here, nothing dropped.\n\n[the rule's own record before the fold]\nkb/Work/PB388.md — Citations validated: `cite.py --check 14.9.39.3 \"an object reference described with an interface-name that identifies int-1 or an interface inheriting from int-1\"` -> OK 10); `\"if described without a FACTORY phrase, the objects of the specified class shall implement int-1\"` -> OK 10); `\"if described with a FACTORY phrase, the factory object of the specified class shall implement int-1\"` -> OK 10).\n\nFOUR OF THE FIVE ALTERNATIVES ARE IMPLEMENTED AND MEASURED (probe file setp1_o2.py, --std 2023, one compilation group with interfaces IA / IB-inherits-IA / IZ and classes CB-implements-IA / CD-inherits-CB / CX):\n- a) an interface sender that inherits int-1: `SET RA TO RB` (RA is OBJECT REFERENCE IA, RB is OBJECT REFERENCE IB, IB INHERITS FROM IA) COMPILES AND RUNS (p1a_iface_inherit -> OK). The negative control `SET RA TO RZ` is refused: COBOLNET0867 'interface IZ does not inherit interface IA' (p1b_iface_unrelated). OoConformance.cs:384-403 walks the inheritance closure, so a transitively-inheriting interface is admitted too.\n- b2) a class sender WITHOUT a FACTORY phrase whose objects implement int-1: `SET RA TO OB` binds and the interface view is live - INVOKE RA \"PING\" prints PONG (p2a_class_impl). A SUBCLASS of the implementing class is admitted (p2c_subclass_impl -> PONG). A non-implementing class is refused: 'class CX does not implement interface IA (ISO 9.3.8.2/SET SR10)' (p2b_class_noimpl). The test is the section 11.8.4 GR2 transitive IMPLEMENTS closure.\n- d) SELF: implemented at OoBinder.cs:920-926 and it is the ONE alternative in this whole rule that carries BOTH a positive and a negative spec-derived test - conformance:cases/14.9.39-SET/oo_set_self_interface (expects PONG) and conformance:cases/14.9.39-SET/oo-set-self-interface-not-implemented (both 'enabled' in tests/conformance/negative/manifest.json), a pair that differs only by the IMPLEMENTS clause.\n- e) NULL: `SET RA TO NULL` compiles and runs (probe j2_null_iface -> OK); senderNull short-circuits every conformance test, which is right - NULL conforms to any object reference.\n\nTWO ALTERNATIVES ARE UNREACHABLE, WHICH IS WHY THIS IS PARTIAL:\n- b1) a class sender described WITH a FACTORY phrase. `01 FB USAGE OBJECT REFERENCE FACTORY OF CB` is refused at DECLARATION: COBOLNET0899 'USAGE OBJECT REFERENCE FACTORY OF (a factory-object reference, ISO 13.18.60) is recognized but not yet implemented (the universal-reference wave)' (probe p3_factory_usage). The item then degrades to a UNIVERSAL reference and the SET draws a second, misleading error - 'a UNIVERSAL object reference does not conform to a typed receiver'. So the b1 leg of the rule (test the FACTORY closure rather than the instance closure) has no code and no reachable input. Note ObjectRefAssignmentMismatch calls `ImplementsClosure(sc, factory: false)` UNCONDITIONALLY (OoConformance.cs:381) - the factory/instance distinction b1-vs-b2 draws is not represented at all, so the day FACTORY OF lands, b1 will silently take b2's test unless this line is changed with it.\n- c) an ACTIVE-CLASS sender. `USAGE OBJECT REFERENCE ACTIVE-CLASS` is not in the grammar; className is a bare cobolWord, so the word falls through and the binder mis-reports it as an undeclared class: COBOLNET0813 'names the unknown class or interface ACTIVE-CLASS' plus COBOLNET0901 'ACTIVE-CLASS is a reserved word in COBOL-2023' (probe p4_active_class).\n\nDIAGNOSTIC DEFECT SHARED WITH SR12: every rejection on this path ends with the fixed tail '(ISO 14.9.39.3 SR12 - a universal sender needs an object view to narrow)', appended at OoBinder.cs:942 regardless of which rule the inner message actually applied. So an SR10 violation is reported as 'class CX does not implement interface IA (ISO 9.3.8.2/SET SR10) (ISO 14.9.39.3 SR12 ...)' - two different rule numbers in one message, one of them wrong for the case.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs:855 OoBindSetObjectRef; the SELF arm at :891-927 and the sender arm at :928-976; src/Cobol.Net.Compiler/Oo/OoConformance.cs:369-410 ObjectRefAssignmentMismatch. Grammar: src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4:183 objectReferenceUsage (`OBJECT REFERENCE FACTORY OF className | OBJECT REFERENCE className | OBJECT REFERENCE`), CobolParserCore.g4:1284 setObjectReferenceStatement. The SELF arm (alternative d) is OoBinder.cs:891-927, specifically :919-926 (the FindInterface + ImplementsClosure test citing SR10d1/d2).\n\n[folded SR-14.9.39.3-L2.1 = §14.9.39.3 10) b) 1.: CONFORMS]\nkb/Work/PB389.md LANDED. SR10 b)1. -- interface-name receiver, object-class-name sender WITH a FACTORY phrase: 'the factory object of the specified class shall implement int-1'. The Interface/ObjectClass arm asks table.ImplementsClosure(sc, send.Factory), i.e. the FACTORY closure exactly when the sender's descriptor carries FACTORY -- both arms of the one dispatch, where the former hard-wired `factory: false` could only ever ask b)2.'s question. WITNESS: the golden's `SET R TO F` assigns a FACTORY OF PB389B reference into an OBJECT REFERENCE PB389I receiver; PB389B's FACTORY carries IMPLEMENTS PB389I and the instance half's IMPLEMENTS would not satisfy b)1. The refusing direction rides the drift test's DRIFTI receiver.\n\n[folded SR-14.9.39.3-L2.2 = §14.9.39.3 10) b) 2.: CONFORMS]\nkb/Work/PB389.md LANDED. The catalog row carries SR10 b)2. AND the head of SR10 c); it was PARTIAL because only b)2. had an implementation. WITNESS for b)2. ('if described without a FACTORY phrase, the objects of the specified class shall implement int-1'): the golden's `SET R TO B` assigns an OBJECT REFERENCE PB389B reference -- no FACTORY phrase -- into an OBJECT REFERENCE PB389I receiver, legal because PB389B's OBJECT paragraph carries IMPLEMENTS PB389I, and `INVOKE R \"PING\"` then prints IPING-D for the subclass instance B actually holds. The head of c) -- 'an object reference described with an ACTIVE-CLASS phrase' as a permitted sender into an interface-name receiver -- is now an arm of ObjectRefAssignmentMismatch, reached because the ACTIVE-CLASS descriptor exists and carries its containing class; its witness is `SET IR TO A` inside method MK of the same golden. The refusing direction for an interface-name receiver rides the drift test, which proves every one of the eight general-format shapes refuses a sender its rule's closed list excludes.\n\n[folded SR-14.9.39.3-L3.1 = §14.9.39.3 10) c) 1.: CONFORMS]\nkb/Work/PB389.md LANDED. SR10 c)1. -- an interface-name receiver with an ACTIVE-CLASS sender that carries a FACTORY phrase: 'the factory object of the class containing the data item referenced by identifier-4 shall implement int-1'. The descriptor's Name for an ACTIVE-CLASS reference IS that containing class (DataBinder.OoBindObjectRefDescriptor resolves it from OoOwnerClassName, which OoDriver hands both class halves), so the rule is one ImplementsClosure(containing, factory: true) lookup rather than an ambient re-derivation. WITNESS: the golden's factory method FMK declares 01 FA OBJECT REFERENCE FACTORY OF ACTIVE-CLASS, SETs it TO SELF, and then `SET FIR TO FA` into an OBJECT REFERENCE PB389I receiver; invoked on PB389D the line printed is PING-D, the SUBCLASS factory's override, which also proves the reference is not narrowed to the containing class.\n\n[folded SR-14.9.39.3-L3.2 = §14.9.39.3 10) c) 2.: CONFORMS]\nkb/Work/PB389.md LANDED. SR10 c)2. -- the same rule with the FACTORY phrase ABSENT: 'the objects of the class containing the data item referenced by identifier-4 shall implement int-1'. Same arm, the closure asked on the instance side because the descriptor's Factory flag is false. WITNESS: the golden's `SET IR TO A` inside method MK of PB389B, whose OBJECT paragraph carries IMPLEMENTS PB389I; `INVOKE IR \"PING\"` then prints IPING-D, the subclass instance's override.\n\n[folded SR-14.9.39.3-L4.1 = §14.9.39.3 10) d) 1.: CONFORMS]\nkb/Work PB451 — WAS PARTIAL on a REFUTED reading; the refutation is itself refuted here, from the standard, and the row CLOSES. Rule: `cite.py --check 14.9.39.3 \"if the SET statement is contained in a method within the factory definition of the class, that factory definition shall be described with an IMPLEMENTS clause that references int-1\"` -> OK 10) (SR10 d)1.). THE INTERPRETIVE QUESTION, DECIDED FROM THE SPEC: is 'described with an IMPLEMENTS clause that references int-1' a LITERAL claim about the clause's operand list, or the standard's prose for the SS11.4.4 GR2 relation? It is the relation, on four independent grounds. (1) SS11.4.4 GR1: 'The IMPLEMENTS clause specifies the names of the interfaces that are implemented by the factory object of the containing class ACCORDING TO 9.3.11, Interface implementation' - the clause is defined in terms of implementation, not the reverse. (2) SS9.3.8.2.3 rule 5 b)2.a. states the SAME obligation about the SAME objects with the OTHER phrasing: 'if described with the FACTORY phrase, the factory object of the specified class shall be described with an IMPLEMENTS clause that references int-r', where SET SR10 b)1. writes 'the factory object of the specified class shall implement int-1'. Two phrasings, one rule. (3) Annex D (SS D.19.5) paraphrases SS13.18.60.4 GR22 c) - normatively 'the object referenced by this data item shall IMPLEMENT interface-1' - as 'the data item can only be used to reference an object DESCRIBED WITH AN IMPLEMENTS CLAUSE THAT REFERENCES the interface specified': the standard glosses its own rule with the other spelling. (4) The reductio: under the literal reading, in a subclass whose own definition carries no IMPLEMENTS clause, `SET R TO SELF` would be illegal while `SET T TO SELF` (T typed at the containing class) followed by `SET R TO T` is legal under SR10 b)2. - identical semantics, one statement apart. MEASURED (pb451_set_format5_self_sender): the FMK method's `SET JR TO SELF` exercises GR2 a)+b) (FACTORY IMPLEMENTS PB451K, which INHERITS PB451J, the receiver's int-1) -> FPING-P; PB451Q's QFMK exercises GR2 c) (PB451Q's FACTORY carries NO IMPLEMENTS clause at all; only its base's does) -> FPING-Q. The REFUSING arm is pinned for the first time by pb451-self-sender-factory-not-implements, whose discriminator is the factory/instance axis - the INSTANCE definition implements the interface and the FACTORY definition does not, so a screen keyed on the wrong definition accepts it. || CODE SITE: OoBinder.OoBindSetObjectRef, the SELF arm's ObjectRefKind.Interface case -> OoClassTable.ImplementsClosure(cur, host.OoInFactory), which is exactly SS11.4.4 GR2 a)+b)+c).\n\n[folded SR-14.9.39.3-L4.2 = §14.9.39.3 10) d) 2.: CONFORMS]\nkb/Work PB451 — WAS PARTIAL on the same REFUTED reading as L4.1, on the INSTANCE arm; CLOSED for the same reason and by the same argument (see SR-14.9.39.3-L4.1's note for the four grounds, all from the standard). Rule: `cite.py --check 14.9.39.3 \"if the SET statement is contained in a method within the instance definition of the class, that instance definition shall be described with an IMPLEMENTS clause that references int-1\"` -> OK 10) (SR10 d)2.). The relation is SS11.8.4 GR2 - a) a direct IMPLEMENTS clause, b) an implemented interface that INHERITS intf-1, c) an inherited class whose instance object implements it - and SS11.8.4 GR1 defines the clause through it ('the interfaces that are implemented by the object of the containing class according to 9.3.11'). MEASURED: the existing pair oo_set_self_interface / oo-set-self-interface-not-implemented pins the DIRECT leg in both directions; the two legs it never reached are now pinned by pb451_set_format5_self_sender - MK's `SET J2 TO SELF` over GR2 b) (OBJECT IMPLEMENTS PB451K, which INHERITS the receiver's PB451J) -> IPING-P, and PB451Q's QMK over GR2 c) (PB451Q's OBJECT carries NO IMPLEMENTS clause; its base PB451P's does) -> IPING-Q. Both were the programs the prior REFUTED note cited as evidence of over-permissiveness (its r01 and r02); re-derived from SS11.8.4 GR2 they are CONFORMING programs, and refusing them would reject legal source. || CODE SITE: the same call, with host.OoInFactory false.",
    "retire-witnesses": "src/Cobol.Net.Compiler/Oo/OoConformance.cs#ObjectRefWideningMismatch",
-   "retire-reason": "ObjectRefWideningMismatch was renamed ObjectRefAssignmentMismatch (kb/Work PB389, 2b2e38a47)"
+   "retire-reason": "ObjectRefWideningMismatch was renamed ObjectRefAssignmentMismatch (kb/Work PB389, 3e8e4b246)"
   },
   {
    "rule-id": "GR-14.9.51.4-23",
@@ -207,13 +207,13 @@
    "derivation": "",
    "notes": "kb/Work PB329 (LANDED 2026-09-05) built this rule's mechanism; kb/Work PB689 gave it a ROW. The row did not exist when PB329 landed -- an interior '## SEQUENTIAL FILES' heading truncated 14.9.51.4's rule block at GR16, so GR17-GR42 were never in the catalog and PB329's implementer had nothing to close. RULE: 'For a line sequential file, if the record area contains one or more characters that are not in the implementor-defined character set defined for a line sequential file, the execution of the WRITE statement is unsuccessful and the I-O status in the write file connector is set to 71.' cite.py --check 14.9.51.4 'the execution of the WRITE statement is unsuccessful and the I-O status in the write file connector is set to 71' -> OK 14.9.51.4 23). MECHANISM: LineSequentialCharacterSet is the one executable copy of the Annex A.1 item 115 determination (docs/CONFORMANCE.md DOC-A.1-115: every character at or above U+0020 is a member, the C0 controls below it are not), and SequentialConnector.RecordAreaOutsideLineCharacterSet is the one call shape. BOTH write entry points consult it -- Write and WriteAdvancing -- ahead of every shape branch, because the rule is organization-scoped rather than shape-scoped, and ahead of any stream traffic because 9.1.13.10 item 1 requires the record area and the medium to be left unchanged. (There were THREE until kb/Work PB712, 2026-09-06, deleted the third arm, the BEFORE-AND-AFTER write: 14.9.51.2 Format 1 prints ONE ADVANCING operand, so the COBOL-2023 BEFORE AFTER pair is a placement and reaches WriteAdvancing like every other print-control write. The arm count fell; the coverage did not.) The test is CHARACTER-wise, not byte-wise: a national record area is walked two bytes at a time as UTF-16BE, so N\"CD\"'s 00 43 00 44 is two members and not two control characters. MEASURED on the built cobol.exe before PB329 landed: a line sequential WRITE of a record holding 0x00 reported STATUS=00 and left the byte on the medium; after, STATUS=71 and the file is 0 bytes. Goldens walk 09 (READ, 14.9.30.4 GR16), 71 (WRITE, THIS rule), 71 (REWRITE, 14.9.35.4 GR17d), the unchanged medium, and the set boundary (0x7F -> ordinal 128, 0xFF -> ordinal 256 are members) at 2023, the one edition the LINE SEQUENTIAL organization exists in. kb/Work PB688 (2026-09-05): ORGANIZATION IS LINE SEQUENTIAL is a COBOL-2023 INTRODUCTION - the Foreword's list of the main changes this third edition makes over ISO/IEC 1989:2014 names \"Line Sequential file organization\", and 9.1.6 / 9.1.7.1 still name exactly three organizations with 9.1.7.2 splitting the sequential one into its record- and line-delimited types. The organization therefore does not exist below 2023 (the pass now rejects it with COBOLNET0900, registry row file-organization-line-sequential-2023), the 2002 and 2014 copies of the golden were deleted as programs no edition below 2023 can express, and this row's editions are 2023 alone.",
    "retire-witnesses": "src/Cobol.Net.Runtime/IO/SequentialConnector.cs#WriteBeforeAndAfter",
-   "retire-reason": "WriteBeforeAndAfter was deleted: BEFORE AFTER ADVANCING is one placement and reaches WriteAdvancing (kb/Work PB712, 30496b642)"
+   "retire-reason": "WriteBeforeAndAfter was deleted: BEFORE AFTER ADVANCING is one placement and reaches WriteAdvancing (kb/Work PB712, b3df572f1)"
   },
   {
    "rule-id": "AR-15.3-11",
    "code-location": "src/Cobol.Net.Compiler/Binding/Model/ItemLength.cs#Positions",
    "retire-witnesses": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LengthPositions",
-   "retire-reason": "LengthPositions moved out of IntrinsicBinder and is ItemLength.Positions (kb/Work PB1213, 7d4f0a4a4)"
+   "retire-reason": "LengthPositions moved out of IntrinsicBinder and is ItemLength.Positions (kb/Work PB1213, 9c9204870)"
   },
   {
    "rule-id": "RV-15.50.4-1",
@@ -223,7 +223,7 @@
    "notes": "LANDED 2026-08-18 (kb/Work PB61 + PB79). §15.50.4 r1 boolean positions: an elementary boolean item — PIC 1(12) USAGE BIT -> 12 (BYTE-LENGTH 2), a DISPLAY boolean PIC 1(4) -> 4; a boolean literal B\"10110\" -> 5; a boolean TYPEDEF -> 5; and NOW the BIT GROUP ITEM leg (PB79/D20): a GROUP-USAGE BIT group of 3+5+4 bits -> 12 (BYTE-LENGTH 2), a nested bit group of 5 -> 5 — ItemLength.Positions reads the ONE OperandPic. Boolean items are 2002+; the row is 85-applicable only for the vocabulary that does not exist there.",
    "code-location": "src/Cobol.Net.Compiler/Binding/Model/ItemLength.cs#Positions",
    "retire-witnesses": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LengthPositions",
-   "retire-reason": "LengthPositions moved out of IntrinsicBinder and is ItemLength.Positions (kb/Work PB1213, 7d4f0a4a4)"
+   "retire-reason": "LengthPositions moved out of IntrinsicBinder and is ItemLength.Positions (kb/Work PB1213, 9c9204870)"
   },
   {
    "rule-id": "RV-15.50.4-2",
@@ -233,7 +233,7 @@
    "notes": "LANDED 2026-08-18 (kb/Work PB61 + PB79). §15.50.4 r2 national positions: an elementary national item PIC N(4) -> 4 (BYTE-LENGTH 8); and NOW the NATIONAL GROUP ITEM leg (PB79/D20): a GROUP-USAGE NATIONAL group of N(2)+N(3) -> 5 (BYTE-LENGTH 10), a nested national group -> its positions — ItemLength.Positions reads the ONE OperandPic.",
    "code-location": "src/Cobol.Net.Compiler/Binding/Model/ItemLength.cs#Positions",
    "retire-witnesses": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LengthPositions",
-   "retire-reason": "LengthPositions moved out of IntrinsicBinder and is ItemLength.Positions (kb/Work PB1213, 7d4f0a4a4)"
+   "retire-reason": "LengthPositions moved out of IntrinsicBinder and is ItemLength.Positions (kb/Work PB1213, 9c9204870)"
   },
   {
    "rule-id": "RV-15.50.4-3",
@@ -243,48 +243,48 @@
    "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). §15.50.4 r3 'the length of argument-1 in alphanumeric character positions' for everything other than category boolean or usage national — under the 1-byte-per-position model the byte width (ItemLength.Positions → DataItem.ByteWidth): golden CARR COMP-1 4, COMP-2 8, INDEX 8, POINTER 8 (each folded to 1 before — ElementaryImageWidth is 0 for a carrier and Math.Max(1, …) republished it); GG = X(3)+N(2) = 7 and GH = X(3)+COMP 9(4)+POINTER = 13 (a national/carrier child under-counted before); LENGTH(\"\") = 0.",
    "code-location": "src/Cobol.Net.Compiler/Binding/Model/ItemLength.cs#Positions",
    "retire-witnesses": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#LengthPositions",
-   "retire-reason": "LengthPositions moved out of IntrinsicBinder and is ItemLength.Positions (kb/Work PB1213, 7d4f0a4a4)"
+   "retire-reason": "LengthPositions moved out of IntrinsicBinder and is ItemLength.Positions (kb/Work PB1213, 9c9204870)"
   },
   {
    "rule-id": "RV-15.30.3-1",
    "retire-witnesses": "src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EcStmtLoc",
-   "retire-reason": "EcStmtLoc was deleted: the (statement, location) pair travels on an ambient statement context (kb/Work R14, b0bcc3b89)"
+   "retire-reason": "EcStmtLoc was deleted: the (statement, location) pair travels on an ambient statement context (kb/Work R14, 363dfba41)"
   },
   {
    "rule-id": "RV-15.30.3-2",
    "retire-witnesses": "src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EcStmtLoc",
-   "retire-reason": "EcStmtLoc was deleted: the (statement, location) pair travels on an ambient statement context (kb/Work R14, b0bcc3b89)"
+   "retire-reason": "EcStmtLoc was deleted: the (statement, location) pair travels on an ambient statement context (kb/Work R14, 363dfba41)"
   },
   {
    "rule-id": "RV-15.31.3-1",
    "retire-witnesses": "src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EcStmtLoc",
-   "retire-reason": "EcStmtLoc was deleted: the (statement, location) pair travels on an ambient statement context (kb/Work R14, b0bcc3b89)"
+   "retire-reason": "EcStmtLoc was deleted: the (statement, location) pair travels on an ambient statement context (kb/Work R14, 363dfba41)"
   },
   {
    "rule-id": "RV-15.64.4-1",
    "retire-witnesses": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#PowNativeInt",
-   "retire-reason": "PowNativeInt is gone: one native ** arm on the SDIDI (kb/Work PB69, 5c429e98e)"
+   "retire-reason": "PowNativeInt is gone: one native ** arm on the SDIDI (kb/Work PB69, 5f1a0429e)"
   },
   {
    "rule-id": "AR-15.68.3-4",
    "retire-witnesses": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalC",
-   "retire-reason": "NumvalC was replaced by NumvalCDec and NumvalCLocaleDec when NUMVAL-C moved onto the SDIDI carrier (kb/Work PB251, 823e954c8)"
+   "retire-reason": "NumvalC was replaced by NumvalCDec and NumvalCLocaleDec when NUMVAL-C moved onto the SDIDI carrier (kb/Work PB251, 0e9249931)"
   },
   {
    "rule-id": "AR-15.68.3-6",
    "retire-witnesses": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalC",
-   "retire-reason": "NumvalC was replaced by NumvalCDec and NumvalCLocaleDec when NUMVAL-C moved onto the SDIDI carrier (kb/Work PB251, 823e954c8)"
+   "retire-reason": "NumvalC was replaced by NumvalCDec and NumvalCLocaleDec when NUMVAL-C moved onto the SDIDI carrier (kb/Work PB251, 0e9249931)"
   },
   {
    "rule-id": "RV-15.68.4-3",
    "retire-witnesses": "src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalC",
-   "retire-reason": "NumvalC was replaced by NumvalCDec and NumvalCLocaleDec when NUMVAL-C moved onto the SDIDI carrier (kb/Work PB251, 823e954c8)"
+   "retire-reason": "NumvalC was replaced by NumvalCDec and NumvalCLocaleDec when NUMVAL-C moved onto the SDIDI carrier (kb/Work PB251, 0e9249931)"
   },
   {
    "rule-id": "FMT-8.8.4.4.2",
    "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#className",
    "retire-witnesses": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#className",
-   "retire-reason": "the className rule lives in CobolOO.g4 (kb/Work PB845+PB2501+PB2292+PB2506, d080fc6ad)"
+   "retire-reason": "the className rule lives in CobolOO.g4 (kb/Work PB845+PB2501+PB2292+PB2506, 98af446df)"
   },
   {
    "rule-id": "DOC-A.1-48",
@@ -335,7 +335,7 @@
    "derivation": "",
    "notes": "GR1 'The content of each literal shall be processed as case-insensitive ... Any use of an equated or substituted literal shall be case-insensitive when used syntactically as a COBOL word' (cite.py OK §7.3.10.4 1)). Literal() upper-cases the content (ToUpperInvariant); CobolWordsMap dictionaries/sets are OrdinalIgnoreCase; the rewriter's synonym lookup is OrdinalIgnoreCase. Probe case_insens: EQUATE \"display\" WITH \"show\" then 'Show \"OK-CASE\"' and 'sHoW \"OK-CASE2\"' both DISPLAY (both halves verified by probe). unit:CobolWordsDirectiveTests.Literals_AreCaseInsensitive covers only the literal-content half (not the use-in-source half), so no test-ref is claimed: test-needed for the second half. || editions (adjudicator): 2023 only (new in COBOL-2023: Foreword list 'Additional compiler directives were added: COBOL-WORDS directive'; Annex E.3.3 item 12, cite.py OK §E.3.3 12)); below 2023 the directive word is COBOLNET0900 || code site: src/Cobol.Net.Editions/CobolWordsMap.cs#CobolWordsMap (its constructor)",
    "retire-witnesses": "src/Cobol.Net.Frontend/Parsing/CobolWordsRewriter.cs#Rewrite",
-   "retire-reason": "COBOL-WORDS is handled in the lexer since kb/Work PB1372 (f941be404); no Rewrite method exists in CobolWordsRewriter.cs"
+   "retire-reason": "COBOL-WORDS is handled in the lexer since kb/Work PB1372 (bfb489a74); no Rewrite method exists in CobolWordsRewriter.cs"
   },
   {
    "rule-id": "SR-6.3.4-3",
@@ -377,7 +377,7 @@
    "verdict": "CONFORMS",
    "editions": "2002,2014,2023",
    "derivation": "",
-   "notes": "GR1 (--check 13.18.49.4 -> OK 1)). Copy via the one CopyEntryDescription (scope Entry - alignment carried, as GR1 has no alignment exclusion); exclusion list enforced by DataItem [DescriptionCopy] classifications + DescriptionCopyCompletenessDriftTests. Probes: VALUE/JUSTIFIED/BLANK WHEN ZERO carried and REDEFINES excluded (p09: `01 B REDEFINES A PIC X(4) JUSTIFIED RIGHT. 01 S SAME AS B.` MOVE \"AB\" TO S -> A stays [WXYZ], S [  AB]; SZ SAME AS a BWZ VALUE 0 item -> [   ]); GLOBAL excluded (p21: nested program cannot see W SAME AS a GLOBAL item -> COBOLNET1639); EXTERNAL excluded by classification (HasExternalClause None), while a TYPE-derived external rides §13.18.22.4 GR3; level-number/name excluded (qualified references to the copy work, p10). CONSTANT RECORD exclusion is vacuous under SR10. SELECT WHEN belongs to Annex A.4.8 (declined, CONFORMANCE.md §5; DataBinder refuses the clause), so its exclusion is unreachable. Chained copy with VALUE through OCCURS: q10 -> [AB12][AB12AB12] length 8. Also conformance:cases/8.5.2.5-Boolean-category/pb522_group_usage_travels_with_the_description (GROUP-USAGE travels). EDGE NOTED (not a verdict change): an elementary data-name-1 inside a GROUP-USAGE NATIONAL group (p24, q02) yields a DISPLAY subject (BYTE-LENGTH 3 / 4 vs E's 8) - the national usage is implied by the group (§13.18.29.3 SR3 'explicitly or implicitly described as usage national', --check OK) and GR3 transfers a USAGE clause only from an alphanumeric or strongly-typed group; the literal reading supports the compiler, recorded as a dossier gap. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the SAME AS clause is absent from COBOL-85 and is not in Annex E's 2014->2023 substantive-changes list, so the rule stands unchanged in 2014 and 2023) || Code-location witnesses adjusted by registrar 14e: src/Cobol.Net.Compiler/Binding/Model/DataItem.cs (the symbol named was not in the file at 071ff04ea; path kept)"
+   "notes": "GR1 (--check 13.18.49.4 -> OK 1)). Copy via the one CopyEntryDescription (scope Entry - alignment carried, as GR1 has no alignment exclusion); exclusion list enforced by DataItem [DescriptionCopy] classifications + DescriptionCopyCompletenessDriftTests. Probes: VALUE/JUSTIFIED/BLANK WHEN ZERO carried and REDEFINES excluded (p09: `01 B REDEFINES A PIC X(4) JUSTIFIED RIGHT. 01 S SAME AS B.` MOVE \"AB\" TO S -> A stays [WXYZ], S [  AB]; SZ SAME AS a BWZ VALUE 0 item -> [   ]); GLOBAL excluded (p21: nested program cannot see W SAME AS a GLOBAL item -> COBOLNET1639); EXTERNAL excluded by classification (HasExternalClause None), while a TYPE-derived external rides §13.18.22.4 GR3; level-number/name excluded (qualified references to the copy work, p10). CONSTANT RECORD exclusion is vacuous under SR10. SELECT WHEN belongs to Annex A.4.8 (declined, CONFORMANCE.md §5; DataBinder refuses the clause), so its exclusion is unreachable. Chained copy with VALUE through OCCURS: q10 -> [AB12][AB12AB12] length 8. Also conformance:cases/8.5.2.5-Boolean-category/pb522_group_usage_travels_with_the_description (GROUP-USAGE travels). EDGE NOTED (not a verdict change): an elementary data-name-1 inside a GROUP-USAGE NATIONAL group (p24, q02) yields a DISPLAY subject (BYTE-LENGTH 3 / 4 vs E's 8) - the national usage is implied by the group (§13.18.29.3 SR3 'explicitly or implicitly described as usage national', --check OK) and GR3 transfers a USAGE clause only from an alphanumeric or strongly-typed group; the literal reading supports the compiler, recorded as a dossier gap. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the SAME AS clause is absent from COBOL-85 and is not in Annex E's 2014->2023 substantive-changes list, so the rule stands unchanged in 2014 and 2023) || Code-location witnesses adjusted by registrar 14e: src/Cobol.Net.Compiler/Binding/Model/DataItem.cs (the symbol named was not in the file at 9cd3b32ba; path kept)"
   },
   {
    "rule-id": "GR-13.18.60.4-22",
@@ -391,7 +391,7 @@
    "verdict": "CONFORMS",
    "editions": "2002,2014,2023",
    "derivation": "",
-   "notes": "cite.py --check 13.18.64.3 'shall also contain an OCCURS clause or, if the VARYING clause appears in a report group description entry, a multiple LINE or multiple COLUMN clause' OK (SR1). repeatingEntry is set by an OCCURS clause and by a LINE clause with >1 operand; columns.Count>1 is the multiple COLUMN vehicle. Violation diagnosed on a printable entry (negative golden) and on a group entry (probe probe/varying-clause/vsr1grp: `02 LINE PLUS 1 VARYING K.` -> COBOLNET1559 SR1). All three legal vehicles accepted (conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry OCCURS, conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition multiple LINE, conformance:cases/13.18.14-COLUMN/rw_present_when multiple COLUMN). The non-report (VALIDATE) half is the declined VALIDATE facility, refused by name COBOLNET1708 (docs/CONFORMANCE.md §5; PB283 landed). || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (report-group VARYING is a COBOL-2002 introduction per docs/VERSION_CHANGE_REFERENCE; the 2023 Annex E lists no change; the VALIDATE leg is part of the obsolete VALIDATE facility, §13.18.64.1 NOTE) || Code-location detail (moved from the field by registrar 14e): src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs (the `!repeatingEntry && columns.Count <= 1` test at the registrar's pin -> COBOLNET1559) || Code-location witnesses adjusted by registrar 14e: src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs (the symbol named was not in the file at 071ff04ea; path kept)"
+   "notes": "cite.py --check 13.18.64.3 'shall also contain an OCCURS clause or, if the VARYING clause appears in a report group description entry, a multiple LINE or multiple COLUMN clause' OK (SR1). repeatingEntry is set by an OCCURS clause and by a LINE clause with >1 operand; columns.Count>1 is the multiple COLUMN vehicle. Violation diagnosed on a printable entry (negative golden) and on a group entry (probe probe/varying-clause/vsr1grp: `02 LINE PLUS 1 VARYING K.` -> COBOLNET1559 SR1). All three legal vehicles accepted (conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry OCCURS, conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition multiple LINE, conformance:cases/13.18.14-COLUMN/rw_present_when multiple COLUMN). The non-report (VALIDATE) half is the declined VALIDATE facility, refused by name COBOLNET1708 (docs/CONFORMANCE.md §5; PB283 landed). || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (report-group VARYING is a COBOL-2002 introduction per docs/VERSION_CHANGE_REFERENCE; the 2023 Annex E lists no change; the VALIDATE leg is part of the obsolete VALIDATE facility, §13.18.64.1 NOTE) || Code-location detail (moved from the field by registrar 14e): src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs (the `!repeatingEntry && columns.Count <= 1` test at the registrar's pin -> COBOLNET1559) || Code-location witnesses adjusted by registrar 14e: src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs (the symbol named was not in the file at 9cd3b32ba; path kept)"
   },
   {
    "rule-id": "GR-14.9.30.4-21",

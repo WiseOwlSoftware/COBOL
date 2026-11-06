@@ -44,6 +44,6 @@ Standard|Dec` **4437/4437** · Unit `EcSize|Ec|Exception|Registry|Manifest|Guard
 Bound` **3148/3148** · CLI probes. Docs: COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md (the EC-SIZE bridge outside
 arithmetic statements; one dispatch per raise), COBOLNET_NUMERIC_DESIGN.md, CONFORMANCE.md item 70, kb/Work PB75 →
 landed, PB91 registered, plan §0. Battery owed for the PB75 batch with the next landing (battery #10, tree
-`e939f354`, was ALL GREEN: Conformance 4690/4690 · Unit 4218/4218 · Characterization 33/33 · NIST 353/0
+`e7db7f59`, was ALL GREEN: Conformance 4690/4690 · Unit 4218/4218 · Characterization 33/33 · NIST 353/0
 audit-clean · differential 0 flips).
 

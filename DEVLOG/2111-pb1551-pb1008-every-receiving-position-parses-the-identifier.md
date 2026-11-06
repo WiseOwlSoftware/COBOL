@@ -1,6 +1,6 @@
 ## Entry 2111 — 2026-10-16 14:15 PDT — PB1551 + PB1008: every receiving position parses the identifier formats that are never a receiving operand, and one form table refuses each by its own rule
 
-**The defect (kb/Work PB1551, re-probed on 59208d8fb).** ISO §8.4.3 writes each receiving-operand exclusion into the
+**The defect (kb/Work PB1551, re-probed on 20689f937).** ISO §8.4.3 writes each receiving-operand exclusion into the
 identifier FORMAT, not into a statement: §8.4.3.7.3 SR1 "NULL shall not be specified as a receiving operand",
 §8.4.3.8.3 SR2 (SELF and SUPER), §8.4.3.5.3 SR2 (the object-view), §8.4.3.11.3 SR5 / §8.4.3.12.3 SR3 / §8.4.3.13.3 SR4
 (the data-, function- and program-address-identifiers: "This identifier format shall not be specified as a receiving
@@ -61,7 +61,7 @@ null as a second COBOLNET0866. `BY REFERENCE ADDRESS OF FUNCTION F` became §8.4
 COBOL0001), so SR-8.4.3.12.3-3's "exactly ONE grammar home" notes were restated. R1-2: the drift guard's keyword list
 had no TO, so it could not have caught the slots this entry converted; it now reads TO, REFERENCE, ACCEPT, INITIALIZE,
 SET CONTENT/SIZE OF, UNSTRING DELIMITER/COUNT IN, the ROUNDED resultant, INSPECT's counter, an alternation group and a
-list rule one level down, and a theory pins each shape (run over base 59208d8fb's grammar it flags 42 rules where the
+list rule one level down, and a theory pins each shape (run over base 20689f937's grammar it flags 42 rules where the
 first cut flagged 24). New negatives `pb1551-call-by-reference-self`, `pb1551-call-implied-reference-self`,
 `pb1551-invoke-universal-self` (3978), `pb1551-invoke-by-reference-view` (2871), `pb1551-function-address-receiving`
 (3979). A function-identifier or inline invocation written BY REFERENCE is still a parse error, by the computed formats'

@@ -102,7 +102,7 @@ missing. `SR-12.4.5.5.2-2` GAP → CONFORMS.
 
 **PB346 — the SECONDS/FOREVER arm was split; eight descriptions of it were not.** The reported defect —
 `RETRY FOR ZERO-SECS SECONDS` answering the deadlock '52' where §14.7.9.3 GR4 a) requires the record operation
-conflict '51' — **did not reproduce**: `0b1c39bc` (PB142 cluster E) had already given `Seconds` its own
+conflict '51' — **did not reproduce**: `08a5df74` (PB142 cluster E) had already given `Seconds` its own
 no-further-attempt arm on the GR2 clamp and scoped `ExhaustionStatus`'s deadlock to `Forever` on a RECORD
 conflict. What had not travelled with that fix was every description of it. Eight sites still said
 "SECONDS/FOREVER deadlock-bail to 52 (GR4a)" — `StatementBinder.BindRetry`, `FileLockBinder.BindVerbRetry`,

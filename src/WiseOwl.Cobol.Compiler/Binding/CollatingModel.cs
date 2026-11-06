@@ -446,7 +446,7 @@ public enum CollatingClass
 /// operand an alphanumeric comparison that §8.8.4.2.7 collates. Folding the comparison question onto the SORT-key
 /// classifier dropped the program collating sequence from every <c>numeric-item &lt; SPACE</c> relation and turned
 /// NIST NC215A's SEQ-TEST-GF-6/-7 from PASS to FAIL* (kb/Work PB741; the fold was kb/Work PB678's
-/// <c>f798397f</c>).</para></summary>
+/// <c>6b47703e</c>).</para></summary>
 public static class CollatingSelection
 {
     /// <summary>⛔ THE ONE data-CATEGORY reading of a bound relation operand — literals carry their own tag
@@ -469,7 +469,7 @@ public static class CollatingSelection
     /// never reach the string branch) and NOT harmless for the question a BINDER asks of a THROUGH range, where
     /// §14.7.8's rule 1 / rule 2 split IS the range's class: an arithmetic-expression-ended range (numeric by
     /// §8.8.1.1) answered ALPHANUMERIC, so <c>EVALUATE N WHEN A + 1 THRU B + 2 IN AL</c> sailed past SR3 and was
-    /// evaluated as a STRING range (measured on d80cb676). It is now the OTHER reader's body — the one that was
+    /// evaluated as a STRING range (measured on 861b6387). It is now the OTHER reader's body — the one that was
     /// already total and already declared itself the single definition — so a shape added there is seen
     /// here.</para>
     /// <para>⛔ ONE ARM IS THIS READER'S OWN, AND IT IS THE CLASS (kb/Work PB442): a comparison is collated by
@@ -518,7 +518,7 @@ public static class CollatingSelection
     /// were three separately-written tests and two of them disagreed — the EVALUATE gate demanded a
     /// string-LITERAL pair while the level-88 gate asked the class, so <c>88 X VALUE "M" THRU "A"</c> raised
     /// EC-RANGE-INVALID and <c>EVALUATE X WHEN WS-M THRU WS-A</c> over the identical values raised nothing
-    /// (measured on d80cb676).</para></summary>
+    /// (measured on 861b6387).</para></summary>
     public static bool IsCollatedThroughRange(CollatingClass rangeClass) =>
         rangeClass is CollatingClass.Alphanumeric or CollatingClass.National;
 

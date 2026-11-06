@@ -20,7 +20,7 @@ focused debugging (CilLocationEmitter linkage-vs-own-storage), not a tail-of-ses
 Reverted all CALL-RETURNING changes (CBL3304 restored; the Binder append; the test; a dialect-aware
 `CompileMultipleAndRun(DialectMode, …)` overload) via `git checkout` to keep the tree at the SORT-Format-2 commit.
 Full diagnosis recorded in docs/SPEC_FIX_RECIPES_M1.md (#9). Moving M2 to #10 READ PREVIOUS (runtime-only boundary
-fix). No compiler change committed; guard unaffected (HEAD = 5125b8e). Lesson: an M2 recipe written from a
+fix). No compiler change committed; guard unaffected (HEAD = 989a2a7). Lesson: an M2 recipe written from a
 read-only audit can under-estimate a runtime gap — verify the feature end-to-end before assuming "just delete the
 check."
 

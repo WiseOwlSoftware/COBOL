@@ -142,9 +142,9 @@ swept on the way: the conditions/exceptions deep-dive's per-edition list called 
 row 40 names only the three commit-and-rollback names — left standing it would have argued this fix into the
 wrong edition band. Row GR-14.9.49.4-2 DIVERGES → CONFORMS.
 
-**The train.** Five clusters, one landing, no cluster dropped. Rows 1, 2, 3 and 5 based on `a2255819`/`b929f96e`
-(before trains 33 AND 34) and row 4 on `d80cb676`, so every cluster was three-way merged onto train 34's head
-`db68907f`. ONE conflict, in `DiagnosticCatalog.cs`: train 33/34's COBOLNET2012–2026 block against PB416's
+**The train.** Five clusters, one landing, no cluster dropped. Rows 1, 2, 3 and 5 based on `33936312`/`ab4d99fa`
+(before trains 33 AND 34) and row 4 on `861b6387`, so every cluster was three-way merged onto train 34's head
+`82a45d3c`. ONE conflict, in `DiagnosticCatalog.cs`: train 33/34's COBOLNET2012–2026 block against PB416's
 COBOLNET2030/2031 block, resolved keep-both because each side is a whole set of descriptor declarations. The
 train-33 lesson was applied structurally rather than by inspection — no corpus `manifest.json` and no
 `traceability-inventory.json` hunk was three-way merged at all, because a conflict INSIDE one JSON list element
@@ -183,5 +183,5 @@ PB368. Diagnostic codes claimed: COBOLNET2030, 2031, 2045, 2046 — next free is
 register, PRE-EXISTING and not this train's: `EmitterState.cs` and `ControlFlowEmitter.cs` quote §14.9.14.4 GR5a
 as "the most closely preceding, unterminated inline PERFORM" where the standard reads "the most closely
 preceding, and as yet unterminated, inline PERFORM" — the clause number is right, the quotation is elided, and
-`cite.py --check` fails on it; it is present at `a2255819` and older.
+`cite.py --check` fails on it; it is present at `33936312` and older.
 

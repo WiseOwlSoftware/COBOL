@@ -13,7 +13,7 @@ defects surfaced while seeding. First, `il.Offset += 4 * il.ReadInt32()` reads `
 so every `switch` misaligned the decoder by four bytes. The count is now read first. Second, the PDB names only
 generated documents for `CobolParserCore` itself, because its hand partial declares only a member of its nested
 `CompilationUnitContext`. A type's documents now include its nested types', since a nested type is always declared
-inside its container. After both fixes the walk agrees with census `7cb79581e` on the generated flag of every type both
+inside its container. After both fixes the walk agrees with census `c83f88901` on the generated flag of every type both
 name.
 
 **The file and its checker.** `docs/rearchitecture/architecture-edges.json` is the one place the rule is written.
@@ -39,7 +39,7 @@ no candidate names either type, every candidate that reaches the pair removes it
 the row.
 
 **Measured on this tree.** The file has 28 rows and 359 pairs, and 330 of the pairs name removers from R1's notes. Since
-`a02b165da` the census grew eight rows. Two namespaces R1 never saw now cross a layer:
+`79a4b6c58` the census grew eight rows. Two namespaces R1 never saw now cross a layer:
 - `Binding.Repository`, placed in compiler.binding because its reader reads the binder.
 - The CLI's `NumericDisplayForm`. `cli → compiler.binding` is now allowed, by the composition-root rule.
 
@@ -54,7 +54,7 @@ decoder reads `PrototypeSignatureClasses`. In compiler.model it would trade this
 compiler.binding. PB4319 therefore moves the records and takes the encode out of the backend: the binder writes each
 published unit's record at bind time with the same `RepositoryCodec.Of`, and `KindOf` becomes a `BoundUnit` fact.
 `RepositoryReader` and `RepositoryVocabulary` stay where they are. PB4319 waits for this note and for slice 8 (PB2104),
-the last external-repository slice that edits its files. The newest committed member index (`65e78707f`) predates the
+the last external-repository slice that edits its files. The newest committed member index (`6258c350c`) predates the
 repository's types, so `work.py check` could not resolve the note's `**Moves or changes:**` names. The index of this
 tree is now recorded beside it, and every open R3 note resolves against it. The row's `plan` names PB4319, and
 `edges.py --assign` names it on all 29 pairs (359 of 359 assigned). DESIGN-backend-abstraction §1.3 L6 now lists the
@@ -86,7 +86,7 @@ three codec pairs, one per emitter (R1-3).
 **The landing of a remover (round-2 review, R2-1).** When a remover lands, `work.py check` told the landing to delete
 it from `removedBy`. That left two dead ends. A census-only row with no remover is refused by the drift test, and the
 check holds the row at the old census count. The way out, recording a census in the landing, was written nowhere. The
-PB4319 row has this shape: its landing takes all 29 walked pairs, but census `7cb79581e` still counts 26 uses, so the
+PB4319 row has this shape: its landing takes all 29 walked pairs, but census `c83f88901` still counts 26 uses, so the
 ratchet keeps the row as census-only and naming PB4319. The rule stays strict, and the landing path is now written
 down: the remover's landing records a census (`python scripts/arch/census.py`, then the ratchet), which deletes the row
 at zero. A row the new census still counts keeps its landed remover and stays refused. `work.py check` now names that

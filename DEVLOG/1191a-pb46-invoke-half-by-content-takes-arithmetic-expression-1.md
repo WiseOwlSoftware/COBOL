@@ -1,6 +1,6 @@
 ## Entry 1191a — 2026-08-06 13:46 PDT — PB46 (INVOKE half): BY CONTENT takes arithmetic-expression-1, and the first cut silently destroyed the identifier path my own comment had warned about
 
-> ⚙ **RECONSTRUCTED 2026-08-07 from the primary sources — the commit message (`dd45ddfd`), its `kb/Work/` note and its diff — not written at the time.** The commit landed without a DEVLOG entry; the owner's call was to reconstruct where it can be done accurately. Every fact below is carried from those sources; nothing is recalled. **Lettered rather than renumbered** because entries 1192–1198 are already referenced by pushed commit messages, which cannot be edited.
+> ⚙ **RECONSTRUCTED 2026-08-07 from the primary sources — the commit message (`0979ceb0`), its `kb/Work/` note and its diff — not written at the time.** The commit landed without a DEVLOG entry; the owner's call was to reconstruct where it can be done accurately. Every fact below is carried from those sources; nothing is recalled. **Lettered rather than renumbered** because entries 1192–1198 are already referenced by pushed commit messages, which cannot be edited.
 
 ISO §14.9.23.2's BY CONTENT branch admits `arithmetic-expression-1 | boolean-expression-1 | identifier-5 |
 literal-2` (read off the RENDERED general format). `invokeArgument` admitted `(dataReference | literal)`, **and

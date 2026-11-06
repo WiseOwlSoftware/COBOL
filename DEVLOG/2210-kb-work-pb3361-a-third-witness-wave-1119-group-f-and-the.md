@@ -9,7 +9,7 @@ third witness in three waves (1115 E, 1117 F, 1119 F), and its note now records 
 stands: compute the report path from the args, the same rule `make_dispatch_specs.py` uses, and stop reading the
 agent's free text for it.
 
-The unit's ledger render (`gen_ledger.py`, from the main checkout fast-forwarded to `da2f3f8e9`) appended 210 lines of
+The unit's ledger render (`gen_ledger.py`, from the main checkout fast-forwarded to `9b2536e7e`) appended 210 lines of
 trend points to `docs/rearchitecture/evidence/ledger-trend.json` there. This branch commits them, so the main checkout
 is clean again. PB2426 stays open: until it is fixed, every render dirties the main checkout.
 

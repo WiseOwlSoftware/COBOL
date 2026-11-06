@@ -5,7 +5,7 @@ The owner decided on 2026-10-23 that the diagnostic code prefix COBOLNET#### bec
 you to change from COBOLNET#### to COBOL####". The note's `## Timing` deferral was the Mythos lane's own, never the
 owner's; it is deleted and the rename landed at once (wave 20261706, group A).
 
-**Re-probe.** On this branch's base (`448eeb9e6`) the compiler printed two prefixes for one program: `error
+**Re-probe.** On this branch's base (`d0090383d`) the compiler printed two prefixes for one program: `error
 COBOLNET1985: invalid PICTURE 9L9F9G ...` from the binder and `error COBOL0001: unexpected ...` from the parser. After
 the change the same probes print `error COBOL1985`, `error COBOL2616` and `error COBOL0001`. src held 692 distinct
 COBOLNET codes, COBOLNET0710 to COBOLNET5092 (`alloc.json` reserved to 5196); the parser's series is COBOL0001,
@@ -49,10 +49,10 @@ every regex that matched the old prefix was re-read for what the one prefix now 
 such as "COBOL2002"). Performance: the audit reads the tracked tree once, outside the gate slot. Duplication: none
 added; `semgrep/verify.py` counts unchanged.
 
-**Gate.** Run `000004-20261026T181708Z` at `865f78263`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
+**Gate.** Run `000004-20261026T181708Z` at `981bbea26`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
 GREEN — ... Conformance 12,931/18,832 · Unit 37,735/38,392 · Characterization 7/36 cases ran (skipped 0) in 1 of 2
 leg(s) · Linux half (WSL clone of HEAD) GREEN ...`, with `=== DIAGNOSTIC PREFIX: GREEN — 18942 tracked path(s), none
-spells a code with the former prefix ===` and `=== WITNESS LOSS vs 448eeb9e6421: 0 unexcused, 14 retired ... GREEN ===`.
+spells a code with the former prefix ===` and `=== WITNESS LOSS vs d0090383d465: 0 unexcused, 14 retired ... GREEN ===`.
 
 **Branch review, round 1.** One blocking finding, R1-1: the audit ran in the gate and in CI's `audits` job, not at
 the landing. A branch cut before the rename that merges main cleanly is gated at its own head, whose gate has no such

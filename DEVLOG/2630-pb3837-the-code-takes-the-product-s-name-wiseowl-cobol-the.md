@@ -4,7 +4,7 @@ The owner, 2026-10-26: the product is no longer named for its first name, so the
 ongoing use of that name go, with root name `WiseOwl.Cobol`; and the legacy byte engine's product name "should appear
 nowhere except possibly in history" (kb/Work PB3837, decision).
 
-**Measured first, on the base (`ec9bda522`).** Outside DEVLOG/, adjudication/ and the frozen evidence: 24,806
+**Measured first, on the base (`48c58f48b`).** Outside DEVLOG/, adjudication/ and the frozen evidence: 24,806
 `Cobol.Net`, 15,662 `CobolNet`, 1,684 upper-case and 189 lower-case spellings of the compiler's first name, 446 of its
 dotted product spelling, and 4,249 of the legacy engine's name (3,154 of them the kb tag), in 5,173 files; 30 tracked
 paths (the six src projects, the five test projects, the solution, the 18 `docs/<prefix>_*.md` design documents).
@@ -81,7 +81,7 @@ differential golden keyed by its source's hash moved to its new key; `EmittedGlo
 captured root `WiseOwl`; the landing pipeline's arm names; and the architecture census re-recorded at the renamed head.
 Run 3: `=== BUILD-LOCAL GATE: GREEN — Conformance 18,832/18,832 · Unit 38,392/38,392 · Characterization 36/36 cases ran
 (skipped 0) in 1 of 1 leg(s) · Linux half (WSL clone of HEAD) GREEN … run 000003-20261026T204806Z) ===`. After the
-merge with main and the review round, the finisher's gate at `622a62fab`: `=== BUILD-LOCAL GATE: GREEN — Conformance
+merge with main and the review round, the finisher's gate at `5a14b36fd`: `=== BUILD-LOCAL GATE: GREEN — Conformance
 18,836/18,836 · Unit 38,391/38,391 · Characterization 36/36 cases ran (skipped 0) in 1 of 1 leg(s) · Linux half (WSL
 clone of HEAD) GREEN … run 000001-20261026T213510Z) ===`.
 

@@ -20,7 +20,7 @@ The fix is ONE rule of three coverages, decided by the Mythos session (Decision 
   tip, the tip itself or only mechanical commits after it (`unreviewed_since`, the coverage rule the review stamp and
   `enqueue.py land` already read). The age test and `REPORT_SLACK_MIN` are deleted. A report naming no HEAD, or followed
   by a commit no report describes, is a DECISION that says so. The header's HEAD and BASE are now read field-first: the
-  first-match rule read w1080f's predecessor head ("(reviewed head db7e19186 merged in) · head 5df3c56a3"). Measured
+  first-match rule read w1080f's predecessor head ("(reviewed head 1e7b95d95 merged in) · head 182b8124d"). Measured
   over the 360 reports on disk, the new reading changes that one, reads 17 the old one missed, and 12 name no head (no
   live branch carries one of those 12).
 - **The review.** Unchanged: a CLEAN stamp covering the tip.
@@ -55,7 +55,7 @@ Gate (run `TestResults/build-local/20261015T202819Z-fa373b`): `=== BUILD-LOCAL G
 ### One dispatch ledger with structured writers, one file-set partition for every plan, and a landing check that binds a branch to one dispatch (PB2807, PB3186)
 
 Wave 1083 group B, the Mythos lane's second branch (it merges group A, PB3181 + PB3125, which lands through it). The
-fix shapes are the Mythos session's decision 2 of 2026-10-15, read from the code on main f5fec711b.
+fix shapes are the Mythos session's decision 2 of 2026-10-15, read from the code on main 1ad0a9821.
 
 **PB3186 (filed here): the ledger's hand entries.** `scripts/hooks/dispatch_guard.py` rule 3 took every `PB<digits>`
 id an admitted Agent or Workflow call's prompt mentioned, and every id in each `.md`/`.txt`/`.json` file the prompt

@@ -2,7 +2,7 @@
 
 The branch `worktree-agent-a42657b7f46d31559` (ten WIP commits: `alloc.py`, `budget.py`, `inventory_ratchet.py`, `plan_wave.py`,
 `orchestrate.ps1`, the watchers, the autostart installer, the handoff schema, the design doc `DESIGN-orchestrator-loop.md`, a
-hook false-positive fix and the probe's allocator call) rebased onto `5795b8f00` without a conflict. Gates, each read from its
+hook false-positive fix and the probe's allocator call) rebased onto `a47e33523` without a conflict. Gates, each read from its
 verdict line: lander gate GREEN (Conformance 10,468, Unit 30,555, Characterization 35, populations EXACT); the Linux gate GREEN on
 all four legs under WSL (unit 30,586, characterization 35, conformance 10,468, guard NIST 362 MATCH, 0 REGRESSIONS); the eight CI
 audits clean (code and doc citations, evidence supersession, drift rules, witness loss vs origin/main, rule catalog, publishable,

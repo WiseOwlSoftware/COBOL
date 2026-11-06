@@ -19,7 +19,7 @@ PB617: the §15.3 type-6 screen gains its third witness. The additive spine's li
 over BigInteger — the algebraic value, never a mode-rounded intermediate, a determination recorded in the code), and
 when every other term is provably integral a non-integral constant refuses the argument: `CHAR(1.5 + 1)` and
 `CHAR(W-I + 0.5)` are COBOLNET1627, while `CHAR(1.5 + 0.5)` is admitted. Anything the fold cannot value fails open.
-PB954 did not reproduce: its mechanism is the one PB960 fixed (8f05718c3), so it is discharged with
+PB954 did not reproduce: its mechanism is the one PB960 fixed (a31e4b4f3), so it is discharged with
 `closes_rows: []` and its reason. PB1466's NATIONAL arm reproduces and waits on PB1665 (the group image counts
 national positions as byte pairs; re-measured open on this build). Rows SR-8.8.4.7.3-1/-2, GR-8.8.4.7.4-1/-2 and
 AR-15.3-6 CONFORMS. Self-review found nothing beyond a numeric-category guard it added to `ProvablyIntegral`.
@@ -69,8 +69,8 @@ Passed: 9289 … Cobol.Net.Tests.Conformance.dll`, `Passed! - Failed: 0, Passed:
 `Passed! - Failed: 0, Passed: 33 … Characterization.dll` and `=== WAVE-LOCAL GATE: GREEN (filter
 FullyQualifiedName~.) ===`. Legacy assemblies: Integration 503 passed, 1 skipped; legacy Unit 1200 passed. The
 external corpus was fetched, sha256-verified. Semgrep verify PASS, with no count rising (BigInteger 46 → 46). 11
-citations were re-run through `cite.py --check`, all OK. Main moved twice, both times with tooling and docs only: 55ef23eb9 (DEVLOG 1754) during the gate, and
-a7c484f1b (DEVLOG 1755) while CI verified the train. CI run 36469331688 was green on b9998bc10, but the
+citations were re-run through `cite.py --check`, all OK. Main moved twice, both times with tooling and docs only: f555c652a (DEVLOG 1754) during the gate, and
+751054954 (DEVLOG 1755) while CI verified the train. CI run 36469331688 was green on b9998bc10, but the
 fast-forward was refused. The train was rebased onto each move without re-gating (L3); the only conflict was this
 DEVLOG entry, which was renumbered. Review: one pass
 over the train diff, with no confirmed correctness finding and no cluster dropped. New leads filed: PB1684

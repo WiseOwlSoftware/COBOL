@@ -11,9 +11,9 @@ and `LandingLeaseDriftTests`, and sweeps every current-state mention.
 **The workflow.** `push.branches` is `[ main ]`. Two arms died with `ci/**` and went too: the `changes` job's
 new-branch base (only main is pushed now, so a `before` the runner cannot resolve simply runs the matrix) and the
 DEVLOG step's push arm (the step runs on `pull_request` and `merge_group` only, and fails closed on anything else).
-**PB3024 item 3, measured:** main's `push` run after each of the first three queued landings (PR 7 → 79d760ab6, PR 8 →
-424e699ec, PR 9 → 9d18aa9ab) printed `run_matrix=false (code=true verified=true) … a non-PR run already succeeded on
-<sha>`; for 9d18aa9ab the one green run is the `merge_group` run on `gh-readonly-queue/main/pr-9-…`. The merge-queue
+**PB3024 item 3, measured:** main's `push` run after each of the first three queued landings (PR 7 → a2c6c495e, PR 8 →
+9c80e9569, PR 9 → d3ed2f05e) printed `run_matrix=false (code=true verified=true) … a non-PR run already succeeded on
+<sha>`; for d3ed2f05e the one green run is the `merge_group` run on `gh-readonly-queue/main/pr-9-…`. The merge-queue
 commit is the merged sha, so the matrix runs once per landing and the short-circuit needed no fix; its comment now
 says so.
 

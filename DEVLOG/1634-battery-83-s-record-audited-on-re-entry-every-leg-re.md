@@ -1,7 +1,7 @@
 ## Entry 1634 — 2026-09-22 06:58 PDT — Battery #83's record audited on re-entry: every leg re-verified from its own artifacts, the full CI matrix confirmed green on the verification branch — and the ONE claim it got wrong was the complement sweep, corrected here
 
-**Battery #83 had already run and landed when this session re-entered it** (`80052c312` re-baseline +
-`a2a15c30c` record, DEVLOG 1632, plan §0 rotated to CURRENT = #83). The predecessor agent was cut off before it
+**Battery #83 had already run and landed when this session re-entered it** (`9024e4d80` re-baseline +
+`51461e7a9` record, DEVLOG 1632, plan §0 rotated to CURRENT = #83). The predecessor agent was cut off before it
 returned its result, and its scratchpad report described a landing that **did not happen** — three commits it
 names (`9948bf049`, `4f040ef39`, `47e1de51f`) exist in no ref of this repository, and the two CI runs it says
 it "stopped" both completed. So nothing in that prose was taken on trust. **Every number in the record was
@@ -13,7 +13,7 @@ exactly the figures §0 reports: Conformance **7776 / 7776**, Unit **28643 / 286
 build `0 Warning(s) 0 Error(s)`, `WITNESSES: ALL GREEN`, `guard-compiler --self-test: ALL GREEN`,
 `NIST (cobol): 364 MATCH, 0 REGRESSION(S)`, `NIST AUDIT: CLEAN`, guard `=== ALL GREEN ===`, all three static
 audits at 0, and the differential's `1323 cases` / `2 PER-CASE FLIP(S)` with the four totals
-580 / 466 / 237 / 40. The compiler under all of it is unchanged: `git diff c982251df HEAD -- src/ tests/` is
+580 / 466 / 237 / 40. The compiler under all of it is unchanged: `git diff ec501c796 HEAD -- src/ tests/` is
 **the baseline TSV and nothing else**, so the battery head and today's head compile identically.
 
 ⭐ **And the two things the record ASSERTED about its own determinism and its own gate are now measured rather
@@ -23,7 +23,7 @@ totals**: `gnucobol-report.json` vs `gnucobol-rebaseline.json` is **0 verdict di
 reason a per-case diff exists. (2) The record claimed the landing "routes to the FULL CI matrix". The run on
 `main` (**35734508503**) in fact ran `changes` + `ci-gate` and skipped everything else — but that is the
 already-verified short-circuit doing its job, because `push-main.sh` had already put the same sha through the
-**full matrix on `ci/a2a15c30cfb0`** (run **35732937405**, `success`): Windows build + tests, all five Windows
+**full matrix on `ci/51461e7a929d`** (run **35732937405**, `success`): Windows build + tests, all five Windows
 conformance shards, all five **Linux** greenfield conformance shards, Linux greenfield unit + characterization,
 the Guard leg, INV-1-strong, the shard population guard, `ci-gate`. So the Linux legs and the Release build —
 the ones a Windows Debug battery cannot reach — did see this batch. The conclusion stands; the stated mechanism
@@ -61,7 +61,7 @@ in 1632 moves: both flips, both `--check`ed clause numbers (§8.8.4.4.3 rule **4
 §8.4.6.3 — all three re-run through `cite.py --check` here, all three OK), the two-row baseline diff and the
 recorded MISS against #82's "0 flips" requirement are all confirmed exactly as written.
 
-**The ledger refresh 1632 recorded as owed LANDED while this correction was in CI** — `0ae7522b0`, "Ledger v59
+**The ledger refresh 1632 recorded as owed LANDED while this correction was in CI** — `aa9f24c73`, "Ledger v59
 at battery #83", by another agent: the in-flight narrative for train 45 plus the batch's `ledger-trend.json`
 point, with every number on the page computed by `gen_ledger.py`. This commit is rebased on top of it, so the
 debt 1632 booked is discharged in the repository. **What is NOT verifiable from git, and is therefore recorded

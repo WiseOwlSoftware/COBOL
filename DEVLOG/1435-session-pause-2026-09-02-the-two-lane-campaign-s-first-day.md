@@ -11,8 +11,8 @@ argument lanes; PB288–PB290), the Annex A.1 DOC-row mechanism (GAP 3636 → 36
 the derived-verdict selectors (308 rows DOCUMENTED-NON-SUPPORT by predicate; PB281–PB285, PB291), the workstream
 doctrine (the `workstream` skill), the golden lane (151 rows closed, GAP 3618 → 3467; PB302–PB314), and the ledger
 generator (`gen_ledger.py`; the artifact is regenerated, never retyped) — and, while this entry was being written,
-lander 2's first two landings: cluster E (RETRY discipline, DELETE FILE OVERRIDE, COBOLNET1720; `0b1c39bc`, GAP
-3467 → 3456) and witness cluster A (A.4.8 / A.4.13 get a name, PB281/PB282 close; `66c85a90`, GAP → 3407).
+lander 2's first two landings: cluster E (RETRY discipline, DELETE FILE OVERRIDE, COBOLNET1720; `08a5df74`, GAP
+3467 → 3456) and witness cluster A (A.4.8 / A.4.13 get a name, PB281/PB282 close; `71fc2dd7`, GAP → 3407).
 
 Finished and awaiting the serialized landers, each in its own worktree with WIP commits and a STATUS.md: cluster F (pointer-class USAGE rules, OPTIONS INITIALIZE; 1724–1727; one differential flip the lander
 must refute before landing), witness cluster B1 (A.4.2 screen handling; 163 rows; 1560 → Error, 1707), the
@@ -23,7 +23,7 @@ mechanisms, 70 CONFORMS refuted to 51) is with its registrar; batch 2's adjudica
 their per-rule checkpoints on disk; batch 3's inputs are generated.
 
 Owed on resume, in order: lander 2 finishes cluster F; lander 3 (B1 → sweep → D → B2); the batch-1 registrar
-lands; **battery #42** — the first comprehensive run since `2acbd842`, owed since the golden lane; the ledger
+lands; **battery #42** — the first comprehensive run since `41bf3492`, owed since the golden lane; the ledger
 refresh after each. The three seams three implementers each built for "declined facility diagnosed" become one at
 lander 3. Owner questions pending, one at a time: PB280 Q1–Q3, the CLASS-clause scope B2 raised, and the introducing
 edition of `USAGE POINTER TO type-name` (A1).

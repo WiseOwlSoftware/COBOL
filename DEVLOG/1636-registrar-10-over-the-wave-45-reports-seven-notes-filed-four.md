@@ -1,7 +1,7 @@
 ## Entry 1636 — 2026-09-22 11:42 PDT — REGISTRAR #10 over the wave-45 reports: seven notes filed, four leads dropped with the reason, and the loudest one — a fixed-length group reaching a variable-length formal EMPTY — reproduced on main today
 
 The lead-filing pass over wave 45's seven implementer results (groups A–G) and the train-46 lander report. Train 46
-had NOT landed when this ran, so main was `f503888da`. Every probe was re-run on this registrar's own
+had NOT landed when this ran, so main was `2d5551163`. Every probe was re-run on this registrar's own
 `dotnet build CobolSharp.sln -c Debug` (0 warnings / 0 errors). Every citation was re-derived with `cite.py --check`.
 Every lead was grepped against `kb/Work/` before it became a note. No verdict moved: **GAP 2276 before and after.**
 The register goes from 993 to 1000 notes.

@@ -27,7 +27,7 @@ for note, rows in EXTEND.items():
     have = re.findall(r'"([^"]+)"', m.group(1))
     new = have + [r for r in rows if r not in have]
     t = t[:m.start()] + 'inventory_rows: ' + json.dumps(new, ensure_ascii=False) + t[m.end():]
-    lines = [MARK, '', f'Filed 2026-09-24 by REGISTRAR-1 (cloud, branch `claude/adj-registrar-1`). The adjudicators (tree `0caa7d5`) '
+    lines = [MARK, '', f'Filed 2026-09-24 by REGISTRAR-1 (cloud, branch `claude/adj-registrar-1`). The adjudicators (tree `0c24de7`) '
              f'attributed these rows to this note; this note now claims them in `inventory_rows`.', '']
     for r in rows:
         v = recs[r]['verdict']; b = branch[r]

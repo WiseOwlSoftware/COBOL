@@ -38,15 +38,15 @@ bind-time C# string (`ReferenceResolver.RenderSegment`) and a D18 text re-parse 
 moving them onto `BoundExpr` deletes both.
 
 **The train.** One cluster (SPLIT, landed whole after the two named fixes). First gate (`build-local.ps1 -Mode lander`,
-run 20261007T105800Z-331a15, on db070acb5): GREEN, Conformance 10,724/10,724 · Unit 31,654/31,654 · Characterization
+run 20261007T105800Z-331a15, on 68da06f84): GREEN, Conformance 10,724/10,724 · Unit 31,654/31,654 · Characterization
 35/35, with the three former reds passing by name; Linux gate GREEN. Pipelined behind train 1028 (still in CI), the
-cluster was then rebased onto train 1028's head fdf1ef1dc: five conflicts, all comment or doc prose about the D10 carrier
+cluster was then rebased onto train 1028's head ab89ebfd2: five conflicts, all comment or doc prose about the D10 carrier
 (ReferenceResolver.cs and StatementBinder.SubscriptSegments.cs remarks, DATA_MODEL, DESIGN-binder-bound-tree, whose G8
 row keeps train 1028's rewording, and DESIGN-frontend-grammar §9 status), resolved hunk by hunk, with PB2113's
 grammar auto-merging beside PB2114's call-argument rules. The inventory batch re-checked as already applied. Because two
 C# files conflicted, the whole population was re-gated on the rebased tree (run 20261007T111324Z-861e83):
 `=== BUILD-LOCAL GATE: GREEN — Conformance 10,724/10,724 · Unit 31,661/31,661 · Characterization 35/35 cases ran
-(skipped 0) in 1 of 1 leg(s)`, and the Linux gate is GREEN on it too (all four legs plus the hook self-tests, HEAD 61c1c04dd).
+(skipped 0) in 1 of 1 leg(s)`, and the Linux gate is GREEN on it too (all four legs plus the hook self-tests, HEAD b30de9863).
 Semgrep unchanged (BigInteger 46, decimal 2, rendered-text 3, raw-code literal 273). CI audits run locally (code and doc
 citations, evidence supersession, witness loss, the drift-rule index, `work.py check`): all green. GAP 173 → 173. No
 diagnostic codes claimed. Review over `git diff origin/main...HEAD`: no new correctness finding; the two reported reds

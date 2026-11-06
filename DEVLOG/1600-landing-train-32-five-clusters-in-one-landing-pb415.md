@@ -107,7 +107,7 @@ that answers a DIFFERENT question — a national group is not an alphanumeric gr
 sentence IS the finisher's defect B, shipped green (feedback_reachability_is_measured_not_deduced, and the
 closing sentence getting the least scrutiny again). Six §13.18 rows move PARTIAL → CONFORMS and the note lands.
 
-**The train.** Every cluster was based on `a1de916e`, eight commits behind `origin/main`, so three of the five
+**The train.** Every cluster was based on `398fc3a3`, eight commits behind `origin/main`, so three of the five
 needed real conflict resolution. PB394's `EvaluateBinder` met train 31's PB398: main had added the
 partial-expression arm, PB394 had replaced the per-WHEN subject bind with a once-per-statement `SubjectSlot`, and
 the merge is NOT either side — the partial-expression arm is kept and MOVED ABOVE the `slot.Value` read, because

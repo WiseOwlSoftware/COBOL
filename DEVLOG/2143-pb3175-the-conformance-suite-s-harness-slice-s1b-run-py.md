@@ -62,7 +62,7 @@ arm and its `_` default was 70, so a wrong program read as a compiler failure. `
 names, the standard's keywords, the configuration refusals), `ConformanceSuiteProfileDriftTests`, two `CliParserTests`.
 No inventory row: test infrastructure (`closes_rows: []`, its reason filed). PB3176 (S1c) unblocked.
 
-**Gate:** run `20261017T043946Z-7f15b2` (HEAD 8fe3944d2): `LEG 1 ONLY (batched gating, PB2515): GREEN` — Conformance 6,072/11,913 · Unit 33,411/33,918 · Characterization 5/36 cases ran; the new Unit tests passed in leg 1 and `run.py --self-test` ran GREEN in the audits (29 s). semgrep verify PASS. LINUX GATE: the lander's (batched gating).
+**Gate:** run `20261017T043946Z-7f15b2` (HEAD f8144ef47): `LEG 1 ONLY (batched gating, PB2515): GREEN` — Conformance 6,072/11,913 · Unit 33,411/33,918 · Characterization 5/36 cases ran; the new Unit tests passed in leg 1 and `run.py --self-test` ran GREEN in the audits (29 s). semgrep verify PASS. LINUX GATE: the lander's (batched gating).
 
 ### PB3176 — the conformance suite's in-process runner (slice S1c): WiseOwl COBOL runs the suite on itself, and both runners agree
 
@@ -119,9 +119,9 @@ nothing; the theories are one class each until S2 partitions them.
 
 No inventory row: test infrastructure (`closes_rows: []`, its reason filed). PB3177 (S2) unblocked.
 
-**Gate:** run `20261017T055145Z-02fca5` (HEAD fb9fe788f): `LEG 1 ONLY (batched gating, PB2515): GREEN` — Conformance
+**Gate:** run `20261017T055145Z-02fca5` (HEAD 534f5fd7a): `LEG 1 ONLY (batched gating, PB2515): GREEN` — Conformance
 6,108/11,947 · Unit 33,478/33,924 · Characterization 5/36 cases ran; all 29 new cases passed in leg 1 (an earlier gate,
-run `20261017T054358Z-b28e70` at 3f0eaea13, was GREEN before the self-review fixes). semgrep verify PASS. LINUX GATE:
+run `20261017T054358Z-b28e70` at 5dc9ae59c, was GREEN before the self-review fixes). semgrep verify PASS. LINUX GATE:
 the lander's (batched gating).
 
 **Branch review round 1 (kb/Work PB3027).** R1-1: the new `generate.py --out DIR` reached the generator's
@@ -141,7 +141,7 @@ generator's self-test, keeping both sides' arms. Its first re-gate (run `2026101
 ENDINGS: the helper's self-test wrote text without `newline=`. The four new `generate.py` writes had the same shape
 and were not reported, because `scripts/line_endings.py`'s WRITERS arm looked only in `scripts/` and `.claude/` while
 `self_tests.py` runs the suite harness as a live tool; `conformance-suite/harness/` is now one of its live roots. The finisher's gate: run `20261017T072859Z-2174fa` (HEAD
-8e7851db9): `LEG 1 ONLY (batched gating, PB2515): GREEN` — Conformance 6,132/11,947 · Unit 33,491/33,924 ·
+69a5ea9bc): `LEG 1 ONLY (batched gating, PB2515): GREEN` — Conformance 6,132/11,947 · Unit 33,491/33,924 ·
 Characterization 5/36 cases ran; all 29 `ConformanceSuite*` cases passed in leg 1, and the SELF-TESTS audit ran
 `generated_output.py` and `generate.py --self-test` GREEN.
 
@@ -158,7 +158,7 @@ line 862 but printed line 856's text. `temp_names.py` took a finding's text from
 breaks at the two U+2028/U+2029 characters in `run.py`'s normalization cases. Lines now split at LF only
 (`source_lines`). Two new self-test arms (`.py` and `.ps1`, a U+2028 in a literal before the finding) cover it, and the
 other live scripts that number lines with `splitlines` (`test_population.py#_code_lines`, `spec/where.py`,
-`spec/repairs/latex_diagrams_to_house_style.py`) are fixed the same way. The round-2 finisher's gate: run `20261017T074916Z-1fbbbd` (HEAD 9164c6097):
+`spec/repairs/latex_diagrams_to_house_style.py`) are fixed the same way. The round-2 finisher's gate: run `20261017T074916Z-1fbbbd` (HEAD 13ba4d7c9):
 `LEG 1 ONLY (batched gating, PB2515): GREEN` — Conformance 6,126/11,947 · Unit 33,497/33,925 · Characterization
 5/36 cases ran; `EveryLiveTreeReader_ReadsTheOneList` passed in leg 1, and the SELF-TESTS audit ran 84 GREEN.
 

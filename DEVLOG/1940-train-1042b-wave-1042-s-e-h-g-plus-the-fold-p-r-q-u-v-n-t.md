@@ -116,7 +116,7 @@ which H's landing would otherwise orphan: FUNCTION ABS returns -2^127 for -2^127
 was RED on one self-test: `test_dispatch_guard.py`'s "attended session" case inherited the land unit's
 `COBOL_LOOP_UNIT=land`. No cluster owns it; it is fixed in the train and recorded as **PB2702**. Gate run 3: `GREEN —
 Conformance 11,268/11,268 · Unit 32,928/32,928 · Characterization 36/36`. Linux gate GREEN. Semgrep: no count rose.
-Oracle DIFFERENT, 91 of 7,641 vs 8d3bf88e2926, every case by class: R 51 (each SORT/MERGE whose USING/GIVING file has
+Oracle DIFFERENT, 91 of 7,641 vs a25be6d9dbb2, every case by class: R 51 (each SORT/MERGE whose USING/GIVING file has
 no FILE STATUS gains a `TerminateOnUncoveredFatalStatus` line per as-if statement: the ST NIST programs, the sort and
 merge corpus, merge-in-sort-merge-proc), H 12 (float-edited stores call `FormatFloatStore(..., mode)`; one also
 shows G's de-edit), E 6 (STANDARD-COMPARE's omitted level renders `null`), G 6 (integer powers of scaled bases take

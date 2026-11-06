@@ -17,7 +17,7 @@ session — every exit criterion:**
   EMPTY so the directory gap stops being invisible), integrity facts forbid silent non-discovery; the
   `negative/` must-reject shell (`.cob` + `.err` + `*> reject-at:` headers) awaits its W2 seeds. One
   PowerShell single-element-array JSON collapse fixed en route.
-- Suites at closeout: **conformance 1195/1195 + unit 38/38**; guard green at P2.6 (081c4ef, no compiler
+- Suites at closeout: **conformance 1195/1195 + unit 38/38**; guard green at P2.6 (82c6632, no compiler
   change since).
 **RESUME = roadmap Phase 2:** W2 (MOVE rows §14.9.25 SR5, the loud-guard silent-misbind sweep + the
 national/boolean skeleton, the negative-corpus seeds, position-aware checking for the screen/report token

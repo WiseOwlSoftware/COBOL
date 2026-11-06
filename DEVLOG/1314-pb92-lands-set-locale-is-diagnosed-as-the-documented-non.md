@@ -29,7 +29,7 @@ an unclaimed optional element is conformant (§4.2.7 / §A.4.1) only when it is 
 `Corpus|Set|Locale|VersionMatrix|Nist|Reserved|Pointer|Ptr|Index|Switch|Oo` **3404/3404** · Unit
 `Grammar|Parser|Registry|Manifest|Guard|SpecTraceabilityInventory|ReservedWord|Set` **154/154** · CLI probes. Docs:
 CONFORMANCE.md §4 item 5, kb/Work PB92 → landed, plan §0. Battery owed for the PB92 batch with the next landing
-(battery #12, tree `7d8a33a8`, was green once its ONE differential flip was attributed: Conformance 4707/4707 · Unit 4221/4221 ·
+(battery #12, tree `0132ec79`, was green once its ONE differential flip was attributed: Conformance 4707/4707 · Unit 4221/4221 ·
 Characterization 33/33 · NIST 353/0 audit-clean · `configuration:885` WE_REJECT_THEY_ACCEPT → AGREE_ACCEPT — GnuCOBOL's
 ebcdic-table case writes `OBJECT-COMPUTER.` + `PROGRAM COLLATING SEQUENCE IS an-ebcdic.`, exactly PB78's form; the
 baseline row is flipped in this commit).
