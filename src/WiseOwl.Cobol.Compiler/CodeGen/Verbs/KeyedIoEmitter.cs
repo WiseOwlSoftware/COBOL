@@ -32,6 +32,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     /// INVALID KEY / ON EXCEPTION phrase bodies nest arbitrary statement lists).</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
+    /// <summary>The USE FOR DEBUGGING trigger emitter — property-wired by <see cref="UnitEmitters"/> (docs/CONTROL_FLOW_DESIGN.md D20).</summary>
+    internal DebugTriggerEmitter Debug { get; set; } = null!;
+
     // ── Registration (Main start) ──────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Register a relative/indexed connector (called from the core file registration): the host path,
@@ -258,6 +261,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         FileModel file = wr.File;
         string name = FileKeyExpr(file);
         if (wr.FromMove is { } fromMove) move.Emit(fromMove);   // §14.9.51.4 GR5 a) — the BOUND implicit MOVE
+        Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
             // §14.9.51 GR29b/GR32 — random/dynamic: the runtime element pre-set the RELATIVE KEY item with the
@@ -305,6 +309,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         FileModel file = rw.File;
         string name = FileKeyExpr(file);
         if (rw.FromMove is { } fromMove) move.Emit(fromMove);   // §14.9.35.4 GR7 a) — the BOUND implicit MOVE
+        Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
             // §14.9.35 GR21 — random/dynamic: the slot to replace is named by the RELATIVE KEY item.

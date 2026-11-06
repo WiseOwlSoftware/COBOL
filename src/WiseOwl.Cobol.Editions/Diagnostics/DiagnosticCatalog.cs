@@ -8038,6 +8038,28 @@ public static class DiagnosticCatalog
         + "procedure-name, or with every procedure by ALL PROCEDURES.",
         "ISO §14.4.1; ISO §8.4.2.1 / VCR Table 7 row 7.17 (X3.23-1985 debug module)");
 
+    // kb/Work PB4810: the identifier-1 of a data-name USE FOR DEBUGGING target is written as the data item, never as an
+    // element of it. X3.23-1985 USE FOR DEBUGGING syntax rules 10 and 12, which the debug triggers' DEBUG-SUB-n and
+    // DEBUG-CONTENTS depend on: a subscripted target would name one occurrence, where the trigger watches the item.
+    public static readonly DiagnosticDescriptor DebugTargetSubscripted = new(
+        "COBOL6334", "debug-target-subscripted", EditionSeverity.Error,
+        "The identifier-1 of the X3.23-1985 USE FOR DEBUGGING operand [ALL REFERENCES OF] identifier-1 is written without "
+        + "subscripts or indexes and is not reference modified (syntax rule 10: \"If the data description entry of the "
+        + "data item referenced by identifier-1 contains an OCCURS clause or is subordinate to a data description entry "
+        + "that contains an OCCURS clause, identifier-1 must be specified without the subscripting or indexing normally "
+        + "required\"; syntax rule 12: \"Identifier-1 must not be reference modified\"). The section runs for every "
+        + "occurrence, and DEBUG-SUB-1 to DEBUG-SUB-3 tell which one a statement referenced.",
+        "X3.23-1985 USE FOR DEBUGGING syntax rules 10 and 12 (VCR Table 7 row 7.17)");
+
+    // kb/Work PB4810: a data-name or cd-name debug target is named once (X3.23-1985 USE FOR DEBUGGING syntax rule 6).
+    public static readonly DiagnosticDescriptor DebugTargetRepeated = new(
+        "COBOL6335", "debug-target-repeated", EditionSeverity.Error,
+        "A data item or communication description appears in only one X3.23-1985 USE FOR DEBUGGING statement and only "
+        + "once in it (syntax rule 6: \"Any given identifier, cd-name, file-name, or procedure-name may appear in only "
+        + "one USE FOR DEBUGGING statement and may appear only once in that statement\"), so each debugging section "
+        + "has its own targets and a statement never runs two sections for one operand.",
+        "X3.23-1985 USE FOR DEBUGGING syntax rule 6 (VCR Table 7 row 7.17)");
+
     // kb/Work PB4307: `MULTIPLE FILE TAPE.` and `MULTIPLE FILE.` compiled clean at --std 85, where `TAPE CONTAINS.`
     // drew COBOL0001. Emitted by FileControlBinder.BindIoControl, the I-O-CONTROL clauses' own syntax rules, at every edition:
     // from 2002 the clause is also COBOL0902 (removed), and a removed clause written without its files is malformed too.

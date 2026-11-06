@@ -608,10 +608,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                         }
                         if (ReportUnresolvedDebugOperand(adr, section)) continue;
                     }
-                    ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"declarative section '{section.Name}': USE FOR DEBUGGING "
-                        + $"ON ALL REFERENCES OF '{anm}' (the data-item subject: the after-statement data trigger with "
-                        + "DEBUG-CONTENTS/DEBUG-SUB rendering) is recognized but not modeled — only ON procedure-name / ALL "
-                        + "PROCEDURES is implemented (X3.23-1985 debug module; VCR Table 7 row 7.17)");
+                    AddDebugDataTarget(adr, section, DebugTargetKind.AllReferences);
                 }
                 else if (t.dataReference() is { } dr)    // bare name: procedure-name, else file/data/cd (staged)
                 {
@@ -628,14 +625,22 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     else if (subject.Range is { } drange)
                         for (int pc = drange.Start; pc <= drange.End; pc++)
                             AddDebugSubject(pc, section);
-                    else if (NamesDataItem(dr) || NamesFile(dr) || NamesCommunicationDescription(dr) || !ReportUnresolvedDebugOperand(dr, section))
+                    else if (NamesDataItem(dr))
+                        AddDebugDataTarget(dr, section, DebugTargetKind.DataName);
+                    else if (NamesCommunicationDescription(dr))
+                        AddDebugCdTarget(dr, section);
+                    else if (NamesFile(dr) || !ReportUnresolvedDebugOperand(dr, section))
                         ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"declarative section '{section.Name}': USE FOR DEBUGGING "
-                            + $"ON '{nm}' names a file-name, cd-name, or data item (not a procedure-name of this "
-                            + "program) — only the ON procedure-name / ALL PROCEDURES leg is modeled; the file / "
-                            + "data / communication debug triggers are not (X3.23-1985 debug module; VCR Table 7 row 7.17)");
+                            + $"ON '{nm}' names a file-name (the file-name trigger, run after OPEN, CLOSE, READ, DELETE and START by "
+                            + "X3.23-1985 USE FOR DEBUGGING general rule 2, is recognized but not modeled) or an operand no rule "
+                            + "classifies; the procedure-name, ALL PROCEDURES, data-name, ALL REFERENCES OF and cd-name triggers "
+                            + "are modeled (VCR Table 7 row 7.17)");
                 }
             }
         }
+
+        // General rule 15: DEBUG-CONTENTS is "large enough to contain the data required" — the widest data-name or cd-name target.
+        ctx.Data.State.Implicit.ActivateDebugRegisters(ctx.Data.TakeUid, _debugContentsWidth);
 
         // A SORT/MERGE INPUT/OUTPUT procedure that is also a debug subject would trigger with a stale cause — the
         // SORT INPUT/OUTPUT / MERGE OUTPUT DEBUG-CONTENTS taxonomy is not modeled. Reject loud rather than emit a
@@ -738,6 +743,77 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         _debugSubjects.Add(new BoundDebugSubject(
             pc, _paras[pc].Cobol, _paraLine[pc], section.StartPc, section.EndPc));
     }
+
+    private readonly List<BoundDebugTarget> _debugTargets = [];
+
+    /// <summary>The data-name, ALL REFERENCES OF and cd-name USE FOR DEBUGGING targets, resolved by <see cref="FinalizeDebug"/> before any
+    /// statement binds (X3.23-1985 USE FOR DEBUGGING general rules 5, 6 and 8; docs/CONTROL_FLOW_DESIGN.md D20). The statement
+    /// binder's one funnel plans each statement's debug fires against them (<c>DebugTriggerPlanner</c>); empty unless WITH DEBUGGING MODE
+    /// collected such a declarative.</summary>
+    public IReadOnlyList<BoundDebugTarget> DebugTargets => _debugTargets;
+
+    /// <summary>The DEBUG-CONTENTS width the register is declared with: the largest of 30 and every target's image width
+    /// (X3.23-1985 USE FOR DEBUGGING general rule 15).</summary>
+    public int DebugContentsWidth => ctx.Data.State.Implicit.DebugContentsWidth;
+
+    /// <summary>Whether <paramref name="section"/> is a debugging section. General rule 1: "Automatic execution of a debugging section is not
+    /// caused by a statement appearing in a debugging section", so the statement binder plans no fire for one.</summary>
+    public bool IsDebuggingSection(SectionInfo? section) =>
+        section is not null && _pendingDebug.Any(p => ReferenceEquals(p.Section, section));
+
+    /// <summary>Record one data-name or ALL REFERENCES OF target. The operand is resolved to its DATA ITEM (a qualified name is the one
+    /// item its qualifiers pick, §8.4.2.2), written without subscripts or a reference modifier (syntax rules 10 and 12: the trigger watches
+    /// the item, and DEBUG-SUB-n report which occurrence a statement referenced) and named once (syntax rule 6). A special register or a
+    /// report sum counter has no data item to watch and stays staged.</summary>
+    private void AddDebugDataTarget(Core.DataReferenceContext operand, SectionInfo section, DebugTargetKind kind)
+    {
+        string written = DebugOperandAsWritten(operand);
+        string phrase = kind is DebugTargetKind.AllReferences ? $"ON ALL REFERENCES OF '{written}'" : $"ON '{written}'";
+        if (ctx.Refs.ProbeDeclaration(operand) is not { } item)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"declarative section '{section.Name}': USE FOR DEBUGGING {phrase} names a "
+                + "special register or a report sum counter, which has no data item of its own for the trigger to watch — only a data item the "
+                + "DATA DIVISION describes is modeled (VCR Table 7 row 7.17)");
+            return;
+        }
+        if (operand.dataReferenceSuffix().Any(s => s.subscriptPart() is not null || s.refModPart() is not null
+                || s.qualification() is { } q && (q.subscriptPart().Length > 0 || q.refModPart().Length > 0)))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.DebugTargetSubscripted, $"declarative section '{section.Name}': USE FOR DEBUGGING {phrase} is "
+                + "subscripted, indexed or reference modified; X3.23-1985 USE FOR DEBUGGING syntax rules 10 and 12 write identifier-1 without "
+                + "subscripts or indexes and without a reference modifier");
+            return;
+        }
+        if (_debugTargets.Any(t => ReferenceEquals(t.Item, item)))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{section.Name}': USE FOR DEBUGGING {phrase} names a "
+                + "data item that another USE FOR DEBUGGING operand names; X3.23-1985 USE FOR DEBUGGING syntax rule 6 allows an identifier in "
+                + "one USE FOR DEBUGGING statement, once");
+            return;
+        }
+        _debugTargets.Add(new BoundDebugTarget(kind, written, item, null, section.StartPc, section.EndPc));
+        _debugContentsWidth = Math.Max(_debugContentsWidth, item.ImageWidth);
+    }
+
+    /// <summary>Record one cd-name target (X3.23-1985 USE FOR DEBUGGING general rule 8): the communication description the operand names, whose
+    /// area DEBUG-CONTENTS holds (general rule 23 e).</summary>
+    private void AddDebugCdTarget(Core.DataReferenceContext operand, SectionInfo section)
+    {
+        string written = DebugOperandAsWritten(operand);
+        var cd = ctx.Data.State.Communication.ByName[operand.cobolWord()!.GetText()];
+        if (_debugTargets.Any(t => t.CdKey == cd.Key))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{section.Name}': USE FOR DEBUGGING ON '{written}' names a "
+                + "cd-name that another USE FOR DEBUGGING operand names; X3.23-1985 USE FOR DEBUGGING syntax rule 6 allows a cd-name in one "
+                + "USE FOR DEBUGGING statement, once");
+            return;
+        }
+        _debugTargets.Add(new BoundDebugTarget(DebugTargetKind.CdName, written, null, cd.Key, section.StartPc, section.EndPc));
+        _debugContentsWidth = Math.Max(_debugContentsWidth, cd.Area.ImageWidth);
+    }
+
+    /// <summary>The widest DEBUG-CONTENTS any target needs, as <see cref="FinalizeDebug"/> collects them.</summary>
+    private int _debugContentsWidth = WiseOwl.Cobol.Runtime.DebugItem.MinContentsWidth;
 
     /// <summary>The pc range of each SORT/MERGE INPUT/OUTPUT PROCEDURE in the procedure division (for the debug
     /// SORT/MERGE-overlap staging check). Resolves the phrase's procedure-name(s) via the ordinary procedure

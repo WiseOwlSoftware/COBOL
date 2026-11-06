@@ -25,6 +25,10 @@ public sealed record BoundProgram(
     EcFeatures? Ec = null,
     IReadOnlyList<BoundMethod>? Methods = null,
     IReadOnlyList<BoundDebugSubject>? DebugSubjects = null,
+    // The data-name, ALL REFERENCES OF and cd-name USE FOR DEBUGGING targets (X3.23-1985 USE FOR DEBUGGING general rules 5, 6 and 8;
+    // docs/CONTROL_FLOW_DESIGN.md D20) and the DEBUG-CONTENTS width the register is declared with (general rule 15).
+    IReadOnlyList<BoundDebugTarget>? DebugTargets = null,
+    int DebugContentsWidth = DebugItem.MinContentsWidth,
     // The exception-checking (Format-3) PERFORM handler pc-ranges (imp-2/3/4) appended above the main pc space
     // (ISO §14.9.28.4 GR17). F3HandlerBasePc is the first such pc (null when the unit has none — the byte-identity
     // gate: a non-F3 unit adds zero synthetic pcs and needs no fall-through wall); F3HandlerOwners[pc - base] is the
@@ -54,6 +58,66 @@ public sealed record BoundDebugSubject(
     int SourceLine,
     int SectionStartPc,
     int SectionEndPc);
+
+/// <summary>The kind of a <see cref="BoundDebugTarget"/> (X3.23-1985 USE FOR DEBUGGING general format).</summary>
+public enum DebugTargetKind
+{
+    /// <summary><c>USE FOR DEBUGGING ON identifier-1</c> — general rule 6: the section runs after a statement that changes the item.</summary>
+    DataName,
+    /// <summary><c>USE FOR DEBUGGING ON ALL REFERENCES OF identifier-1</c> — general rule 5: the section runs after every statement
+    /// that explicitly references the item.</summary>
+    AllReferences,
+    /// <summary><c>USE FOR DEBUGGING ON cd-name-1</c> — general rule 8: the section runs after the communication statements it lists.</summary>
+    CdName,
+}
+
+/// <summary>One <c>USE FOR DEBUGGING</c> target that is a data item or a communication description, with the debugging section
+/// it runs (X3.23-1985 debug module general rules 5, 6 and 8; docs/CONTROL_FLOW_DESIGN.md D20). <paramref name="Name"/> is what
+/// DEBUG-NAME holds (general rule 13): the name as written, its qualifiers joined by OF or IN. Exactly one of
+/// <paramref name="Item"/> (the data item) and <paramref name="CdKey"/> (the communication description's key) is set, by
+/// <paramref name="Kind"/>. The section runs over the bounded pc range [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>].</summary>
+public sealed record BoundDebugTarget(
+    DebugTargetKind Kind,
+    string Name,
+    DataItem? Item,
+    string? CdKey,
+    int SectionStartPc,
+    int SectionEndPc);
+
+/// <summary>When a <see cref="DebugFire"/> runs relative to the statement it was planned for (X3.23-1985 USE FOR DEBUGGING general
+/// rules 5, 6 and 8).</summary>
+public enum DebugWhen
+{
+    /// <summary>Immediately after the statement (rule 5 d, rule 6 c, rule 8).</summary>
+    After,
+    /// <summary>After the verb's own action and before the imperative statements of its conditional phrases: a RECEIVE that took
+    /// its data (rule 8 b: "that does not result in the execution of the NO DATA imperative-statement"). The verb's emitter lands it.</summary>
+    AfterAction,
+    /// <summary>Immediately before the I-O of a WRITE or REWRITE and after the implicit move of its FROM phrase (rule 5 a, 6 a). The
+    /// verb's emitter lands it.</summary>
+    BeforeIo,
+    /// <summary>Immediately before the statement transfers control (rule 5 b: GO TO DEPENDING ON).</summary>
+    Before,
+    /// <summary>After each initialization of a PERFORM VARYING or AFTER level's induction variable (rule 5 c, 6 b).</summary>
+    LoopInit,
+    /// <summary>After each modification of a PERFORM VARYING or AFTER level's induction variable (rule 5 c, 6 b).</summary>
+    LoopAugment,
+    /// <summary>After each evaluation of a PERFORM UNTIL, VARYING or AFTER level's condition (rule 5 c, 6 b).</summary>
+    LoopTest,
+}
+
+/// <summary>One run of a debugging section that a statement causes: <paramref name="Target"/> is the USE target,
+/// <paramref name="Referenced"/> the place through which the statement references it (DEBUG-CONTENTS reads it, DEBUG-SUB-n are its
+/// occurrence numbers), <paramref name="When"/> the moment, and <paramref name="Level"/> the PERFORM level a loop-phase fire belongs to.</summary>
+public sealed record DebugFire(BoundDebugTarget Target, Place Referenced, DebugWhen When, int Level = 0);
+
+/// <summary>⛔ A STATEMENT THAT CAUSES DEBUGGING SECTIONS TO RUN (X3.23-1985 USE FOR DEBUGGING general rules 5-8; docs/CONTROL_FLOW_DESIGN.md
+/// D20). Made by <c>StatementBinder.BindStatement</c>, the one funnel every statement passes through, exactly when a data-name,
+/// ALL REFERENCES OF or cd-name target is referenced by the statement ITSELF — a statement nested in it is a statement of its own
+/// (rule 7: "each individual occurrence of an imperative verb identifies a separate statement for the purpose of debugging") and
+/// carries its own node. The planner (<c>DebugTriggerPlanner</c>) decides every <see cref="DebugFire"/>; the emitter only places them.
+/// A program without such a target binds byte-identically (no node).</summary>
+public sealed record BoundDebugTriggered(BoundStatement Inner, IReadOnlyList<DebugFire> Fires, int SourceLine) : BoundStatement;
 
 /// <summary>One bound METHOD of a class body (ISO §11.7; OO deep-dive — the emit-into-a-type spine): its
 /// contiguous pc range in the class's ONE dispatch space. The emitted public method runs

@@ -262,6 +262,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             // Section + cursor as ONE scoped bind position (10s; no method overlay in a program unit) —
             // §8.4.2.2 in-section resolution + the RESUME SR1/SR2 / §15.30 location anchoring.
             using var _ = Ctx.EnterMethodScope(table.ParaSections[i], null, i);
+            _inDebuggingSection = table.IsDebuggingSection(table.ParaSections[i]);   // general rule 1: a debugging section's own statements run no section
             var sentences = new List<IReadOnlyList<BoundStatement>>();
             foreach (var sentence in table.Paragraphs[i].Sentences)
                 sentences.Add(sentence.statement().Select(BindStatement).ToList());
@@ -281,6 +282,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         Ctx.UntilExit.Report(bound, Ctx.Edition);
         return new BoundProgram(bound, table.EntryPc, table.Declaratives, Ctx.EcState.BuildFeatures(),
             DebugSubjects: table.DebugSubjects.Count > 0 ? table.DebugSubjects : null,
+            DebugTargets: table.DebugTargets.Count > 0 ? table.DebugTargets : null,
+            DebugContentsWidth: table.DebugContentsWidth,
             F3HandlerBasePc: table.F3Handlers.Count > 0 ? handlerBase : null,
             F3HandlerOwners: table.F3Handlers.Count > 0 ? table.F3HandlerOwners : null,
             Raising: raising);
@@ -539,8 +542,19 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (data.Procedure.OperandEvaluations.Current > 0) core = BoundImplicitSeries.Rewrap(core, n => new BoundActivationSite(n));
         StatementLine = savedLine;
         evaluations.Dispose();
-        return Ec.EcWrap(s, core);
+        // ⛔ THE ONE PLACE A STATEMENT BECOMES A DEBUG TRIGGER (X3.23-1985 USE FOR DEBUGGING general rules 5-8;
+        // docs/CONTROL_FLOW_DESIGN.md D20), because this is the funnel every statement passes through, nested ones included — rule 7
+        // makes each imperative verb a statement of its own, so each plans for itself. OUTSIDE the EC wrapper: a debugging section
+        // is no part of the statement's checked scope. No node when no target is referenced, so a program without one binds as before.
+        var bound = Ec.EcWrap(s, core);
+        if (!_inDebuggingSection && Ctx.Table.DebugTargets is { Count: > 0 } debugTargets
+            && DebugTriggerPlanner.Plan(core, debugTargets) is { Count: > 0 } fires)
+            return new BoundDebugTriggered(bound, fires, Ctx.SourceLine(s)) { At = core.At };
+        return bound;
     }
+
+    /// <summary>Whether the paragraph now binding is in a debugging section (X3.23-1985 USE FOR DEBUGGING general rule 1).</summary>
+    private bool _inDebuggingSection;
 
     /// <summary>The source line of the statement now binding — the §7.3.25 line an operand activation's checking
     /// profile is taken at (<c>UdfBinder.DrainPending</c>; kb/Work PB892). Saved and restored around a nested
