@@ -1211,7 +1211,7 @@ of an unsupported facility.
   before the sequence phase, which only unchecked EC-FLOW-RETURN admits (§14.9.34.4 GR1), finds the file at end; a
   RELEASE executed after it, which only unchecked EC-FLOW-RELEASE admits (§14.9.32.4 GR1), releases to no phase and
   the record is not returned. **(f) A record holding managed slots** (kb/Work PB4772) — a strongly-typed SD record with a
-  message-tag, object-reference or pointer leaf, which has no byte form (D-SLOT, DOC-A.1-210) — is stored as its one-way
+  message-tag, object-reference or pointer leaf, which has no byte form (D-SLOT, A.1 item 210) — is stored as its one-way
   transfer image, the positions the keys are windows over, and the slot values themselves stay RESIDENT for the
   statement's life, one small array per such record (`SortWork._carried`), because a managed reference cannot be written
   to a run file; the record's frame, which can spill, holds only the index of its array, and RETURN gives the array back
