@@ -1,4 +1,4 @@
-## A SORT over an SD record holding a message tag, object reference or pointer runs, and the slots follow their records
+## Entry 3174 — 2026-11-05 17:37 PST — A SORT over an SD record holding a message tag, object reference or pointer runs, and the slots follow their records
 
 **What was wrong (kb/Work PB4772).** A file SORT over an SD record described as a strongly-typed group with a USAGE
 MESSAGE-TAG leaf (the only place a tag may sit inside a record, ISO 13.18.60.3 SR14), keyed on another item, compiled with
@@ -41,3 +41,4 @@ second on two drift tests (the ABI pin and the documented-facts file, both fixed
 unreadable, a file this change does not touch.
 
 **Review round 1.** R1-1 (blocking): `SortBinder.SortRecordCarriesSlots` did not exclude a variable-length SD (`RECORD IS VARYING`, `FileModel.RecordSizeVaries`), so such a SORT compiled with no COBOL1756 and the leaf-vector path ignored the released size (ISO 13.18.43.4 GR13 a). It now carries `!file.RecordSizeVaries`, so the record stays the COBOL1756 deferral; the doc comment is corrected. `SortSlotRecordAdmissionTests` pins the admitted shape and the four deferrals (varying SD, SORT USING, SORT GIVING, MERGE), which also answers lead R1-3.
+
