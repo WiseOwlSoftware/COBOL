@@ -15,6 +15,7 @@ Run `python scripts/spec/spec_pdf.py --self-test`.
 from __future__ import annotations
 
 import pathlib
+import re
 import sys
 import tempfile
 
@@ -52,6 +53,30 @@ def require(edition: int = 2023, private: pathlib.Path = PRIVATE) -> pathlib.Pat
     return p
 
 
+#: A line that finds a licensed PDF by itself: it builds a path from the submodule's name as its own quoted segment
+#: (`REPO / "specs-private"`, `os.path.join(.., 'specs-private', ..)`), or names a .pdf file in it. A message that merely
+#: mentions the submodule (`git submodule update --init specs-private`) quotes a longer string and is not one.
+_STRAY = re.compile(r"""["']specs-private/?["']|specs-private/[^\s"']*\.pdf""", re.I)
+
+
+def locator_copies_in(files: dict[str, str]) -> list[str]:
+    """`path:line` of every line in `files` (path -> text) that locates a licensed PDF without this module."""
+    # Only in a file that handles a PDF at all: a list of the repository's submodules names the directory too.
+    return [f"{path}:{n}" for path, text in sorted(files.items()) if ".pdf" in text.lower()
+            for n, line in enumerate(text.splitlines(), 1)
+            if _STRAY.search(line) and not line.lstrip().startswith("#")]
+
+
+def locator_copies(repo: pathlib.Path = REPO) -> list[str]:
+    """The drift sweep (kb/Work PB3208, CLAUDE.md rule 5): every tracked script under scripts/ but this one."""
+    import subprocess
+    listed = subprocess.run(["git", "-C", str(repo), "ls-files", "scripts"], capture_output=True, text=True, check=True)
+    here = pathlib.Path(__file__).resolve().relative_to(repo).as_posix()
+    files = {p: (repo / p).read_text(encoding="utf-8", errors="replace") for p in listed.stdout.split()
+             if p.endswith((".py", ".ps1", ".sh")) and p != here and (repo / p).is_file()}
+    return locator_copies_in(files)
+
+
 def self_test() -> int:
     failures: list[str] = []
 
@@ -81,6 +106,15 @@ def self_test() -> int:
             check("an unnamed edition is an error", False)
         except KeyError:
             check("an unnamed edition is an error", True)
+    stray = locator_copies()
+    check("this tree: no script outside spec_pdf.py locates a licensed PDF itself (a specs-private glob or file name)"
+          + (f" -- found {stray[:5]}" if stray else ""), not stray)
+    planted = locator_copies_in({"scripts/x.py": 'PDF = next((REPO / "specs-private").glob("*.pdf"))'})
+    check("the sweep finds a planted glob", planted == ["scripts/x.py:1"])
+    split = locator_copies_in({"scripts/y.py": 'PDF_DIR = REPO / "specs-private"\npdf = next(PDF_DIR.glob("*.pdf"))',
+                               "scripts/z.py": 'sys.exit("absent: git submodule update --init specs-private")'})
+    check("the sweep finds a directory named on one line and globbed on the next, and passes a message",
+          split == ["scripts/y.py:1"])
     print(f"=== SPEC PDF LOCATOR SELF-TEST: {'FAIL - ' + str(len(failures)) if failures else 'PASS'} ===")
     return 1 if failures else 0
 
