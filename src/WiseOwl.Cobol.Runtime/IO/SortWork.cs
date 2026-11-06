@@ -46,6 +46,11 @@ internal sealed class SortWork : IDisposable
     private readonly List<StoredFrame> _chunk = [];
     private long _chunkBytes;
 
+    /// <summary>The managed-slot values of the records released with some (<see cref="StoredFrame.Carried"/> indexes
+    /// here): a message tag, object reference or pointer has no byte form, so it cannot spill into a run file with its
+    /// record's characters and stays resident, one small array per such record, for the statement's life (kb/Work PB4772).</summary>
+    private readonly List<object?[]> _carried = [];
+
     /// <summary>⛔ THE ONE OWNER of every temporary file this statement has created and not yet closed (kb/Work PB3339
     /// review R1-1). <see cref="NewRun"/> registers a file BEFORE anything is written to it and <see cref="Close"/> is
     /// the only way one is closed early, so a work-file failure at ANY point — a run being written, a cascade's output,
@@ -144,6 +149,17 @@ internal sealed class SortWork : IDisposable
         return _output.Next(out frame);
     }
 
+    /// <summary>Keep <paramref name="slots"/>, a released record's managed-slot values, and answer the ticket its
+    /// <see cref="StoredFrame"/> carries.</summary>
+    public int Carry(object?[] slots)
+    {
+        _carried.Add(slots);
+        return _carried.Count - 1;
+    }
+
+    /// <summary>The slot values <paramref name="ticket"/> names; null for <see cref="StoredFrame.NotCarried"/>.</summary>
+    public object?[]? CarriedAt(int ticket) => ticket == StoredFrame.NotCarried ? null : _carried[ticket];
+
     /// <summary>Restart the return phase at the first record (each GIVING file receives the whole result).</summary>
     public void Rewind() => _output?.Restart();
 
@@ -158,6 +174,7 @@ internal sealed class SortWork : IDisposable
         _streams.Clear();
         _chunk.Clear();
         _chunkBytes = 0;
+        _carried.Clear();
     }
 
     // ── The release phase ─────────────────────────────────────────────────────────────────────────────────────

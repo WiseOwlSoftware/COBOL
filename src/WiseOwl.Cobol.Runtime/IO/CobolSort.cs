@@ -131,6 +131,7 @@ public static class CobolSort
         f.Begin(new SortWork(Stores.Memory, keys, collation?.Snapshot(), national?.Snapshot()));
         f.LastReturnedLength = 0;
         f.LastReturnedExtents = null;
+        f.LastReturnedSlots = null;
         f.Phase = ProcedurePhase.None;
         f.Format1 = null;
         f.AtEndReached = false;
@@ -224,13 +225,17 @@ public static class CobolSort
     /// <param name="extents">The record's EXTENT TABLE when a variable-length group record is released
     /// (determination D-FRA (v); kb/Work PB1053) — it travels with the record through the sort, as a file frame
     /// carries it.</param>
+    /// <param name="slots">The managed-slot values of a record that holds a message tag, an object reference or a pointer
+    /// (<c>PlaceRenderer.GroupLeaves</c>' leaf vector, kb/Work PB4772) — they have no place in the record's characters, so
+    /// they travel with the record beside them and <see cref="LastReturnedSlots"/> gives them back. Null for every other
+    /// record.</param>
     /// <returns><see langword="true"/> when the record was released to the sort file — the condition this
     /// implementation gates the "also available as a record of other files referenced in the same SAME RECORD AREA
     /// clause" store on (§14.9.32.4 GR3 states no success condition of its own; WRITE and REWRITE name one,
     /// §14.9.51.4 GR4 and §14.9.35.4 GR6 — kb/Work PB1195); <see langword="false"/> when no SORT is executing and the
     /// record is discarded.</returns>
     public static bool ReleaseStatement(string name, string image, int min, int max, int? size = null,
-        RecordExtents? extents = null)
+        RecordExtents? extents = null, object?[]? slots = null)
     {
         if (ExceptionState.SortMergeActiveChecking && Stores.AnyInPhase([ProcedurePhase.Output]))
             ExceptionState.SortMergeActiveError($"RELEASE for sort file {name}: executed within the range of an "
@@ -245,7 +250,8 @@ public static class CobolSort
             ExceptionState.SortMergeReleaseError($"RELEASE for sort file {name}: a {bytes}-byte record is outside "
                 + $"the record range {min} to {max} (ISO §13.18.43.4 GR14 b) / GR19 b))");
         if (f is null) return false;   // no SORT executing: there is no sort file to release to — never a stranded store
-        var frame = new StoredFrame(size is { } s ? Released(image, s) : image, extents);
+        var frame = new StoredFrame(size is { } s ? Released(image, s) : image, extents,
+            Carried: slots is null ? StoredFrame.NotCarried : f.Work.Carry(slots));
         try { f.Work.Add(frame); }   // a full chunk is sorted into a run here: the SORT's sequencing, marked as its own
         catch (CobolFatalException e) when (RaisedByTheStatement(e)) { }
         return true;
@@ -431,11 +437,13 @@ public static class CobolSort
             image = "";
             f.LastReturnedLength = 0;
             f.LastReturnedExtents = null;
+            f.LastReturnedSlots = null;
             return false;   // at end — the record area's content is undefined (GR3); the caller leaves it as-is
         }
         image = returned.Image;
         f.LastReturnedLength = image.Length;
         f.LastReturnedExtents = returned.Extents;
+        f.LastReturnedSlots = f.Work.CarriedAt(returned.Carried);
         return true;
     }
 
@@ -447,6 +455,11 @@ public static class CobolSort
     /// (v); kb/Work PB1053) — what an out-of-line variable-length group record decomposes it by, and what the
     /// implicit GIVING WRITE frames it with. Null when the record carries none.</summary>
     public static RecordExtents? LastReturnedExtents(string name) => Get(name).LastReturnedExtents;
+
+    /// <summary>The managed-slot values the most recently RETURNed record was released with (kb/Work PB4772) — what the
+    /// record area's slot leaves take, since a message tag, object reference or pointer has no character image to
+    /// carry them. Null when the record held none.</summary>
+    public static object?[]? LastReturnedSlots(string name) => Get(name).LastReturnedSlots;
 
     /// <summary>Rewind the return phase to the first record — emitted before EACH GIVING file's write-out, so
     /// every file-name-3/-4 receives the FULL sorted/merged result (ISO §14.9.40 GR15 / §14.9.24 GR12).</summary>

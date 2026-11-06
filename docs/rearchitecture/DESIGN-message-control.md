@@ -307,7 +307,11 @@ no parse alternative reads (kb/Work PB4090).
   `StorageFormPass.BaseElementary` maps the category to it and `StorageElementType` renders `MessageTag`.
 - **`Place.SlotWindow.CarriedBySlot`** gains `PicCategory.MessageTag`, so a message tag in a strongly-typed group, a BASED
   area or an EXTERNAL item rides the managed slot exactly as a function-pointer does, and `MembersOf` carries it through
-  SORT, MOVE and a message (§5.2).
+  SORT, MOVE and a message (§5.2). A FILE SORT over an SD record holding one (kb/Work PB4772) carries it as the record's leaf vector
+  (`PlaceRenderer.GroupLeaves`, `CobolSort.ReleaseStatement`'s `slots`, `CobolSort.LastReturnedSlots`) beside the one-way
+  transfer image the keys read, decided by `SortEmitter.HoldsSlots` (a slot leaf, never the image capability), so a later
+  slice that gives a tag group a two-way image must give it the leaf-vector methods too: the sort still takes this path
+  and fails to compile, rather than lose a tag, if it does not.
 - **The runtime type `MessageTag`** (`src/WiseOwl.Cobol.Runtime/Messaging/MessageTag.cs`): a `readonly struct`, NOT a
   record, so C# has no `==` an emitter could mistake for §8.8.4.2.14's equality.
 

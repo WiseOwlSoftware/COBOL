@@ -976,6 +976,15 @@
       ]
     },
     {
+      "name": "LastReturnedSlots",
+      "parameters": [
+        {
+          "name": "name",
+          "optional": false
+        }
+      ]
+    },
+    {
       "name": "Merge",
       "parameters": [
         {
@@ -1060,6 +1069,10 @@
         },
         {
           "name": "extents",
+          "optional": true
+        },
+        {
+          "name": "slots",
           "optional": true
         }
       ]
