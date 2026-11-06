@@ -189,6 +189,21 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Equal(2, CobolIntrinsics.OrdMinExact(Fixed(1), tiny, Fixed(3)));
     }
 
+    /// <summary>⛔ The numbers VARIANCE and PRESENT-VALUE form on the way to their value are WORKING values (kb/Work PB4797): VARIANCE
+    /// (0 ×9, 2·10^3072) is 0.36·10^6144 although its numerator 9·X² is 3.6·10^6145, and PRESENT-VALUE (10^3100, 1, 1, 1) is about
+    /// 10^-3100 although its divisor (1 + 10^3100)³ is about 10^9300. Neither is an EC-SIZE-OVERFLOW; the result is the exact value.</summary>
+    [Fact]
+    public void WorkingNumbersPastTheValueRange_DoNotOverflowAnInRangeResult()
+    {
+        CobolExact[] list = [.. Enumerable.Repeat(Fixed(0), 9), Sdidi("2", 3072)];
+        CobolDec variance = CobolIntrinsics.VarianceExact(Away, list);
+        Assert.Equal(0, CobolDec.Compare(new CobolDec(36, 6142), variance));
+        CobolDec pv = CobolIntrinsics.PresentValueExact(Away, Sdidi("1", 3100), Fixed(1), Fixed(1), Fixed(1));
+        Assert.True(CobolDec.Compare(new CobolDec(2, -3100), pv) > 0 && CobolDec.Compare(new CobolDec(5, -3101), pv) < 0);
+        // The result's own range is still the caller's: a variance whose VALUE is past 10^6145 stays a size error.
+        Assert.Throws<CobolSizeError>(() => CobolIntrinsics.VarianceExact(Away, Fixed(0), Sdidi("1", 3100)));
+    }
+
     // ── THE RUN-TIME-SCALED EXACT CARRIER (kb/Work PB4575): an expression in which a wide value meets an SDIDI-carried operand. ──
 
     /// <summary>The value at scale 0 truncated, unchecked: the integer part a fixed-point receiver of scale 0 would store.</summary>

@@ -1001,12 +1001,15 @@ for that latitude CLAUDE.md rule 1 makes GnuCOBOL the answer, and its argument t
   binary64's last bit), the bounded integer positions, and every STANDARD-DECIMAL body. SUM, RANGE, MEAN, MEDIAN, MIDRANGE, MOD, REM, VARIANCE,
   STANDARD-DEVIATION and PRESENT-VALUE (kb/Work PB4750) past the wide form are exact on the
   arbitrary-precision form (`CobolBig`, kb/Work PB4592), and MAX, MIN and an odd MEDIAN return the selected argument's content
-  whole (`CobolExact`, kb/Work PB4730), a float item's content as its exact binary expansion. Under `ARITHMETIC IS STANDARD-DECIMAL` the
+  whole (`CobolExact`, kb/Work PB4730), a float item's content as its exact binary expansion. The numbers VARIANCE and PRESENT-VALUE
+  form on the way (n² times the variance, the value times `(1 + rate)^n`) are WORKING values (`CobolExact.Working`, `CobolBig.Working`,
+  kb/Work PB4797): bounded by the working size alone, not by the 10^6145 of a program's value, so an in-range result is never an
+  EC-SIZE-OVERFLOW of its own numerator; the result is range-checked where it lands. Under `ARITHMETIC IS STANDARD-DECIMAL` the
   SDIDI is the value and nothing here applies.
 
 Pinned by `conformance:cases/15.4.1-Numeric-and-integer-functions/pb3953_function_argument_int128_window` (the 38-digit window
 and the 39-digit ABS, MOD, MAX and MOVE legs), `conformance:cases/15.4.1-Numeric-and-integer-functions/pb4075_wide_argument_consumers`
-(MEAN, SIN, COS, TAN, LOG and ACOS of a wide argument), `conformance:cases/15.4.1-Numeric-and-integer-functions/pb4568_wide_argument_beside_sdidi`
+(MEAN, SIN, COS, TAN, LOG and ACOS of a wide argument), `conformance:cases/15.4.1-Numeric-and-integer-functions/pb4797_working_numerators_past_the_value_range` (VARIANCE and PRESENT-VALUE whose working numerator or divisor passes 10^6145), `conformance:cases/15.4.1-Numeric-and-integer-functions/pb4568_wide_argument_beside_sdidi`
 (ORD-MAX, ORD-MIN, MOD, REM, SUM, RANGE, MEAN, MIDRANGE and MEDIAN of a wide argument beside an SDIDI or binary64 one),
 `conformance:cases/15.4.1-Numeric-and-integer-functions/pb4750_exact_past_the_wide_form_variance_present_value` (VARIANCE, STANDARD-DEVIATION,
 PRESENT-VALUE past the wide form, and the temporary DISPLAY shows of an arbitrary-precision MAX, ABS and MEDIAN),

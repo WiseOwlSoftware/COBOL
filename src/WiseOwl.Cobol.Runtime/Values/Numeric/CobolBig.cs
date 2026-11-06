@@ -41,7 +41,17 @@ internal readonly struct CobolBig
     /// <summary>The decimal scale the integer is written at (negative for an integer with trailing zeros).</summary>
     internal int Scale { get; }
 
-    private CobolBig(BigInteger value, int scale) => (Value, Scale) = (value, scale);
+    /// <summary>⛔ A WORKING VALUE (kb/Work PB4797): a number a body forms on the way to its result — the numerator <c>n·Σdᵢ² − (Σdᵢ)²</c> of
+    /// VARIANCE, the discount's power <c>(1 + rate)^n</c> of PRESENT-VALUE — which is n² times the variance, or the value times the
+    /// power, and so may pass the <see cref="MaxIntegerDigits"/> of a program's value while the result they form is in range. It is
+    /// bounded by the working size <see cref="MaxBits"/> alone, and so is every sum, difference, product and power it takes part in;
+    /// the RESULT is range-checked where a consumer lands it (<see cref="CobolDec"/>'s carrier), as every value of the program is.</summary>
+    internal bool Working { get; }
+
+    private CobolBig(BigInteger value, int scale, bool working = false) => (Value, Scale, Working) = (value, scale, working);
+
+    /// <summary>This value as a working value (<see cref="Working"/>).</summary>
+    internal CobolBig AsWorking() => Working ? this : new(Value, Scale, working: true);
 
     internal int Sign => Value.Sign;
 
@@ -61,15 +71,15 @@ internal readonly struct CobolBig
 
     /// <summary>The value <c>value × 10^-scale</c>, range-checked: EC-SIZE-OVERFLOW past <see cref="MaxIntegerDigits"/> integer digits or
     /// <see cref="MaxBits"/> bits.</summary>
-    private static CobolBig Of(BigInteger value, long scale)
+    private static CobolBig Of(BigInteger value, long scale, bool working = false)
     {
         if (scale is < int.MinValue or > int.MaxValue) throw Overflow();
         if (!value.IsZero)
         {
             if (value.GetBitLength() > MaxBits) throw Overflow();
-            if (Digits(BigInteger.Abs(value)) - scale > MaxIntegerDigits) throw Overflow();
+            if (!working && Digits(BigInteger.Abs(value)) - scale > MaxIntegerDigits) throw Overflow();
         }
-        return new(value, (int)scale);
+        return new(value, (int)scale, working);
     }
 
     /// <summary>A wide value at its scale, exactly.</summary>
@@ -149,23 +159,23 @@ internal readonly struct CobolBig
 
     /// <summary>This value written at <paramref name="scale"/> (at least <see cref="Scale"/>): only zeros appended.</summary>
     internal CobolBig At(int scale) =>
-        scale == Scale ? this : Of(Value * Pow10(Guard((long)scale - Scale)), scale);
+        scale == Scale ? this : Of(Value * Pow10(Guard((long)scale - Scale)), scale, Working);
 
     /// <summary>The exact sum or difference, at the larger of the two scales.</summary>
     internal static CobolBig Add(CobolBig a, CobolBig b, bool subtract)
     {
         int scale = Math.Max(a.Scale, b.Scale);
         BigInteger left = a.At(scale).Value, right = b.At(scale).Value;
-        return Of(subtract ? left - right : left + right, scale);
+        return Of(subtract ? left - right : left + right, scale, a.Working || b.Working);
     }
 
-    internal static CobolBig Negate(CobolBig a) => new(-a.Value, a.Scale);
+    internal static CobolBig Negate(CobolBig a) => new(-a.Value, a.Scale, a.Working);
 
     /// <summary>The exact product, at the sum of the scales.</summary>
     internal static CobolBig Mul(CobolBig a, CobolBig b)
     {
         if (a.Value.GetBitLength() + b.Value.GetBitLength() > MaxBits + 1) throw Overflow();
-        return Of(a.Value * b.Value, (long)a.Scale + b.Scale);
+        return Of(a.Value * b.Value, (long)a.Scale + b.Scale, a.Working || b.Working);
     }
 
     /// <summary>⛔ THE EXACT POWER <c>b ** n</c> (n ≥ 1; kb/Work PB4587): <c>mpz_pow_ui</c> with the scale times n, GnuCOBOL's
@@ -175,17 +185,17 @@ internal readonly struct CobolBig
     {
         BigInteger value = b.Value;
         long scale = b.Scale;
-        if (value.IsZero) return new(BigInteger.Zero, (int)Math.Clamp(scale * n, int.MinValue, int.MaxValue));
+        if (value.IsZero) return new(BigInteger.Zero, (int)Math.Clamp(scale * n, int.MinValue, int.MaxValue), b.Working);
         while (value.IsEven && (value % 10).IsZero)
         {
             value /= 10;
             scale--;
         }
         if (value.IsOne || (-value).IsOne)
-            return Of(value.Sign < 0 && (n & 1) != 0 ? BigInteger.MinusOne : BigInteger.One, scale * n);
+            return Of(value.Sign < 0 && (n & 1) != 0 ? BigInteger.MinusOne : BigInteger.One, scale * n, b.Working);
         if ((double)value.GetBitLength() * n > MaxBits)
             throw Digits(BigInteger.Abs(value)) - scale > 0 ? Overflow() : Underflow();   // |base| above one grows past the range, below one shrinks past it
-        return Of(BigInteger.Pow(value, (int)n), scale * n);
+        return Of(BigInteger.Pow(value, (int)n), scale * n, b.Working);
     }
 
     /// <summary>The quotient TRUNCATED toward zero at <paramref name="scale"/> fraction digits (<c>trunc(a × 10^(bScale + scale − aScale) / b)</c>).
