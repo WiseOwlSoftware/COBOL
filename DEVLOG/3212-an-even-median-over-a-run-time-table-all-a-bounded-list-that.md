@@ -1,4 +1,4 @@
-## An even MEDIAN over a run-time table(ALL), a bounded list that leaves the carrier, and a wrong GR9 citation (PB4827, PB4826, PB4841)
+## Entry 3212 — 2026-11-06 13:45 PST — An even MEDIAN over a run-time table(ALL), a bounded list that leaves the carrier, and a wrong GR9 citation (PB4827, PB4826, PB4841)
 
 Three leads filed from the reviews of waves 20261879 to 20261882, all in the intrinsic carrier rules and the pointer-slot citation.
 
@@ -17,3 +17,4 @@ Gate (round 1 fixes, run 000002-20261106T201128Z): `=== BUILD-LOCAL GATE: GREEN 
 **Review round 2.** R2-1 (blocking): the round-1 exact mean in `FunctionValueField.Median` also ran under ARITHMETIC IS STANDARD-DECIMAL, where `DISPLAY FUNCTION MEDIAN (A B)` showed a 35-digit value while MIDRANGE and `COMPUTE` gave the SDIDI mean. A new `FunctionValueField.MedianStandard(mode, ...)` forms the mean as `(A + B) / 2` on the SDIDI under the mode's intermediate rounding (as `MedianDec` does), and `FunctionDeviceText.CallField` selects it under a standard mode; the new golden `pb4827_median_under_a_standard_mode_is_the_sdidi_mean` shows `...728.0025` on MEDIAN, MIDRANGE and the COMPUTE. R2-2 (lead, left): a binary64 middle beside an exact one still shows the exact mean of the float's lift on DISPLAY and COMPUTE alike, so no channel split arises; making both binary64 is a renderer decision (`MedianExact`) beyond this slice.
 
 Gate (round 2 fix, run 000001-20261106T210723Z): `=== BUILD-LOCAL GATE: GREEN — Conformance 22,367/22,367 · Unit 40,269/40,269 · Characterization 37/37 cases ran (skipped 0) ===`
+
