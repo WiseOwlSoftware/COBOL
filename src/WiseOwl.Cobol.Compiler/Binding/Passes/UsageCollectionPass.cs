@@ -279,6 +279,7 @@ internal static class UsageCollectionPass
         public bool Visit(BoundSequence n) => false;
         public bool Visit(BoundImplicitSeries n) => false;   // members walked via StatementChildren
         public bool Visit(BoundEcChecked n) => false;
+        public bool Visit(BoundDebugTriggered n) => false;
         public bool Visit(BoundActivationSite n) => false;
         public bool Visit(BoundReceiverBrackets n) => false;   // Inner and the bracket steps are walked via StatementChildren
         public bool Visit(BoundAddTo n) => false;

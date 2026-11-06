@@ -995,8 +995,9 @@ public enum DebugRegisterMember { Item, Line, Name, Sub1, Sub2, Sub3, Contents }
 /// the injected debug trigger populates — the C# text is produced by <c>CodeGen.PlaceRenderer</c>, NOT stored here
 /// (backend-neutral, like <see cref="CapacityRegisterPlace"/>). A COBOL program never assigns to a DEBUG-* register
 /// (the runtime sets it), so <c>PlaceRenderer.Write</c> of this place is an internal-error backstop.
-/// <see cref="RegisterItem"/> carries the member's alphanumeric <see cref="PicInfo"/> (its fixed width) so
-/// MOVE / DISPLAY interpret it as an X-item.
+/// <see cref="RegisterItem"/> carries the member's <see cref="PicInfo"/> (its fixed width) so
+/// MOVE / DISPLAY interpret it as an X-item, except DEBUG-SUB-n: general rule 10 makes those <c>PICTURE S9999 SIGN IS LEADING SEPARATE</c>, a
+/// numeric item carried as its character image (<c>ImplicitRegisters.DebugSubRegister</c>).
 /// </summary>
 public sealed record DebugRegisterPlace(DataItem RegisterItem, DebugRegisterMember Member) : Place
 {

@@ -408,6 +408,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             if (operand is not null && !ReferenceEquals(operand.DenotedItem, file.RelativeKeyItem))
                 ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': data-name-1 shall be the RELATIVE KEY "
                     + $"item '{file.RelativeKeyItem?.CobolName ?? "(none)"}' (ISO §14.9.41.3 SR5)");
+            bool operandImplied = operand is null;
             operand ??= file.RelativeKeyItem is { } rk ? ctx.Refs.Places.ResolveItem(rk) : null;
             // ⛔ GR8's SUBSTITUTION HAS NO OPERAND, SO THE STATEMENT HAS NO MEANING (kb/Work PB236, row
             // GR-14.9.41.4-8). §14.9.41.4 GR8: "If the KEY phrase is omitted, the START statement behaves as
@@ -427,11 +428,12 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                     + "entry has no RELATIVE KEY clause, so there is no key to compare. Add a RELATIVE KEY "
                     + "clause to the SELECT, or write an explicit KEY phrase.");
             }
-            return new BoundKeyedStart(file, KeyedStartMode.Key, op, -1, operand, null, invalid);
+            return new BoundKeyedStart(file, KeyedStartMode.Key, op, -1, operand, null, invalid) { OperandImplied = operandImplied };
         }
 
         int keyIndex = -1;
         RecordKey? namedKey = null;
+        bool primeKeyImplied = false;   // GR15's substituted prime key: an operand the START did not write
         if (namedKeyIndex is { } nk)
             (keyIndex, namedKey) = (nk, file.KeyAt(nk));   // SR7 — the record-key-name's key IS the key of reference
         else if (operand is not null)
@@ -462,10 +464,14 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         else if (file.PrimeKey is { IsSourceForm: true } sourcePrime)
             namedKey = sourcePrime;
         else
+        {
             operand = file.PrimeKey?.Item is { } pk ? ctx.Refs.Places.ResolveItem(pk) : null;
+            primeKeyImplied = true;
+        }
         if (operand is null && namedKey is null)
             return new BoundUnsupported($"START on '{name}' with no resolvable RECORD KEY item");
-        return new BoundKeyedStart(file, KeyedStartMode.Key, op, keyIndex, operand, length, invalid) { NamedKey = namedKey };
+        return new BoundKeyedStart(file, KeyedStartMode.Key, op, keyIndex, operand, length, invalid)
+            { NamedKey = namedKey, OperandImplied = primeKeyImplied };
     }
 
     /// <summary>Whether a KEY phrase operand names a record-key-name (ISO §8.3.2.2.24) — a key defined by the

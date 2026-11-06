@@ -10,8 +10,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// authoritative behavior is the 1985 standard; WiseOwl COBOL models it (accepted-and-ACTIVE) only at <c>--std 85</c>
 /// and rejects it ≥2002 (COBOL0902). Implemented: the ON procedure-name / ALL PROCEDURES trigger leg with the
 /// DEBUG-CONTENTS transfer-cause taxonomy (START PROGRAM / SPACES / PERFORM LOOP / FALL THROUGH — DB101A witness)
-/// and DEBUG-NAME. STAGED loud (COBOL1571): the data-name / file-name / cd-name subject kinds and the
-/// SORT/MERGE-procedure cause.
+/// and DEBUG-NAME, and the data-name, ALL REFERENCES OF and cd-name triggers (docs/CONTROL_FLOW_DESIGN.md D20; the behavior
+/// matrix is the <c>X3.23-1985-USE-FOR-DEBUGGING</c> conformance goldens). STAGED loud (COBOL1571): the file-name subject kind (kb/Work
+/// PB4811) and the SORT/MERGE-procedure cause.
 /// </summary>
 public sealed class DebugFacilityTests
 {
@@ -149,7 +150,6 @@ public sealed class DebugFacilityTests
                 USE FOR DEBUGGING ON ALL PROCEDURES.
             DBG-BODY.
                 MOVE DEBUG-ITEM TO GI.
-                DISPLAY "S1=[" DEBUG-SUB-1 "]".
                 DISPLAY "GI=[" GI "]".
             END DECLARATIVES.
             MAIN SECTION.
@@ -159,10 +159,12 @@ public sealed class DebugFacilityTests
         var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 85);
         Assert.True(ok, detail);
         string[] lines = stdout.Split('\n');
-        Assert.Equal("S1=[     ]", lines[0]);   // DEBUG-SUB-1 = five SPACES (unsubscripted, S9(4) SIGN LEADING SEPARATE width)
         // The whole DEBUG-ITEM group image is exactly 86 characters between the brackets.
-        int lb = lines[1].IndexOf('[') + 1, rb = lines[1].LastIndexOf(']');
+        int lb = lines[0].IndexOf('[') + 1, rb = lines[0].LastIndexOf(']');
         Assert.Equal(86, rb - lb);
+        // DEBUG-SUB-1 (characters 39 to 43: 6 + 1 + 30 + 1 before it) is five SPACES for a reference that is not subscripted — the
+        // S9(4) SIGN LEADING SEPARATE width of general rule 10, read through the group image because spaces are no number.
+        Assert.Equal("     ", lines[0].Substring(lb + 38, 5));
     }
 
     /// <summary>The removal gate: WITH DEBUGGING MODE + USE FOR DEBUGGING are rejected COBOL0902 at ≥2002 (the
@@ -249,10 +251,12 @@ public sealed class DebugFacilityTests
         Assert.Equal("IN TARGET", stdout.Replace("\r", "").TrimEnd('\n'));
     }
 
-    /// <summary>The data-name subject leg (ON ALL REFERENCES OF identifier) is STAGED — rejected loud COBOL1571
-    /// (its after-statement data trigger + DEBUG-SUB rendering are not modeled).</summary>
+    /// <summary>The data-name subject leg (ON ALL REFERENCES OF identifier) runs the section after the statement that references the item
+    /// (X3.23-1985 USE FOR DEBUGGING general rule 5 d): <c>MOVE "Z" TO T</c> is the only statement that references T, so the section runs
+    /// once and DEBUG-NAME is T (general rule 13). The behavior matrix is the conformance goldens'
+    /// (<c>X3.23-1985-USE-FOR-DEBUGGING</c>); this is the leg's smoke.</summary>
     [Fact]
-    public void OnDataName_At85_StagedLoud1571()
+    public void OnDataName_At85_RunsTheSectionAfterTheReferencingStatement()
     {
         const string src = """
             IDENTIFICATION DIVISION.
@@ -275,15 +279,15 @@ public sealed class DebugFacilityTests
                 MOVE "Z" TO T.
                 STOP RUN.
             """;
-        var (ok, diags) = EditionHarness.Compile(src, 85);
-        Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571");
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 85);
+        Assert.True(ok, detail);
+        Assert.Equal("T", stdout.Replace("\r", "").TrimEnd('\n'));
     }
 
     /// <summary>In <c>[ALL REFERENCES OF] identifier-1</c> only ALL is a keyword — REFERENCES and OF are optional
     /// words (GnuCOBOL <c>-std=cobol85</c> accepts all four spellings; CCVS DB201A writes <c>ALL ID-2</c>; kb/Work
-    /// PB4237). Every spelling is the ONE data-item operand and reaches the same staged COBOL1571, naming its
-    /// operand, under WITH DEBUGGING MODE. The binder reads ALL, not REFERENCES, so <c>ALL P1</c> cannot fall to the
+    /// PB4237). Every spelling is the ONE data-item operand and runs the section after the statement that references it, DEBUG-NAME
+    /// T, under WITH DEBUGGING MODE. The binder reads ALL, not REFERENCES, so <c>ALL P1</c> cannot fall to the
     /// bare-name arm and silently debug a paragraph P1 (which is <see cref="AllOperandNamingAProcedure_At85_IsNoDataItem"/>'s
     /// case). The pre-fix grammar refused the first two spellings with COBOL5506.</summary>
     [Theory]
@@ -291,7 +295,7 @@ public sealed class DebugFacilityTests
     [InlineData("ALL OF T", "T")]
     [InlineData("ALL REFERENCES T", "T")]
     [InlineData("ALL REFERENCES OF T", "T")]
-    public void AllIdentifier_EverySpelling_At85_IsTheStagedDataItemOperand(string operand, string name)
+    public void AllIdentifier_EverySpelling_At85_IsTheDataItemOperand(string operand, string name)
     {
         string src = $"""
             IDENTIFICATION DIVISION.
@@ -314,13 +318,10 @@ public sealed class DebugFacilityTests
                 MOVE "Z" TO T.
                 STOP RUN.
             """;
-        var (ok, diags) = EditionHarness.Compile(src, 85);
-        Assert.False(ok);
-        EditionHarness.AssertNoDiagnostic(diags, "COBOL5506");
-        EditionHarness.AssertHasDiagnostic(diags, $"COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON ALL REFERENCES OF '{name}'");
-        // At the operand (line 12), never bare: FinalizeDebug runs after every walker (kb/Work PB2034).
-        EditionHarness.AssertHasDiagnostic(diags, "(12,");
-        EditionHarness.AssertEveryDiagnosticPositioned(diags, operand);
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 85);
+        Assert.True(ok, detail);
+        Assert.DoesNotContain("COBOL5506", detail);
+        Assert.Equal(name, stdout.Replace("\r", "").TrimEnd('\n'));
     }
 
     /// <summary>One USE FOR DEBUGGING declarative (line 18) whose operand the test chooses, over a program with a data
@@ -394,17 +395,25 @@ public sealed class DebugFacilityTests
         EditionHarness.AssertEveryDiagnosticPositioned(diags, operand);
     }
 
-    /// <summary>The bare operand that IS a data item or a file stays the staged COBOL1571, and a file-name is not
-    /// mistaken for an undeclared word by the new resolution (kb/Work PB4363's sibling sweep of the bare-name arm).</summary>
-    [Theory]
-    [InlineData("T")]
-    [InlineData("SF")]
-    public void BareOperandNamingADataItemOrFile_At85_StaysStaged(string operand)
+    /// <summary>The bare operand that IS a file stays the staged COBOL1571 (the file-name trigger is kb/Work PB4811's), and a file-name is
+    /// not mistaken for an undeclared word by the new resolution (kb/Work PB4363's sibling sweep of the bare-name arm).</summary>
+    [Fact]
+    public void BareOperandNamingAFile_At85_StaysStaged()
     {
-        var (ok, diags) = EditionHarness.Compile(OperandProgram(operand), 85);
+        var (ok, diags) = EditionHarness.Compile(OperandProgram("SF"), 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, $"COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON '{operand}' names a file-name");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON 'SF' names a file-name");
         EditionHarness.AssertNoDiagnostic(diags, "COBOL1639");
+    }
+
+    /// <summary>The bare operand that IS a data item is the data-name subject: it compiles (kb/Work PB4810), and the section runs after the
+    /// statement that changes the item (X3.23-1985 USE FOR DEBUGGING general rule 6 c).</summary>
+    [Fact]
+    public void BareOperandNamingADataItem_At85_IsTheDataNameSubject()
+    {
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(OperandProgram("T"), 85);
+        Assert.True(ok, detail);
+        Assert.Equal("T", stdout.Replace("\r", "").TrimEnd('\n'));
     }
 
     /// <summary>One USE FOR DEBUGGING declarative (line 17) over a program with an input CD, CM-IN, whose record has the data item
@@ -436,19 +445,17 @@ public sealed class DebugFacilityTests
             STOP RUN.
         """;
 
-    /// <summary>A bare operand that names a cd-name the program declares is the staged cd-name subject, COBOL1571: X3.23-1985's debug
-    /// module triggers on the ENABLE, DISABLE, PURGE, RECEIVE and SEND of a cd-name (CCVS DB205A writes <c>ON CM-INQUE CM-OUTQUE</c>),
-    /// and the declared name is not "not defined" (COBOL1639, ISO §8.4.2.1). Each cd-name of one phrase is its own diagnostic, at its
-    /// own operand (kb/Work PB4713).</summary>
+    /// <summary>A bare operand that names a cd-name the program declares is the cd-name subject (X3.23-1985 USE FOR DEBUGGING general rule
+    /// 8; CCVS DB205A writes <c>ON CM-INQUE CM-OUTQUE</c>): it compiles, and the declared name is not "not defined" (COBOL1639, ISO
+    /// §8.4.2.1) — kb/Work PB4713 named it, kb/Work PB4759 models its trigger. The section runs after the ACCEPT ... MESSAGE COUNT that
+    /// names the cd-name, DEBUG-NAME CM-IN.</summary>
     [Fact]
-    public void BareOperandNamingACdName_At85_IsTheStagedCdNameSubject()
+    public void BareOperandNamingACdName_At85_IsTheCdNameSubject()
     {
-        var (ok, diags) = EditionHarness.Compile(CdOperandProgram("CM-IN"), 85);
-        Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON 'CM-IN' names a file-name, cd-name");
-        EditionHarness.AssertNoDiagnostic(diags, "COBOL1639");
-        EditionHarness.AssertHasDiagnostic(diags, "(17,");
-        EditionHarness.AssertEveryDiagnosticPositioned(diags, "CM-IN");
+        string src = CdOperandProgram("CM-IN").Replace("MOVE \"Z\" TO T.", "ACCEPT CM-IN MESSAGE COUNT.");
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 85);
+        Assert.True(ok, detail);
+        Assert.Equal("CM-IN", stdout.Replace("\r", "").TrimEnd('\n'));
     }
 
     /// <summary>An unknown word beside a declared cd-name is still the undefined reference, and only that word: the cd-name is not
@@ -458,18 +465,16 @@ public sealed class DebugFacilityTests
     {
         var (ok, diags) = EditionHarness.Compile(CdOperandProgram("CM-IN NOSUCH"), 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON 'CM-IN' names a file-name, cd-name");
         EditionHarness.AssertHasDiagnostic(diags, "COBOL1639: 'NOSUCH' is not defined");
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL1571");
     }
 
     /// <summary>A cd-name after ALL is no identifier-1: a cd-name is declared, so the refusal says what it is declared as
     /// (the resolver's file-name wording, now for the cd-name) and never "not defined" (ISO §8.4.2.1; kb/Work PB4713, the
-    /// reference resolver's sibling of the bare-name arm). A data item of the CD's record is a data item, so it stays the
-    /// staged data-item subject.</summary>
+    /// reference resolver's sibling of the bare-name arm).</summary>
     [Theory]
     [InlineData("ALL CM-IN", "COBOL1639: 'CM-IN' is declared as a cd-name")]
     [InlineData("ALL REFERENCES OF CM-IN", "COBOL1639: 'CM-IN' is declared as a cd-name")]
-    [InlineData("ALL IN-Q", "COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON ALL REFERENCES OF 'IN-Q'")]
     public void AllOperandNamingACdName_At85_IsDeclaredAsACdName(string operand, string expected)
     {
         var (ok, diags) = EditionHarness.Compile(CdOperandProgram(operand), 85);
@@ -478,24 +483,82 @@ public sealed class DebugFacilityTests
         EditionHarness.AssertNoDiagnostic(diags, "is not defined");
     }
 
+    /// <summary>A data item of the CD's record is a data item like any other: ALL REFERENCES OF IN-Q compiles (kb/Work PB4810).</summary>
+    [Fact]
+    public void AllOperandNamingADataItemOfACdRecord_At85_IsTheDataItemSubject()
+    {
+        var (ok, diags) = EditionHarness.Compile(CdOperandProgram("ALL IN-Q"), 85);
+        Assert.True(ok, string.Join("; ", diags));
+    }
+
     /// <summary>A debug operand that names a table element is written WITHOUT its subscripts (the DEBUG-SUB-n items
     /// report them, X3.23-1985; CCVS DB201A writes <c>ON B-LEVEL-1 B-LEVEL-2 B-LEVEL-3</c> and <c>ALL REFERENCES OF
-    /// AB1 OF A1</c> over OCCURS items), so it is the data item the staged COBOL1571 describes and not a reference
+    /// AB1 OF A1</c> over OCCURS items), so it is the data item the trigger watches and not a reference
     /// the §8.4.2.3.3 SR5 "shall be subscripted" screen (COBOL2270) judges: the operand is classified by its
-    /// declaration, in both arms (kb/Work PB4363, review round 1).</summary>
+    /// declaration, in both arms (kb/Work PB4363, review round 1), and it compiles (kb/Work PB4810).</summary>
     [Theory]
-    [InlineData("ELEM", "ON 'ELEM' names a file-name")]
-    [InlineData("ALL ELEM", "ON ALL REFERENCES OF 'ELEM'")]
-    [InlineData("ALL REFERENCES OF ELEM OF TBL", "ON ALL REFERENCES OF 'ELEM OF TBL'")]
-    [InlineData("ELEM OF TBL", "ON 'ELEM OF TBL' names a file-name")]
-    public void OperandNamingAnUnsubscriptedTableElement_At85_StaysStaged(string operand, string text)
+    [InlineData("ELEM")]
+    [InlineData("ALL ELEM")]
+    [InlineData("ALL REFERENCES OF ELEM OF TBL")]
+    [InlineData("ELEM OF TBL")]
+    public void OperandNamingAnUnsubscriptedTableElement_At85_IsTheElementSubject(string operand)
+    {
+        string src = OperandProgram(operand).Replace("01 T PIC X(5).", "01 T PIC X(5).\n01 TBL.\n    05 ELEM PIC XX OCCURS 3.");
+        var (ok, diags) = EditionHarness.Compile(src, 85);
+        Assert.True(ok, string.Join("; ", diags));
+    }
+
+    /// <summary>X3.23-1985 USE FOR DEBUGGING syntax rules 10 and 12: identifier-1 is written WITHOUT subscripts or indexes and is not
+    /// reference modified (COBOL6334) — the trigger watches the item, and DEBUG-SUB-n report the occurrence. A subscripted
+    /// operand is a refusal, whichever arm names it.</summary>
+    [Theory]
+    [InlineData("ELEM (2)")]
+    [InlineData("ALL ELEM (2)")]
+    [InlineData("T (1:2)")]
+    [InlineData("ALL REFERENCES OF T (2:1)")]
+    public void OperandSubscriptedOrReferenceModified_At85_IsRefused(string operand)
     {
         string src = OperandProgram(operand).Replace("01 T PIC X(5).", "01 T PIC X(5).\n01 TBL.\n    05 ELEM PIC XX OCCURS 3.");
         var (ok, diags) = EditionHarness.Compile(src, 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571: declarative section 'DBG': USE FOR DEBUGGING " + text);
-        EditionHarness.AssertNoDiagnostic(diags, "COBOL2270");
-        EditionHarness.AssertNoDiagnostic(diags, "COBOL1639");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL6334: declarative section 'DBG': USE FOR DEBUGGING ON");
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL1571");
+        EditionHarness.AssertEveryDiagnosticPositioned(diags, operand);
+    }
+
+    /// <summary>X3.23-1985 USE FOR DEBUGGING syntax rule 6: a data item (or cd-name) appears in one USE FOR DEBUGGING statement, once
+    /// (COBOL6335) — twice in one statement, or in two statements, each a refusal at the second operand.</summary>
+    [Theory]
+    [InlineData("T T")]
+    [InlineData("T ALL T")]
+    public void OperandNamedTwice_At85_IsRefused(string operands)
+    {
+        var (ok, diags) = EditionHarness.Compile(OperandProgram(operands), 85);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL6335: declarative section 'DBG': USE FOR DEBUGGING ON");
+        EditionHarness.AssertEveryDiagnosticPositioned(diags, operands);
+    }
+
+    /// <summary>One data item named by two USE statements, in two sections.</summary>
+    [Fact]
+    public void DataItemInTwoUseStatements_At85_IsRefused()
+    {
+        string src = OperandProgram("T").Replace("END DECLARATIVES.", "DBG2 SECTION.\n    USE FOR DEBUGGING ON ALL REFERENCES OF T.\nDBG2-BODY.\n    DISPLAY DEBUG-NAME.\nEND DECLARATIVES.");
+        var (ok, diags) = EditionHarness.Compile(src, 85);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL6335: declarative section 'DBG2': USE FOR DEBUGGING ON ALL REFERENCES OF 'T'");
+    }
+
+    /// <summary>General rule 1: "Automatic execution of a debugging section is not caused by a statement appearing in a debugging
+    /// section" — the declarative here changes T, which its own USE names, and the section does not run itself (a run would recurse, or
+    /// print twice): the one run is MAIN's MOVE.</summary>
+    [Fact]
+    public void StatementInADebuggingSection_At85_CausesNoSection()
+    {
+        string src = OperandProgram("T").Replace("DISPLAY DEBUG-NAME.", "DISPLAY DEBUG-NAME.\n    MOVE \"Y\" TO T.");
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 85);
+        Assert.True(ok, detail);
+        Assert.Equal("T", stdout.Replace("\r", "").TrimEnd('\n'));
     }
 
     /// <summary>A paragraph-name qualified by a word that is not its section is a procedure-name that identifies

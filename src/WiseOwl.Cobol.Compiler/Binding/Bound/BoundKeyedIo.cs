@@ -57,8 +57,12 @@ public enum KeyedStartMode { First, Last, Key }
 public sealed record BoundKeyedRead(
     FileModel File, ReadKind Kind, int KeyIndex, BoundMove? IntoMove,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd,
-    KeyedInvalidKey? InvalidKey) : BoundStatement, IBoundRead
+    KeyedInvalidKey? InvalidKey) : BoundStatement, IBoundRead, IBoundImplicitOperands, IBoundIntoPhrase
 {
+    /// <summary>The record area the implicit INTO move sends is the verb's own, not an operand the program wrote (X3.23-1985 USE FOR
+    /// DEBUGGING general rule 5: "explicitly references"); the INTO identifier is written.</summary>
+    public IEnumerable<object> ImplicitOperands => IntoMove is null ? [] : [IntoMove.Source];
+
     /// <summary>The lock-RETENTION phrase — bracket 2 of §14.9.30.2 (WITH LOCK / WITH NO LOCK), or None;
     /// combined at runtime with the file's declared LOCK MODE (AUTOMATIC auto-locks on any READ).</summary>
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
@@ -139,8 +143,15 @@ public sealed record BoundKeyedDeleteFile(
 /// character count (SR8/GR13–GR14, indexed only).</summary>
 public sealed record BoundKeyedStart(
     FileModel File, KeyedStartMode Mode, string Op, int KeyIndex, Place? Operand, BoundExpr? Length,
-    KeyedInvalidKey? InvalidKey) : BoundStatement
+    KeyedInvalidKey? InvalidKey) : BoundStatement, IBoundImplicitOperands
 {
+    /// <summary>True when the START wrote no KEY phrase, so <see cref="Operand"/> is the RELATIVE KEY item §14.9.41.4 GR8 substitutes — an
+    /// operand the statement means and the program did not write (X3.23-1985 USE FOR DEBUGGING general rule 5: "explicitly references").</summary>
+    public bool OperandImplied { get; init; }
+
+    /// <inheritdoc/>
+    public IEnumerable<object> ImplicitOperands => OperandImplied && Operand is not null ? [Operand] : [];
+
     /// <summary>The SOURCE-form key the KEY phrase names by its record-key-name (SR7), or the GR15 prime key when
     /// that is SOURCE-form; null when <see cref="Operand"/> is data-name-1 (kb/Work PB1099). GR17 b) takes the
     /// default temporary-area length from it — "or else the length of record-key-name-1, if specified" — and

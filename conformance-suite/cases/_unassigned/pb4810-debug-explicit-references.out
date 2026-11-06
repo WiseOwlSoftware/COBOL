@@ -1,0 +1,16 @@
+1 MOVE CORRESPONDING
+DBG [G2        ]
+2 CONDITION-NAME
+YES
+3 MOVE TO RK
+DBR [RK        ]
+4 START
+5 READ INTO
+DBV [V         ]
+6 READ AT END
+AT END
+7 SORT
+DBV [V         ]
+AT END
+DBK [SK        ]
+8 DONE

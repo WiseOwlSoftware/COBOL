@@ -22,7 +22,13 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// that record's FIXED run, and the runtime locates it in each record through the record type's layout. Null for
 /// every key whose window is the same in every record.</para></summary>
 public sealed record BoundSortMergeKey(
-    bool Descending, int Offset, int Length, CollatingClass Class, DataItem? Item, Place? LayoutRecord = null);
+    bool Descending, int Offset, int Length, CollatingClass Class, DataItem? Item, Place? LayoutRecord = null, Place? Written = null)
+    : IBoundImplicitOperands
+{
+    /// <summary>The key data-name as the ASCENDING / DESCENDING KEY phrase wrote it (<see cref="Written"/>) is the statement's explicit
+    /// reference (X3.23-1985 USE FOR DEBUGGING general rule 5 d); the record whose layout locates the key at run time is not one.</summary>
+    public IEnumerable<object> ImplicitOperands => LayoutRecord is null ? [] : [LayoutRecord];
+}
 
 /// <summary>The RECORD IS VARYING model of an SD/FD bound for the sort verbs (ISO §13.18.43): the resolved
 /// DEPENDING ON place — RELEASE takes each record's length from it (GR13a), RETURN restores each returned record's
@@ -125,4 +131,17 @@ public sealed record BoundRelease(
 public sealed record BoundReturn(
     FileModel File, Place RecordArea, BoundMove? IntoMove,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd,
-    SortVaryingInfo? Varying) : BoundStatement;
+    SortVaryingInfo? Varying) : BoundStatement, IBoundImplicitOperands, IBoundIntoPhrase
+{
+    /// <summary>RETURN names the file, never its record: the record area, the DEPENDING item a varying SD restores and the record the INTO move
+    /// sends are the verb's own operands (X3.23-1985 USE FOR DEBUGGING general rule 5: "explicitly references"); the INTO identifier is written.</summary>
+    public IEnumerable<object> ImplicitOperands
+    {
+        get
+        {
+            yield return RecordArea;
+            if (IntoMove is not null) yield return IntoMove.Source;
+            if (Varying is not null) yield return Varying;
+        }
+    }
+}

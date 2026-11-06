@@ -681,7 +681,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // order every negative after every positive, so it takes the algebraic double lane).
             keys.Add(new BoundSortMergeKey(descending, win.Offset, len, cls,
                 cls is CollatingClass.Numeric ? item : null,
-                win.FollowsVariable ? ctx.Refs.Places.ResolveItem(root) : null));
+                win.FollowsVariable ? ctx.Refs.Places.ResolveItem(root) : null, kp));
         }
         return true;
 

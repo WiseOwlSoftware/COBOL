@@ -32,6 +32,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     /// INVALID KEY / ON EXCEPTION phrase bodies nest arbitrary statement lists).</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
+    /// <summary>The USE FOR DEBUGGING trigger emitter — property-wired by <see cref="UnitEmitters"/> (docs/CONTROL_FLOW_DESIGN.md D20).</summary>
+    internal DebugTriggerEmitter Debug { get; set; } = null!;
+
     // ── Registration (Main start) ──────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Register a relative/indexed connector (called from the core file registration): the host path,
@@ -241,7 +244,8 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 // GR4 b) — READ INTO is READ then MOVE THE CURRENT RECORD (the §13.18.43.4 GR16 slice of the
                 // record area, never the padded area): the BOUND move, built by the SAME binder call the
                 // sequential arm makes (kb/Work PB348 over PB339).
-                if (into) move.Emit(rd.IntoMove!);
+                // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs (D20).
+                if (into) { move.Emit(rd.IntoMove!); Debug.LandAfterAction(); }
                 if (rd.NotAtEnd is { } nae) SeqIo.EmitNotPhrase(hook, nae);                  // §14.9.30 — NOT AT END on success
                 if (rd.InvalidKey?.NotInvalid is { } nik) SeqIo.EmitNotPhrase(hook, nik);    // §9.1.14 — success only
             }
@@ -258,6 +262,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         FileModel file = wr.File;
         string name = FileKeyExpr(file);
         if (wr.FromMove is { } fromMove) move.Emit(fromMove);   // §14.9.51.4 GR5 a) — the BOUND implicit MOVE
+        Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
             // §14.9.51 GR29b/GR32 — random/dynamic: the runtime element pre-set the RELATIVE KEY item with the
@@ -305,6 +310,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         FileModel file = rw.File;
         string name = FileKeyExpr(file);
         if (rw.FromMove is { } fromMove) move.Emit(fromMove);   // §14.9.35.4 GR7 a) — the BOUND implicit MOVE
+        Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
             // §14.9.35 GR21 — random/dynamic: the slot to replace is named by the RELATIVE KEY item.
