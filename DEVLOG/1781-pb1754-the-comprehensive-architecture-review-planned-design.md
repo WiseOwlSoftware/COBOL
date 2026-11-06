@@ -7,7 +7,7 @@ layout, names and classes along proven architectural designs, and bring all C# t
 the plan for all this and design/update appropriate skills in anticipation." This is the comprehensive pass that
 `PROMPT.md` §4 already required once the design settles. Nothing is dispatched; the owner decides the start.
 
-**Measured first (at `edda57d7f`).**
+**Measured first (at `47d200326`).**
 - About 164,000 lines of current C#: Compiler ~103,600, Runtime ~39,200, Front end ~12,600, Editions ~7,900.
 - About 8,600 lines of ANTLR grammar.
 - The legacy `CobolSharp.*` projects, ~46,000 lines, are excluded because P15 deletes them.

@@ -53,8 +53,8 @@ contrived residue (the retired kept state still reaches its locks through its as
 
 **Gate.** `TestResults/build-local/000001-20261024T011042Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run:
 Conformance 8,764 · Unit 953 · Characterization 31 … Conformance 9,563/18,327 · Unit 34,873/35,826 · Characterization 5/36 cases ran`; the 31 added tests are `Passed` in `leg-1-Unit.trx`.
-`=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD d78a163f7) ===` (unit 35,861, conformance 18,327; two earlier runs of the same head were RED
+`=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD f938b8dff) ===` (unit 35,861, conformance 18,327; two earlier runs of the same head were RED
 only with "No space left on device" while other fleets filled the WSL disk, which also turned 22 `CobolFileLockTests` red). `python scripts/semgrep/verify.py`: PASS.
 
-**Finisher gate.** `TestResults/build-local/000001-20261024T020019Z` (head `3b437aa59`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 9,920/18,343 - Unit 34,905/35,841 - Characterization 5/36 cases ran); `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 3b437aa59) ===`; `python scripts/semgrep/verify.py`: PASS.
+**Finisher gate.** `TestResults/build-local/000001-20261024T020019Z` (head `7897d4c5e`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 9,920/18,343 - Unit 34,905/35,841 - Characterization 5/36 cases ran); `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 7897d4c5e) ===`; `python scripts/semgrep/verify.py`: PASS.
 

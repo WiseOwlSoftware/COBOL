@@ -126,7 +126,7 @@ green and reports zero findings.
 Both the string-p1 and dns-witness lanes shipped whole-file copies built from an older `main`, and copying either
 in would have silently **reverted** landed corrections — the §4 preamble rewrite, the A.4.2/A.4.3 row measurements,
 `kb/Work` PB285's item-45 correction — while looking like an ordinary file update. Only the intended deltas were
-re-applied by hand, re-keyed to the `DOC-A.1-<n>` row form the A.1 mechanism landed at `a54f4502`.
+re-applied by hand, re-keyed to the `DOC-A.1-<n>` row form the A.1 mechanism landed at `cb07fc39`.
 
 **Seven further findings became notes rather than being folded into unrelated work**, clustered by MECHANISM and
 not by row. **PB304** — `RemDec` calls `ModZeroDivisor()`, so a §15.77.3 r2 violation on the SDIDI carrier is

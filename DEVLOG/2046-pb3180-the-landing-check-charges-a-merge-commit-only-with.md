@@ -5,7 +5,7 @@
 was charged with the predecessor's whole diff, and a `Merge origin/main into <branch>` with main's own landings. One
 commit's R3 status flip was smeared across other commits' files: PB3154's branch (worktree-wf_15ec6338-3a0-4) stopped
 on `R3 work (PB2160) changed 5 file(s) outside its declared file set`, although the only commit working on PB2160
-(18246d045) changes kb/Work and DEVLOG only. The files came from merge dacb04b6c. The stop held PB3154 out of the merge
+(43f4799dd) changes kb/Work and DEVLOG only. The files came from merge ffc9b49c9. The stop held PB3154 out of the merge
 queue, and PB3153 and PB3164 behind it.
 
 The fix is one attribution function, `commit_work`: a non-merge commit is its diff against its parent; a merge commit

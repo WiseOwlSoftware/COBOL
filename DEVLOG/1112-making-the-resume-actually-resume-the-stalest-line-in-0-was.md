@@ -3,10 +3,10 @@
 Owner asked that a cleared session pick up exactly here. That is a doc-only change, but auditing §0 against reality
 turned up one line that would have actively misled a fresh session, plus three that had quietly inverted.
 
-**THE DANGEROUS ONE.** §0 "Where we are" said: "`main` = `c056f1f4` — PHASE-14 IS MERGED (2026-07-28) … `phase-14`
+**THE DANGEROUS ONE.** §0 "Where we are" said: "`main` = `f0ff57fd` — PHASE-14 IS MERGED (2026-07-28) … `phase-14`
 is fully merged and its tree is identical to `main`." True when written; false the moment this wave started. A
 cleared session would have believed the tree was merged and clean against main while sitting on **17 unmerged
-commits**. Replaced with the measured state: `phase-14` = `ccfc091d`, `main` = `0e534dc7`, 17 commits ahead,
+commits**. Replaced with the measured state: `phase-14` = `8edbea43`, `main` = `2bad5aee`, 17 commits ahead,
 DEVLOG 1095–1111, unmerged, and the merge is an owner decision. The old §284 merge-gate record is kept but
 date-stamped as HISTORICAL with a forward pointer, since it is legitimate history and only reads wrong as state.
 
@@ -37,11 +37,11 @@ strings in it, which is a greppable invariant rather than a claim.
   (every DA6 probe was arithmetic, none was a string intrinsic; the corpus found 79).
 
 **Verification, since a resume doc that is merely plausible is worthless.** Grepped for every stale claim by
-pattern (`c056f1f4`, "identical to main", "V59 — the LAST item", "implementation is NOT started", "1 REMAIN",
+pattern (`f0ff57fd`, "identical to main", "V59 — the LAST item", "implementation is NOT started", "1 REMAIN",
 "⏳ OPEN") — all clean or date-stamped; re-read §0 in bootstrap order as a cleared session would; and ran the
 registry/VCR/predicate drift guards (10/10) since the doc edits touch guarded ledgers.
 
-**Gates.** Doc-only change; drift guards 10/10. The code battery is unchanged from `ccfc091d`: Conformance
+**Gates.** Doc-only change; drift guards 10/10. The code battery is unchanged from `8edbea43`: Conformance
 4137/4137, Unit 942/942, characterization 33/33, guard-fast ALL GREEN with NIST 353 MATCH / 0 REGRESSION, GnuCOBOL
 differential 0 flips — every figure measured at that commit, none carried.
 

@@ -6,7 +6,7 @@ ELEMENTARY restricted program- or function-pointer formal by its prototype's sig
 same graph compared by name (PB4107). So a prototype `PX USING TO Q1` was admitted for a definition `PX USING TO Q2`
 whenever Q1 and Q2 had one signature, and the same pair written as group members was refused.
 
-**Re-probe (base 11c6abfb1).** `_unassigned/pb2495_pointer_type_in_signature_checks` compiled and ran `px null` /
+**Re-probe (base 32d4e4db1).** `_unassigned/pb2495_pointer_type_in_signature_checks` compiled and ran `px null` /
 `content null`; its `CALL PX USING A` passed a pointer TO Q1 BY REFERENCE into the definition's TO Q2 formal with no
 diagnostic and no run-time check.
 

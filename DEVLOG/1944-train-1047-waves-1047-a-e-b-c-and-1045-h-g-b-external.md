@@ -3,7 +3,7 @@
 **Train 1047** carries eight branches in one landing: seven code clusters and N, the previous land unit's
 kb/Work-only branch records. That is one over the 4-6 band, on purpose: the land unit carries every ready branch
 (O11). Each cluster came in as a patch from its branch. 45B, the largest cluster (71 files, about 5,100 lines, on the
-oldest base, 685b44315), came in last. The history is one commit per cluster, then each cluster's merge, gate and
+oldest base, 977a0216b), came in last. The history is one commit per cluster, then each cluster's merge, gate and
 review fixes as its own commit, then the notes. All landing, nothing ejected.
 
 **47A — PB2511 + PB2465 + PB1965** (wave 1047 A; it carries wave 1045 A's PB2511 and PB2465 commits, re-gated, and
@@ -90,5 +90,5 @@ The Linux gate is GREEN (all four legs). Semgrep counts are unchanged (3/44/2/26
 - 13 negative/matrix diagnostics: the COBOLNET0900 citation suffix, §12.3.8.2 → §12.3.8.4 GR12 (47E).
 - 32 added cases: the new goldens.
 
-The baseline is re-recorded at e345db425878.
+The baseline is re-recorded at 6231f36375a0.
 

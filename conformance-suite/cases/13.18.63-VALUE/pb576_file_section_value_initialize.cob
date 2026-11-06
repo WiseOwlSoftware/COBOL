@@ -9,7 +9,7 @@
       *> execution of an INITIALIZE statement. The initial value of the data items in the file section is
       *> undefined." No spec-derived test pinned the operative half, and for a record item whose usage is
       *> float-short / float-long / float-extended the ONE path the rule names could not execute at all until
-      *> kb/Work PB420 (commit c2f0c4c50) removed the INITIALIZE emitter's float-receiver loud - so GR2's whole
+      *> kb/Work PB420 (commit 2a9832f4b) removed the INITIALIZE emitter's float-receiver loud - so GR2's whole
       *> float population was undelivered. Every expected value below is derived from the rules, not measured:
       *>   L1 the operative half over all three categories, including the float member the refutation named.
       *>      R1/R2 take their literals; R3 is compared against a MOVE of the SAME literal into the SAME usage,

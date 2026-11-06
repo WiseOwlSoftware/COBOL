@@ -6,8 +6,8 @@ and nothing compared the number `8` to the rule the words are printed in (GR6 d)
 rule). kb/Work R10 had swept that one wrong GR and recorded it done; it covered 5 of 14 sites while the audits read
 zero.
 
-**Re-probe (tree 86fd76dbd).** Of the note's eleven sites, four had been repaired since it was written (the SEARCH
-"GR8 varied item" comment went in PB388's rewrite, commit 044136739; the six `SR-14.9.37.3-6` sub-clause
+**Re-probe (tree 552590d8c).** Of the note's eleven sites, four had been repaired since it was written (the SEARCH
+"GR8 varied item" comment went in PB388's rewrite, commit 7de09d8eb; the six `SR-14.9.37.3-6` sub-clause
 parentheticals are right in the inventory row and in `l1_search_when_condition_forms.cob`). The live ones were
 corrected to the printed rule: the unsigned-magnitude sentence is `§14.9.25.4 GR6 d) 2. b.` in `CobolNum.Image.cs`,
 `BinaryCapacityTests.cs` (2), `RecordImageCodecTests.cs` (2), `docs/DATA_MODEL_DESIGN.md` (2) and `docs/DESIGN.md`;

@@ -19,5 +19,5 @@ A dangling level-number before a division or section header named the header's f
 **Left as a lead.** A screen entry's slot reads the word as COBOL5506 when the header is a section keyword (`01 LINKAGE SECTION.` in the SCREEN SECTION): truthful and one report, but not the missing period, because `EntryAwaitingItsName` is the data description entry's alone.
 
 
-Gate: === BUILD-LOCAL GATE: GREEN — Conformance 22,041/22,041 · Unit 40,166/40,166 · Characterization 37/37 cases ran (skipped 0) (run 000001-20261105T194248Z, worktree-wf_e221b103-63b-2 head 8ca141e74) ===
+Gate: === BUILD-LOCAL GATE: GREEN — Conformance 22,041/22,041 · Unit 40,166/40,166 · Characterization 37/37 cases ran (skipped 0) (run 000001-20261105T194248Z, worktree-wf_e221b103-63b-2 head 886a965a2) ===
 

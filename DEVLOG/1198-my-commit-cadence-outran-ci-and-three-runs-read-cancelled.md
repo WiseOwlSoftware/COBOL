@@ -10,7 +10,7 @@ flight, and the run PAGE for PB27 and PB35 now reads `cancelled` permanently.
 Greenfield and Windows, which did not. Read months later without this entry, that pattern looks like two legs
 breaking. It is two legs never running.
 
-⛔ **AND THE SURVIVING RUN IS CUMULATIVE COVERAGE, NOT PER-COMMIT COVERAGE.** `c1806410` contains PB27, PB35,
+⛔ **AND THE SURVIVING RUN IS CUMULATIVE COVERAGE, NOT PER-COMMIT COVERAGE.** `d68f6fa2` contains PB27, PB35,
 PB50 and PB54, so its green (all four push jobs, Linux AND Windows, `legacy-oracle` correctly `skipped` on a
 push) validates every one of them — but a RED would have needed a bisect to attribute, because no intermediate
 tree was independently verified. That is the actual cost, and it is why the actions-version bump earlier today

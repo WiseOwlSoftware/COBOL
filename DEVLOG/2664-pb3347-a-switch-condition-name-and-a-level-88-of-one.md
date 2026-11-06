@@ -9,7 +9,7 @@ explicitly referenced non-unique name to be made unique, and a switch condition-
 §8.4.6.1 does not rescue the 88: it governs identical names in DIFFERENT, nested source elements, so it decides only the
 inherited case (a container's switch name yields to the contained program's own 88), which was already right.
 
-**Re-probe on this build (deae52c90).** `p1` (IF S-ON over the pair): compiled clean, printed OFF with the switch unset
+**Re-probe on this build (7c779b70e).** `p1` (IF S-ON over the pair): compiled clean, printed OFF with the switch unset
 and with it ON, the 88 bound silently. `p2` (`IF S-ON OF V`): Q-OFF, right. `p3` (switch only): OFF/ON, right. `a1` (two
 same-named 88s): COBOL1639, so the uniqueness rule existed but did not count the switch. `a2` (pair declared, never
 referenced): clean, right. `s3` (switch in the outer SPECIAL-NAMES, 88 in the contained program): INNER-OFF, right.
@@ -71,6 +71,6 @@ the contained program is COBOL-2002+, so the 85 leg refused it); the program now
 predicate runs only after a level-88 matched, one dictionary and one set lookup. Duplication: none, the old "88 wins"
 wording was deleted at its three sites rather than reworded in a fourth.
 
-**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at 2b5b3bc08, Linux half (WSL clone of HEAD)
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at ca7798ce2, Linux half (WSL clone of HEAD)
 GREEN; the first run (RED, the GOBACK golden) is described above.
 

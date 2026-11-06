@@ -7,7 +7,7 @@ status by raw line prefix in `scan_notes` and again in its sibling `scan_r2`, wi
 `WorkRegister.TerminalStatuses` hand-copied the Python tuple outside the parity fixture that keeps the two readers in
 step.
 
-**Re-probe (base 7950e00b2).** With `archived` added to `work.TERMINAL_STATUSES`, `census.note_is_open` still answered
+**Re-probe (base df92f6e85).** With `archived` added to `work.TERMINAL_STATUSES`, `census.note_is_open` still answered
 OPEN, so a note in that state would have kept a dead artifact classed register-open and its Delete finding would never
 have been produced. `status: "open"` came back as the quoted `'"open"'` from both scanners, so `--rerender` skipped a
 note the register calls open and `file_r2` would have merged a later finding into a note the register calls landed.

@@ -11,6 +11,6 @@ clone makes a breach impossible by construction, and the tripwire makes any futu
 reading through the script's inline-configured `wgit`. So the landing of G's branch resolves `scripts/linux-gate.sh`
 by taking main's version, which carries both mechanisms.
 
-Checked with the characterization leg on main (HEAD `d27fc4871`): GREEN in 16 s, the tripwire quiet, and the
+Checked with the characterization leg on main (HEAD `dc27b5bed`): GREEN in 16 s, the tripwire quiet, and the
 uncommitted-change count correct (1, this script).
 

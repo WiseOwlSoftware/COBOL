@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para><b>What happened.</b> <c>CollatingSelection.Of(PicCategory?)</c> answers a ONE-OPERAND question: what
 /// class is this SORT/MERGE KEY, and which of §14.9.40.4 GR5 / §14.9.24.4 GR5's two separately-determined
-/// sequences does it take? A key of class numeric takes NEITHER. kb/Work PB678 (<c>f798397f</c>) then routed the
+/// sequences does it take? A key of class numeric takes NEITHER. kb/Work PB678 (<c>6b47703e</c>) then routed the
 /// RELATION-CONDITION renderer's collating argument through that same classifier — but a relation asks a
 /// TWO-OPERAND question, and §8.8.4.2.5 makes a numeric integer operand compared with an ALPHANUMERIC operand an
 /// ALPHANUMERIC comparison, which §8.8.4.2.7 collates under the alphanumeric program collating sequence. Asking

@@ -1,7 +1,7 @@
 ## Entry 1954 — 2026-10-10 23:48 PDT — Train 1055: paragraph periods, source columns through the origin map, universal OBJECT REFERENCE returns, I/O commit order, TYPEDEF clause resolution, the not-located reason
 
 Train 1055 carries six wave-1055 compiler clusters in one landing (A, B, C, D, E, F), each a finisher that
-cherry-picked an earlier wave's unlanded branch onto main 316a9d731 and gated leg 1 only (batched gating, PB2515).
+cherry-picked an earlier wave's unlanded branch onto main 18a494d77 and gated leg 1 only (batched gating, PB2515).
 `train_apply.py` brought them in, one commit each. The first lander stopped at its 220-turn cap after gate 1 and the
 review; a fresh lander resumed from its STATUS.md and landed the train. This is the night-stop train (owner,
 2026-10-10 21:30 PDT: "stop new work. Get everything in progress to main"), and it carries no other branch.
@@ -95,14 +95,14 @@ runner already runs in every lander gate, the Linux gate and CI on both systems,
 name and the ALL GREEN count from the source and runs nothing (`PB2882: GateSlotDriftTests holds the arms from
 source, not a rerun`). PB2882 records both reds and the sibling sweep: `LandingLeaseDriftTests` (106.8 s under load
 against the 120 s budget), `GateLegDriftTests` and `SelfTestDiscoveryDriftTests` re-run self-tests of 231-236 s
-under load the same way, the next timing reds, left open there. Gate 3 on `01e02b208`: `=== BUILD-LOCAL GATE: GREEN
+under load the same way, the next timing reds, left open there. Gate 3 on `c2a1cc74b`: `=== BUILD-LOCAL GATE: GREEN
 — Conformance 11,453/11,453 · Unit 33,352/33,352 · Characterization 36/36` (run `20261011T063356Z-1b0a8b`), and
 `=== LINUX GATE: GREEN` on the same head. Semgrep counts unchanged. Codes claimed: COBOLNET3407, COBOLNET3408 (A);
 every other assigned range returned. GAP 103 → 103. The review (four agents) found five issues and one aside: four
 fixed in the train (A two, B one, E one), B's NIST stage filed (PB2986), the aside filed (PB2988); no cluster
 dropped. Notes PB2982–PB2986 and PB2988 filed; PB2882 and PB2985 extended.
 
-**The oracle.** `compare_oracle.py`: DIFFERENT on 1,253 of 7,755 cases against `6994ce119e40`, every one attributed
+**The oracle.** `compare_oracle.py`: DIFFERENT on 1,253 of 7,755 cases against `fa08eeb4bae3`, every one attributed
 by class (every added line of every C# case, in compare_oracle's 80-line excerpt per case, matched a class): B —
 1,075 diagnostic streams whose only change is a position: 1,036 only at +7 (611 NIST, 346 negative, 63 matrix, 16
 corpus; a fixed-form position is now counted from column 1 of the line, not of the program-text area) and 39 in

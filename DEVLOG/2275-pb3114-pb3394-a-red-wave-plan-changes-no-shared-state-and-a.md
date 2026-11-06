@@ -4,7 +4,7 @@ Wave 1131, group F: two planner defects in `scripts/orchestrator/plan_wave.py`, 
 tree before the fix.
 
 **PB3394 (the planner and the branch survey disagreed on a FINDINGS stamp at an older head).** Re-probe: a DONE report
-`w1127a-PB7` stamped `FINDINGS 1 … 11f7b8ab0c0e` on an unlanded branch whose tip is `314d06415aaa` got a
+`w1127a-PB7` stamped `FINDINGS 1 … c168dd762798` on an unlanded branch whose tip is `314d06415aaa` got a
 `FINISH-FIRST: the branch review of w1127a` group from `plan()`, while `prune_worktrees.lifecycle()` read the same
 branch WAITING FOR REVIEW: wave 1127's shape, where three finishers were planned on branches whose findings had already
 been answered (and one branch was still receiving commits). The rule now lives in one place,
@@ -40,7 +40,7 @@ used (COBOLNET4616-4618 returned).
 
 Self-review: the planner asked `review_covers` (git, for a stale stamp) up to three times per report, now once; the
 scratch rule also refuses the MAIN checkout when the planner runs from one of its agent worktrees. Gate (run
-`20261019T222512Z-da5920`, at be46f2427): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2
+`20261019T222512Z-da5920`, at 7230196e0): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2
 left to CI's whole-population run` (Conformance 11,010/18,013 · Unit 33,701/34,755 · Characterization 5/36 in leg 1;
 self-tests GREEN, 41 ran, 46 reused).
 

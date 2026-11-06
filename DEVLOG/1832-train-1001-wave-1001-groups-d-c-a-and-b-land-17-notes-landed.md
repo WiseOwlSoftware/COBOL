@@ -50,7 +50,7 @@ both sides through `CallEmitter.CallStringRead`/`Write` (PB1781, a Roslyn CS0029
 below-2002 negatives; nets `BitRunImageDriftTests`, `GroupViewAliasDriftTests`, `UniversalCrossingShapeDriftTests`.
 No rows (all three notes carried none). Codes: none used.
 
-**The train.** Order D, C, A, B, each brought in as a patch from its base `b62408c25` (origin/main had not moved). Only
+**The train.** Order D, C, A, B, each brought in as a patch from its base `aa167b8af` (origin/main had not moved). Only
 `docs/DRIFT_RULES.md` conflicted (D and B both regenerated it); it was regenerated from the tests (251, then 250 after
 the drop). Manifest element counts were checked against the four branches (2002: 579 + 15, negative: 1884 + 21 before
 the drop) and every verdict batch dry-runs at zero changed rows on the merged tree. ⛔ **PB1527 was dropped from group

@@ -39,5 +39,5 @@ subject splice stay out (the guards in the theory). Performance: the standalone 
 Duplication: no second copy of the range rules.
 
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 21,519/21,519 · Unit 39,772/39,772 · Characterization 37/37 cases ran
-(skipped 0)` at `18e7da35e` (run 000001-20261104T191743Z); `semgrep/verify.py` PASS with no rule count raised.
+(skipped 0)` at `9c0abd3ac` (run 000001-20261104T191743Z); `semgrep/verify.py` PASS with no rule count raised.
 

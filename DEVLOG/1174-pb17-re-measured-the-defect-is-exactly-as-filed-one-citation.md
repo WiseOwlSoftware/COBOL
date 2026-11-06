@@ -1,7 +1,7 @@
 ## Entry 1174 — 2026-08-04 15:05 PDT — PB17 re-measured: the defect is exactly as filed, one citation was wrong, and the stated fix was the wrong move
 
 **Three entries in a row have had their claims move under measurement. PB17's did not — both shapes reproduce
-verbatim** at `b21b81d4`: `MOVE W-E(FUNCTION INTEGER(3)) TO W-R` and `MOVE W-A(FUNCTION INTEGER(3):2) TO W-R`
+verbatim** at `f83ae19b`: `MOVE W-E(FUNCTION INTEGER(3)) TO W-R` and `MOVE W-A(FUNCTION INTEGER(3):2) TO W-R`
 each compile clean and throw `NotImplementedCobolFeatureException` at run time. The PB7/DA7 wrong-stage family.
 Worth recording that a re-measurement CONFIRMED an entry, since the recent habit has been the opposite.
 

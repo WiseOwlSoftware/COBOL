@@ -2,7 +2,7 @@
 
 kb/Work PB243 said three DISPLAY rows were held open by missing evidence, not by code: GR2's unbounded transfer size,
 GR5 a)'s chunking leg (unreachable only because of GR2), and GR3's `ALL literal-1` arm. Re-probed on the worktree build
-at 1f5b68af4, every arm already gave the rule's answer, and two of the note's premises no longer held. The GR2
+at 757d6b267, every arm already gave the rule's answer, and two of the note's premises no longer held. The GR2
 long-operand golden already existed (`2023/l1_display_transfer_size`, which displays 2,000 positions as one line), but
 only on the standard device, while GR2 asks for the size "for each device". The GR3 refuter's `DISPLAY NULL` objection
 had been fixed by PB1427: the probe is refused with COBOLNET2576, and the fabricated `§8.3.3.7` comment is gone from

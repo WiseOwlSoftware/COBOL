@@ -6,7 +6,7 @@ against the 3.12 floor, because a name on PATH is not an interpreter. The gate's
 `build-local` twins ran a bare `python`, and `linux-gate.sh` took `command -v python3 || command -v python`, with no
 probe and no floor.
 
-**Re-probe, base 16b82f639.** `bash scripts/build-local.sh` on a PATH holding only a `python3` (the stock Ubuntu 24.04
+**Re-probe, base af9d0aab5.** `bash scripts/build-local.sh` on a PATH holding only a `python3` (the stock Ubuntu 24.04
 shape) died with `python: command not found`, exit 127, and printed no `=== BUILD-LOCAL GATE` line. That is the gate
 command CONTRIBUTING.md gives for bash. On a PATH whose `python3` answers the floor probe as 3.11 does, linux-gate's
 line took it and ran it, and the resolver refused it. The note's fourth site, a bare `python3` in a hook loop at
@@ -63,8 +63,8 @@ therefore ended the PowerShell gate NOT RUN, while the bash probe tries the next
 for any candidate it cannot start, the same as the bash probe; re-probed.
 
 **Neutrality and gate.** `python scripts/arch/compare_oracle.py` printed `=== ARCH-ORACLE: IDENTICAL — 8025 cases
-(baseline 16b82f639c26, new 6e45bc04acb7) ===`. `python scripts/semgrep/verify.py` printed PASS with no count up. The
-gate printed `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN ===` at 6e45bc04a (run
-20261016T205034Z-70ab7d) and again at 2b47742fd (run 20261016T210148Z-9500b6). Its leg-1 Unit trx has all three
+(baseline af9d0aab55aa, new 9a52cb21005a) ===`. `python scripts/semgrep/verify.py` printed PASS with no count up. The
+gate printed `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN ===` at 9a52cb210 (run
+20261016T205034Z-70ab7d) and again at ad5d4f35a (run 20261016T210148Z-9500b6). Its leg-1 Unit trx has all three
 `PythonInterpreterDriftTests` facts Passed.
 

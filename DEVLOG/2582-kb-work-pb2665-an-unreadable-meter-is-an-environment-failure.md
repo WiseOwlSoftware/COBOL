@@ -8,7 +8,7 @@ printed `FAILURE 1 of 3` for ever, ran every few minutes (the reading stayed sta
 one time it did trip the breaker, the loop and its landing lane stopped for about 352 minutes.
 
 **Re-probe.** Defect 1 of the note, `next_unit.py` deferring the `land` its handoff named behind a dead lander's lease,
-no longer exists: the landing lease and the unit `land` were deleted by PB3024's closing change (24af80121), and a stale
+no longer exists: the landing lease and the unit `land` were deleted by PB3024's closing change (3874761f5), and a stale
 meter with a handoff naming `enqueue` chooses `enqueue`. Defects 2 and 3 reproduced on this tree (`checkpoint.py
 synthesize --unit meter` names `resume`; the supervisor copied it over `handoff.last.json`).
 
@@ -40,9 +40,9 @@ design (`DESIGN-orchestrator-loop.md` sections 3.2, 4, 4.5, 5.1, 12) describes t
 
 The note flips to landed with `closes_rows: []` (orchestrator tooling; no ISO rule, no inventory row).
 
-**Gate (head 31a8f3376).** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's
+**Gate (head 86815daa5).** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's
 whole-population run … Linux half (WSL clone of HEAD) GREEN` (run `000002-20261025T222110Z`; the first gate, run
-`000001-20261025T220536Z` at 67924686e, was GREEN too and ran the two new self-tests, `test_next_unit.py` in 4.4 s and
+`000001-20261025T220536Z` at 2048dcafc, was GREEN too and ran the two new self-tests, `test_next_unit.py` in 4.4 s and
 `test_orchestrate_meter.ps1` in 148 s; the head then gained only this note's next-implementer lines).
 **Self-review.** Silent-failure lens: an unparseable attempt time makes the gate fail open (the meter is tried, as
 before); `Clear-NamedUnit` says in the log when it cannot spend a name instead of dying; the owner question is asked

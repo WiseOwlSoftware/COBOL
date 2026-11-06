@@ -2,7 +2,7 @@
 
 **What.** Registrar 14c registered lane-3 adjudication batch d1-14c: 22 statement subjects (RAISE through WRITE, the
 ROUNDED phrase, the RETRY phrase, RETURNING items and the scope of statements), adjudicated on the pinned tree
-`adj-d1` @68bbdb00f. The registrar was stopped by the STOP file while waiting for 14b to reach main; a finisher
+`adj-d1` @79ca43df8. The registrar was stopped by the STOP file while waiting for 14b to reach main; a finisher
 merged its checkpoint branch onto 14b, took origin/main's traceability inventory and RE-RECORDED the batch with
 `record_verdicts` on the merged tree (never merged as JSON hunks), and folded five drafts into the notes 14a/14b had
 already filed for the same mechanism. **GAP 1955 → 1900** (+55 closed of 4,348).

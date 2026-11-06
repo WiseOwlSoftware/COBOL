@@ -13,5 +13,5 @@ Register-only checkpoint after trains 60–62 and golden lane #2 landed (no comp
   the R43 derived selectors alone −78). 36 new kb/Work notes (PB1549–PB1584), most found by the golden lane's refuters
   and the implementers' sibling sweeps. PB1548 (standard class BASE; ~130 OO goldens corrected to INHERITS FROM BASE) is
   built and held for the next train.
-- **Ledger** artifact v74 published; trend point for ab810eb97 appended.
+- **Ledger** artifact v74 published; trend point for 793ff6493 appended.
 

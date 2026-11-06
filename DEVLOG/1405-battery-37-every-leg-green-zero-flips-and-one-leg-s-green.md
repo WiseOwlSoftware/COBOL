@@ -1,6 +1,6 @@
 ## Entry 1405 — 2026-08-30 17:36 PDT — Battery #37: every leg green, zero flips — and one leg's green had to be EARNED serially after the host crashed
 
-The comprehensive gate on tree d21fbae8: FULL greenfield Conformance 5109/5109 (+7 over #36 — the
+The comprehensive gate on tree 26c72d0a: FULL greenfield Conformance 5109/5109 (+7 over #36 — the
 INDEX-image golden, the PB179 negative fixtures, the PB180 ACCEPT fact, the PB181 boundary golden),
 Unit 5032/5032, NIST 353 MATCH / 0 REGRESSION with a CLEAN audit, guard ALL GREEN, GnuCOBOL
 differential 1323 cases with 0 PER-CASE FLIPS (totals unchanged) — the INDEX byte pin, the Tier-D arm

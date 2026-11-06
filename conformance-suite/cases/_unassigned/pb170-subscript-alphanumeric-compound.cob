@@ -11,7 +11,7 @@
       *> D18 path only for a slash, a function, an unresolvable name, a SCALED
       *> operand inside a compound, or a token with no case arm - and plain '+'
       *> over an UNSCALED alphanumeric name is none of those. Measured on
-      *> 9a89fbd1: compiled clean and printed R=B.
+      *> 02c72682: compiled clean and printed R=B.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB170N2.
        DATA DIVISION.

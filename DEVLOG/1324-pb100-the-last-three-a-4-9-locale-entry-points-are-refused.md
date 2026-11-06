@@ -25,7 +25,7 @@ PB27 / PB78 / PB92 shape. Negatives `pb100-alphabet-locale-phrase`, `pb100-pictu
 `pb100-ec-locale-names`; CONFORMANCE.md §4 item 5 names all three; SR-12.3.7.3-24 / GR-12.3.7.4-5 →
 DOCUMENTED-NON-SUPPORT (GAP 3935 → 3933).
 
-**Battery #19** (PB99, tree `a6034ca8`, recorded in §0 with `b271b936`): Conformance 4793/4793 · Unit 4239/4239 ·
+**Battery #19** (PB99, tree `4a5d9976`, recorded in §0 with `905b977d`): Conformance 4793/4793 · Unit 4239/4239 ·
 Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases, 0 flips. ALL GREEN.
 
 **Gate (PB100, wave-local).** Characterization 33/33; unit (Ec / Turn / alphabet / reserved-word / picture / locale / grammar / lexer / SPECIAL-NAMES) 3103/3103; conformance (the corpus runner + manifests, SPECIAL-NAMES / alphabet / locale / exception / EC / reserved-word / picture / version-matrix / collating) 3412/3412 (10 m 47 s). Battery #20 rides with the next landing.

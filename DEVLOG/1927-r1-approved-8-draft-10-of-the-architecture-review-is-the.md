@@ -46,7 +46,7 @@ PB2417 had been blocked only by PB2118 and are now `blocked: false` (`work.py ch
 generator in `scripts/arch/file_census_notes.py` no longer writes "§8 binds nothing until the owner approves it". The
 ledger's lanes read R1 from the register, and `ledger_plan.py --self-test` passes 11 cases.
 `docs/rearchitecture/evidence/ledger-trend.json` gained four points that existed only as an uncommitted render in
-main's checkout: GAP points e68c3365, 24a007fe and 42a68e20, and program point 37f2b131.
+main's checkout: GAP points 596741ca, 86a811d3 and 826e5042, and program point d5b61075.
 
 **Leads filed (PB2425–PB2430).** PB2425: `compare_oracle.py` records no result, so the ledger shows PB2152's status
 instead of the latest comparison. PB2426: the ledger render dirties the tracked trend file in main's checkout. PB2427:

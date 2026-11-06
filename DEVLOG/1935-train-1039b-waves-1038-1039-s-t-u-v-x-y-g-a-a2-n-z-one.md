@@ -88,7 +88,7 @@ drift test's old count of two Settle sites, the lander's own change, fixed).
 SPLITs escalated wave 1039's group A to Opus and made five groups FINISH-FIRST against deleted branches; the fix shape
 (a void report is neither an attempt nor a predecessor) is in the note.
 
-**Z — PB1754 (R2 batch 1 filed).** R2 batch 1 (pin 8be230068; 7 shards × 5 dimensions plus the duplication pass) is
+**Z — PB1754 (R2 batch 1 filed).** R2 batch 1 (pin cd85e4901; 7 shards × 5 dimensions plus the duplication pass) is
 filed: 31 mechanisms PB2619–PB2649 and, from the triage of 17 invalid records, PB2652–PB2658; `r2_collect.py` no longer
 lets a null skeptic correction overwrite a finding, reads `design_ref` by its leading token, and requires a defect harm
 that `work.py` ranks. Batch 2 is held for the owner. The train's own leads: PB2614 (dispatch_guard records a read-only
@@ -98,7 +98,7 @@ property loses untouched positions; adjudication first); PB1902 records the aban
 
 **The train.** Ten clusters, none dropped or ejected; batched gating (every implementer gated leg 1 only). Whole-population
 gate runs: 5 — the first lander's two (red: A's test-refs, then A's witness loss), and this lander's three (red: the A2
-drift count; GREEN at 7e4a96cad; GREEN at 0342e990a after the T/U/V review fixes): `=== BUILD-LOCAL GATE: GREEN —
+drift count; GREEN at 7e4a96cad; GREEN at 3246567e0 after the T/U/V review fixes): `=== BUILD-LOCAL GATE: GREEN —
 Conformance 11,213/11,213 · Unit 32,674/32,674 · Characterization 36/36`. The step-5b review found seven defects (G 1,
 A2 1, T 1, U 1, V 3 with two sharing one root), all fixed in their clusters' commits with a test that fails before.
 Semgrep unchanged (BigInteger 46, decimal 2, raw diagnostic literal 268). Inventory GAP 145 → 144. No diagnostic codes
@@ -108,7 +108,7 @@ names the constant-name argument (A, PB1544), COBOLNET2967/2968 say "the imperat
 programs use the identified-object temporary for the SET (A2), the exact wide product (G, pb91, pb1143), the CALL/INVOKE
 argument at the formal's scale (G PB289: pb1114 ×2, pb1422, pb923's MAX now stores at the formal's scale) and the
 floating-point edited quotient at the guard scale (G review: pb66, output unchanged). Re-recorded as
-`arch-oracle/0342e990a973`. The Linux gate ran GREEN on the gated head. push-main's landing check then STOPPED the
+`arch-oracle/3246567e0c2c`. The Linux gate ran GREEN on the gated head. push-main's landing check then STOPPED the
 train three times falsely (PB2609): it bound `w1040w-gn1-close`, `w1040u-recursion-depth` and `w1040s-a1-116-118`
 to this train's OWN lander dispatch-ledger entries (the dispatch guard records a lander with every id its brief's
 files mention; PB2614's lander arm) and dated them by the earliest. The orchestrator released those three entries

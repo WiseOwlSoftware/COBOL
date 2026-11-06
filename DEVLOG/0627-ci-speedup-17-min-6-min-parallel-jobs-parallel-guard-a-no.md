@@ -5,12 +5,12 @@ The `Build and Test` workflow's single Linux "guard" job ran five heavy activiti
 SUM (~17 min, and the guard job was often the last thing to go green by many minutes). Three changes, owner-opted
 to the fullest scope:
 
-**1. Split the monolith into 4 parallel jobs (commit f706e16).** `guard` (legacy build + unit + integration +
+**1. Split the monolith into 4 parallel jobs (commit aa14f78).** `guard` (legacy build + unit + integration +
 NIST), `greenfield-tests` (conformance + unit), `inv1-sweep`, and `windows-build-test` now run CONCURRENTLY, so
 wall-clock is the SLOWEST single job, not the sum. Coverage is unchanged. Added `actions/cache` on
 `~/.nuget/packages` (keyed by the csproj/Directory.Packages.props hash) and build-once/`--no-build`.
 
-**2. Parallelise the NIST regression (f706e16).** The guard job now runs `scripts/guard-fast.sh` (the ~350
+**2. Parallelise the NIST regression (aa14f78).** The guard job now runs `scripts/guard-fast.sh` (the ~350
 CCVS-85 baselines fanned across cores with the per-suite isolation model proven equivalent by
 `scripts/guard-verify.sh`) instead of the serial `guard.sh`. Verified green + 353 MATCH (identical to `guard.sh`)
 on the current tree in ~2.6 min locally. First-run measurements: guard 4.6 min · greenfield 4.3 min · windows

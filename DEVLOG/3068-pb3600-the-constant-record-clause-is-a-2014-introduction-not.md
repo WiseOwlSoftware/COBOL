@@ -1,7 +1,7 @@
 ## Entry 3068 — 2026-11-03 19:39 PST — PB3600 - the CONSTANT RECORD clause is a 2014 introduction, not 2002
 
 **Re-probe.** The note's repro (the row's own `KCR` source) compiled clean at `--std 2002` on the base tree
-(`c1c9b6d3a`) and drew COBOL0900 only at 85, so the defect stood. The archived 2002 texts (FCD 1989:2001 and the
+(`ea6cdebb7`) and drew COBOL0900 only at 85, so the defect stood. The archived 2002 texts (FCD 1989:2001 and the
 2001-12-04 post-ballot text) have no CONSTANT RECORD clause, the 2009 CD has it at clause 13.18.15, and Annex E.2 item 10
 of the 2023 text (`cite.py --check E.2 "where previously external items could not be strongly typed"` is OK) shows the
 2014 standard carried it.

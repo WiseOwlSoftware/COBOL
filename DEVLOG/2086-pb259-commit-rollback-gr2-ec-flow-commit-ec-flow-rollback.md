@@ -6,7 +6,7 @@ when the statement runs under the control of a recursive runtime element or an a
 adjudication, upheld by its refuter, decided both rows are DOCUMENTED-NON-SUPPORT. This landing records that decision.
 The ACCEPT row the note once held, `FMT-14.9.1.2`, had already closed CONFORMS through PB2499.
 
-**Re-probe (wave 1095, base `60900b5cc`).** The adjudication's repros `CMS2.cob`, `RBS2.cob` and `CMR2.cob` behave as it
+**Re-probe (wave 1095, base `1b4d25be7`).** The adjudication's repros `CMS2.cob`, `RBS2.cob` and `CMR2.cob` behave as it
 recorded. Each COMMIT or ROLLBACK site draws one COBOLNET1579 warning. The run prints `HELPER` /
 `AFTER-COMMIT ST=[<31 spaces>]` / `SORTED`, and the ROLLBACK and recursive twins print the same way. No condition is
 raised, even under `>>TURN EC-ALL CHECKING ON`. The refuter's `C1POS.cob` draws exactly 19 COBOLNET1579 warnings. A

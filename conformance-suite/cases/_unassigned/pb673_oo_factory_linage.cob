@@ -15,7 +15,7 @@
       *> program registration arm (DispatchEmitter.__Activate) installed them - the class-ctor arm
       *> (OoEmitter.EmitFileMembers) installed the ASSIGN ... USING source next to it and never the LINAGE
       *> evaluator. So a factory's or object's LINAGE FD had NO page model at all: no counter, no end-of-page,
-      *> LINAGE-COUNTER frozen. MEASURED at 1a3cc30d - this program printed NOEOP1 / NOEOP2. Moving the
+      *> LINAGE-COUNTER frozen. MEASURED at fe2315e7 - this program printed NOEOP1 / NOEOP2. Moving the
       *> operands onto the statement removes the second arm rather than adding a second install.
       *>
       *> EXPECTED, derived from the rule (LINAGE IS 4 LINES WITH FOOTING AT 2):

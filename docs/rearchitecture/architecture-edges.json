@@ -963,7 +963,7 @@
       "removedBy": [
         "PB2347"
       ],
-      "plan": "PB2347 (the same move; MoveClassifier and MoveOverlap stay in compiler.bound); PB4677 added one pair, the composition root's new verb collaborator CommunicationBinder, and PB4743 another, MessagingBinder (SEND and RECEIVE left DeclinedFacilityBinder), which PB2347's move takes with the others; the walk read 39 at 669e32aa9, two pairs more than at a02b165da (StatementBinder -> PlacementRules, UntilExitPlacement, landed after the census; Draft 7, H1)",
+      "plan": "PB2347 (the same move; MoveClassifier and MoveOverlap stay in compiler.bound); PB4677 added one pair, the composition root's new verb collaborator CommunicationBinder, and PB4743 another, MessagingBinder (SEND and RECEIVE left DeclinedFacilityBinder), which PB2347's move takes with the others; the walk read 39 at 669e32aa9, two pairs more than at 79a4b6c58 (StatementBinder -> PlacementRules, UntilExitPlacement, landed after the census; Draft 7, H1)",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
@@ -1262,7 +1262,7 @@
       "removedBy": [
         "PB2347"
       ],
-      "plan": "PB2347 (StatementBinder moves to Binding/Procedure, the same layer as StatementValidation; a row landed after a02b165da by the fix lane, measured by the walk at 669e32aa9, StatementBinder.cs:446; Draft 7, H1)",
+      "plan": "PB2347 (StatementBinder moves to Binding/Procedure, the same layer as StatementValidation; a row landed after 79a4b6c58 by the fix lane, measured by the walk at 669e32aa9, StatementBinder.cs:446; Draft 7, H1)",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",

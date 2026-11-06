@@ -43,7 +43,7 @@ the passes; the inventory and register drift tests leg 1 left out pass in a targ
 unchanged.
 
 **Oracle.** The landing oracle refused the first enqueue (exit 7): the grammar, the CST and the construct registry are
-inputs of baseline 60d47c6d52a9. `compare_oracle.py` against it: `DIFFERENT — 15 of 7782 cases`, in two classes, both
+inputs of baseline 91428ad4ca04. `compare_oracle.py` against it: `DIFFERENT — 15 of 7782 cases`, in two classes, both
 the intended effect of this change. ADDED (2): the new golden `corpus/2002/pb2721_context_word_user_word_slots` and the
 new negative `negative/pb2732-qualified-index-name`. DIAGNOSTICS (13), every one the same single line: the COBOLNET0900
 edition-gate message for the TYPE clause now names `ISO §13.18.57 (the TYPEDEF family, §13.18.58)` where it named

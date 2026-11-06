@@ -8,7 +8,7 @@
       *> not exceed the size of the group item."  GD carries GROUP-USAGE NATIONAL, so 8.5.2.1 gives it "class
       *> and category national" and 13.18.29.4 GR2b treats it as though it were PICTURE N(m) with m its four
       *> national positions - P1's two plus P2's two.  N"ABCDEF" is six.
-      *> MEASURED BEFORE THIS SCREEN (kb/Work PB206, on 1d949007): compiled CLEAN, P1 = AB and P2 = CD - the
+      *> MEASURED BEFORE THIS SCREEN (kb/Work PB206, on c86e0bf1): compiled CLEAN, P1 = AB and P2 = CD - the
       *> tail of the literal silently dropped.  The GROUP-USAGE clause is COBOL-2002 (group-usage-clause-2002),
       *> which is why 85 is not in the reject-at band: there the entry is refused for the clause itself.
        IDENTIFICATION DIVISION.

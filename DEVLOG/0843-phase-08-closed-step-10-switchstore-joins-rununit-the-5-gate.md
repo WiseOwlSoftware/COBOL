@@ -21,7 +21,7 @@ STATUS BANNER + phase-index row; `resume-prompt.md` → RESUME AT PHASE-09; `CLA
 plan row compressed to a pointer at the plan banner (that row had drifted twice — duplication removed instead of
 re-synced).
 
-**Byte-stability (exit criterion 5), the strong form:** `git diff 534f2253..HEAD -- src/Cobol.Net.Compiler
+**Byte-stability (exit criterion 5), the strong form:** `git diff b1277ac2..HEAD -- src/Cobol.Net.Compiler
 src/Cobol.Net.Frontend src/Cobol.Net.Cli` is EMPTY across the whole phase — the compiler that renders C# is
 untouched, so emitted source is byte-identical by construction; the 33-snapshot characterization gate rode every
 commit's battery as the belt-and-suspenders check.

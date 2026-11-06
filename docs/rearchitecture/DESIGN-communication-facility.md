@@ -382,7 +382,7 @@ ordinals (it passes none), alternate trees, the TRANSACTIONS and HOLDINGS trees,
 **Size.** The estimate, from the code read: about 200 lines change in `IO/Store`, `IO/KeyedStore.cs` and `IO/Sharing/HostRegionLocks.cs`.
 About 90 of them move out of `KeyedStore.Change` into `StatementLanding`; `MetaPage` and `PagedFile` gain about 50 for the kind; the
 mutex's result and the presence byte touch about 15 lines at three call sites (`HostRegionLocks.cs`, `KeyedConnector.cs`,
-`KeyedConnector.DeadOwners.cs`). The seam move is larger than either: on origin/main (485c15326) `MediumObserver` appears on 152 lines
+`KeyedConnector.DeadOwners.cs`). The seam move is larger than either: on origin/main (7ccb2822b) `MediumObserver` appears on 152 lines
 in 19 files: 3 lines in 2 `src` files (`KeyedStore.cs`, `RunUnitFileLock.cs`) and 149 in 17 test files, `CommitRollbackRuntimeTests` (38),
 `IndexedEngineTests` (29), `RelativeEngineTests` (27), `StoreCoherenceTests` (13) and `FileBoundaryTests` (8) the largest, and the
 fault-injecting media `DyingPageMedium`, `RefusingPageMedium` and `PageArrayMedium` among them. Every one changes to

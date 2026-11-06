@@ -7,7 +7,7 @@
       *> ISO 13.18.63.3 SR4, sentence 3: "Alphanumeric literals in the VALUE clause of an alphanumeric group
       *> item shall not exceed the size of the group item."  GZ is an alphanumeric group item (13.18.29.4 GR3;
       *> 8.5.2.1) of FOUR character positions - O1's two plus O2's two - and "ABCDEF" is six.
-      *> MEASURED BEFORE THIS SCREEN (kb/Work PB206, on 1d949007): this program compiled CLEAN and `DISPLAY GZ`
+      *> MEASURED BEFORE THIS SCREEN (kb/Work PB206, on c86e0bf1): this program compiled CLEAN and `DISPLAY GZ`
       *> printed ABCD - the literal SILENTLY TRUNCATED, with no diagnostic.  The rule is a "shall", so the only
       *> conforming response is a compile-time rejection; a truncating store is the answer to a question the
       *> standard does not ask.  Not dialect-gated: SR4 carries this sentence at every edition, and so does its NUMERIC-EDITED sibling arm (COBOL1570, kb/Work PB4610); Annex E.2

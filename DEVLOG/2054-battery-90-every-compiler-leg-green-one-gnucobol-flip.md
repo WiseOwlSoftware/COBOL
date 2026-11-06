@@ -1,6 +1,6 @@
 ## Entry 2054 — 2026-10-16 03:58 PDT — Battery #90: every compiler leg green; one GnuCOBOL flip, PROGRAM-ID. short., ruled expected
 
-The operator ran battery #90 on main `f5fec711b`: every landing since battery #89 (DEVLOG 1933-2050), in a fresh
+The operator ran battery #90 on main `1ad0a9821`: every landing since battery #89 (DEVLOG 1933-2050), in a fresh
 detached worktree, cold compile cache, 763 s wall. Every compiler leg is green. Conformance ran 11,708 of 11,708,
 Unit 33,700 with no failures, and characterization 36 of 36. The NIST guard reads 362 MATCH and 0 REGRESSION, and
 every static audit is clean.

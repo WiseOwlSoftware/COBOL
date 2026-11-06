@@ -27,7 +27,7 @@ the reporter failed 7 of 13 self-test arms). No rows: all three notes `landed` w
 
 **Train 64.** One cluster, landed alone on purpose (tooling only; the proof of the workflow change is this landing's
 own `ci/<sha>` run, where the `audits` job must appear and pass under `ci-gate`). Brought in from
-`worktree-agent-a94f7934378180045` @ 29b42ed4a (base bd139c33b) with no conflicts; rebased onto train 63 (938ef8a28)
+`worktree-agent-a94f7934378180045` @ 29b42ed4a (base 9ed32da25) with no conflicts; rebased onto train 63 (4212f24ca)
 cleanly, outside-docs conflicts none, so no re-gate. Gate (whole assemblies, `build-local.ps1 -Filter
 "~CobolNet.Tests"`, Normal priority): Conformance 8838/8838, Unit 29302/29302, Characterization 33/33 —
 `WAVE-LOCAL GATE: GREEN`; legacy `CobolSharp.Tests.Integration` 503 passed, 1 skipped, 0 failed; the four new tests

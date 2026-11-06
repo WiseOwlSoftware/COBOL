@@ -1,7 +1,7 @@
 ## Entry 1889 — 2026-10-05 07:22 PDT — Train 1020b: wave 1020 groups G, C (split), H: one table for the file-control formats, SELF and SUPER as expression-tier identifiers, REDEFINES data-name-2 screened, the non-ISO linkage USING entry deleted
 
-Train 1020b carried three clusters from wave 1020, in order G, C, H, onto train 1020's head `ad7257631`. All three were
-cut at `7546af101`, so no code hunk conflicted. The only conflicts were whole-element additions to `docs/DIAGNOSTICS.md`,
+Train 1020b carried three clusters from wave 1020, in order G, C, H, onto train 1020's head `f56117248`. All three were
+cut at `a03accb72`, so no code hunk conflicted. The only conflicts were whole-element additions to `docs/DIAGNOSTICS.md`,
 `DiagnosticCatalog.cs` (two adjacent descriptors, COBOLNET2897 from train 1020 and COBOLNET2900 from C) and the 85,
 2002, 2014 and negative conformance manifests. Both sides were kept, the comma between list elements restored, the
 DIAGNOSTICS rows re-sorted by code, and every JSON file re-parsed. The inventory hunks applied cleanly. A dry run of each

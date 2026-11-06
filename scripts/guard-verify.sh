@@ -13,7 +13,7 @@
 # verdict MEANS is asserted here, one rule at a time; what each program's verdict must BE is asserted against the
 # committed manifest by scripts/guard-nist-audit.sh. Every case below was proved RED against the pre-fix runner
 # before it was made green (`feedback_green_gates_arent_evidence` — reproduce with
-# `git show 80c87970:scripts/guard-run-group.sh > /tmp/old.sh` and
+# `git show 148db6cd:scripts/guard-run-group.sh > /tmp/old.sh` and
 # `GUARD_GROUP_RUNNER=/tmp/old.sh bash scripts/guard-verify.sh --self-test`).
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"

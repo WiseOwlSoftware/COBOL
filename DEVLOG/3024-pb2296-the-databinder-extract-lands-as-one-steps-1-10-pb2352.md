@@ -5,10 +5,10 @@ One landing carries the whole wave-20261834 extract (integrated by wave 20261837
 ### PB2296 M6 and M7 — the data binder's tables become value slices of DataBindState, and the file binder takes the FILE half
 
 kb/Work PB2296 is step 1 of the eleven-step `DataBinder` extract (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), census
-R0-0001). This wave (20261837 group B) ends it, on top of group A's integration branch (499a65da5, reviewed CLEAN): M6 regroups the
+R0-0001). This wave (20261837 group B) ends it, on top of group A's integration branch (7c66a7688, reviewed CLEAN): M6 regroups the
 remaining binder fields into value slices of `DataBindState`, and M7, which group A's review finding R1-1 added, moves the FILE half
 that `FileControlBinder` (PB2356) left on the binder. Behavior-neutral by contract, so the proof is the §4 oracle:
-`python scripts/arch/compare_oracle.py --base 499a65da5` answered `=== ARCH-ORACLE: IDENTICAL — 16147 cases ===` after M6 and again
+`python scripts/arch/compare_oracle.py --base 7c66a7688` answered `=== ARCH-ORACLE: IDENTICAL — 16147 cases ===` after M6 and again
 after M7.
 
 **What the re-probe showed.** Nothing to reproduce: an Extract wave has no defect. The design's list of slices (the usage facts, the
@@ -76,7 +76,7 @@ main took PB2104's changes into `OoDataBinder`, `DataBinder.Ptr` and `Repository
 
 kb/Work PB2360 is step 10 of the eleven-step `DataBinder` extract (docs/rearchitecture/DESIGN-architecture-review.md §8.3
 (1), census R0-0001). It is behavior-neutral by contract, so the proof is the §4 oracle:
-`python scripts/arch/compare_oracle.py --base 7b0ec6eb1` (the merge base with PB2296 step 1) answered
+`python scripts/arch/compare_oracle.py --base ae414651c` (the merge base with PB2296 step 1) answered
 `=== ARCH-ORACLE: IDENTICAL — 16143 cases ===`. It ran beside five other DataBinder groups (owner, 2026-11-02, kb/Work
 PB4452), each on its own partials, so `blocked_by` is rewritten from the census order (PB2359) to the real result dependency,
 PB2296 step 1.
@@ -126,7 +126,7 @@ byte-identical apart from `data.` qualification and renamed members; `RootOwner`
 `DataBinder.AttachToHierarchy`. Performance: `Oo` and `Temps` are lazy fields, no new hot-path allocation. Duplication: none
 added; `IsClassUnit`/`OwnerClassName` no longer come from two properties.
 
-**Gate.** At head 2c5a0843f the gate answered `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,399/39,399 ·
+**Gate.** At head 64088eafc the gate answered `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,399/39,399 ·
 Characterization 37/37 cases ran (skipped 0) … (run 000001-20261102T221940Z) ===`, first time, no red on the way. The three
 `OoDataBinderBoundaryDriftTests` facts are in that run's `Unit.trx`. `python scripts/semgrep/verify.py`: PASS, no rule's count rose.
 
@@ -137,7 +137,7 @@ kb/Work PB2359 is step 9 of the eleven-step `DataBinder` extract (docs/rearchite
 DataBinder groups, each on its own partial, all starting from PB2296 step 1's branch, so its `blocked_by` was rewritten
 from the census plan's ORDER (PB2358) to the real result dependency (PB2296: `DataBindState`, `InheritedGlobals`). It is
 behavior-neutral by contract, so the proof is the §4 oracle: `python scripts/arch/compare_oracle.py` against the merge
-base 2e1a4eed8377 answered `=== ARCH-ORACLE: IDENTICAL — 16143 cases ===` on the finished tree. There is no probe to
+base f3f4c5f1d35c answered `=== ARCH-ORACLE: IDENTICAL — 16143 cases ===` on the finished tree. There is no probe to
 re-run: nothing the note measured is a behavior.
 
 **What moved.** `DataBinder.Linkage.cs` is now `Binding/LinkageBinder.cs`, renamed in place so the records it also holds
@@ -188,7 +188,7 @@ Steps 2, 3 and 4 of the eleven-step `DataBinder` extract (docs/rearchitecture/DE
 R0-0001) ran as one change by owner decision (2026-11-02: do the steps of one mechanism together, several groups at once). They
 sit on PB2296 step 1 (`DataBindState`, `ProcedureBindState`), which was merged first; their `blocked_by` now names that real
 dependency instead of the census plan's order. The contract is behavior-neutral, so the proof is the §4 oracle:
-`python scripts/arch/compare_oracle.py` against the base 2e1a4eed8377 answered `=== ARCH-ORACLE: IDENTICAL — 16143 cases ===`.
+`python scripts/arch/compare_oracle.py` against the base f3f4c5f1d35c answered `=== ARCH-ORACLE: IDENTICAL — 16143 cases ===`.
 
 **What the rows are now.** `BindPipeline.Build` listed 29 `BindPass` lambda rows (`d => d.ExpandTypes()`); it lists 29 classes,
 `Binding/Passes/<Name>Pass.cs`, and the `BindPass` record is deleted. A class holds its name, `Requires`/`Produces`, its
@@ -239,7 +239,7 @@ verbatim; the license header of 22 files was dropped by the unused-using pruner 
 `FactSet.Add`. Duplication: none added; the group tail's view declarations are the only second statement of a fact set's
 phases, and `ValidateDag` checks them against `FactSetContract`.
 
-**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,428/39,428 · Characterization 37/37 cases ran (skipped 0) …` (run 000006-20261102T235249Z at 6cdfa8113006); earlier reds were found and fixed on the way: the line-ending audit (a script wrote CRLF into four files), the rendered-views audit (a `Sweep` trait on a test that is no tree-wide sweep), and three text-scan tests that still read the partials (`UsageInheritanceDriftTests`, `EditionMutedDriftTests`, `ReportItemReferenceTests`). The oracle at that head: `=== ARCH-ORACLE: IDENTICAL — 16143 cases (baseline 2e1a4eed8377, new 6cdfa8113006) ===`.
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,428/39,428 · Characterization 37/37 cases ran (skipped 0) …` (run 000006-20261102T235249Z at aef0c91c1c15); earlier reds were found and fixed on the way: the line-ending audit (a script wrote CRLF into four files), the rendered-views audit (a `Sweep` trait on a test that is no tree-wide sweep), and three text-scan tests that still read the partials (`UsageInheritanceDriftTests`, `EditionMutedDriftTests`, `ReportItemReferenceTests`). The oracle at that head: `=== ARCH-ORACLE: IDENTICAL — 16143 cases (baseline f3f4c5f1d35c, new aef0c91c1c15) ===`.
 
 ### PB2355, PB2356 — DataBinder extract steps 5 and 6: SpecialNamesBinder and FileControlBinder
 
@@ -247,7 +247,7 @@ Steps 5 and 6 of the eleven-step `DataBinder` extract (docs/rearchitecture/DESIG
 R0-0001; kb/Work PB2355, PB2356), run as one group on PB2296 step 1's branch (the owner's 2026-11-02 rule: several steps
 in parallel, each on its own partials). Both are behavior-neutral by contract, so the proof is the §4 oracle:
 `python scripts/arch/compare_oracle.py` answered `=== ARCH-ORACLE: IDENTICAL — 16143 cases ===` against main's
-2e1a4eed8377 after step 5 and again at the final head.
+f3f4c5f1d35c after step 5 and again at the final head.
 
 **SpecialNamesBinder (PB2355).** `DataBinder.Switches.cs` (2,414 lines, the SPECIAL-NAMES paragraph and the
 OBJECT-COMPUTER alphabets and classification, ISO §12.3.6-§12.3.7) is a class of its own, made once per unit as
@@ -289,7 +289,7 @@ the `COBOL1512` literal in the LOCK MODE rule moved with its code and is now mat
 interpolated string with `…` in it never was. `COBOL1512` has no catalog descriptor and three rules share it
 (LOCK MODE with sequential access, a lock phrase under LOCK MODE AUTOMATIC, OPEN SHARING ALL OTHER without a LOCK MODE),
 so the finding is a defect in the diagnostic catalog, not in this move; it is a lead for the fix lane.
-The gate's verdict on the code head 2f23f8d93: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,404/39,404 · Characterization 37/37 cases ran (skipped 0) ... (run 000003-20261102T232400Z) ===`.
+The gate's verdict on the code head 3c4434ae0: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit 39,404/39,404 · Characterization 37/37 cases ran (skipped 0) ... (run 000003-20261102T232400Z) ===`.
 Two reds on the way, both mine: gate 1 stopped on the evidence-supersession audit (the frozen record cites the deleted
 file), gate 2 on `ReportItemReferenceTests`, which names `ResolveClauseOperand` by its visibility.
 
@@ -348,11 +348,11 @@ passes call binders, no C# text in a bound node. Full code: the cited rule (the 
 a text merge dropped). Performance: no hot-path allocation changed (the slice is one object per unit). Duplication: the uid
 takers and the suppressed-root-field door above.
 
-**Gate and oracle.** The code head 53683769c: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,976/20,976 · Unit 39,472/39,472 ·
+**Gate and oracle.** The code head cb8321a02: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,976/20,976 · Unit 39,472/39,472 ·
 Characterization 37/37 cases ran (skipped 0) ... (run 000001-20261103T015321Z) ===`, first run, no red on the way; the integration
 fixes above were found by the compiler's error list and by `DecidedRuleStageDriftTests`, `HostEntryShapeDriftTests`,
 `DecimalPointModeDriftTests`, `ReportScopeBoundaryDriftTests`, `ArchitectureEdgesDriftTests` and
-`SpecTraceabilityInventoryDriftTests` run by hand before it. `compare_oracle.py --base 1f60f2503` (main): DIFFERENT, 5 of 16144
+`SpecTraceabilityInventoryDriftTests` run by hand before it. `compare_oracle.py --base 8418dc1b8` (main): DIFFERENT, 5 of 16144
 cases, and all five are accounted for: the ADDED golden `suite/2023/pb2296_method_options_arithmetic_reaches_body` (A's defect
 fix, `UnitTestResult` Passed in `Conformance.trx`), and four DIAGNOSTICS cases (`report-multi-line-2002@85`, its `+permissive`
 twin, `pb4109-level-01-multiple-line-at-85`, `pb565-report-multiple-line-at-85`) whose message differs only in the C# site the

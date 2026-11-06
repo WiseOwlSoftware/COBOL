@@ -6,7 +6,7 @@ that is not elementary "an alphanumeric to alphanumeric elementary move, except 
 of internal representation to another" (both through `cite.py --check`). Four fuzz programs of run fuzz-20261022-163846
 (fz03077, fz03775, fz04473, fz04474) found it.
 
-**Re-probe.** Reproduced on origin/main 07bfc3606, and wider than the note: the shape where the program never names the numeric
+**Re-probe.** Reproduced on origin/main dea60c6cd, and wider than the note: the shape where the program never names the numeric
 leaf (`ren1`) was wrong too, so the leaf's being referenced by name was never the condition. The condition is the leaf's native
 value carrier, which holds a decoded number and so turns `XXX` into `000`.
 

@@ -1,6 +1,6 @@
 ## Entry 871 — 2026-07-17 09:42 PDT — P11 OPENED — Step 0 preflight green; the P10-lesson anchor re-scout ran FIRST (11 parallel scouts) and its findings are PERSISTED as PHASE-11-scout-notes.md
 
-PHASE-11 (deferred-intrinsics backlog to zero + the Tier-C decision) opened on the tree at `45fe74dd`. This
+PHASE-11 (deferred-intrinsics backlog to zero + the Tier-C decision) opened on the tree at `dc1a6671`. This
 entry checkpoints the session state durably — the executing session may hand off mid-phase, and the next one
 must resume without re-discovery (read `resume-prompt.md` → the P11 STATUS banner → the scout notes).
 

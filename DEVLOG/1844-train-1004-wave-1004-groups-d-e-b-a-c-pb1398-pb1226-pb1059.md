@@ -64,7 +64,7 @@ cite-checked; the ODO-group reading is PB1924). Placement is one rule over three
 indexed USING/GIVING files work (RANDOM refused by name, indexed GIVING key SR9, relative keys 1..n). The L5 finding was
 refuted by the printed p745: COLLATING is an optional word. Ten goldens and 32 negatives; GAP −20.
 
-**The train.** Five clusters, one patch each from its implementer branch onto 5bdbfd241, in the order D, E, B, A, C.
+**The train.** Five clusters, one patch each from its implementer branch onto bfc1a2b19, in the order D, E, B, A, C.
 Conflicts were whole elements only: the negative and edition manifests' lists, the generated `docs/DIAGNOSTICS.md`
 rows and two adjacent `DiagnosticCatalog` blocks, all taken from both sides; one doc comment in
 `SortBinder.SortBindCollating` was merged by hand to carry A's shared alphabet test and C's L5 correction. A script

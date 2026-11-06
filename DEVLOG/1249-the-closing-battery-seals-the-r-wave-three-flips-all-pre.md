@@ -7,7 +7,7 @@ pre-recorded in the note); syn_definition:852 and :878 → AGREE_REJECT — GnuC
 testcases now rejected by R33's §8.4.2.2.1 enforcement, moving INTO agreement with the oracle, and
 ZERO over-rejections anywhere in the 1,323-case GPL population (the arbitration R33's landing deferred
 to this battery, closed in its favor). Baseline regenerated, exactly 3 rows; fresh differential
-0 flips. Reference advanced to b66a292c.
+0 flips. Reference advanced to a7b6ccf6.
 
 work.py next: "(nothing unblocked harms a user's program)" — the ranked actionable list is EMPTY for
 the first time since the register was created. Landed across this session's wave: R21–R39 less the

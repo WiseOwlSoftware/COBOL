@@ -110,7 +110,7 @@ COBOLNET_FILES_DESIGN.md "THE SECOND KEY FORM" and D10 (format version 5), the g
   `PublicAPI.Shipped.txt`, which merged cleanly; this branch's removed members still raise the combined surface to
   major 7, the boundary hash is main's (this branch never moves it), and the test recomputed the combined runtime
   surface hash (E13EE8199764F780).
-- Landing finisher (Linux gate red, exit 5 on `a9bc43263`): `RegionLocksDriftTests.TwoWaitingHoldsBothGetTheByteInTurn(kind:
+- Landing finisher (Linux gate red, exit 5 on `e9bf2b06f`): `RegionLocksDriftTests.TwoWaitingHoldsBothGetTheByteInTurn(kind:
   LockFiles)` answered `[Unavailable, Ok]`. It was main's, not this branch's: 2 of 160 stressed WSL runs failed at the head and
   4 of 160 at origin/main, and the diff never reaches `IO/Sharing`. Root cause (kb/Work PB3313, measured): a lock directory a
   sibling had just made, removed by the sibling's CLOSE between .NET's `mkdir` (`EEXIST`) and its own existence check, made
@@ -125,7 +125,7 @@ COBOLNET_FILES_DESIGN.md "THE SECOND KEY FORM" and D10 (format version 5), the g
   there, so the decision is now `HostFile.IsClosingSiblingRace`: `EEXIST` with the name empty or a directory is the race,
   and a file there, a name the host will not describe, or another errno keeps the failure.
   `RegionLocksDriftTests.ALockDirectoryEexist_IsTheClosingSiblingRace_UnlessAFileHoldsTheName` asks all four states
-  directly, and its `directory` row is red under the first filter. The merge of origin/main 0b8557338 met main's PB3167
+  directly, and its `directory` row is red under the first filter. The merge of origin/main 962a1d385 met main's PB3167
   at runtime major 7 beside this branch's 7, so the merged surface goes to major 8 (surface hash `F40DEAD1CAB1B902`,
   measured by the pin test). Main's PB3173 editions paragraphs are kept on the four rows whose notes this branch rewrote.
 - Review finisher (w1106a round 2, branch review R1-1): the first branch review's R1-4 was never answered, because its
@@ -140,7 +140,7 @@ COBOLNET_FILES_DESIGN.md "THE SECOND KEY FORM" and D10 (format version 5), the g
 
 **The suite move (finisher, w1106a).** PB3177 slice S2 landed first and deleted `tests/conformance/`, so the
 merge re-homed this branch's corpus by the recipe in kb/Work PB3177 "Landed". The S2 converter was restored from
-c9a1ffdb2 and moved the three programs to `conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source`,
+7d6cd9709 and moved the three programs to `conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source`,
 `conformance:cases/14.9.41-START/pb1099_record_key_source_national` and
 `conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099-record-key-source-85`. The negative's refusal (85,
 COBOLNET0900) went to `wiseowl/diagnostics.json`. The five retired pb358 refusals were deleted at their suite paths.

@@ -1,7 +1,7 @@
 ## Entry 2662 — 2026-10-27 12:06 PDT — Battery #91: every compiler leg green; one GnuCOBOL flip, PERFORM VARYING without BY at 85, ruled expected
 
 The owner asked for the comprehensive battery (11:15, relayed by the Mythos lane): the last one, #90, was 4,319 commits
-back. The operator ran battery #91 on main `0fc3b47c8`, covering every landing since #90 (DEVLOG 2051-2658), in a fresh
+back. The operator ran battery #91 on main `bb34100d3`, covering every landing since #90 (DEVLOG 2051-2658), in a fresh
 detached worktree with a cold compile cache. It took 2,184 s of wall time beside the loop's running wave. Every compiler
 leg is green. Conformance ran 19,067 of 19,067, Unit 38,113 with no failures, and characterization 36 of 36. The NIST
 guard reads 362 MATCH and 0 REGRESSION, and every static audit is clean.

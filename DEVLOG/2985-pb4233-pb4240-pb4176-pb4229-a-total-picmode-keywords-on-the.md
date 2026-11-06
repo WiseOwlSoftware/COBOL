@@ -2,7 +2,7 @@
 
 ### PB4233, PB4240, PB4176, PB4229: a total PICMODE, keywords on the basic letters alone, the open COPY literal, and a reserved word as a procedure-name
 
-Wave 20261788 group B, one lexer-and-front-end root, four mechanisms, each re-probed on the build of 11e8949be before any
+Wave 20261788 group B, one lexer-and-front-end root, four mechanisms, each re-probed on the build of 33f0f7a6a before any
 change.
 
 **PB4233 (MEDIUM, under-rejection).** `01 X PIC.` then `X(3) VALUE 'ABC'.` compiled exit 0 and displayed ABC: PICMODE had no
@@ -52,12 +52,12 @@ rows.
 No inventory row was claimed or re-verdicted (each row these rules map to already CONFORMS); every note writes
 `closes_rows: []` with its reason. Codes: COBOL5704 used, COBOL5705 and COBOL5706 returned.
 
-**PB4322 (the landing finisher, its gate's red).** The gate on c4aac6fe3 went RED on one Unit case,
+**PB4322 (the landing finisher, its gate's red).** The gate on 0b16801ac went RED on one Unit case,
 `ProcessObservationDriftTests.ASlowProcess_UnderOneUnit_…`. The case ran a 3 s child against a 1 s budget whose clock
 starts only at `WaitForExit`, and on a host 85 % busy the starved test host saw the child exit before the wait began:
 a wall-clock race, not a regression in the observer. The witness now runs a child that never ends by itself (`ping -t`,
 `exec sleep infinity`), which also hardens `RunsForever`'s two other users. The case is renamed
-`AProcessPastOneUnit_…`, and the whole-population gate on 94b05879c is GREEN on both hosts.
+`AProcessPastOneUnit_…`, and the whole-population gate on 9f8204070 is GREEN on both hosts.
 
 **PB4240, branch review round 2 (R2-1).** The first fix's sweep looked for a keyword LITERAL beside a `CobolNames` comparison and
 missed the by-name classifier, which is handed the keyword as a parameter: `CobolParserCoreBase.Word` -> `CobolWordsRewriter.TokenIs` ->

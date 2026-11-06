@@ -4,7 +4,7 @@
 220-turn cap the dispatch spec states". The implementer cap is 400 (`.claude/agents/cobol-implementer.md` `maxTurns`, read
 by `coord.agent_turn_cap`; kb/Work PB3701), so the sentence was false, and it was a second place a cap number lived.
 
-Re-probe: the 220 was still there on main (204718793); PR #566 had removed the sibling "245 turns, past the 220-turn cap"
+Re-probe: the 220 was still there on main (e8ba31dc8); PR #566 had removed the sibling "245 turns, past the 220-turn cap"
 sentence but not this one. A sweep of `scripts/orchestrator/*.json`, `scripts/`, `docs/` and `.claude/` found no other
 typed current cap; the remaining 220 and 245 hits are historical notes (PB1700, PB2852, PB3015, PB3611, PB3641, PB3704)
 and frozen evidence, which describe what was true when written.

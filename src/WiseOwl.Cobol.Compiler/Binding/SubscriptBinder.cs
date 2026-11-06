@@ -931,7 +931,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// twice over (§13.18.60.3 SR10's closed reference list has no subscript entry).</para>
     /// <para><b>Why the screen has to be HERE.</b> <see cref="ResolveSubscriptName"/> renders the position read
     /// straight from the token — <c>ExpressionBinder.OperandRef</c> never runs, because the operand never enters
-    /// the expression binder at all. Measured on 9a89fbd1: <c>E(XE)</c> compiled clean and digit-decoded "0002"
+    /// the expression binder at all. Measured on 02c72682: <c>E(XE)</c> compiled clean and digit-decoded "0002"
     /// to occurrence 2, and so did the COMPOUND <c>E(XE + 1)</c> — the renderer routes to the screened D18 path
     /// only for a slash, a function, an unresolvable name, a SCALED operand inside a compound, or a token with no
     /// case arm, and plain <c>+</c> over an unscaled alphanumeric name is none of those.</para>

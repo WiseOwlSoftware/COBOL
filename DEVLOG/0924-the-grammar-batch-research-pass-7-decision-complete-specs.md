@@ -1,6 +1,6 @@
 ## Entry 924 — 2026-07-19 19:00 PDT — The grammar-batch research pass: 7 decision-complete specs, and all 14 adversarial verdicts came back NEEDS-CORRECTION
 
-Baseline battery confirmed green at `6d6c655d` and matching §0 exactly (Conformance **3699** · unit **313** ·
+Baseline battery confirmed green at `e553001b` and matching §0 exactly (Conformance **3699** · unit **313** ·
 characterization **33** · legacy **167**, zero failures) — so the §0 numbers are not stale, and source edits are
 cleared.
 

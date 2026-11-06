@@ -1,7 +1,7 @@
 ## Entry 1650 — 2026-09-22 20:32 PDT — Landing train 51: wave 51 (CA, CB, CD, CE, CF, CG), all six clusters, ahead of an unlanded train 50
 
 Train 51 landed six clusters and moved fourteen notes to `landed` in one landing. It was the first PIPELINED lander.
-It merged and gated on origin/main at train 49 (`37f19e028`). It did not block on train 50, because train 50's
+It merged and gated on origin/main at train 49 (`c600e5d90`). It did not block on train 50, because train 50's
 lander had stopped gracefully before push-main for the 19:40 session reset, and its report says NOT LANDED. The
 brief's rule applies: stop waiting and proceed on origin/main as it is. Minutes waited: 0. Train 50 now rebases onto
 this train and takes the next DEVLOG number.

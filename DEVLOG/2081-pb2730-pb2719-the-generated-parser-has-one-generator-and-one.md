@@ -28,8 +28,8 @@ copy or delete fails the build.
 **After.** Fresh → one generation; warm → `Skipping target "EnsureGeneratedFiles"`; a namespace change, the jar or the
 script touched, or a `.g4` in a new `Grammar/` subfolder → regenerates; an injected grammar warning or a missing jar →
 MSB3073 with `Generated/` empty, and the next build recovers. The generated files are byte-identical to the baseline
-(`diff -r`), and the §4 oracle reads `=== ARCH-ORACLE: IDENTICAL — 7957 cases (baseline bfb2eb47e9b0, new
-855996444353) ===`. Pin: `AntlrGenerationDriftTests` (five facts). Docs: DESIGN-architecture-review §8.4's pin line names the
+(`diff -r`), and the §4 oracle reads `=== ARCH-ORACLE: IDENTICAL — 7957 cases (baseline dc21423616cc, new
+9f22d317908b) ===`. Pin: `AntlrGenerationDriftTests` (five facts). Docs: DESIGN-architecture-review §8.4's pin line names the
 target, DESIGN-frontend-grammar §3.5 item 1a, COBOLNET_DESIGN / PROJECT_ORG, DESIGN-module-topology,
 DESIGN-edition-framework, EVAL-antlr-leverage, kb/Compiler/Build System, PB1957 row 11, PB2413. No inventory row (both
 notes `closes_rows: []`, process-only). The csproj's Exec also runs `pwsh -NonInteractive`, so a missing mandatory
@@ -39,7 +39,7 @@ parameter fails instead of waiting for input.
 33,272/33,698 · Characterization 6/36 cases ran …` (run 20261016T133256Z-eb5152); the five `AntlrGenerationDriftTests`
 facts passed in leg 1. Linux gate: the lander's (batched gating).
 
-**Finisher (the landing's Linux gate RED on 0f8e83d26).** `HostWitnessTraitDriftTests.TheSweepTrait_…` failed in the
+**Finisher (the landing's Linux gate RED on 2c5feb505).** `HostWitnessTraitDriftTests.TheSweepTrait_…` failed in the
 whole-population Linux unit leg: "missing the trait: AntlrGenerationDriftTests". The new class reads
 `TestRepo.Src("Cobol.Net.Frontend")`, two segments, so `drift_rules.py --sweeps` classifies it a tree-wide sweep on
 both hosts alike (measured: the Windows `--sweeps` lists it). It now carries `[Trait("Sweep", "tree")]`. The Windows

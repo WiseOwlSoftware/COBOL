@@ -58,7 +58,7 @@ non-blocking findings are fixed (the domain takes the root scripts and `.claude/
 applied per lens; defect `spec_refs` checked by `cite.py`; a keyed mechanical-step cache; no build command in the
 read-only performance input; the census path); Critical stays MAJOR and the shard sizes were already documented.
 `cite.py --help` no longer crashes on a cp1252 console. `ArchReviewFleetDriftTests` pins six new dry-run arms. Batch
-1's corrected launch file is `E:\COBOL-coord\scratch\r2-8be230068\batch-1\launch-args.json`. Its implementer also
+1's corrected launch file is `E:\COBOL-coord\scratch\r2-cd85e4901\batch-1\launch-args.json`. Its implementer also
 found fourteen COBOL run outputs tracked at the repository root (the files conformance goldens' relative `ASSIGN`s
 name); filed as PB2608.
 
@@ -100,7 +100,7 @@ PB2537's branch before PB2522, so its split of `test_orchestrate.ps1` lacked PB2
 (8c handoff wave, 8d round-robin, 8e starvation, 8f with the deferred-land check, and the two-lead and starved
 supervisor runs) into `test_orchestrate_campaign.ps1`, and `DESIGN-orchestrator-loop` §3 keeps PB2522's campaign-rule
 text, its test references re-pointed. The train was sequenced by hand behind train 1037b and the R2 fleet
-(`ea20c28e3`); the rebase over R2 conflicted only in the generated `docs/DRIFT_RULES.md`, regenerated (296 drift tests
+(`66ff39778`); the rebase over R2 conflicted only in the generated `docs/DRIFT_RULES.md`, regenerated (296 drift tests
 with cluster 4). The four-cluster gate went RED twice on self-tests only, every test population exact and green both
 times, on a shared host near 94 % CPU: run 20261008T074216Z-964cde on `test_orchestrate_startup.ps1` "the supervisor
 returned long before the 600 s the unit would have slept" (a `duration_s -lt 60` bound), and after that fix run
@@ -114,7 +114,7 @@ acting on STOP-UNIT could look for the fleet stop before it existed; the fleet s
 repaired train: `=== BUILD-LOCAL GATE:
 GREEN — Conformance 11,129/11,129 · Unit 32,631/32,631 · Characterization 36/36` (lander mode, one leg, SELF-TESTS GREEN, run
 20261008T080440Z-ac3a14); LINUX GATE GREEN (legs selftests, unit, characterization, conformance, guard, selftests-built; at `5146df12e`,
-which differs only in the Windows-only orchestrator files above, none of which a Linux leg runs); ARCH-ORACLE IDENTICAL over 7,559 cases against 868aaaf24f0b (no
+which differs only in the Windows-only orchestrator files above, none of which a Linux leg runs); ARCH-ORACLE IDENTICAL over 7,559 cases against afe24e389e1e (no
 compiler change, baseline not re-recorded); semgrep PASS; `PRACTICES CHECK: GREEN`. CI's first run on the train (37748130457) was RED in `windows-build-test`, step "Script self-tests on Windows": all twelve orchestrator self-tests (`test_budget.py` and the eleven parts) failed at start, because `budget.py`'s `zoneinfo` needs the `tzdata` package on Windows, which has no system time-zone database; the local hosts carry `tzdata` 2026.4 and the runner's Python 3.12 does not, a difference no local leg could show (the CI invariant). Owned by PB2563 (it first ran these self-tests on CI's Windows runner) and fixed in its commit: the job installs `tzdata==2026.4`, pinned to the local version, before the self-tests. Inventory GAP unchanged; no
 diagnostic code claimed. The first `push-main.sh` run (three clusters) took the lease and then stopped at the landing
 check (exit 3, main untouched) on two false stops: `selftests-gate` (this train's fourth cluster, built on its own

@@ -4,8 +4,8 @@ Train 71b set out to carry the rest of wave 71 of the PB1708 "order, don't skip"
 - group A (M6);
 - group F (M12), whose branch carried its same-file predecessor, group C (M11), by fast-forward.
 
-C and F were split into separate commits so that a bisect lands on one mechanism. All three cut from `bf2e5b43f`.
-Train 71 had landed on top (`b6c8a25e6`), so the patches met its M14 and M2 edits in the same design sections.
+C and F were split into separate commits so that a bisect lands on one mechanism. All three cut from `217bda2f0`.
+Train 71 had landed on top (`d8f78bd5f`), so the patches met its M14 and M2 edits in the same design sections.
 **F was DROPPED on a Linux-only CI red**, and A and C landed.
 
 **PB1715 (M6).** Six left-edge semantic predicates in the lexer's DEFAULT mode stopped ANTLR from caching two things:

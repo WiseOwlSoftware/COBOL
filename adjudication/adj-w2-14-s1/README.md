@@ -1,6 +1,6 @@
 # adj-w2-14-s1 — RECEIVE (§14.9.31) + SEND (§14.9.38), 22 rows
 
-- Pinned sha: 0caa7d54004e81c4e34529d95764cdc1ccec1779
+- Pinned sha: 0c24de7d9f8579093e6016c0fe4973b8ec115b3e
 - Phase adjudicate: start 2026-09-24 22:18:01 UTC (setup/read) — rows written Thu Sep 24 22:20:07 UTC 2026 — end Thu Sep 24 22:20:28 UTC 2026
 - Phase refute: pending (orchestrator dispatches an independent refuter)
 - Verdict counts (pre-refute): NEEDS-OWNER-DECISION 22 (CONFORMS 0, PARTIAL 0, DIVERGES 0, NOT-IMPLEMENTED 0)

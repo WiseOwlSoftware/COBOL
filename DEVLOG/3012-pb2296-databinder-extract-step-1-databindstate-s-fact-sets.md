@@ -4,7 +4,7 @@
 
 kb/Work PB2296 is step 1 of the eleven-step `DataBinder` extract (docs/rearchitecture/DESIGN-architecture-review.md §8.3
 (1), census R0-0001), on the critical path of the backend seam (PB2293). It is behavior-neutral by contract, so the proof
-is the §4 oracle: `python scripts/arch/compare_oracle.py` against the base a91db12e2212 answered
+is the §4 oracle: `python scripts/arch/compare_oracle.py` against the base 5c4ef8136077 answered
 `=== ARCH-ORACLE: IDENTICAL — 16123 cases ===` after each mechanism below.
 
 **The four fact sets.** `WholeGroupReferenced`, `ImageForcedItems`, `CharacterChannelItems` and `ActivationSites`
@@ -92,14 +92,14 @@ move is verbatim apart from the host prefix and the uid; the cited rules were no
 allocation on a hot path (the binder is built once per unit). Duplication: none added; the three `DataBinder` helpers
 the binder shares are the single copies.
 
-**Proof.** `compare_oracle.py --base bd9a034e0`: `=== ARCH-ORACLE: IDENTICAL — 16143 cases ===`.
+**Proof.** `compare_oracle.py --base c72537425`: `=== ARCH-ORACLE: IDENTICAL — 16143 cases ===`.
 
 **Gate.** Run 000001 was RED on the evidence-supersession audit (two frozen PHASE-13 citations named the split file; each now
 carries a `superseded_by` marker). Run 000002-20261102T221759Z: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,975/20,975 · Unit
 39,398/39,398 · Characterization 37/37 cases ran (skipped 0) ===`; `ReportScopeBoundaryDriftTests` 3/3 passed in its Unit.trx;
 `semgrep/verify.py` PASS (no count rose). Linux: not part of the per-change gate (PB4327).
 
-**Merge with main and review round 1 (finisher).** The reviewed branch (6175b548c) was cut before main's PB2371-PB2375
+**Merge with main and review round 1 (finisher).** The reviewed branch (bd5853ac0) was cut before main's PB2371-PB2375
 split of `ReferenceResolver` and carried PB2296 step 1; merging them needed a semantic resolution, not a textual one.
 `DataBinder` keeps `IPlaceFacts` (main's PB2375) by answering it from `State` (`IsImageBackedEarly` reads the
 `ImageForcedItems` mid-bind view, `OdoReferenceChecking` the unit's checking slice); the `PendingPreOps`, `PropertyOps`

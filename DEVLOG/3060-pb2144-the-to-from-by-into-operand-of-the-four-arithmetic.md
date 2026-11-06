@@ -1,6 +1,6 @@
 ## Entry 3060 — 2026-11-03 16:26 PST — PB2144 — the TO / FROM / BY / INTO operand of the four arithmetic verbs is one grammar rule, so every operand-shape error is COBOL1689
 
-**Re-probe (my build, base a9f2c2897).** The note said `ADD A TO 2 3 GIVING C` drew a raw COBOL0001. On today's tree it
+**Re-probe (my build, base c9bfddd3f).** The note said `ADD A TO 2 3 GIVING C` drew a raw COBOL0001. On today's tree it
 draws COBOL2269 ("unexpected '3'. The ADD statement ends before this token"), and the split was wider than the note
 said. A second operand or a ROUNDED written in a GIVING form, or a literal written after a receiver in Format 1, was a
 parse error at ADD TO, SUBTRACT FROM, DIVIDE INTO and DIVIDE BY. MULTIPLY BY named the same mistake with COBOL1689,

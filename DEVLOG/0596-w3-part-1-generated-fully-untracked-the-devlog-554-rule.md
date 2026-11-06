@@ -5,7 +5,7 @@
 
 1. **Generated/ untracked — the DEVLOG-554 rule is RETIRED.** The regen has been path-portable + fail-hard
    since DEVLOG 555/556, but 8 generated files were STILL TRACKED — on a fresh checkout their mtimes SUPPRESS
-   regeneration (GenerateIfNewer compares LastWriteTime), which is exactly how the d6c8143 stale-TYPE-gate
+   regeneration (GenerateIfNewer compares LastWriteTime), which is exactly how the 35a5da1 stale-TYPE-gate
    incident happened (DEVLOG 591). `git rm --cached` × 8; CI now always regenerates (java + pwsh are on the
    GitHub runner images); there is no committed parser to keep in sync anymore. CI workflow comment updated;
    the resume-prompt CI NOTE retired.

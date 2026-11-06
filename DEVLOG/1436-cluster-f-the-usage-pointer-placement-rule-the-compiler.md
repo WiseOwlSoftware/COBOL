@@ -1,6 +1,6 @@
 ## Entry 1436 — 2026-09-02 18:52 PDT — Cluster F: the USAGE POINTER placement rule the compiler never enforced, the OPTIONS INITIALIZE background nobody consumed — and a differential re-run that turned the landing's own orchestration correction around
 
-Fix-lane cluster F (PB183 · PB152), landed from worktree `agent-a70664a7e3ef2be42` (base `2acbd842`, four WIP
+Fix-lane cluster F (PB183 · PB152), landed from worktree `agent-a70664a7e3ef2be42` (base `41bf3492`, four WIP
 commits), rebased onto cluster E and witness cluster A. Codes COBOLNET1724/1725/1726 (PB183) and 1727 (PB152).
 
 **PB183 — §13.18.60.3 SR14/SR15/SR4, the declaration-placement family.** SR14 confines the five pointer/object

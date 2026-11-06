@@ -58,7 +58,7 @@ recorded beside it. The appends now take turns in the host and wait for another 
 standard error marked lost, and `HarnessLog.ReadAll` reads beside the writers; `HarnessLogTests` (32 writers and a
 reader) lost 754 of 800 lines against the old append and none against the new one.
 
-The landing's Linux gate at c89014b6b was red twice, and both reds were this branch's. First, `HarnessLogTests` failed
+The landing's Linux gate at 30edab0ea was red twice, and both reds were this branch's. First, `HarnessLogTests` failed
 under WSL with ENODATA ("No data available") reading the log, which the Linux gate wrote into the Windows tree's
 `TestResults` over WSL's 9P mount. Measured there, one process appending while another re-read the file lost 8 to 14 of
 800 lines a run and its reads failed with ENODATA; on the Linux filesystem it lost none. So the Linux gate now writes

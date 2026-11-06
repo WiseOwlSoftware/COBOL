@@ -1,6 +1,6 @@
 # Cloud adjudication calibration #1 — Annex A.1 (10 DOC rows)
 
-- **Pinned sha:** `5e0f687ed89f646d0ceb649683618040ef55d211` (main)
+- **Pinned sha:** `a8f7c5e9cf3ed59e38fb8b1a91477af24ca9910f` (main)
 - **Inputs:** `python scripts/spec/phase_b_batch.py A.1 --max-rules 10 --out /tmp/adj/in` (the generator wrote 144 files; only the ten named in-<slug>.json files were used).
 - **Files:** `adjudicate.jsonl` (first-pass verdicts) · `findings.json` (defects by mechanism) · `refute.jsonl` (independent refuter over the CONFORMS rows) · `final.jsonl` (after overturns — none, so identical to adjudicate.jsonl).
 

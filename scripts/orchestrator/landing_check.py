@@ -530,7 +530,7 @@ def self_test() -> int:
     drop("wt-two")
     scratch.git("branch", "-D", "r-train2")
     # kb/Work PB3381 section H: a successor that merged an OLDER head of the landing branch descends from it and lands
-    # on top of it, so it never blocks it (wave 1118: -326-13 held PB3333's 3dadec3a3 and stopped PB3333's reviewed
+    # on top of it, so it never blocks it (wave 1118: -326-13 held PB3333's ea4ab0ec1 and stopped PB3333's reviewed
     # -326-20 three times); an empty worktree (no commit beyond main, a merge in progress) blocks nothing; an
     # independent earlier dispatch on the same member (K3d above) is named in a warning, never a stop.
     scratch.git("checkout", "-q", "-b", "succ-old", "wt-impl")   # merged the landing's OLDER head (wt-impl), then its own edit

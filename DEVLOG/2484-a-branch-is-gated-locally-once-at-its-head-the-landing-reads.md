@@ -60,8 +60,8 @@ not a Windows-only leg: the gate has one shape (PB3022), and a Windows-only flag
 **Goldens.** None: gate and landing tooling, no compiler behaviour. Rows: none (`closes_rows: []`, PB3612 landed;
 PB3022's item 10 recorded as shipped).
 
-**Gate.** Run `TestResults/build-local/000004-20261024T201417Z` at 53e24a6ec (the first gate, 000001, was RED in the
-CITATIONS audit: the note named DESIGN sections with the section sign; 000002 at edf1cc6a1 was GREEN before two
+**Gate.** Run `TestResults/build-local/000004-20261024T201417Z` at 123c5eac0 (the first gate, 000001, was RED in the
+CITATIONS audit: the note named DESIGN sections with the section sign; 000002 at a154a6c83 was GREEN before two
 self-review fixes; 000003 was stopped on purpose, because a note edit had to precede the last gate):
 `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — … Conformance 10,112/18,394 · Unit 36,910/38,134 ·
 Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN · slot 2 of 3 …`.

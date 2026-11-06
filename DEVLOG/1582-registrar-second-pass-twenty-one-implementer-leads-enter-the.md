@@ -3,7 +3,7 @@
 Twenty-one defect leads from today's eleven implementer reports had been written as note-ready paragraphs and
 filed nowhere. They are now `kb/Work/` notes: **fifteen new (PB810-PB824, every allocated id used, in order)**
 and **six appends** to notes that already owned the mechanism. Every lead was re-probed on this worktree's own
-`dotnet build CobolSharp.sln -c Debug` (exit 0) at `d3ba5795`, and every citation was re-run through
+`dotnet build CobolSharp.sln -c Debug` (exit 0) at `f833c1dc`, and every citation was re-run through
 `cite.py --check` rather than inherited — which corrected three of them.
 
 **New notes.** **PB810** (adjudication) a sequential READ whose I-O status is set to '46' takes NEITHER branch,

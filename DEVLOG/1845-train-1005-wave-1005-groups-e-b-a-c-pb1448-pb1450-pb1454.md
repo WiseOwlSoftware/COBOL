@@ -57,7 +57,7 @@ golden, and D was dropped by resetting to C's checkpoint (the lander does not ed
 branch `worktree-wf_ccb5717f-ed8-4` @8828dea57 lands after one change: move the `<>` line of that golden to a 2002
 golden. D's notes stay open on main; its code COBOLNET2723 is unclaimed here.
 
-**The train.** Clusters brought in as patches against e0e7878e1 with the inventory hunks excluded and each verdict
+**The train.** Clusters brought in as patches against d6abdfb78 with the inventory hunks excluded and each verdict
 batch re-applied by `record_verdicts.py` (row-for-row equal to each branch); conflicts resolved: `docs/DIAGNOSTICS.md`
 (whole rows, regenerated from the catalog), `IntrinsicBinder.BindIntrinsicCore` (C's ArgumentOrder window over B's
 `FunctionWord`), `docs/DRIFT_RULES.md` (regenerated). Gate (lander mode, run 20261003T084210Z-5f761e): GREEN —

@@ -1,6 +1,6 @@
 ## Entry 1191c — 2026-08-06 15:16 PDT — PB33: NUMVAL-C enforces §15.68.3 r4a through its VALIDATING TWIN, and the defect was a wrong answer rather than the under-rejection the note claimed
 
-> ⚙ **RECONSTRUCTED 2026-08-07 from the primary sources — the commit message (`bd778375`), its `kb/Work/` note and its diff — not written at the time.** The commit landed without a DEVLOG entry; the owner's call was to reconstruct where it can be done accurately. Every fact below is carried from those sources; nothing is recalled. **Lettered rather than renumbered** because entries 1192–1198 are already referenced by pushed commit messages, which cannot be edited.
+> ⚙ **RECONSTRUCTED 2026-08-07 from the primary sources — the commit message (`a7304f08`), its `kb/Work/` note and its diff — not written at the time.** The commit landed without a DEVLOG entry; the owner's call was to reconstruct where it can be done accurately. Every fact below is carried from those sources; nothing is recalled. **Lettered rather than renumbered** because entries 1192–1198 are already referenced by pushed commit messages, which cannot be edited.
 
 §15.68.3 r4a: "Argument-1 shall have one of the following two formats." **TEST-NUMVAL-C (§15.94) implements both
 exactly — that is its entire job — while NUMVAL-C stripped the currency and grouping separators, delegated to

@@ -28,7 +28,7 @@
   "harm": "silent",
   "repro": "python scripts/spec/derive_verdict_batch.py --list (8 selectors, none MCS); probe/rcv.cob and probe/snd.cob at --std 2023: COBOLNET1578 per statement, neither ON nor NOT ON EXCEPTION runs, operands untouched",
   "expected_from_spec": "§4.2.6: declined processor-dependent elements 'need not be implemented', absence documented, ¶3 compile-time warning mandatory -> DOCUMENTED-NON-SUPPORT once an owner-approved selector and a 1578 witness exist",
-  "observed_or_reasoning": "Code matches the documented decline on pinned 0caa7d5; the gap is register/witness debt, not runtime. Already filed - not a new defect.",
+  "observed_or_reasoning": "Code matches the documented decline on pinned 0c24de7; the gap is register/witness debt, not runtime. Already filed - not a new defect.",
   "code_site": "tests/version-matrix/inventory-schema.json#derived-verdicts; src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
   "clause": "4.2.6; A.3 4); 14.9.31; 14.9.38",
   "owning_note": "PB1198 (owner, Question 1); PB374 (open, 1578 witness)"

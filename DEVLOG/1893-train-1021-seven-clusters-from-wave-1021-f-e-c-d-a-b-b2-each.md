@@ -113,7 +113,7 @@ pb1042_external_initialized_table_value. An unverifiable third candidate is the 
 
 **The train.** Each cluster's patch was applied from its branch, and its verdict batches were re-applied with
 `record_verdicts.py` (0 row differences from the branch). The review fixes were applied to a rebuild from
-17924fbb4, one commit per cluster. The first full gate after the rebuild was red on one test, `RuntimeApiGuardTests`
+62ddbf949, one commit per cluster. The first full gate after the rebuild was red on one test, `RuntimeApiGuardTests`
 (D's review fix). That was fixed in D's commit. The re-gate was GREEN: Conformance 10,707/10,707 · Unit 31,724/31,724 · Characterization 35/35 (run 20261005T233050Z-596805), with no external-corpus fetch failure. semgrep verify PASSED with no count raised. The legacy
 Integration assembly passed 503 of 504 with one skip. The Linux gate was GREEN on all four legs (unit, characterization, conformance, guard; NIST 362 MATCH, 0 regressions). The review covered all seven clusters: 14 findings and 2
 candidates were verified by read-only adjudicators with repros. Eleven are fixed in their clusters, A3 by the narrow

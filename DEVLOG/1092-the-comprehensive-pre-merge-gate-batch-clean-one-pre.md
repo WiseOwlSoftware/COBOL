@@ -16,7 +16,7 @@ condition and checking OFF returns the operand unchanged. `Deref_Null_And_OutOfB
 still asserts the throw — the two tests now DOCUMENT the owner's split instead of contradicting it.
 
 **The Conformance red is PRE-EXISTING and unrelated to the batch.** The VCR appendix carries ~180 spec LINE
-references reaching line 50,407; the spec has 47,195 lines. At this session's START commit (`199dcd43`) it had
+references reaching line 50,407; the spec has 47,195 lines. At this session's START commit (`a447a252`) it had
 47,142 — so the references were already ~3,200 out before any work here, and the transcription repairs
 (47,142 → 47,195) changed nothing about the verdict. It is the same "re-key onto the clause hierarchy" item the
 de-paged tools already went through, never done for the VCR. It is now NEXT item 1 in plan §0 because a red gate
@@ -25,7 +25,7 @@ blocks the merge regardless of who caused it.
 **The differential needed a PER-CASE diff to be read correctly, exactly as the gate skill warns.** Totals moved
 (AGREE_ACCEPT 475→472, WE_REJECT_THEY_ACCEPT 570→574) and looked like regressions. The per-case diff against the
 stored report shows **3 flips: 1 fix and 2 AGREE→divergence**, both in `syn_value.at`, and both raising
-**COBOLNET1625** — which `git log -S` places in commit `f54c9bd4` (CA34), present at this session's start commit.
+**COBOLNET1625** — which `git log -S` places in commit `ae51c66a` (CA34), present at this session's start commit.
 **The EC batch introduced zero differential regressions.** The two flips are CA34's deliberate §13.18.63.3 SR2
 tightening, which GnuCOBOL's DEFAULT_DIALECT accepts as an extension; whoever revisits them should adjudicate
 before "fixing" them. Both baselines are stale and §0 now says so: the numbers quoted in Gates, and the stored

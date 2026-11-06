@@ -2,10 +2,10 @@
 
 Owner, early afternoon: "We are approaching the weekly limit. Finish up and save context to resume after reset."
 The day since the morning resume (entries 1444–1447 and the round-2 lander's own entry): battery #42 closed with
-every test leg green and both red lines attributed (`ac2dadb8`); PB377's missing cache bound (`6ffdb5a8`); PB379's
-citation audit that could not read half its corpus, now seated in the battery (`d531e358`); PB371 + PB375, seven
-vacuous rules and the CLASS clause (`4cbb8f3c`, GAP 3119 → 3106); golden-lane round 2, 49 witnesses landed by its
-own lander (`0fa1fe9e`, GAP → 3054, closed 1,205 → 1,257). CI green on every landing. Notes opened today: PB377
+every test leg green and both red lines attributed (`0607e935`); PB377's missing cache bound (`3f738600`); PB379's
+citation audit that could not read half its corpus, now seated in the battery (`2a49dd8b`); PB371 + PB375, seven
+vacuous rules and the CLASS clause (`f199b68e`, GAP 3119 → 3106); golden-lane round 2, 49 witnesses landed by its
+own lander (`648063ca`, GAP → 3054, closed 1,205 → 1,257). CI green on every landing. Notes opened today: PB377
 (landed), PB378 (landed), PB379 (landed), PB380 (analysis), PB381, PB382, PB383 (wrong answer — BOOLEAN-OF-INTEGER),
 PB384 (landed), PB385, PB386 (owner). Every worktree but the three lane-3 pins is removed.
 

@@ -11,7 +11,7 @@
       *>
       *> ⛔ This case is here because a REJECTION IS NOT EVIDENCE OF THE RIGHT REJECTION. The differential
       *> baseline read AGREE_REJECT for years while we were rejecting it for the WRONG reason - the missing
-      *> optional word IS on the second clause (12.3.7.2 rules neither IS nor FOR; 5.2.3). When d09374e2
+      *> optional word IS on the second clause (12.3.7.2 rules neither IS nor FOR; 5.2.3). When 9ed10b9d
       *> correctly restored that optional word the row flipped to WE_ACCEPT_THEY_REJECT and exposed the
       *> under-rejection the coincidental agreement had been hiding. The second ALPHABET clause below keeps
       *> the IS omitted deliberately, so this golden re-pins BOTH facts at once.

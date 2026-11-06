@@ -1,6 +1,6 @@
 ## Entry 2698 — 2026-10-28 11:47 PDT — File PB3996 and PB3997: fuzz night 7's two accepts-illegal-source defects
 
-Fuzz night 7 (`fuzz-20261027-215606`, seed 20261028, judge = main 7f0105fec) produced 6,457 programs and 1,798 survivors in
+Fuzz night 7 (`fuzz-20261027-215606`, seed 20261028, judge = main 691c7ad4e) produced 6,457 programs and 1,798 survivors in
 330 signatures. Thirteen read-only adjudicator slices (`fuzz_triage.py prepare`, Workflow `fuzz-triage`) decided all of
 them: 103 signatures WISEOWL-CORRECT, 70 GNUCOBOL-SIDE, 64 LATITUDE, 11 UNINITIALIZED, 9 NOT-COMPARABLE, 11 MODEL-ERROR
 and 2 WISEOWL-DEFECT. `cites` checked every citation, and `verify` re-ran both defect repros on the judge.

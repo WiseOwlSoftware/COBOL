@@ -7,7 +7,7 @@ COBOLNET1627 warning) died the same way. ISO 15.3 admits a variable-length group
 (LENGTH, BYTE-LENGTH) and 8.8.1.1 bars a group arithmetic operand, so strict refuses all of it; the defect is that a coercion the compiler
 chooses to accept ended in a run-time abort.
 
-**Re-probe.** The note's repro (`P6.cob`) reproduced on main fae388908 for the plain group and for the strong typedef holding an
+**Re-probe.** The note's repro (`P6.cob`) reproduced on main 5a1ad8404 for the plain group and for the strong typedef holding an
 object-reference leaf; the numeric position was found by the sibling sweep.
 
 **Root cause.** One question, what are this group's characters, answered three ways. DISPLAY carried the variable-length arm inline

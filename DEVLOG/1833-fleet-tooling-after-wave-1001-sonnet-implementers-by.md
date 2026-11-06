@@ -11,7 +11,7 @@ Wave 1001 ran four Sonnet implementers and one Opus lander train (Entry 1832); t
   `check_practices.py` refuses a rendered spec without it. Wave 1001's specs predate the rule. The public skills repo
   carries the same rule (`automating-agent-guardrails`, commit 4acad11, eval Delta +0.50), labelled not yet validated.
 - **Conformance ledger.** The published page was two days stale (2026-09-29, GAP 818). `gen_ledger.py` regenerated it at
-  `b62408c2` (GAP 710) and the trend series gained that point.
+  `aa167b8a` (GAP 710) and the trend series gained that point.
 - **Witness reuse.** Probing the owed rows (state GAP, resolving verdict) found 59 in 39 subject clusters, 9 of them Annex A.1
   documentation rows. A row's `test-ref` is a list, so one test can witness many rows; the queued batch re-cites existing
   tests first and writes a golden only where none names the clause (variable-length data items, DISPLAY directive).

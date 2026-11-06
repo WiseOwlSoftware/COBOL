@@ -1,6 +1,6 @@
 ## Entry 1883 — 2026-10-04 23:30 PDT — Battery #88: every internal leg green; the GnuCOBOL differential's 43 flips are all adjudicated against the ISO text (22 new rejections, every one legitimate), and the baseline is refreshed
 
-Battery #88 ran cold in its own worktree at `6e4b5deb0`, owed by every landing since #87 (146 commits touching `src/` or `tests/` as of the
+Battery #88 ran cold in its own worktree at `aa887b663`, owed by every landing since #87 (146 commits touching `src/` or `tests/` as of the
 morning, then wave 1018). Result: Conformance 10,503, Unit 31,464, Characterization 35, NIST 362 MATCH with 0 regressions, the guard ALL GREEN,
 citations and witness loss clean; the GnuCOBOL differential printed `43 PER-CASE FLIP(S)`, so the script's verdict was NOT GREEN. The differential is a
 regression net, never authority, so each flip needed the standard. 22 flips were cases GnuCOBOL's default dialect (ISO plus its extensions) accepts and we

@@ -1,6 +1,6 @@
 ## Entry 1687 — 2026-09-24 17:23 PDT — Ledger trend point 138a8724 (ledger v70); cloud golden lane #1 started
 
-**What.** The Conformance Ledger regenerated at the doc-rows-1 landing `138a8724c` (GAP 1627 · closed 2721 · DNS 386)
+**What.** The Conformance Ledger regenerated at the doc-rows-1 landing `70f2488f6` (GAP 1627 · closed 2721 · DNS 386)
 and published as v70; `gen_ledger.py` appended the point to `ledger-trend.json` (82 points). The owner authorized
 overrunning today's plan allowance to exhaust the remaining cloud credit (~$96) on significant COBOL work: a fresh
 credit-billed cloud orchestrator (session_01NEXbLrn1FYhz3CpJvSuNr6, both repos) now runs **golden lane #1** on

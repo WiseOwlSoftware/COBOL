@@ -110,17 +110,17 @@ tree), Unit 33,501/33,923, Characterization 5/36; leg 2 is CI's. LINUX GATE: the
   a review gate (`prune_worktrees.unreviewed_since`). It accepts only a clean merge or a DEVLOG-only commit after the
   CLEAN head. So the deletion commit would be refused, or the three one-time tools (a 52,427-line map) would land on
   main against design §13 S2. The design's own order fixes it: the branch's last merge of main at the quiet point,
-  then the deletion, then the review. The loop is drained and main is still 20161db10, the merge base (`git merge
+  then the deletion, then the review. The loop is drained and main is still 3226976e6, the merge base (`git merge
   origin/main`: already up to date). So the branch merged main (nothing to convert) and deleted the three tools
   before this round's re-review. If main moves before the landing and brings a file under `tests/conformance/`, the
   generator audit `removed_corpus_files` refuses it at the lander's gate in seconds, and a finisher restores the
-  tools from c9a1ffdb2. The design's As built and the note now say this.
+  tools from 7d6cd9709. The design's As built and the note now say this.
 - *Re-gate.* Run 20261017T122308Z-801c3a: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`
   (Conformance 13,910/17,290, Unit 33,539/33,928, Characterization 5/36). LINUX GATE: the lander's (batched gating).
 
 **The landing stop.** The hand landing stopped at its Linux gate on one unit red,
 `NulByteDriftTests.TheSweepActuallyReadsTheTrackedTextTree`: the NUL sweep was rooted at `src/` and `tests/`, so with
-the corpus moved it read 2,783 text files against its 5,000 floor. Its `Trees` gained `conformance-suite/` (94da4cc02,
+the corpus moved it read 2,783 text files against its 5,000 floor. Its `Trees` gained `conformance-suite/` (66ba3efdf,
 the Mythos session); Windows and Linux gates GREEN.
 
 **Review round 3 (wave 1109 A finisher).** One finding, and main moved under the branch.
@@ -128,9 +128,9 @@ the Mythos session); Windows and Linux gates GREEN.
   file's rule) and the fact's summary still said `src/` or `tests/`. Both now name `conformance-suite/`, the `Trees`
   summary says why, and `TheSweepFiresOnAPlantedNul` plants a NUL in a suite golden (reported) and the same bytes under
   `docs/` (out of scope), so the scope itself is witnessed.
-- *PB370 landed first* (main 37c866e0f) with four programs under `tests/conformance/`. Git's directory-rename detection
+- *PB370 landed first* (main 3955d9bc7) with four programs under `tests/conformance/`. Git's directory-rename detection
   dropped them, unconverted, into `cases/_unassigned/`; they went back to their old paths and the converter and sweep,
-  restored from c9a1ffdb2, re-ran on the merged tree: `pb370_move_first_condition` and
+  restored from 7d6cd9709, re-ran on the merged tree: `pb370_move_first_condition` and
   `pb370_move_function_value_digits` under `cases/14.9.25-MOVE/`, the uncited `pb370_move_property_receiver_order` and
   the negative `pb370-move-first-condition-below-2002` (COBOLNET0900 at 85) under `cases/_unassigned/`. The inventory
   was merged field by field with both sides re-spelled through the maps: only the six fields PB370 changed (on

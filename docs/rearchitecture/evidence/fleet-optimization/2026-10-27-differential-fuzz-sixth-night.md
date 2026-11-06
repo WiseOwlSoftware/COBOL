@@ -11,7 +11,7 @@ begin fixing any fuzz identified issues without my explicit approval". The one f
 
 **What gated this run.** The owner required the thirteen notes of the evening of 2026-10-26 to land before the run (PB3537,
 PB3561, PB3839, PB906, PB3468, PB3569, PB2923, PB3514, PB3554, PB3635, PB3294, PB3697, PB3860); the last, PB3514, landed as
-#687 at deae52c90, and the judge was built from that commit.
+#687 at 7c779b70e, and the judge was built from that commit.
 
 ## The run
 
@@ -19,7 +19,7 @@ PB3561, PB3839, PB906, PB3468, PB3569, PB2923, PB3514, PB3554, PB3635, PB3294, P
 |---|---|
 | Started | 2026-10-26 22:53 PDT (`run.json` `started` 05:53:10 UTC on 2026-10-27), `--hours 8 --jobs 4`, seed 20261027; ended 06:53 PDT, exit 0 |
 | Generator | `qwen3.6:35b`, temperature 0.3, 3 variations, up to 3 repair rounds; 235 seeds of the prefixes `14.9`, `15`, `13.18`, `8.8` (23 declined) |
-| Judges | WiseOwl `--std 2014` from `E:\tmp\fuzz-judge-20261027\cobol.exe` (main deae52c90); GnuCOBOL 3.2 `-std=cobol2014` under WSL |
+| Judges | WiseOwl `--std 2014` from `E:\tmp\fuzz-judge-20261027\cobol.exe` (main 7c779b70e); GnuCOBOL 3.2 `-std=cobol2014` under WSL |
 | Programs | 6,646 judged; median model time 12 s a program |
 | Usable (both compiled) | 4,183 (63 %), 2,104 of them after a repair round; 2,079 (31 %) on the first attempt |
 | The model's failures | 2,463 (1,749 ended early on a repeated diagnostic) |
@@ -31,7 +31,7 @@ a `WE_REJECT` signature of one or two programs whose codes a larger signature al
 
 ## Triage method (the fifth night's, unchanged)
 
-- **No re-judge.** The judge was built from deae52c90, which was still origin/main at triage, so the recorded results
+- **No re-judge.** The judge was built from 7c779b70e, which was still origin/main at triage, so the recorded results
   stand. The output-difference rows were rescored from the recorded outputs (575 rows: 516 still differ, 32 agree once
   trailing spaces and NUL bytes are normalized, 21 `THEY_FAIL_RUN`, 6 `EXIT_DIFFERS`).
 - **Slicing.** Twelve slices: A1 (§8.x output differences, 17 signatures), B1 to B4 (the other output differences, 88), C1

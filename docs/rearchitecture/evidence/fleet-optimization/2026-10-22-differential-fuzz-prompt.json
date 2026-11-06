@@ -2,8 +2,8 @@
  "_frozen": "Frozen evidence (docs/rearchitecture/evidence/README.md): written once when the experiment ended, never edited.",
  "experiment": "PB3523 fuzz generator first-attempt validity: the prompt, the early stop and the declined-seed exclusion",
  "date": "2026-10-22",
- "command": "differential_fuzz.py --bake-off qwen3.6:35b --count 40 --clauses 13.18,14.9,8.4 --seed 20261022 --jobs 4 --cobol <worktree build of origin/main 2850429db>",
- "judges": "WiseOwl Debug build of the worktree (origin/main 2850429db plus this branch's script-only change), --std 2014 free format; GnuCOBOL 3.2 -std=cobol2014 under WSL",
+ "command": "differential_fuzz.py --bake-off qwen3.6:35b --count 40 --clauses 13.18,14.9,8.4 --seed 20261022 --jobs 4 --cobol <worktree build of origin/main 245797d61>",
+ "judges": "WiseOwl Debug build of the worktree (origin/main 245797d61 plus this branch's script-only change), --std 2014 free format; GnuCOBOL 3.2 -std=cobol2014 under WSL",
  "arms": [
   {
    "arm": "A: origin/main's harness (the old prompt), the full seed walk",

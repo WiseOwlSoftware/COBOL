@@ -4,7 +4,7 @@ The wave's final remainder: PB2152 (wave 1030 A; PB2151 split at the note bounda
 and C (wave 1032 C), in that order, one commit each and this entry in the train commit.
 
 **PB2152 — the oracle's first catch, and the regression it hid.** Trains 1028 and 1029 had landed 39 emitted-C# and
-diagnostic differences green on every gate. Re-measured against a fresh capture of `f620ccf6d43d` the split was 31
+diagnostic differences green on every gate. Re-measured against a fresh capture of `ed82232a65bc` the split was 31
 CSHARP (15 corpus, 16 NIST), 4 DIAGNOSTICS and 4 ADDED: 29 whitespace-only re-renderings inside a subscript; pb136
 routing a REF_LPAREN group through the expression binder (same value); pb17 making a UDF argument inside a subscript a
 BY REFERENCE cell operand as everywhere else (§14.2.3 8)); pb1455's COBOLNET2776 moving onto `OF` (column 29, now pinned
@@ -15,7 +15,7 @@ separator period or end of file, the recovery set asked first) and `SingleTokenD
 recovery arms are fixed; `ParseRecoveryParenGroupTests` pins the error count the fixtures' substring match cannot.
 `compare_oracle.py --diff` now captures a recorded baseline's blobs itself in a detached worktree of that commit, and
 refuses blobs that do not reproduce the recorded hashes. This lander used it for the first time: it captured
-`ef2b7cb6250c` in 91 s and produced the per-case diffs this entry classifies.
+`548e366f6e0d` in 91 s and produced the per-case diffs this entry classifies.
 
 **B — PB2076: §9.3.6 rules 6 and 7 ask VALIDITY, not only which statement.** The universal dispatch matched any
 MOVE-class returning item to any other, so a method returning `PIC 9V99` matched an invocation returning `PIC X(4)`
@@ -41,12 +41,12 @@ per statement (provisional edge, VCR row 7.33). SR-7.2.3.3-10 and SR-7.2.4.3-10 
 **The train.** Gate (lander mode, the whole population in one leg), run `20261007T180534Z-94acf0`: `=== BUILD-LOCAL
 GATE: GREEN — Conformance 10,893/10,893 · Unit 31,720/31,720 · Characterization 35/35`; semgrep counts equal the
 baseline. The one merge conflict was adjacent whole elements of `tests/conformance/2002/manifest.json` (B and C each
-added a golden); both kept, 746 → 747. Oracle against `ef2b7cb6250c`: DIFFERENT, 110 of 7,418, every case attributed.
+added a golden); both kept, 746 → 747. Oracle against `548e366f6e0d`: DIFFERENT, 110 of 7,418, every case attributed.
 96 CSHARP are B's: the universal-dispatch `ActivationDescription` statics gain `Table16 = Table16Category.X` (and
 `BinaryWidth = true` for a binary-width item), and nothing else changes (classified mechanically: removing those two
 members gives back the baseline lines exactly). 3 DIAGNOSTICS are PB2152's (`l1c08-entry-name-subscripted`,
 `l1c17-paren-not-delimiting`, `pb1372-cobol-words-undefined-picture-syntax-withdrawn` each lose only the spurious
-`COBOL0307`). 11 are ADDED (B 2, C 9). The baseline is re-recorded on the train's tree as `e68c33651ec0`, and the
+`COBOL0307`). 11 are ADDED (B 2, C 9). The baseline is re-recorded on the train's tree as `596741ca8ed5`, and the
 gated capture compares IDENTICAL to it. The review found no correctness defect; B's code comment and the OO design's
 residue paragraph now name PB2463/PB2464. Wave 1032 A's two unfiled leads are now notes too: a constant's LENGTH OF /
 BYTE-LENGTH OF is measured before description completion, a silent wrong value (PB2465); and a RENAMES THRU window

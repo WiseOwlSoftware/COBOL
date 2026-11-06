@@ -1,6 +1,6 @@
 ## Entry 2759 — 2026-10-29 19:07 PDT — PB3953 review fix: a wide function temporary is ordered against a non-wide one by the exact values, never by its 34-digit image
 
-**Why a second PB3953 entry.** Entry 2754 records PB3953's round-1 head `5d4e0ac1d`, which reached main inside PR #787: PB1369's
+**Why a second PB3953 entry.** Entry 2754 records PB3953's round-1 head `ece1df004`, which reached main inside PR #787: PB1369's
 same-file successor branch had merged that head, and the stamp folded PB3953's pending entry into PB1369's. The branch review had
 held round 1 at FINDINGS (R1-1, BLOCKING), so main carried the defect below from #787 until this landing. 2754 keeps its number
 and its text as the record of what #787 landed (kb/Work PB3123); this entry records the review fix, which lands on PB3953's own

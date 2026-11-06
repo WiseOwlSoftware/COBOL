@@ -8,7 +8,7 @@ standing rule discards anyway — and, rather than promote a partial checkpoint 
 row 2's boundary and redid row 3 cleanly. No `WIP` subject reached main. That is the checkpoint protocol working
 as designed: one step lost, nothing repeated.
 
-**Row 1 — PB702 + PB709 (`d578b720`).** PB702 verdicted two claimable rows from evidence rather than from the
+**Row 1 — PB702 + PB709 (`f8766c58`).** PB702 verdicted two claimable rows from evidence rather than from the
 note's summary of them. `GR-14.9.35.4-24` — REWRITE's alternate-key repositioning — turned out on a re-read of
 the PRINTED rule to carry SIX obligations, not the two the note recorded; the existing `altkey_suppress_when.cob`
 reaches only WRITE-time suppression and the READ/START path, so a new golden `2023/l1_rewrite_alt_key_suppress`
@@ -26,7 +26,7 @@ descriptors tagged, and `DeclinedFacilityAnnexDriftTests` (five facts, one of th
 code, five in docs — plus a correction banner on the Wave-H scout section, because `docs/CONFORMANCE.md` was the
 SOURCE of the error: its §4 bullet, its §1 and its header all filed VALIDATE under §4.2.6.
 
-**Row 2 — PB714 (`e5e25c55`).** `SortEmitter`'s implicit OPENs for SORT/MERGE USING and GIVING files rendered no
+**Row 2 — PB714 (`73d3dd26`).** `SortEmitter`'s implicit OPENs for SORT/MERGE USING and GIVING files rendered no
 SHARING override, so §14.9.40.4 GR12 a) / GR15 a) and MERGE's §14.9.24.4 GR7 a) / GR12 a) never took effect —
 `cite.py --find "as if an OPEN statement"` returns exactly those four, and their four CLOSE twins were already
 correct. Measured: `IN-ST=00` and three records read where `'61'`, `'42'` and zero records were required. The fix
@@ -44,7 +44,7 @@ two `CobolFileLockTests` with control arms. `COBOLNET_FILES_DESIGN.md` D14 is co
 recorded the true half as the whole) and PB714's own decision is **D22** — D20 was taken by PB683 in train 15 and
 D21 by PB339 in train 16, and the collision was caught before it reached main.
 
-**Row 3 — PB737 (`af58ed80`).** A verdict-only adjudication that gives an owner to the three inventory rows PB339
+**Row 3 — PB737 (`0125ac31`).** A verdict-only adjudication that gives an owner to the three inventory rows PB339
 implemented and pinned but deliberately did not claim (`grep -rln` over `kb/Work/` found no note owning them).
 Each row was RE-DERIVED rather than inherited, and each turned out to carry a THIRD obligation no PB339 golden
 reached. `GR-13.18.43.4-16`'s closing sentence: a current record of length zero — legal, because §13.18.43.3 SR7
@@ -58,7 +58,7 @@ sample. `GR-14.9.20.4-3` (PB419's row) rides the same batch notes-only: its reco
 GENERATED PARSER ACCESSOR, `ini.dataReferenceList()`, which train 16's rename to `initializeOperandList` would
 have silently invalidated; it now names the grammar rule and the binder symbol, verdict untouched.
 
-**Row 4 — PB708 (`53570d95`).** `build-local.{ps1,sh}`'s NO-VERDICT-LINE guard looked at the WHOLE filter, so a
+**Row 4 — PB708 (`85e9dc76`).** `build-local.{ps1,sh}`'s NO-VERDICT-LINE guard looked at the WHOLE filter, so a
 dead `FullyQualifiedName~` term OR'd among live ones still produced a verdict line and was never named —
 PB691's `~SpecTraceabilityInventory` aimed at Conformance, where that test does not exist, printed a clean
 `Passed!` on every run. ONE mechanism now answers for it: `scripts/filter_population.py` (311 lines), called
@@ -74,7 +74,7 @@ other return code and pins `DOTNET_CLI_UI_LANGUAGE=en`. `--self-test` is ALL GRE
 derived from discovery, and both twins were driven end to end with a dead term and with PB691's seven-term
 filter. Plan §0 Gates and §9 now state the per-term rule where the whole-filter one stood.
 
-**Row 5 — PB739 (`95ce8e8d`).** Two concurrent `OPEN EXTEND` connectors on one shared physical file both reported
+**Row 5 — PB739 (`69249221`).** Two concurrent `OPEN EXTEND` connectors on one shared physical file both reported
 `00` on WRITE and one record was LOST: .NET's `FileMode.Append` seeks to the end ONCE, at open, so both buffered
 writers anchored on the same offset. Re-measured WIDER than the note: all three record-sequential framings (fixed,
 line, varying) lose a record, and RELATIVE loses one AND mints a duplicate key — both connectors returned
@@ -97,7 +97,7 @@ behaviourally reverted. PB713's one-writer guard is re-pointed and strengthened 
 has no setter. Goldens `2023/pb739_shared_extend_write` and `2002/pb739_shared_extend_write` pin COUNT and
 PRESENCE — the ORDER GR19 explicitly leaves undefined is recorded as this compiler's determinate choice.
 
-**Row 6 — PB695 family 3, the LAST family (`9132854f`).** The optional-word audit now reports **0 candidates**
+**Row 6 — PB695 family 3, the LAST family (`e1214e12`).** The optional-word audit now reports **0 candidates**
 (42 → 12 → 8 → 0), and every step of that descent was a grammar change or a structural fix to the tool — no
 exclusions — so `kb/Work/PB695.md` goes LANDED. Ten tokens across seven rules, every underline re-measured off
 the raw rectangles by a second reader: `SUPPRESS WHEN? literal` (§12.4.5.6.2), `LOCK MODE? IS?` (§12.4.5.9.2),

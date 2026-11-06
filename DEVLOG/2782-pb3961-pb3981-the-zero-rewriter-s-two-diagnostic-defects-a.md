@@ -3,7 +3,7 @@
 Group F of wave 20261769, one root file (`ZeroTokenRewriter.cs`), two mechanisms.
 
 **PB3961** (`PERFORM VARYING X FROM 1 BY ZERO + 1` reported `'0+1' is not one of the operands`, `BY ALL ZERO + 1`
-reported `'ALL0+1'`). Re-probe on `802352531` reproduced both. The rewriter gives `ZERO_ARITH` the text "0" on purpose,
+reported `'ALL0+1'`). Re-probe on `02ab45956` reproduced both. The rewriter gives `ZERO_ARITH` the text "0" on purpose,
 because readers of an arithmetic operand parse its text (`IntegerOperandRules.TryHostValue(spec.length.GetText())`), so
 the fix is at the quoting sites: `BindVaryingOperand` now quotes `WrittenSource.Of(op)`, the one "as written" reader. The
 sibling sweep read the 196 message sites that interpolate `GetText()` and moved every user-facing refusal that quotes an

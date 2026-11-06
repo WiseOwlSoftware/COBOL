@@ -3,7 +3,7 @@
 Two defects in NvfScan, both from batch 7. (1) The no-significand-digit return was `n + 1` UNCONDITIONALLY,
 so a scan that broke on a real character in error ("ABC", "--1", "$1.5", "+.A") was reported on leg c's
 LENGTH+1 where leg b requires that character's own position — the SIBLING NvScan in the same file has carried
-the correct discrimination since 813d9bd4 and NvfScan (written later, PB60) never inherited it: the
+the correct discrimination since f589e2c5 and NvfScan (written later, PB60) never inherited it: the
 two-arm-dispatch family's seventh audited arm. (2) No capacity check existed at all: under standard-decimal
 arithmetic r1b.6 requires the position of the exponent's FIRST digit when the magnitude exceeds the SDIDI's
 ±9.999…E+6144 (§8.8.1.5.2 NOTE 2), and NvfScan bounded only the significand digit count and the exponent

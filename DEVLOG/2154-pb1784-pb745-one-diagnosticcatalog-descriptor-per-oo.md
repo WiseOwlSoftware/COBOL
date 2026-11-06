@@ -1,7 +1,7 @@
 ## Entry 2154 — 2026-10-17 13:39 PDT — PB1784 + PB745: one DiagnosticCatalog descriptor per OO definition rule
 
 Wave 1108, group A, the FINISH of the kb/Work PB1784 analysis. Its decomposition table had landed through
-its child notes; the re-probe on `62d0dca6a` ran every child's goldens and negatives on this build (PB1020, PB1062,
+its child notes; the re-probe on `f429a3adb` ran every child's goldens and negatives on this build (PB1020, PB1062,
 PB1112, PB1251, PB1308, PB1497, PB1499, PB1502, PB1505, PB1582, PB2051): 11 positives matched their `.out`, and every
 negative refused with its code. None of the measured defects reproduces any more. What remained was item 2, "one
 descriptor per rule", and the interface half of item 1 (§11.6.3 SR6 sharing SR7's descriptor). PB745, the two A.4.10
@@ -52,7 +52,7 @@ twin does, and the cycle walk no longer mutates while it reads. Performance: one
 chains, linear in the length of each chain. Duplication: the class and interface INHERITS rules now share one
 descriptor instead of two codes.
 
-**Gate.** Run `20261017T105616Z-457d02`, on HEAD `7f7ad8651`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`.
+**Gate.** Run `20261017T105616Z-457d02`, on HEAD `7f07e5d43`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`.
 Leg 1 ran Conformance 6,161/11,951, Unit 33,489/33,925 and Characterization 5/36 with no failure. The three new
 negatives, the new OoSpineTests fact, the renamed `_4211` tests and the seven re-pinned negatives all passed in leg 1.
 The Linux gate is run at landing (batched gating).
@@ -72,7 +72,7 @@ header, so a new drift test over the negative goldens, `NegativeGoldenHeaderCode
 `HostWitnessTraitDriftTests` while it did): a code a header states after
 `Expected`, `Diagnostic` or `->` must be one its `.err` pins (since the re-homing below, its refusal's `expect`). On the reviewed head it reports
 five of the seven stale headers; the other two named the code in prose. A built-in fixture proves the detector trips.
-The review finisher's gate, run `20261017T113417Z-7025a0` on `f84c138f0`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
+The review finisher's gate, run `20261017T113417Z-7025a0` on `7aa41a047`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
 gating, PB2515): GREEN`, with Conformance 6,246/11,953, Unit 33,517/33,927 and Characterization 5/36 run and no
 failure; both new facts, the renamed OoSpineTests fact and the seven re-headed negatives passed in leg 1.
 
@@ -91,12 +91,12 @@ and names the golden as the row's spec-derived test in place of "test-needed". A
 stating a probe result `-> 0820/0821/0822/0838/0839/0840/0849` found the rest current: the 0840 lines of
 SR-11.4.3-1, SR-11.6.3-2 and SR-11.8.3-1 are the not-in-scope funnel (sr2_classname, sr2_norepo and sr2_undefined
 re-run: 0840 citing §11.6.3 SR2), and the 0839 lines are the FINAL-method rule.
-The round-2 finisher's gate, run `20261017T115300Z-00d321` on `00a3735e5`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
+The round-2 finisher's gate, run `20261017T115300Z-00d321` on `f65d07b65`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
 gating, PB2515): GREEN`, with Conformance 8,201/11,964, Unit 33,529/33,932 and Characterization 5/36 run and no
 failure. `EveryTestRef_ResolvesToARealTest` was again left to leg 2, so it was run directly: 1/1 passed (red 1/1 on
 the reviewed inventory).
 
-**The landing's Linux gate (finisher, 2026-10-17).** `enqueue.py land` stopped on `03acffdaa`: the Linux gate's Unit
+**The landing's Linux gate (finisher, 2026-10-17).** `enqueue.py land` stopped on `12d70f6fd`: the Linux gate's Unit
 leg failed one test, `ArchReviewFleetDriftTests.TheSubsystemTable_PartitionsTheCommittedTree_AndTheDesignBlockIsCurrent`,
 as a harness non-observation (`r2_subsystems.py --check` timed out at the harness's 120 s budget twice). The branch
 never touched the script; the cause was in it. The check read every blob of the tree (about 200 MB) to count lines it
@@ -105,7 +105,7 @@ never used, and the Linux gate's clone reads its objects through alternates on t
 blobs, and the glob regexes are cached: 23.7 s down to 0.22 s in the WSL clone, 6.3 s down to 0.54 s on Windows, with
 byte-identical shard output. kb/Work PB2882 records it.
 
-**Re-homed onto PB3177 slice S2 (finisher, 2026-10-17).** S2 landed first (main `fb006c1de`) and deleted
+**Re-homed onto PB3177 slice S2 (finisher, 2026-10-17).** S2 landed first (main `7ebef81a1`) and deleted
 `tests/conformance/`, so the branch's goldens moved to the suite by the recipe of kb/Work PB3177 § Landed. The six
 programs the branch changed only in their comments merged into their suite files by rename (one, `pb1502-interface-
 inherits-same-name-twice`, by hand: main's re-spelled `conformance:cases/...` citation with the branch's COBOLNET2791).

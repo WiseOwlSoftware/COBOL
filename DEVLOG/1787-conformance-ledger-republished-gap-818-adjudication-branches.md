@@ -4,7 +4,7 @@
   deleted from GitHub, and the only remote branch is `main`.
 - **The ledger artifact is republished** (version 82), regenerated from the tree: GAP 818, with the in-flight text
   describing today's landings and the owner's pending decisions. The GAP-trend data file gains its 92nd point.
-- **The comprehensive battery is running** in a detached worktree at `fe43b3395`, the first since trains 71–74. Its
+- **The comprehensive battery is running** in a detached worktree at `374b67b41`, the first since trains 71–74. Its
   phase 2 was in progress when this entry was written.
 - **Owner pacing decision (2026-09-29 ~15:45):** the weekly meter is at 51 %, ahead of schedule, and the owner does
   not want work to stop. For about two days the fleet runs token-frugal: local machine work first, with only

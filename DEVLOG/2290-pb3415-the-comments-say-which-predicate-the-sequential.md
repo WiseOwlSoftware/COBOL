@@ -6,7 +6,7 @@ described the sequential release as asking `FileLockPosture.AdmitsAnotherWriter`
 the end of the class asserts that writer hands the record over at the WRITE), and `AdmitsAnotherWriter`'s summary called
 itself "the predicate the sequential write path needs".
 
-**Re-probe.** On ed4477ef2, `git grep -n "sequential organization keeps"` hit StoreCoherenceTests.cs:38, and
+**Re-probe.** On 58e3069c9, `git grep -n "sequential organization keeps"` hit StoreCoherenceTests.cs:38, and
 `SequentialConnector.ReleaseRecord` flushed under `AdmitsAnotherRunUnit` (§14.9.51.4 GR12, "The successful execution of
 a WRITE statement releases a logical record to the operating environment"; §9.1.15 2), the INPUT connector admitted
 beside a READ ONLY writer; both `cite.py --check` OK).

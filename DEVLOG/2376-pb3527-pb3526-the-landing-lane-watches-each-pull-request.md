@@ -11,7 +11,7 @@ with nothing to fix.
 shape) read ENQUEUED in `prune_worktrees.py`, its evidence claiming "is in the merge queue" (`PullRequest.queued`
 counted auto-merge as queued); the held-lock verdict line was not GREEN to enqueue.py's own GREEN regex, so exit 5.
 Live, `queue_facts.py` reads the queue's own entries (PR #398 IN THE QUEUE at the time of the probe), and GitHub's
-check-runs for fb899d188e35 show the stuck one (120018552758) since resolved, beside the re-run's (120043423624).
+check-runs for 3b1e7d6406af show the stuck one (120018552758) since resolved, beside the re-run's (120043423624).
 
 **Mechanism 1 — the queue watch.** `scripts/orchestrator/queue_facts.py` is the one reader of GitHub's facts, moved
 out of `prune_worktrees.py` with every caller changed: one GraphQL query for `mergeQueue(branch: "main")`'s entries and
@@ -83,8 +83,8 @@ branch merged, once per main head and host, recorded in the common git dir's `en
 the same cause is exit 2 (main's, the operator's), anything else blocks, exit 5 with a BLOCKED line naming the cause and
 main's reading, a finisher's. `read_verdict` returns a `Reading` (word and cause), and `run_gates` and `land` read it.
 
-**Gate** (run 20261022T235634Z-491905, at 5c6f442a5, review round 2): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
+**Gate** (run 20261022T235634Z-491905, at 933c9f25a, review round 2): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
 gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 7,615 · Unit 1,280 · Characterization 31
-… ===`; `=== LINUX GATE: GREEN (legs selftests unit characterization conformance guard selftests-built; HEAD 5c6f442a5)
+… ===`; `=== LINUX GATE: GREEN (legs selftests unit characterization conformance guard selftests-built; HEAD 933c9f25a)
 ===`.
 

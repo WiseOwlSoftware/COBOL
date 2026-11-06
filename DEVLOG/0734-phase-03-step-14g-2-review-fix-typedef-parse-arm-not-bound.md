@@ -1,6 +1,6 @@
 ## Entry 734 — 2026-07-09 22:37 PDT — PHASE-03 Step 14g.2 review-fix: TYPEDEF → parse-arm (not bound-arm) + a level-66/88 guard
 
-An adversarial find→verify review of the 14g.2 commit (`2efa4ea`, one subagent attacking H1–H5 over/under-fire
+An adversarial find→verify review of the 14g.2 commit (`2687dcc`, one subagent attacking H1–H5 over/under-fire
 hypotheses) found **3 CONFIRMED byte-neutrality violations** — all low-severity (secondary 0900s on already-failing
 `--std < 2002` programs, no real/NIST program hits them) but genuine, and NOT covered by any test. **Fixed at the root
 cause this commit; all three now have regression witnesses.**

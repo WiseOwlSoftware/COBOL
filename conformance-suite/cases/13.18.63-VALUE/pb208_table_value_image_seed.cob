@@ -14,7 +14,7 @@
       *> backings - and it read only item.RawValue, which is NULL for a table VALUE (the two carriers are
       *> mutually exclusive on DataItem).  Its `Occurs is n and > 1 ? StrRepeat(one, n)` then seeded every
       *> occurrence with the same VALUE-LESS default, so the table VALUE was DISCARDED, silently, for any leaf
-      *> the aliasing put on that lane.  MEASURED on 3324d794: the GD group below came back
+      *> the aliasing put on that lane.  MEASURED on 7ed14832: the GD group below came back
       *> `3C 3C 00 00 00 00 3E 3E` - the seed simply absent.  Each 01 here is aliased by a level-01 REDEFINES
       *> (13.18.63.3 SR12 bars a VALUE in the redefinING entry, never in the redefined one, so every program
       *> here is conforming), which is what puts its members on the image lane.

@@ -1,7 +1,7 @@
 ## Entry 885 — 2026-07-17 19:41 PDT — ✅ PHASE-12 COMPLETE — Step 13 phase close + the doc sweep; merge to main
 
 PHASE-12 (M3 / COBOL-2014 surface deltas) closes. All 13 steps done across 6 battery-gated commits
-(`fb17f98f`→`9afde9f3`+close, CI green on each). All three exit criteria met:
+(`f00ad884`→`68a5dc34`+close, CI green on each). All three exit criteria met:
 1. the `tests/conformance/2014/` corpus grew (`dynamic_length_item`/`_limit`/`_figurative`, `float_binary`,
    `propagate_directive`) and every `.cob` is manifest-discovered;
 2. `occurs-dynamic-2014` + `dynamic-length-item-2014` matrix rows are `active` and green at all four editions;

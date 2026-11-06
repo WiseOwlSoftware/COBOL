@@ -1,4 +1,4 @@
-"""Where the Conformance assembly's recorded test time goes (dbea12428 recording, instrumented, BelowNormal):
+"""Where the Conformance assembly's recorded test time goes (dad934c91 recording, instrumented, BelowNormal):
 the classes carrying the most test-seconds, and the test-count / time shares of the heaviest."""
 from collections import defaultdict
 from common import *

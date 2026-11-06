@@ -1,6 +1,6 @@
 ## Entry 1627 — 2026-09-21 14:08 PDT — Battery #82 at train 43's head: every compiler leg green, and the ONE per-case differential flip is the divergence-adding shape — read from the case, licensed by §14.9.28.3 SR11, re-baselined; plan §9 reference moves to #82
 
-Battery #82 ran at `c774def44` — landing train 43's head — in an isolated worktree already pinned at exactly
+Battery #82 ran at `904c2abc4` — landing train 43's head — in an isolated worktree already pinned at exactly
 that commit, never on `main` and never in the shared checkout. The gitignored GPL GnuCOBOL corpus was copied in
 FIRST, so `ExternalCorpusPopulationDriftTests` and the rest of the Unit assembly's external-population tests
 measured a real corpus instead of being red by absence. One `bash scripts/battery.sh` invocation, **1080 s
@@ -64,7 +64,7 @@ flip from a regression, only a person reading the case can — and that is the o
 no other gate in the run is anything but green. There was no corpus drift, no case without a compiler verdict
 and no harness failure, so the one flip is the whole delta.
 
-**Batch covered:** everything since battery #81's head `c701786d` — DEVLOG **1625**, landing train 43's six
+**Batch covered:** everything since battery #81's head `013001e8` — DEVLOG **1625**, landing train 43's six
 clusters and twenty-eight notes (SET-TO-FALSE and the SET formats · INITIALIZE value occasions · exception
 checking and PERFORM ranges · the data-description screens · the MOVE operands · citation fidelity), plus
 registrar #7 and battery #81's own record, which touch no compiler source. Six new diagnostic codes

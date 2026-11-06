@@ -2,7 +2,7 @@
 
 **Context.** Resumed on `phase-14` at the top of the plan §0 REMAINING list: **F3 PERFORM inside an OO method** — the one
 genuine remaining P13 feature (loud-0899'd via `F3StagedInMethodStub`; owner: "do NOT rush"). Baseline re-confirmed green
-at HEAD (`1f56f572`): build 0/0, characterization 33/33, F3 unit 37/37.
+at HEAD (`5373975d`): build 0/0, characterization 33/33, F3 unit 37/37.
 
 **Diagnosis.** Traced the whole F3 runtime + the OO emit-into-a-type spine. The gap is TWO coupled problems, not one: (1)
 **pc-reachability** — a class has no class-level dispatcher; each METHOD emits its own `__MDispatch(startPc,exitPc)` local

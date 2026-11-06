@@ -5,7 +5,7 @@ receiving half) has carried a capability guard for phases while GroupImage (the 
 reader) emitted .AsImage() unconditionally. PB164's VLG probes constructed the witness — a group with
 BOTH an OCCURS DEPENDING table and a dynamic member takes the ODO sender over a struct that never
 receives AsImage, and legal source failed BACKEND compilation with CS1061 — proven pre-existing at
-4006248f by stash/build/probe/pop before a line changed. The fix is the mirror: the same guard, in the
+8cf2677b by stash/build/probe/pop before a line changed. The fix is the mirror: the same guard, in the
 read switch.
 
 Except a mirror can be hung wrong, and two read-only skeptics dispatched on the one substantive risk

@@ -1,6 +1,6 @@
 ## Entry 1838 — 2026-10-01 20:30 PDT — Day close: main 76bde072e, GAP 675, nothing in flight
 
-State at the end of the 2026-10-01 session. `main` is `76bde072e` with CI green and the tree clean; GAP 710 → 675 today
+State at the end of the 2026-10-01 session. `main` is `23c9e6419` with CI green and the tree clean; GAP 710 → 675 today
 (wave 1001, golden-lane batch gl4, wave 1002 / PB1907); 42 CONFORMS rows still owe a spec-derived witness. The weekly meter
 read 76 % at 20:00 PDT (it was 69 % at the start of the day), and the page warned the week would run out Saturday morning;
 the owner's ceiling of 80 % for today's work was not reached. Worktree `wf_69250a68-60b-2` is kept on purpose: it holds

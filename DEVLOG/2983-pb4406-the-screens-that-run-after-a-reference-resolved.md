@@ -7,7 +7,7 @@ statement-slot mapping (`FieldOperand`), the receiving chokepoint (`ResolveRecei
 other bars), the arithmetic resultant's category screen (`ScreenResultant`, COBOL1675) and the literal refusals. Each ran
 after the resolver's scope had closed, under the statement's cursor.
 
-**Re-probe (main 68de94820).** With the operand on the line below `COMPUTE N = 1` or `ADD 1 TO N`, sixteen reports named
+**Re-probe (main b75f316a6).** With the operand on the line below `COMPUTE N = 1` or `ADD 1 TO N`, sixteen reports named
 `(12,12)`, the statement's first token, while the operand stood on line 13. `ADD "A" TO N` named the verb's column (12,12), the
 literal being at column 16.
 

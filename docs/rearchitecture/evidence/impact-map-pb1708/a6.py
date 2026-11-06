@@ -1,7 +1,7 @@
 """(1) The METHOD-granularity FLOOR of every replayed cluster: only the changed method bodies (non-registry static
 constructors still reach their type's users) and the data files — i.e. what a perfectly precise registry AND
 declaration analysis could reach at best, since both only ADD tests on top of it.
-(2) Train 68b X and Y, against the map at their own base 4b0f3e22a, with every registry contribution REMOVED (a lower
+(2) Train 68b X and Y, against the map at their own base ba3aba6b9, with every registry contribution REMOVED (a lower
 bound of the entry-level design, which adds the changed entries' readers back): are the tests that went red still
 selected?"""
 import pickle, statistics
@@ -34,7 +34,7 @@ for label, d in res.items():
 print(f"FLOOR over 20 clusters: min {min(fl)} median {statistics.median(fl)} max {max(fl)} of {len(ix.by_assembly['Conformance'])}; "
       f">= 50%: {sum(1 for c in fl if c >= len(ix.by_assembly['Conformance']) / 2)}")
 
-m2, ix2 = load("4b0f3e22ae272ae6f5163b42b45b0bbd3ad1d707")
+m2, ix2 = load("ba3aba6b989e2443acc07ff124c65aa8cf936f54")
 M2 = m2["commit"]
 RED_X = ["DiagnosticPositionTests.Copy_MainLinesStayMain_CopiedLinesNameTheCopybook",
          "DiagnosticPositionTests.ParseErrorInsideCopybook_NamesTheCopybookLine"]

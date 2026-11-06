@@ -5,7 +5,7 @@ purpose, and `GetText()` glues tokens with no separators. The SET diagnostics bu
 refused with `SET 'N' TO '0' violates ISO §14.9.39.3 SR4`, `SET DP TO ZERO + 1` with `TO 0+1: identifier-6 …`, and `SET N UP BY ZERO`
 with COBOL2112 `UP/DOWN BY 0`.
 
-**Re-probe.** All three reproduced on base 84cdb410f (probes in the scratch dir `p/`). The note named four sites; the root is one
+**Re-probe.** All three reproduced on base c7e1ad98c (probes in the scratch dir `p/`). The note named four sites; the root is one
 producer: `SetSenders.Classify` and `SetSender.OfReference` made `SetSender.Text`, which the pointer, program-pointer,
 function-pointer and object-reference arms (`SetBinder`, `OoBinder`) all print, and `BindSetTo` and `BindSetUpDown` each read
 `amount.GetText()` besides.

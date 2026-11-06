@@ -1,6 +1,6 @@
 ## Entry 2254 — 2026-10-19 10:47 PDT — PB3388 - IX216A's OPEN EXTEND status: the harness retried a killed program over its own leftover files
 
-**The observation.** One Linux gate red in 17,812 (`NistProgram_MatchesGolden("IX216A")`, head c95af8611, 6 m 22 s):
+**The observation.** One Linux gate red in 17,812 (`NistProgram_MatchesGolden("IX216A")`, head 9b9850692, 6 m 22 s):
 `OPEN EXTEND: EXP: 05 FAIL* OPEN-TEST-GF-01`. IX216A opens an absent OPTIONAL indexed file with OPEN EXTEND and expects status
 05, because section 14.9.27.4 GR17 (checked with `cite.py`) makes that OPEN create the file and then set the status to '05'.
 The note asked for a repro and a root cause, not a re-gate.

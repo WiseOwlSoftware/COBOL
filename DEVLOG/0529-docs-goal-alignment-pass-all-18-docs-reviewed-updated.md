@@ -28,5 +28,5 @@ All edits applied, zero skipped. **The four goal axes now stated consistently ac
   excluding it from every grep — a latent doc-tooling hazard). Status carriers updated to actuals (33 NC / 348
   conformance / 15 unit). Signed-off gate residuals: historical `src/CobolNet` rows inside the executed-G0 move
   record (they ARE the record); `StoreChecked` mentions inside retire/settle notes.
-(Some doc edits landed mid-flight inside commit 794c88f's `git add -A` — content identical, split imperfect.)
+(Some doc edits landed mid-flight inside commit 3739930's `git add -A` — content identical, split imperfect.)
 

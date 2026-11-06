@@ -42,7 +42,7 @@ that lets ONE text serve a `long` field and the `string` image a post-bind analy
 sets were `long|string`, while `DataItem.ElementType` also yields `double`/`float`, `Int128`, `ulong`, `UInt128`,
 `ManagedPointer`, `ProgramPointer`, an object reference and a group's per-program `record struct`. The filed defect
 (a GROUP subscript under `--permissive`, CS1503/CS0103) turned out to be the MILDEST member of its family, and half
-of it no longer held on today's tree — PB170's `1884ba1e` had already put a class screen on the strict fast path.
+of it no longer held on today's tree — PB170's `4f15f60d` had already put a class screen on the strict fast path.
 The sweep found four strict-lane, legal-source siblings that were worse: `E(W-FL)` with `USAGE FLOAT-LONG`,
 `E(W-BIG)` with `PIC 9(20) COMP`, `E(W-U)` with `BINARY-DOUBLE UNSIGNED` and `W-W(W-FL:2)` each failed the backend
 in the DEFAULT STRICT lane on source §8.8.1.1 and §8.4.2.3.4 GR1b make perfectly legal, so the note's
@@ -141,7 +141,7 @@ re-recorded with the corrected determination text. No diagnostic code — '39' i
 `kb/Work/PB329` Part 1 is recorded and the note stays open.
 
 **The train.** Four clusters, four commits, one build and one gate, landed in the manifest's order — PB203
-(`68496d5d`), PB201 (`5082cffc`), PB470 (`0e5dd8b8`), PB193 (`bf12e2e9`) — with the DEVLOG and plan §0 in a fifth. Every
+(`b4627a7c`), PB201 (`868e3dce`), PB470 (`6af0176f`), PB193 (`1c5ae53e`) — with the DEVLOG and plan §0 in a fifth. Every
 implementer's content was taken as `git diff <base> <branch>` because each carried its work as WIP commits; a
 filesystem walk against `git ls-tree -r <branch>` confirmed no cluster had an uncommitted deliverable. The only
 merge conflict in the train was one block of `docs/CONFORMANCE.md`, where PB470 rewrote row `DOC-A.1-90` while

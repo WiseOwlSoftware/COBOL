@@ -67,7 +67,7 @@ GR17 b) applied as written means a fixed line sequential record written with tra
 cannot be REWRITten by the same FD.
 
 **The train.** Pipelined behind train 66: cut on origin/main, then — once train 66's CI run 36351316043 was green —
-re-applied onto its head `2d95638ac`, because a `merge-tree` probe showed a source conflict in `PlaceRenderer.cs`
+re-applied onto its head `3eb28a11c`, because a `merge-tree` probe showed a source conflict in `PlaceRenderer.cs`
 (train 66's direction-parameterized `BitsWrite` / `NatWrite` against O's `GroupTarget`; merged as both). Every
 inventory hunk was discarded and each cluster's `record_verdicts` batch re-applied in order; a row-by-row comparison
 against each implementer branch found 0 mismatches. Gate on the composition (build-local, filter

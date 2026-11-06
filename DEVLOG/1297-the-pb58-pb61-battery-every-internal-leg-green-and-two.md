@@ -1,6 +1,6 @@
 ## Entry 1297 — 2026-08-18 00:49 PDT — The PB58+PB61 battery: every internal leg green, and two differential flips that are the §15.3 screen doing its job
 
-**Tree `9ece51ea`, `scripts/battery.sh`:** Conformance **4616/4616** · Unit **4183/4183** · Characterization
+**Tree `24530ea9`, `scripts/battery.sh`:** Conformance **4616/4616** · Unit **4183/4183** · Characterization
 33/33 · guard-fast NIST **353 MATCH / 0 REGRESSIONS**, audit CLEAN · GnuCOBOL differential 1323 cases,
 **2 per-case flips**, both `AGREE_ACCEPT → WE_REJECT_THEY_ACCEPT` and both from PB58's argument screen:
 

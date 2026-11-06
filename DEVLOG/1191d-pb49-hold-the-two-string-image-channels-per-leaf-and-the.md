@@ -1,6 +1,6 @@
 ## Entry 1191d — 2026-08-06 15:22 PDT — PB49: hold the two string-image channels per-leaf, and the NUMERIC half needed an ANSWER rather than a guard
 
-> ⚙ **RECONSTRUCTED 2026-08-07 from the primary sources — the commit message (`4808178a`), its `kb/Work/` note and its diff — not written at the time.** The commit landed without a DEVLOG entry; the owner's call was to reconstruct where it can be done accurately. Every fact below is carried from those sources; nothing is recalled. **Lettered rather than renumbered** because entries 1192–1198 are already referenced by pushed commit messages, which cannot be edited.
+> ⚙ **RECONSTRUCTED 2026-08-07 from the primary sources — the commit message (`cacda607`), its `kb/Work/` note and its diff — not written at the time.** The commit landed without a DEVLOG entry; the owner's call was to reconstruct where it can be done accurately. Every fact below is carried from those sources; nothing is recalled. **Lettered rather than renumbered** because entries 1192–1198 are already referenced by pushed commit messages, which cannot be edited.
 
 **PB25 was one rule written in two places with only one copy right.** `IntrinsicRenderer.StrArgVisitor` delegates
 SOME `BoundOperand` leaves to `OperandText.AsString` and answers the rest itself, so it inherited neither the

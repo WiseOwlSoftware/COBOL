@@ -64,13 +64,13 @@ conflict outside docs: adjacent whole elements of `tests/conformance/2014/manife
 `pb2280_call_variable_length_shapes`, H's two goldens), both kept, 211 → 213. All three verdict batches re-applied to
 the merged inventory changed 0 rows. Re-gate on the rebased tree: `=== BUILD-LOCAL GATE: GREEN — Conformance
 10,914/10,914 · Unit 32,507/32,507 · Characterization 35/35` (run `20261007T210839Z-9edbf9`); Linux gate GREEN; semgrep
-counts equal the baseline; the CI audits are clean. Oracle against `bc1b9318fa82`: DIFFERENT, 10 of 7,435, all
+counts equal the baseline; the CI audits are clean. Oracle against `e745f478b099`: DIFFERENT, 10 of 7,435, all
 attributed. The 5 CSHARP cases are H's (`dyn_nested_group_move`, `l1_vldi_reduce_regrow`,
 `pb1128_inspect_dynamic_table_element`, `pb1144_dyn_move_elements`, `pb1144_dyn_move_recreate`): a promoted numeric
 dynamic element becomes a string image carrier (`CobolDynTable<long>` → `CobolDynTable<string>`, record-struct members
 `long` → `string`, `FormatImage`/`ParseImage` moving onto the element's stores and reads, INSPECT taking the image
 path). That is the fix. G changed no existing case (the decorator renders `NatBytes(Read(x))` exactly as the deleted
-arm did) and A is runtime-only. 5 ADDED are the goldens and negatives. The baseline is re-recorded as `90babefc36a7`
+arm did) and A is runtime-only. 5 ADDED are the goldens and negatives. The baseline is re-recorded as `53bc1ceae4f1`
 (H's commit). Review over the train's diff: 0 findings. The lander weighed one risk and kept it: on Windows a benign
 reader such as an antivirus scan now refuses a re-OPEN OUTPUT with '61', as it already refused DELETE FILE.
 Leads filed: PB2484 (macOS has no cross-run-unit lock) and PB2485 (no witness uses two real processes). No diagnostic

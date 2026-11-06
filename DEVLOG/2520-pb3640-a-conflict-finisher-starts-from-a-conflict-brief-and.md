@@ -1,12 +1,12 @@
 ## Entry 2520 — 2026-10-24 21:52 PDT — PB3640: a CONFLICT finisher starts from a conflict brief, and site blocks stay complete; PB3509 retired as PB3508's duplicate
 
 Wave 20261031 group C started this group (PB3509, PB3640) and stopped on the fleet's stop file after part 1. Wave
-20261106 group B merged that branch onto main 302648e01 and finished it. The merge conflicted in `scripts/spec/work.py`,
+20261106 group B merged that branch onto main f3e97f7e0 and finished it. The merge conflicted in `scripts/spec/work.py`,
 where PB3670 had landed the member partition (a note with no site block is planned UNPARTITIONED and holds nothing).
 The resolution keeps both sides: PB3670's wording, and PB3640's campaign rule in the comment, the `sites_problems`
 docstring and its message.
 
-**PB3509 (retired).** Re-probed on a build of main at 300fd78bd. The defect it describes (a carrier's DONE report
+**PB3509 (retired).** Re-probed on a build of main at be62db511. The defect it describes (a carrier's DONE report
 supersedes the carried branch's FINDINGS report in the planner's `newest`) is PB3508's. PB3508 was filed from the same
 wave-1143/1144 witness and landed before this note was picked up. `plan_wave.add_closed_notes` already gives no report a
 note that a contained unlanded report branch also closes. Emptying that `carried` set turns PB3508's check 6b'''00 red

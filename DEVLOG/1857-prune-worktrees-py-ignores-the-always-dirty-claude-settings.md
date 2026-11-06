@@ -8,7 +8,7 @@ verified bundle under `E:\Temp` and removed 35 branches with their worktrees; ev
 `main` under rewritten hashes), so the bundle was deleted the same evening and nothing reads or processes it. Left on purpose: the
 UNLANDED `wf_69250a68-60b-2` (PB1527, the string-pointer crash fix) and `wf_a08557c7-e3e-4` with `t1007-ckpt` and `t1007-try1`
 (PB1402 group D, dropped from train 1007 on a Windows CI red). `wf_5aceadb5-9cf-4` was a CHECK and was removed because PB1705 and
-PB1660 landed as `27d579574`.
+PB1660 landed as `d9908900f`.
 
 **Files:** `scripts/prune_worktrees.py`. No diagnostic code used.
 

@@ -1,6 +1,6 @@
 # registrar-1 — landing hand-off for the owner's LOCAL orchestrator (kb/Work PB1522 step 2)
 
-Branch `claude/adj-registrar-1` (cut from `0caa7d5`). Land it through `bash scripts/push-main.sh`; this cloud session
+Branch `claude/adj-registrar-1` (cut from `0c24de7`). Land it through `bash scripts/push-main.sh`; this cloud session
 wrote NO DEVLOG entry and did NOT touch plan §0 (PB1522: the local orchestrator owns both). Re-apply verdict batches with
 `record_verdicts.py` on the merged tree if main moved (practice L6) — the inventory hunk is two batch files' worth:
 `batch-nondoc.json` then `batch-r42.json`.
@@ -21,7 +21,7 @@ wrote NO DEVLOG entry and did NOT touch plan §0 (PB1522: the local orchestrator
 selector data, 126 A.1 rows held on an owner decision, 14 new kb/Work notes.
 
 - **Inputs.** 11 `claude/adj-*` branches, 208 distinct rule-ids = exactly the 208 verdict-less inventory rows (wave 1: 90,
-  wave 2: 118; pinned `0caa7d5`). Adjudicated histogram: DIVERGES 79 · NEEDS-OWNER-DECISION 71 · PARTIAL 31 · CONFORMS 15
+  wave 2: 118; pinned `0c24de7`). Adjudicated histogram: DIVERGES 79 · NEEDS-OWNER-DECISION 71 · PARTIAL 31 · CONFORMS 15
   · NOT-IMPLEMENTED 12. Refuters: wave 1 applied its overturns on the branches; wave 2 attacked 9 CONFORMS rows, 8 upheld,
   1 overturned (SR-5.5-2 CONFORMS → PARTIAL, the boolean shift count, PB1413); `adj-w2-14-s1` ran no refuter (all 22 rows
   NEEDS-OWNER-DECISION).

@@ -1,6 +1,6 @@
 ## Entry 1127 - 2026-07-30 05:05 PDT - Merged to main, and the §0 line most likely to go stale is the one about the merge
 
-**`phase-14` → `main` at `1d0c24c9`, 33 commits**, under the comprehensive gate with every leg measured at the
+**`phase-14` → `main` at `244d6208`, 33 commits**, under the comprehensive gate with every leg measured at the
 merge rather than carried:
 
 ```
@@ -18,7 +18,7 @@ neither branch was ever tested as. It came back 4148/4148 there too.
 **⛔ THE §0 MERGE LINE IS THE ONE THAT ROTS.** The line this replaces said `phase-14` and `main` had identical
 trees — true when written, false from the moment the V59 wave started, and it stayed said through eighteen
 commits. Its replacement carries the same hazard: "the branches are at the same commit" is false the next time
-anyone commits. So the new text states the merge as a DATED FACT (`1d0c24c9`, 2026-07-30) and then says outright
+anyone commits. So the new text states the merge as a DATED FACT (`244d6208`, 2026-07-30) and then says outright
 that the relationship must be COMPUTED — `git rev-list --count main..phase-14`, or the probe, which does it. A
 branch relationship is live state, and live state written into prose is a snapshot that keeps claiming to be
 current.

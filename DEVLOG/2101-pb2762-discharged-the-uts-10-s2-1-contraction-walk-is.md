@@ -1,12 +1,12 @@
 ## Entry 2101 — 2026-10-16 12:17 PDT — PB2762 discharged: the UTS #10 S2.1 contraction walk is already written once
 
-kb/Work PB2762 (wave 1096 F, the PB1754 cluster) was an R2 duplication finding read at 8be230068: the run-time
+kb/Work PB2762 (wave 1096 F, the PB1754 cluster) was an R2 duplication finding read at cd85e4901: the run-time
 `CollationElementIterator` and the CLDR builder's `CloseOverComposites` each wrote the S2.1 walk (longest contiguous
 contraction, then the unblocked discontiguous non-starters), and the builder's copy matched only the tailored keys.
-Re-probed on 59208d8fb, the builder's copy is gone. The PB2765 landing (090bf3909, 2026-10-08) moved canonical
+Re-probed on 20689f937, the builder's copy is gone. The PB2765 landing (99ceb0ca5, 2026-10-08) moved canonical
 closure into one step, `CollationTable.Rebuild`, for every front end, deleted `CloseOverComposites` and the builder's
 `FromCodePoints`, and made the closure walk each touched composite's decomposition with `CollationTable.Walk`, which
-is `CollationElementIterator` over the provisional table. `git log -S CloseOverComposites -- src/` ends at 090bf3909,
+is `CollationElementIterator` over the provisional table. `git log -S CloseOverComposites -- src/` ends at 99ceb0ca5,
 and the matcher's members appear only in CollationElementIterator.cs. The drift test the note's target asked for
 already exists in a stronger form (`CanonicalClosureDriftTests`: every decomposable code point collates equal to its
 NFD in the root, nine CLDR tailorings, a `.tailor` file and two `.tailor`-over-CLDR layers). The note is RETIRED

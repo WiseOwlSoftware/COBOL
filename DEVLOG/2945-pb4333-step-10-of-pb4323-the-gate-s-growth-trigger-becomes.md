@@ -27,9 +27,9 @@ the three-gate steady state PB4328 measured (503 s each); the trigger prints PAR
 Conformance is 20,482 cases, 1.00 times the basis. The differential is NOT built.
 
 **The second criterion, measured now (`scripts/arch/emit_fraction.py`, through the architecture oracle).** Over the 20 newest
-non-runtime landings of `8fd4ad387` (each and its first parent captured: about 15,700 cases, about 4,700 programs): median
+non-runtime landings of `c4a831833` (each and its first parent captured: about 15,700 cases, about 4,700 programs): median
 0.00 % of programs changed (0.03 % counting programs a landing adds), maximum 0.08 % (0.34 %); 2 of the 20 changed any C# (1
-and 4 programs). The review's landing `a95e97138` gives 0, as the review measured, and the committed tool reproduced the
+and 4 programs). The review's landing `92c998095` gives 0, as the review measured, and the committed tool reproduced the
 scratch measurement exactly on two landings (0 of 4,763 and 4 of 4,763). The 10 % criterion is met by two orders of magnitude.
 What it does not measure, and the design doc (section 3.14.13) now says: of the 54 code-lane landings since 2026-10-31
 only 28 (52 %) leave the runtime AND the Conformance harness alone; the differential is sound only for those, and the finer

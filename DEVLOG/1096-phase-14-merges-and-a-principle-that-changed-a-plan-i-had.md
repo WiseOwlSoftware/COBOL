@@ -1,6 +1,6 @@
 ## Entry 1096 — 2026-07-28 23:14 PDT — PHASE-14 merges, and a principle that changed a plan I had already called finished
 
-`main` is `c056f1f4`. 195 commits, 96 DEVLOG entries, 2026-07-22 to 2026-07-28.
+`main` is `f0ff57fd`. 195 commits, 96 DEVLOG entries, 2026-07-22 to 2026-07-28.
 
 **The gate, run in full and read off the verdict lines rather than inferred.** Conformance 4113/4113 ·
 greenfield Unit 580/580 · characterization 33/33 byte-identical · `guard-fast.sh` printing `=== ALL GREEN ===`
@@ -9,7 +9,7 @@ differential 0 regressions.
 
 The differential is worth a sentence because it is the leg where a false green is cheapest to accept. The
 per-case diff showed three flips, and §0 already carried an attribution for them (CA34). I did not take it: all
-three carry `COBOLNET1625`, and `git merge-base --is-ancestor f54c9bd4 56aa9a39` proves that commit predates the
+three carry `COBOLNET1625`, and `git merge-base --is-ancestor ae51c66a c31c6ddf` proves that commit predates the
 branch tail. Attribution verified, not inherited — which is the same discipline this whole phase was about.
 
 **One correction the merge forced.** §0 told the next session to "refresh the stored

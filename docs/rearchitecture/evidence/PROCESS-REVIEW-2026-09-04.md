@@ -11,7 +11,7 @@ current — the current process lives in `.claude/skills/workstream/SKILL.md`, t
 The owner asked: **is there a more efficient process that completes the COBOL compiler to 100 % — the PHASE-14
 traceability inventory at zero GAP — more quickly?** Efficiency was defined as rows closed *per day* **and** *per
 token*, **without weakening the definition of DONE** (`DESIGN-spec-conformance-review.md` §1). Three proposals were
-written independently against `main @ 2986fc4c` (throughput-first, cost-first, risk-first), then reconciled into
+written independently against `main @ c8e14fcc` (throughput-first, cost-first, risk-first), then reconciled into
 one synthesis measured on the tree, with every measured figure marked ⓜ and its probe script kept beside it. Both
 documents are reproduced below.
 
@@ -76,7 +76,7 @@ tree at the stated commit.
 
 ## A. The measured inputs (data brief, verbatim)
 
-# Process re-evaluation — measured inputs (2026-09-04, main @ 89044aa0)
+# Process re-evaluation — measured inputs (2026-09-04, main @ 0731b766)
 
 Question from the owner: **is there a more efficient process that completes the COBOL compiler to 100 % (the traceability inventory at zero GAP) more quickly?** Efficiency = rows closed per day AND per token, without weakening the definition of DONE.
 
@@ -157,7 +157,7 @@ Weekly usage limits have paused the campaign three times; a resumed long transcr
 
 # The recommended process — one derivation per rule, and stop starving the fix lane
 
-**Synthesis of the three independent proposals. 2026-09-04, measured on `main` @ `2986fc4c`** — which is *not* the
+**Synthesis of the three independent proposals. 2026-09-04, measured on `main` @ `c8e14fcc`** — which is *not* the
 tree the three proposals measured: the **lane-3 batch-2 registrar landed while they were writing**, and it changed
 the diagnosis. Every number marked ⓜ I measured myself on this tree; the probe scripts are beside this file
 (`syn_probe.py`, `syn_probe2.py`, `syn_model.py`, and the shared `usage.json`). Nothing here weakens
@@ -179,7 +179,7 @@ three proposals found this independently; they differed only on 256 vs 305, and 
 evidence; the golden lane later re-reads the same rule and the same code to produce the evidence. The cause is eight
 words in `wf_lane3_refute.js` COMMON: *"CONFORMS-but-untested (empty test-ref) is expected; do not write goldens
 here."* The adjudicator writes and runs probe programs under `{OUT}/probe/<slug>/` and throws them away.
-ⓜ b1: 184 rules adjudicated → GAP **−15 (8%)**. ⓜ **b2, landed today (`073d764a`): 292 rules → GAP 3054 → 3022,
+ⓜ b1: 184 rules adjudicated → GAP **−15 (8%)**. ⓜ **b2, landed today (`c77fc23c`): 292 rules → GAP 3054 → 3022,
 Δ−32 (11%)** — and it left behind **84 new `kb/Work` notes** and took the CONFORMS-but-untested band from **9 to
 55**. ⓜ Golden-lane round 2 closed 52 rows with 49 witnesses = **1.06 rows/witness**, against an existence proof of
 **163 rows on one test-ref** and 29 on one program.

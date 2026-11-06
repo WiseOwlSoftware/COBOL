@@ -18,7 +18,7 @@
       *> 
       *> 14.9.39.3 SR1/SR2 leave arithmetic-expression-1 as the only lane an
       *> alphanumeric function could take, and 8.8.1.1 closes it. Measured on
-      *> 9a89fbd1: compiled clean AND RAN - a silent wrong answer, not the crash
+      *> 02c72682: compiled clean AND RAN - a silent wrong answer, not the crash
       *> kb/Work PB172's note reports.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB172N1.

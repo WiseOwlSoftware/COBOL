@@ -1,6 +1,6 @@
 ## Entry 1191b — 2026-08-06 14:11 PDT — PB51: COMPUTE gained the F2→F1 re-route mirroring the F1→F2 one it already had, and the ambiguity survey the entry demanded is what made the grammar change unnecessary
 
-> ⚙ **RECONSTRUCTED 2026-08-07 from the primary sources — the commit message (`1838a304`), its `kb/Work/` note and its diff — not written at the time.** The commit landed without a DEVLOG entry; the owner's call was to reconstruct where it can be done accurately. Every fact below is carried from those sources; nothing is recalled. **Lettered rather than renumbered** because entries 1192–1198 are already referenced by pushed commit messages, which cannot be edited.
+> ⚙ **RECONSTRUCTED 2026-08-07 from the primary sources — the commit message (`4fa2d23c`), its `kb/Work/` note and its diff — not written at the time.** The commit landed without a DEVLOG entry; the owner's call was to reconstruct where it can be done accurately. Every fact below is carried from those sources; nothing is recalled. **Lettered rather than renumbered** because entries 1192–1198 are already referenced by pushed commit messages, which cannot be edited.
 
 **`COMPUTE <numeric> = ZERO` was REJECTED** with "a boolean COMPUTE expression shall not consist solely of an ALL
 literal (ISO §14.9.8 Format 2 SR3)" — a diagnostic naming a construct the source does not contain, on a statement

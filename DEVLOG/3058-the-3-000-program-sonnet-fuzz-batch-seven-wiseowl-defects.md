@@ -1,7 +1,7 @@
 ## Entry 3058 — 2026-11-03 15:40 PST — The 3,000-program Sonnet fuzz batch: seven WiseOwl defects filed, and one performance lead
 
 The first large Claude-written differential-fuzz batch (kb/Work PB4506: 3,000 programs written by Sonnet 5.5 through one
-Message Batch, judged locally against a judge built from main 3c8b2845c, triaged by 14 Opus adjudicator slices, all billed
+Message Batch, judged locally against a judge built from main a0e05167d, triaged by 14 Opus adjudicator slices, all billed
 to the expiring API credit; about $59 to write and $67 to triage) found seven WiseOwl defects. Each was adjudicated
 against the standard and its reduced repro re-run on the fresh judge:
 

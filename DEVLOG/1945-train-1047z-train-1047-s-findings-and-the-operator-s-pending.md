@@ -1,6 +1,6 @@
 ## Entry 1945 — 2026-10-08 22:12 PDT — Train 1047z: train 1047's findings and the operator's pending notes (notes only)
 
-**Cluster 1047Z (branch `notes-cleanup-capdesign`, head `21568f08a`, base `495e8fb6f`).** No compiler source. The
+**Cluster 1047Z (branch `notes-cleanup-capdesign`, head `21568f08a`, base `342b7e156`).** No compiler source. The
 cluster files the eight review findings the train 1047 lander had no ids for, as open notes: PB2844 (a constant's
 `LENGTH OF M OF V` through a TYPE-expanded group is refused with COBOLNET1547 although §13.18.57.4 2) a) gives V the
 subordinate M; MAJOR, rejects legal source), PB2845 (`CobolNameFoldDriftTests` scans no runtime project and misses
@@ -14,7 +14,7 @@ uncommitted path; removal must refuse it in code; MAJOR), PB2852 (owner 2026-10-
 hit is a design failure; five land-unit soft-cap hits and two lander turn caps that day; MAJOR analysis) and PB2853
 (the golden-lane-1 templates are stale). PB2708 gains a recurrence and two rules (cleanup is a unit's last step;
 remote branches are never deleted), and PB2426 gains the 21:46 resume unit that the hand-reverted trend file caused.
-The trend file carries train 1047's two points (inventory `f6e4ad94`, GAP 103; program `495e8fb6`). The
+The trend file carries train 1047's two points (inventory `310e6d4f`, GAP 103; program `342b7e15`). The
 session-start skill now names the probe's mailbox line and what to do on its stop sign (PB2814's one factual gap).
 The branch contains `note-t1047-carry` (720e2f537 and 62af2c59b are its ancestors; 95cb35c9a was cherry-picked as
 dfd9e8898), so that branch is not carried separately. PB2854 was allocated and is unused.

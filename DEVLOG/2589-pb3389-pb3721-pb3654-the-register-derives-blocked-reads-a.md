@@ -59,7 +59,7 @@ the self-test maps all three refusals and runs a worktree copy of work.py that r
 
 Merging the reviewed head into current main also met `scripts/orchestrator/cancel_superseded.py`, a script main added after PB3637's sweep that carried its own `sys.stdout.reconfigure`: the standard-streams audit (COPY and ENTRY rules) was red on the merged tree, so it now calls `ensure_utf8()` first in its `__main__` block and its private copy is deleted.
 
-**Review round 2 (R2-1, blocking; R2-2, lead).** Checkpoint 91038484e of the round-1 finisher had committed the harness's
+**Review round 2 (R2-1, blocking; R2-2, lead).** Checkpoint b2e561c90 of the round-1 finisher had committed the harness's
 local edits of the tracked `.claude/settings.local.json` (a `Bash(cd *)` allow rule, a one-off orient.py allow rule, a
 skillOverrides block). Once landed, a checkout whose copy of that file is modified would refuse `merge --ff-only` and
 every session would inherit the broader grant. This finisher restored the file to main's content, and, because round 2 of

@@ -107,7 +107,7 @@ sweeping the grammar for the phrase instead of trusting the note. `COBOLNET_PIPE
 the wave learned: the "grammar parses the superset" licence is across EDITIONS, never across a clause's printed
 general formats.
 
-**The train.** Six clusters, twenty notes, ONE landing, base `b0172adc0`. Every cluster's patch EXCLUDED
+**The train.** Six clusters, twenty notes, ONE landing, base `2ec6d9f0b`. Every cluster's patch EXCLUDED
 `tests/version-matrix/traceability-inventory.json` and `docs/DIAGNOSTICS.md` at generation time rather than after
 a conflict, because a conflict inside one JSON object is silently lossy and `DIAGNOSTICS.md` is generated: the
 eight `record_verdicts` batches were re-applied to the merged tree in landing order (29 records, 29 rows changed,

@@ -3,7 +3,7 @@
 Wave 1096 E, an R3 unify wave of the PB1754 architecture review (kb/Work PB2621, R2 finding
 editions-diagnostics-1--duplication--f1#2).
 
-**Re-probe.** The duplication was still there on the base (1fc8daf67): the literal-aware scan was written five times
+**Re-probe.** The duplication was still there on the base (6792268de): the literal-aware scan was written five times
 in three types — `CompilerDirectiveLine.StripInlineComment` and `.SeparatorsAsSpaces` (two quote-tracking loops in one
 type), `TextWordScanner.LiteralEnd` and `.DecomposeLiteral`, and `LogicalLineBuilder.ScanProgramText` — the `*>` test
 was spelled in four places, and the §8.3.5 5) opening-delimiter prefix was parsed twice (`TextWordScanner.LiteralPrefixLength`
@@ -21,7 +21,7 @@ carrier and the multiple-character floating indicators name the reader's constan
 describes the reader. A stale cref (a three-argument `CompilerDirectiveLine.TryParse` that does not exist) in
 `TextWordKind.DirectiveLine` is corrected.
 
-**Neutrality.** `python scripts/arch/compare_oracle.py --base 1fc8daf67`: `=== ARCH-ORACLE: IDENTICAL — 8011 cases`.
+**Neutrality.** `python scripts/arch/compare_oracle.py --base 6792268de`: `=== ARCH-ORACLE: IDENTICAL — 8011 cases`.
 The prefix-glued-to-a-word refusal now holds for every caller; for the text-word scanner it changes nothing, because a
 text-word never starts right after a word character (a character-string runs until a separator, a quotation symbol or
 `&`).

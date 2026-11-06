@@ -55,5 +55,5 @@ as ASK-OWNER, never OK. Its self-test plants the exact defect and also runs over
 in CI's `audits` and `windows-build-test` jobs and listed in the WSL and cloud setups.
 
 
-**Arch-oracle baseline.** The landing oracle refused the first landing (exit 7): nine of its input paths changed after baseline fb934cb4a329, all of them this branch's own CRLF-to-LF rewrites (four goldens' .out files, a copybook, three test sources and the conformance README). compare_oracle.py: IDENTICAL, 7780 cases (baseline fb934cb4a329, new 60d47c6d52a9). A line-ending rewrite changes no compiled output, so there is no difference to explain. capture_oracle.py --record wrote 60d47c6d52a9.manifest.json.
+**Arch-oracle baseline.** The landing oracle refused the first landing (exit 7): nine of its input paths changed after baseline 0f932d0d397f, all of them this branch's own CRLF-to-LF rewrites (four goldens' .out files, a copybook, three test sources and the conformance README). compare_oracle.py: IDENTICAL, 7780 cases (baseline 0f932d0d397f, new 91428ad4ca04). A line-ending rewrite changes no compiled output, so there is no difference to explain. capture_oracle.py --record wrote 91428ad4ca04.manifest.json.
 

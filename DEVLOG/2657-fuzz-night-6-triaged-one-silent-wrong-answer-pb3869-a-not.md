@@ -1,6 +1,6 @@
 ## Entry 2657 — 2026-10-27 10:30 PDT — Fuzz night 6 triaged: one silent wrong answer (PB3869, a NOT-only SIZE ERROR phrase), no regression of the thirteen pre-run fixes
 
-The sixth overnight differential fuzz run (fuzz-20261026-225310, 6,646 programs, judge main deae52c90) was triaged by
+The sixth overnight differential fuzz run (fuzz-20261026-225310, 6,646 programs, judge main 7c779b70e) was triaged by
 twelve read-only Opus adjudicator slices over 260 signatures (1,773 programs): 123 WiseOwl correct, 59 GnuCOBOL's side,
 42 latitude, 17 not comparable, 11 uninitialized, 7 model errors and one WiseOwl defect. No program of a landed note
 regressed, the thirteen notes that gated the run and the fifth night's PB3829 to PB3832 included.

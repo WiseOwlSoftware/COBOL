@@ -6,7 +6,7 @@ Wave 1140, group A (PB3460, PB1278, PB3338). Two of the group's notes were docum
 whole-store format kb/Work PB3333-PB3335 deleted; this entry records them.
 
 **PB3460 — DOC-A.1-164 (RESERVE, the number of input-output areas).** Re-probed: `git grep -n "_areas" -- src` prints
-nothing on 62cd0d954, yet the row's keyed arm said a relative or indexed connector's areas were `KeyedConnector._areas`,
+nothing on be490236b, yet the row's keyed arm said a relative or indexed connector's areas were `KeyedConnector._areas`,
 the buffer its whole store passed through at OPEN and CLOSE. The engine reads and writes one 4,096-byte page per
 positional call into the run unit's page cache for the physical file (DESIGN-runtime-library 2.2.1.13), and the OPEN
 that attaches a connector raises the cache's capacity to at least its areas (`KeyedConnector.Attach` →
@@ -48,7 +48,7 @@ Wave 1141 group A built the mechanism and returned SPLIT; wave 1151 group A resu
 `worktree-wf_331128da-8bc-1`, merged with main's d06-2 landing) and returned SPLIT again before the documentation and
 inventory steps; wave 1154 group A finished them (the branch continues as `worktree-wf_e05cc4a3-4db-1`).
 
-**Re-probe.** On 2881947e8 a 2023 program with `APPLY COMMIT ON RELF WS-COUNT` over a RELATIVE file was refused
+**Re-probe.** On dad372a1a a 2023 program with `APPLY COMMIT ON RELF WS-COUNT` over a RELATIVE file was refused
 COBOLNET1709, and COMMIT and ROLLBACK drew the accept-inert warning COBOLNET1579.
 
 **Mechanism.** The clause moved out of the declined grammar (`CobolDeclined.g4`) into `CobolIO.g4` as
@@ -118,7 +118,7 @@ to the sequential operand, §7 DOC-A.1-28, COBOLNET1579 struck everywhere; the s
 A.3 items 6-7; the README summary; VCR row 39 anchored to the new construct `apply-commit-clause-2023`; the files,
 validation and data-model designs; plan §0. Register: PB3338 and PB1096 landed; PB3330 unblocked.
 
-**Gate.** Wave 1154: `LEG 1 ONLY (batched gating, PB2515): GREEN` at 5cdb38b69 (run 20261023T004812Z-d80e58; Conformance 10,490/18,151, Unit 34,849/35,408, Characterization 5/36 in leg 1), after two audit reds the change itself exposed: the ledger renderer's hand-kept verdict classes lacked NEEDS-OWNER-DECISION (now read from the schema's `resolves` flag), and `differential_fuzz.py`'s self-test still expected COMMIT and ROLLBACK among the declined seeds. Linux: `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 7c3ad53fe) ===`.
+**Gate.** Wave 1154: `LEG 1 ONLY (batched gating, PB2515): GREEN` at 333e7d98d (run 20261023T004812Z-d80e58; Conformance 10,490/18,151, Unit 34,849/35,408, Characterization 5/36 in leg 1), after two audit reds the change itself exposed: the ledger renderer's hand-kept verdict classes lacked NEEDS-OWNER-DECISION (now read from the schema's `resolves` flag), and `differential_fuzz.py`'s self-test still expected COMMIT and ROLLBACK among the declined seeds. Linux: `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 724239c3f) ===`.
 
 **Branch review, round 1 (wave 1154, the review finisher).** Three blocking findings. R1-3, a wrong answer: a COMMIT
 or ROLLBACK the medium refused never raised EC-I-O-PERMANENT-ERROR, even with `>>TURN EC-I-O CHECKING ON`, because
@@ -146,7 +146,7 @@ GR-14.6.13.1.3-8 (no verdict changes; GAP 74). The first gate was RED on two thi
 EC-ALL now generates `__IoCheckEc`, which names `CobolFile`, and `BinderDriver`'s `anyFiles` (which decides the
 `CobolNet.Runtime.IO` using) did not count an EC-I-O-checked unit (CS0103 in `pb259_commit_rollback_recursive`); and
 CONFORMANCE prose had cited the row key DOC-A.1-103 instead of "A.1 item 103". Gate: `LEG 1 ONLY (batched gating,
-PB2515): GREEN` at 24bd70d98 (run 20261023T015612Z-86b5dc; Conformance 10,554/18,153, Unit 34,902/35,452,
+PB2515): GREEN` at 094f091fd (run 20261023T015612Z-86b5dc; Conformance 10,554/18,153, Unit 34,902/35,452,
 Characterization 5/36 in leg 1). Linux: `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD
-24bd70d98) ===`.
+094f091fd) ===`.
 

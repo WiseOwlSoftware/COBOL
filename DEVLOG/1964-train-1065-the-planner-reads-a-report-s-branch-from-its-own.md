@@ -21,10 +21,10 @@ what the planner reads. Found planning wave 1064's review finishers. PB3077 flip
 (process tooling, no inventory row). No diagnostic code, no golden.
 
 **The train.** `train_apply.py` GREEN (5 paths, 4 as on the branch, 1 merged with earlier changes; citation audits and
-`work.py check` PASS). Lease taken at 02:28Z; origin/main was still `dfb0a611d`, so no rebase. Windows gate (leg 1,
+`work.py check` PASS). Lease taken at 02:28Z; origin/main was still `9fcea155b`, so no rebase. Windows gate (leg 1,
 Normal priority, run 20261012T022903Z-938a0b) `LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 4,685/11,488,
 Unit 32,547/33,448, Characterization 36/36; leg 2 left to the merge group), with `test_plan_wave.py` re-run GREEN in
-its audits; Linux gate GREEN on the same head `e10dee0ac` (selftests, unit, characterization, conformance, guard). Arch
-oracle IDENTICAL (7,780 cases, baseline fb934cb4a329, `landing_oracle.py` PASS, no re-record). Semgrep: no count rose
+its audits; Linux gate GREEN on the same head `70e8ba24e` (selftests, unit, characterization, conformance, guard). Arch
+oracle IDENTICAL (7,780 cases, baseline 0f932d0d397f, `landing_oracle.py` PASS, no re-record). Semgrep: no count rose
 (3, 44, 2, 268). GAP unchanged (no row re-verdicted). Nothing ejected, nothing fixed in the train.
 

@@ -2,7 +2,7 @@
 
 The second overnight fuzz run found fz00481 hanging: a `PERFORM P1` whose P1 says `GO TO P3`, with P3 the last paragraph,
 printed `P1`, `P3` and then `AFTER PERFORM`, and the wrong return re-entered later PERFORMs of the fuzz program. The
-re-probe on this branch's base (aef934867) reproduced all three of the note's shapes: the GO TO out of the range, the same
+re-probe on this branch's base (bb5cf2ac9) reproduced all three of the note's shapes: the GO TO out of the range, the same
 fall-off two PERFORM levels deep (`AFTER B1`, `AFTER A1` printed), and `PERFORM P2 THRU P1` with P1 written first
 (`P2`, `AFTER PERFORM`).
 

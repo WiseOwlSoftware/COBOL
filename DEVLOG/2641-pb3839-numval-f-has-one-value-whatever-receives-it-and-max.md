@@ -4,7 +4,7 @@
 GnuCOBOL's NUMVAL-F, store 0.1235 (kb/Work PB3839, owner decision 2026-10-26: "We should always be consistent with ourself barring an
 explicit requirement differently"). Wave 20261711, group B.
 
-**Re-probe on the wave's build (base `1b6af36e5`).** Every row of the note's table reproduced, and the cause was wider than the table:
+**Re-probe on the wave's build (base `8007c8de8`).** Every row of the note's table reproduced, and the cause was wider than the table:
 one reference had four values. DISPLAY, a relation and a COMP-2 got a binary64 (`5E+30`, and `NUMVAL-F("0.12345678901234567891") =
 NUMVAL-F("0.12345678901234567892")` was TRUE); a fixed-point receiver got an `Int128` parse truncated at `max(receiver scale, 9)` places
 and then rounded the truncation again (the 0.1234, and 12.0000000001 AWAY-FROM-ZERO into `PIC 9(3)` stored 12, a trailing-P receiver

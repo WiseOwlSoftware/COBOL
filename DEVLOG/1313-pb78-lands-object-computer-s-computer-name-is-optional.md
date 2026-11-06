@@ -32,7 +32,7 @@ X3.23-1985's shape, every clause hung off a required name, and every golden happ
 **3412/3412** · Unit `Grammar|Parser|Registry|Manifest|Guard|Vcr|Construct|Diagnostic|SpecTraceabilityInventory|
 ReservedWord|Catalog` **110/110** · CLI probes. Docs: DESIGN-frontend-grammar.md §3.3e, CONFORMANCE.md (§4 item 5,
 A.1 item 127), DIAGNOSTICS.md + VERSION_CHANGE_REFERENCE.md regenerated, constructs.json, kb/Work PB78 → landed,
-PB92 registered, plan §0. Battery owed for the PB78 batch with the next landing (battery #11, tree `ed88ef94`,
+PB92 registered, plan §0. Battery owed for the PB78 batch with the next landing (battery #11, tree `f86205d4`,
 was ALL GREEN: Conformance 4698/4698 · Unit 4221/4221 · Characterization 33/33 · NIST 353/0 audit-clean ·
 differential 0 flips).
 

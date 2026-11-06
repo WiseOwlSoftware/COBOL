@@ -44,8 +44,8 @@ quadrants: {ON,OFF}×{zero-length,out-of-range}. Below-edition negative is the m
 **Latent-miss fix (surfaced by the full legacy guard).** The legacy `ConformanceTests.Conformance` (Integration) runs
 the SAME `tests/conformance` corpus through the frozen legacy engine, skipping greenfield-only goldens via a
 `GreenfieldOnly` set. The new `ref_mod_zero_length` needed an entry — but running the full Integration suite ALSO
-surfaced two PRE-EXISTING misses: `ec_bound_ref_mod` (added by `3eebcfd1`) and `ec_bound_overflow` (added by
-`e574af41`) both landed WITHOUT their `GreenfieldOnly` entries (neither commit touched `ConformanceTests.cs`), so they
+surfaced two PRE-EXISTING misses: `ec_bound_ref_mod` (added by `0051fe2a`) and `ec_bound_overflow` (added by
+`085d1174`) both landed WITHOUT their `GreenfieldOnly` entries (neither commit touched `ConformanceTests.cs`), so they
 had been red in the legacy Integration ConformanceTests ever since — a [[feedback_legacy_suite_on_shared_corpus]]
 violation the earlier wave-local gates missed. All three exclusions are added here (EC/2023 goldens the frozen legacy
 can neither compile nor match); the greenfield CorpusRunnerTests still byte-compares all three.

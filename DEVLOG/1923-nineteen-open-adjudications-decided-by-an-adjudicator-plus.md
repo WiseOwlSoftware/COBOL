@@ -5,7 +5,7 @@ saturated, the operator filled the session with READ-ONLY work that needs no gat
 adjudication` notes in `kb/Work` (all MINOR, none blocked). A two-stage workflow (`E:\COBOL-coord\scratch\
 wf_note_adjudicate.js`, run `wf_a974b389-830`, 38 agents, eight notes at a time) gave each note a `cobol-adjudicator`
 that derived the expected behaviour from ISO/IEC 1989:2023 first (every citation through `cite.py --check`), then read
-the code and probed a pinned, built tree (`pin-97006f3`, main `97006f310`; GnuCOBOL 3.2.0 in WSL where the spec leaves
+the code and probed a pinned, built tree (`pin-eb06ac4`, main `eb06ac43a`; GnuCOBOL 3.2.0 in WSL where the spec leaves
 latitude), and then an independent `cobol-refuter` told to overturn the decision. The refuters amended or overturned
 eight of the nineteen: PB1935's "conforms" became an under-reject defect, PB1923's "conforms" stood but surfaced a
 silently dropped reference modifier on the SORT Format-2 subject (`SortBinder.cs#SortBindTable`), PB1664's line-end

@@ -4,7 +4,7 @@ The gate's tier 0d plans every drift test that `scripts/spec/drift_rules.py` say
 read a file only through a shared helper class was invisible to the index, so a branch changing that file gated GREEN
 and only the landing's whole-population Linux leg found the red (the CI invariant, cluster PB1957).
 
-**Re-probe (base 24e337272).** Two of the note's three witnesses no longer reproduced. PB3531's tier 0d already takes
+**Re-probe (base 38a46f07c).** Two of the note's three witnesses no longer reproduced. PB3531's tier 0d already takes
 `drift_rules.governed` from the diff with or without an impact map. `traceability-inventory.json` names
 `SpecTraceabilityInventoryDriftTests`, and `docs/CONFORMANCE.md` names `AnnexA1RegisterDriftTests`. The third still
 reproduced: for a conformance golden, `drift_rules.py` reported "0 specific drift rule(s)" and named none of the
@@ -48,7 +48,7 @@ gate_plan.py's tier docstring.
 **Self-review.** Architecture: one index, and the gate still asks only `governed`. Duplication: the copied helper table
 was a second copy of TestRepo, and it is gone. Performance: each source is read once and each use scan is memoized.
 
-**Gate** (run 000001-20261024T015348Z, head 84c6d1b09; leg 1 ran 205 Unit and 24 Conformance tier-0d cases, among them
+**Gate** (run 000001-20261024T015348Z, head db431af87; leg 1 ran 205 Unit and 24 Conformance tier-0d cases, among them
 HostWitnessTraitDriftTests and TrackedTreeScopeDriftTests): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
 PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 8,336 · Unit 1,256 · Characterization 31`.
 

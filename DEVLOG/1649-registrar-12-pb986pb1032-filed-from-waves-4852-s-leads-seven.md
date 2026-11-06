@@ -2,7 +2,7 @@
 
 **What.** The 86 leads of waves 48–52, their finishers and the train-49 lander's 16 (`leads-w48-w52.md`) became
 **47 new notes, PB986–PB1032**, plus **7 extensions**. Every probe was re-run on the registrar's own
-`dotnet build CobolSharp.sln -c Debug` at main `37f19e028` (about forty probe runs, 18 of them on programs written fresh under
+`dotnet build CobolSharp.sln -c Debug` at main `c600e5d90` (about forty probe runs, 18 of them on programs written fresh under
 `scratchpad/reg12/`), and every citation went through `cite.py --check` (39 checks, all OK after re-addressing — two
 of them print a WRONG rule path, which became PB903's extension).
 

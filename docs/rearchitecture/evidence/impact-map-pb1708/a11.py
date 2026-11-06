@@ -3,7 +3,7 @@
 Reads the RAW per-test contexts of a recording (`record_impact_map.py --work DIR --keep` leaves them under
 `DIR/rec-<sha>-<n>/raw/contexts/*.jsonl`); pass one or more such `rec-*` directories.
 
-Finding (dbea12428): all 172 missing children belong to 35 Unit tests, and every one of them launches a NATIVE or
+Finding (dad934c91): all 172 missing children belong to 35 Unit tests, and every one of them launches a NATIVE or
 non-.NET executable — `icacls` (FileAuthorityPresenceTests), `cmd.exe` / `/bin/sh` (ProcessObservationDriftTests),
 `python` and `pwsh` (the script-driving drift tests). Such a child loads no instrumented assembly, so it can execute
 no instrumented code and correctly writes no hits file. None is a lost write, none is in Conformance, and the retry

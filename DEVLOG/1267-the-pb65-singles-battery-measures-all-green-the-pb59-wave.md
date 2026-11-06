@@ -1,6 +1,6 @@
 ## Entry 1267 — 2026-08-09 14:52 PDT — The PB65-singles battery measures ALL GREEN; the PB59 wave opens with its defects frozen
 
-`bash scripts/battery.sh` on `337fd0d5` (the three-landing PB65 batch, DEVLOG 1264–1266):
+`bash scripts/battery.sh` on `cc9af95d` (the three-landing PB65 batch, DEVLOG 1264–1266):
 `=== BATTERY: ALL GREEN ===` — Conformance 4316/4316 zero skipped (the three new goldens in the
 population), Unit 4122/4122, characterization 33/33, guard-fast ALL GREEN with NIST 353 MATCH /
 0 REGRESSION, differential 0 PER-CASE FLIP(S). Plan §9's reference updated; prior reference stacked.

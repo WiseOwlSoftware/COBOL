@@ -7,7 +7,7 @@ branch describes the code truly. Step 3 (PB4326) left the no-build lane to step 
 inert and full lanes, so a tooling-only change pays the build and the whole Windows population, about 5 minutes. From
 2026-10-25 to 2026-11-01 that was 45 of the 244 merges that changed more than docs and notes.
 
-The owner chose to build the approved lane, then asked why 43 C# test files read `scripts/`. Measured at 55d93dbb4: 92 C#
+The owner chose to build the approved lane, then asked why 43 C# test files read `scripts/`. Measured at ddb2a2b42: 92 C#
 files under `tests/` name `scripts/`, 41 of them only in a comment. About 17 classes (182 cases, 112 s summed per Unit
 run) check what the compiler's generators and spec extractors produce, and three scripts run inside the build itself.
 Those scripts are compiler inputs. About 29 classes (156 cases, 226 s summed) test the pipeline's own Python, shell and

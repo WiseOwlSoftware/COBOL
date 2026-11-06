@@ -4,7 +4,7 @@
 relation conditions through LINAGE-COUNTER: literals, character sets and the COBOL repertoire, COBOL words, class and
 category, conditional / boolean / concatenation expressions, the identifier formats, data-, function- and
 program-address identifiers, dynamic-capacity tables, figurative constants, levels, lexical elements), adjudicated
-on the pinned tree `adj-d2` @071ff04ea. Nothing that landed on main since the pin touches `src/` (registrar landings
+on the pinned tree `adj-d2` @9cd3b32ba. Nothing that landed on main since the pin touches `src/` (registrar landings
 only), so no finding had already been fixed. **GAP 1812 → 1762** (+50 closed of 4,348).
 
 **Verdicts.** 190 records: CONFORMS 74 (50 closed their row; 24 are CONFORMS-but-untested and go to the golden lane's

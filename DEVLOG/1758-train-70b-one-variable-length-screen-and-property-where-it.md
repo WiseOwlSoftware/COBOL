@@ -14,7 +14,7 @@ Three clusters in one landing, in the order U, I, C. None dropped. Group U is wa
 **I: PB1683.** The implementer's gate filter is now derived from a recorded per-test impact map instead of guessed from test names.
 - `record_impact_map.py` records the map. It builds a detached worktree, where Cecil probes every method and compiled COBOL children are attributed back to their tests; a recording takes 18.7 min.
 - `impacted_tests.py` looks the map up at method level. When it cannot bound a change, it falls back to the whole assembly and prints the reason. `ImpactedTestsDriftTests` guards that fallback.
-- The finding matters as much as the tool. Replaying trains 65–69 against the map at `dbea12428`, every cluster's derived filter is the whole Conformance assembly. The main cause is the static constructors of the diagnostic and construct tables.
+- The finding matters as much as the tool. Replaying trains 65–69 against the map at `dad934c91`, every cluster's derived filter is the whole Conformance assembly. The main cause is the static constructors of the diagnostic and construct tables.
 - The wiring (briefs, MANDATORY-PRACTICES I1/I2, the gate skill) therefore makes each implementer run one whole-Conformance leg. That trade is the owner decision PB1708. PB1709 records that no step records a map per main commit yet, and PB1710 that 172 child processes wrote no hits file.
 - Merge: `check_practices.py` keeps both main's STATUS-AT / `status_delta.py` patterns (PB1698) and this cluster's `impacted_tests.py --base`.
 

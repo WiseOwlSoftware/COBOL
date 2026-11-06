@@ -29,7 +29,7 @@ The implementer filed one note-ready lead: COBOLNET0836 rejects every factory `M
 method outside BASE, and as `NEW OVERRIDE` inside it — §11.7.3 SR3), site `Oo/OoClassTable.cs:411`.
 
 **The train.** One cluster, landed alone on purpose (169 files; it unblocks the golden-lane rows held on PB1548). The
-patch applied onto main `bd139c33b` with four whole-element conflicts (`docs/DIAGNOSTICS.md`, `kb/Work/PB1548.md`, the
+patch applied onto main `9ed32da25` with four whole-element conflicts (`docs/DIAGNOSTICS.md`, `kb/Work/PB1548.md`, the
 2002 and negative corpus manifests), each resolved by keeping both elements; the inventory hunk was discarded and the
 batch re-applied on the merged tree. Two conversions the rebase required, both the cluster's own fix applied to source
 that landed after its base (output unchanged): the train-62 goldens `2014/w59h_vlg_override_signature` and

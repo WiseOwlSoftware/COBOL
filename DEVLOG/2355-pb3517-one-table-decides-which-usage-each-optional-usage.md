@@ -3,7 +3,7 @@
 **The defect.** `PIC 9(2) USAGE COMP UNSIGNED`, `PIC X(2) USAGE DISPLAY SIGNED` and `PIC S9(3) PACKED-DECIMAL
 UNSIGNED` compiled clean at every `--std`, and the program printed `07 AB -005`, the word ignored (kb/Work PB3517,
 found by the second differential fuzz night: GnuCOBOL 3.2 refused the clause). The re-probe on this branch's base
-(b37c551fe) reproduced it at 85, 2002, 2014 and 2023.
+(bc0756755) reproduced it at 85, 2002, 2014 and 2023.
 
 **What the standard says.** The rendered §13.18.60.2 figure (PDF p.533, printed folio 503) prints `{ SIGNED |
 UNSIGNED }` after BINARY-CHAR, BINARY-SHORT, BINARY-LONG and BINARY-DOUBLE and after no other usage; SIGNED is NOT

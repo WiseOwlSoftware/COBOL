@@ -1,9 +1,9 @@
 ## Entry 1646 — 2026-09-22 17:22 PDT — Battery #85 at train 48's head: every compiler leg green, three differential flips, all three conformance fixes
 
-**What ran.** One `bash scripts/battery.sh` in an isolated worktree pinned at main `0abe2c80f` (train 48), after copying
+**What ran.** One `bash scripts/battery.sh` in an isolated worktree pinned at main `5f51299c2` (train 48), after copying
 the git-ignored GPL GnuCOBOL corpus in. 1,230 s wall. It covers trains 47 and 48 together (DEVLOG 1642 and 1644),
 plus registrar #11 between them: 337 files under `src/` and `tests/`, +9,563 / −1,944 against battery #84's head
-`ec095d120`.
+`bf775e91e`.
 
 **Every compiler leg is green.**
 - Conformance **7932 / 7932**, full and unfiltered (12 m 15 s). Unit **28746 / 28746**. Characterization **33 / 33**.
@@ -14,7 +14,7 @@ plus registrar #11 between them: 337 files under `src/` and `tests/`, +9,563 / �
 - All four static audits are clean. `audit_code_citations` found 0 over 4,807 files. `audit_doc_citations` found
   0 MISFILED and 0 ELIDED, with 563 checked and 512 correct. `audit_evidence_supersession` found 0 UNMARKED.
 - The battery's `audit_witness_loss` compares against the merge-base. At a head that IS main, that comparison
-  measures nothing. So I also ran it `--base ec095d120` over the whole two-train span: 0 unexcused, 2 retired,
+  measures nothing. So I also ran it `--base bf775e91e` over the whole two-train span: 0 unexcused, 2 retired,
   3 re-sited, GREEN.
 - The solution build had 0 warnings and 0 errors.
 

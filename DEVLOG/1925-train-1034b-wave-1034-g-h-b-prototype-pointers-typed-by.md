@@ -44,7 +44,7 @@ Leads filed: PB2496 (that dynamic-capacity carrier), PB2497 (a record holding an
 elements, which needs an owner determination of the READ count source) and PB2498 (FUNCTION LENGTH of a variable-length group
 with USAGE BIT items, still COBOLNET1756).
 
-**The train.** The clusters were applied in order onto train 1034 (`54b828c5c`). G's `docs/DRIFT_RULES.md` conflict was
+**The train.** The clusters were applied in order onto train 1034 (`e01aff073`). G's `docs/DRIFT_RULES.md` conflict was
 regenerated (287 drift tests). B conflicted in `PlaceRenderer.WriteVarGroupImageAt` with PB2094's formal-storage `DynMax`,
 and both sides were kept. B's inventory hunk was discarded and its batch `verdicts-w1034b.json` re-applied with
 `record_verdicts` (GR-14.9.11.4-7 PARTIAL → CONFORMS). Lander gate on the merged tree: GREEN, Conformance 10,946/10,946 ·

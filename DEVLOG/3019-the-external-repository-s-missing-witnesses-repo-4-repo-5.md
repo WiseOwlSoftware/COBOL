@@ -20,7 +20,7 @@ runs once per accepted edition and could not keep that list): `generate.py` `STE
 Facts in the same class (the split's control compiles a prototype whose layout differs and requires the warning).
 
 **PB4458.** Discharged as already witnessed: the three `ExpansionPlacementPass` arms (the `TargetFile.Skewed` overwrite, `ReportForeignState`,
-`ReportSameName`'s warning and error) have Unit tests that the PB2104 branch's round 1 commit (`71fefc25b`) added before it landed; the note was
+`ReportSameName`'s warning and error) have Unit tests that the PB2104 branch's round 1 commit (`82c85ae3d`) added before it landed; the note was
 filed from the review of the head before it. Each asserts the arm's own message. The interface wording the note could not reproduce
 ("REPOSITORY CLASS" for an interface) is confirmed correct by `TheForeignStateRefusal_OfAnInterfaceExpansion_NamesAnInterfaceEntry`.
 

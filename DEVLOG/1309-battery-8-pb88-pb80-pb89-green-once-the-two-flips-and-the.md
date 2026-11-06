@@ -1,6 +1,6 @@
 ## Entry 1309 — 2026-08-18 06:35 PDT — Battery #8 (PB88 + PB80/PB89): green once the two flips and the one lost result are attributed; the guard re-observes a vanished program
 
-**The battery for the PB88 + PB80/PB89 batch (tree `3793750a`):** Conformance **4675/4675** · Unit **4196/4196** ·
+**The battery for the PB88 + PB80/PB89 batch (tree `78cf95cc`):** Conformance **4675/4675** · Unit **4196/4196** ·
 Characterization 33/33 · legacy guard Unit 1203/1203 + Integration 503/503 · differential 1323 cases. Two things
 kept it from ALL GREEN, both explained:
 

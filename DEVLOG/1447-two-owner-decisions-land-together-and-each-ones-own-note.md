@@ -80,7 +80,7 @@ rows A.4.3 and A.4.14 still said the APPLY COMMIT clause "has no grammar surface
 syntax error" and that the VALIDATE data-division elements "have no arm in `dataDescriptionClause`". Both have
 been named refusals since cluster B2, and both owning notes (PB261, PB283) are landed.
 
-Landed by squash-merging the implementer's worktree branch (eight WIP checkpoints; base `ac2dadb8`;
+Landed by squash-merging the implementer's worktree branch (eight WIP checkpoints; base `0607e935`;
 `DiagnosticCatalog.cs` auto-merged over the PB379 landing). The implementer's gates in its worktree: build 0/0,
 FULL Conformance 5525/5525, Unit filter 95/95, every new negative and fact confirmed executed by name. Wave-local
 gate on main, filter `~Negative|~Corpus|~Declined|~CobolWords|~DerivedVerdict|~SpecTraceabilityInventory|

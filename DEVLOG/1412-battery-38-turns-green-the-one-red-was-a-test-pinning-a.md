@@ -1,6 +1,6 @@
 ## Entry 1412 — 2026-08-31 03:04 PDT — Battery #38 turns green: the one red was a TEST pinning a screen the compiler had already deleted, and the filter that let it through was chosen from the wrong end of the change
 
-Battery #38's first run on tree `a3053400` was red on exactly one test out of 5124, and the interesting part is
+Battery #38's first run on tree `8429c44a` was red on exactly one test out of 5124, and the interesting part is
 which party was wrong.
 
 ```
@@ -11,7 +11,7 @@ Assert.False() Failure — Expected: False, Actual: True
 ```
 
 The row asserted that a group RETURNING item with a `PIC 9(4) USAGE BINARY` leaf draws `COBOLNET1510`. It does
-not, and it should not. **[[PB164]]'s F8 finding deliberately deleted that reject** (`06d9fa31`, DEVLOG 1406):
+not, and it should not. **[[PB164]]'s F8 finding deliberately deleted that reject** (`b90fac70`, DEVLOG 1406):
 `UdfBinder.UdfReturningResidue` had hand-rolled the DISPLAY-only union `{ Category: Numeric, IsFloat: false,
 Usage: Display }` as its group-leaf screen, and F8 replaced it with the derived predicate
 `DataItem.ElementImageCapable` — the one place the question *does this leaf have a character image the group

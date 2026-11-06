@@ -11,7 +11,7 @@ FOREGROUND-COLOR, FULL, HIGHLIGHT, LOWLIGHT, REQUIRED, REVERSE-VIDEO, SECURE and
 language construct in which they are defined". So `01 PT TYPEDEF USAGE POINTER AUTO.` in WORKING-STORAGE is the same
 entry as `... POINTER TO AUTO.`, and the compiler refused it.
 
-**Re-probe** on this branch's build of 11e8949be: all 26 spellings (the 13 words after POINTER and after PROGRAM-POINTER,
+**Re-probe** on this branch's build of 33f0f7a6a: all 26 spellings (the 13 words after POINTER and after PROGRAM-POINTER,
 each word declared as a TYPEDEF) drew `COBOL1941: ... 'AUTO' is not a clause of the data description entry for 'PT'`,
 a false and misleading diagnostic. The `TO AUTO` control compiled clean.
 
@@ -45,6 +45,6 @@ and the CobolData.g4 design comment now describe the live-context follow.
 only at a pointer operand decision, as `keywordContinuesHere` runs at a list decision. Duplication: the FOLLOW cache
 keeps its one caller (`ReadingParses`). Comments: each predicate cites §8.3.2.1 3) and §8.10, checked with `cite.py`.
 
-**Gate.** Run 000001-20261031T213728Z on 5e969b810: `LEG 1 ONLY (batched gating, PB2515): GREEN`, with the Linux
+**Gate.** Run 000001-20261031T213728Z on b5df39b58: `LEG 1 ONLY (batched gating, PB2515): GREEN`, with the Linux
 half (WSL clone of HEAD) GREEN. Both goldens and all 15 PointerUsageOperandDriftTests cases passed in leg 1.
 

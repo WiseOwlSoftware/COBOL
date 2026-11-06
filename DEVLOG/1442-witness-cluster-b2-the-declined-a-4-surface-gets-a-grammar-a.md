@@ -58,7 +58,7 @@ failed to build, no conflict was reported, and the declined-validate-* negatives
 parse error again — a silent merge defect whose only symptom is a test. It is the reason B2's report insisted
 on the FULL Conformance project rather than a wave filter, and the reason that insistence was right.
 
-⛔ **AND THE FULL SUITE CAUGHT A LANDING DEFECT OF B1'S THAT HAD BEEN RED ON CI SINCE `60bf02d7`.**
+⛔ **AND THE FULL SUITE CAUGHT A LANDING DEFECT OF B1'S THAT HAD BEEN RED ON CI SINCE `af18afbb`.**
 `ReservedWordPositionConformanceTests.DataItemNamedColumn_Rejected0901_EvenAt85` expected COBOLNET0901 and
 got `COBOL0001: rule displayStatement failed predicate: {!screenPositionAhead()}?`. B1 wrote
 `DISPLAY ({!screenPositionAhead()}? (dataReference | literal | functionCall))+` — the predicate guards EVERY

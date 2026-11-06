@@ -2,7 +2,7 @@
 
 The owner asked on 2026-10-24 for the fuzz analysis and its findings, with no fixing before explicit approval. The fourth
 overnight run (fuzz-20261023-204437: qwen3.6:35b, 5,247 programs, 811 `WE_REJECT` and 424 `OUTPUT_DIFFERS` rows among
-them) was re-judged on main at 300fd78bd. For the first time the refusal rows were re-judged as well, and all 811 still
+them) was re-judged on main at be62db511. For the first time the refusal rows were re-judged as well, and all 811 still
 refuse. Twelve Opus adjudicator slices then read 241 signatures from one rolling pool four wide: 2,031,074 subagent
 tokens in 25.5 minutes, against 45 minutes for the third night's fixed chunks. No slice hit its cap, nothing was left
 undecided, and no program of the third night's seven fixes regressed.

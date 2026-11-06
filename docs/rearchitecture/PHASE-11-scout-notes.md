@@ -8,7 +8,7 @@
 > DURING P11; it is KEPT as a durable spec-to-code traceability record for future waves that touch these
 > functions (e.g. the deferred Tier-C Step D, or a P12/P13 wave over the date/national/boolean families).
 > **⚠ Its forward-resume framing ("read this FIRST", "the executing session") is now HISTORICAL** — P11 is
-> complete; the current design lives in the design-doc corpus. Line numbers were captured at `45fe74dd` and
+> complete; the current design lives in the design-doc corpus. Line numbers were captured at `dc1a6671` and
 > have since shifted. The Step-2 APPENDIX (pre-authored files) is transient scratch, superseded by the landed
 > commits.
 >
@@ -1069,7 +1069,7 @@ Because the legacy `ConformanceTests` auto-discovers every `.cob`+`.out`, a gold
 
 ### Findings
 
-# Tier-C REDEFINES Surface — Complete Map (E:/COBOL, branch main @ 45fe74dd)
+# Tier-C REDEFINES Surface — Complete Map (E:/COBOL, branch main @ dc1a6671)
 
 ## 1. RedefinesModel.cs (src/WiseOwl.Cobol.Compiler/Binding/Model/RedefinesModel.cs) — complete
 

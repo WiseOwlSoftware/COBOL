@@ -1,6 +1,6 @@
 ## Entry 1905 — 2026-10-07 02:40 PDT — Wave 1025 landed Cut 1; Cut 2 was refused to a subagent by the permission classifier, so the attended session removed the trees on a branch and dispatched a finisher (wave 1027); PB2142 filed
 
-**Train 1025** (Entry 1904, `86f33fd7d`): PB2108 and PB2109 landed as one implementer's work — no greenfield test, script or
+**Train 1025** (Entry 1904, `4fd9ef5a5`): PB2108 and PB2109 landed as one implementer's work — no greenfield test, script or
 CI job runs the legacy engine (95 files, +819/−1,570); the NIST leg still reads 364 programs through `cobol`; PB2121 filed
 (orphaned per-case goldens are undetectable once the bake re-sweep is gone). Wave 1025 cost 742,667 subagent tokens.
 

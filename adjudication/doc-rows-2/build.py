@@ -127,7 +127,7 @@ REC[67]["notes"] = ("A.1 item 67: 'External repository information (other inform
     "cite.py --check 8.13 'any other information that the implementor requires' -> OK §8.13 (External repository). Owner decision kb/Work/R44 (2026-09-24): the repository IS compiled-assembly metadata, "
     "with a COBOL.NET-owned metadata record for what .NET metadata cannot express, and a design doc lands first (rule 2). R44 does NOT decide the content of the implementor's additional information "
     "(the doc-rows-2 writer's 'assembly name+version, implementing type/member, never compared, nothing else' was refuted as exceeding R44), so the row states only R44 and defers the content to PB1086's design doc. "
-    "NOT-IMPLEMENTED: no repository exists; the CLI has no reference/update option; probe rep67.cob (REPOSITORY. CLASS NOSUCHCL PROGRAM NOSUCHPG.) --std 2023 compiles, prints RAN, exit 0 (pin 80de60472). "
+    "NOT-IMPLEMENTED: no repository exists; the CLI has no reference/update option; probe rep67.cob (REPOSITORY. CLASS NOSUCHCL PROGRAM NOSUCHPG.) --std 2023 compiles, prints RAN, exit 0 (pin 7b5185958). "
     "Owning note: kb/Work/PB1086 (its design doc must fix the §8.13 'any other information' content and write DOC-A.1-67 from it). PB1099 Q3 answered by R44.")
 
 # ---------------- item 66 record notes: drop the invented option spellings ----------------

@@ -67,7 +67,7 @@ pairings ON PURPOSE: two arms of one rule disagreeing is worse than one named re
 (`feedback_two_arm_dispatch`), and a reader comparing them could not have told which one was right.
 
 ⚠ **PROCESS, honestly: the four commits before this one landed with NO DEVLOG ENTRY** — PB51, PB46's arithmetic
-half, PB33 and PB49 (`1838a304`, `dd45ddfd`, `bd778375`, `4808178a`). Entry 1191 covers PB40 and then the log
+half, PB33 and PB49 (`4fa2d23c`, `0979ceb0`, `a7304f08`, `cacda607`). Entry 1191 covers PB40 and then the log
 stops while four items shipped. Their commit messages are forensic and their `kb/Work/` notes are current, so
 nothing is lost — but the NARRATIVE for those four is missing, and this log is the only place it belongs. I have
 not written them: reconstructing four sessions' entries from their own commit messages after the fact would put

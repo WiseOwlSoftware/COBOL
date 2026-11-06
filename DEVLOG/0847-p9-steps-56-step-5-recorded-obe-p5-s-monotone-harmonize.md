@@ -4,5 +4,5 @@
 
 **Step 6 — R2 / exit criterion 3, the as-built collapse:** Step 4 made the three remaining flags per-BINDER-INSTANCE configuration — `OoDriver` constructs a FRESH `DataBinder` per class half (`OoIsClassUnit`) and a FRESH `StatementBinder` per roster (`OoCurrentClass`/`OoInFactory`); nothing is shared across halves, so there is nothing to reset and a scoped push/pop would guard against a hazard that can no longer be expressed. Landed as `{ get; init; }` on all three — the COMPILER now proves no mid-bind mutation site exists (a stronger guarantee than push/pop). With `ActiveMethodScope` already scoped by P7's `BinderContext.EnterMethodScope`/`BindPositionScope`, all four R2 flags are gone: one scoped, three immutable. Doc comments updated to the init-only reality.
 
-**Gates:** OO subset 206/206 · characterization 33/33 BYTE-IDENTICAL · commit gate = full battery: conformance 3256 · unit 281 · legacy guard NIST 353 MATCH / ALL GREEN. P9 progress: Steps 1–6 of 14 closed in five commits (`bbe57910`→this), all snapshot-neutral.
+**Gates:** OO subset 206/206 · characterization 33/33 BYTE-IDENTICAL · commit gate = full battery: conformance 3256 · unit 281 · legacy guard NIST 353 MATCH / ALL GREEN. P9 progress: Steps 1–6 of 14 closed in five commits (`0a78d64b`→this), all snapshot-neutral.
 

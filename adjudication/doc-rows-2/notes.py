@@ -133,7 +133,7 @@ edit("PB1529", append="""
 **A second arm (doc-rows-2 refuter of item 39): the native-lane PRODUCT wrap.** `01 BIG PIC 9(20) VALUE
 18446744073709551616.` then `CONTINUE AFTER BIG * BIG SECONDS` emits
 `ContinueAfterExact((double)((Int128)(BIG) * (BIG)), …)` — the unchecked Int128 product of 2^64 × 2^64 wraps to 0 —
-and the program suspends 0 seconds (repro `doc2/out/run-refute/d1/r39b.cob`, pin 80de60472). The Scale-0 / scaled /
+and the program suspends 0 seconds (repro `doc2/out/run-refute/d1/r39b.cob`, pin 7b5185958). The Scale-0 / scaled /
 Real lanes already clamp a value that FITS (PB1033 HostInt64 saturation); the open defect is (a) the Dec lane's
 `CobolDec.ToUnscaled` low-digit truncation (10**40 → 0 s) and (b) any intermediate product that overflows the
 carrier before the clamp sees it. DOC-A.1-39's ⚠ names both.

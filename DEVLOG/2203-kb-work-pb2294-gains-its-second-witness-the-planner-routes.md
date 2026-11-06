@@ -4,7 +4,7 @@ The PB3330 design report's second lead said `plan_wave.py --cluster PB3330` plan
 `model: default`, which `model_rules.json` resolves to Sonnet, and PB3330's Route answered it by saying the Mythos lane
 names Opus at dispatch through the rolling wave's `implementer_model`. That answer does not hold. `as_group_json` writes
 `"model": "sonnet"` into every group, and `wf_rolling_wave.js` dispatches `g.model || IMPL_MODEL`, so a group's own model
-overrides `implementer_model`. The enqueue unit verified both sites at main `642d403f7` and warned the operator at 04:59
+overrides `implementer_model`. The enqueue unit verified both sites at main `ff017119d` and warned the operator at 04:59
 PDT. The operator relayed the warning to the Mythos lane, which confirmed that its planner script already rewrites
 `model: opus` into every group of `groups.json` and the wave args. Wave 1118, the first engine wave, runs on Opus for
 that reason alone.

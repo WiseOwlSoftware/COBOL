@@ -13,7 +13,7 @@
       *> THE ARM PB155 COULD NOT REACH: a SIMPLE subscript name resolves in
       *> ReferenceResolver.ResolveSubscriptName and renders CobolTable.Occ(...)
       *> straight from the token, so the expression binder's screen never ran.
-      *> Measured on 9a89fbd1: this program compiled clean and printed R=B.
+      *> Measured on 02c72682: this program compiled clean and printed R=B.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB170N1.
        DATA DIVISION.

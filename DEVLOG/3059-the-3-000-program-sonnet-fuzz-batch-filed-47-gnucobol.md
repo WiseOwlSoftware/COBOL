@@ -8,7 +8,7 @@ survived as `upstream` notes PB4519-PB4565, each carrying its minimal program, t
 citations, and added this run's programs as witnesses to 33 existing upstream notes. Three families two slices had
 recorded twice were merged first (one record per family, design §4.1).
 
-The night is recorded as fuzz night 10 (`fuzz-batch-3000-20261103`, judge built from main 3c8b2845c) in
+The night is recorded as fuzz night 10 (`fuzz-batch-3000-20261103`, judge built from main a0e05167d) in
 `conformance-suite/fuzz-history.json` and the ledger. Triage and refutation cost $86 of the expiring API credit
 ($0.24 a signature to adjudicate, $0.39 a record to refute).
 

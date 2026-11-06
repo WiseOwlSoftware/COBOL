@@ -1,10 +1,10 @@
 ## Entry 1656 — 2026-09-22 23:53 PDT — Landing train 52: wave 52 (DA–DG) and PB985, eight clusters, eighteen notes, GAP −16 to 2114
 
 Train 52 was pipelined behind train 51 (workstream SKILL.md "Lander throughput"). When the lander started, train 51
-was already on main, so it did not wait at all (0 minutes). It merged and gated on `57d36e4c6`. Before push-main,
-train 50 and the ledger refresh (`acff7ee45`) had also landed. The train rebased onto them. The rebase had CODE
+was already on main, so it did not wait at all (0 minutes). It merged and gated on `475200e26`. Before push-main,
+train 50 and the ledger refresh (`456ff6ed5`) had also landed. The train rebased onto them. The rebase had CODE
 conflicts, so the whole local gate ran again on the rebased tree. A later rebase over the docs-only ledger commit
-`e143cb07b` was clean, and later docs-only commits took the entries below this one, so this entry is 1656.
+`f466b75e7` was clean, and later docs-only commits took the entries below this one, so this entry is 1656.
 
 **PB985 — the Conformance runner's compiled-program cache (landed first).**
 - One gateway for every compiler read outside the source text and options:
@@ -50,7 +50,7 @@ It is now two rows:
 - `ArithmeticIndexWindow`: SET, SEARCH, relation.
 - `ArithmeticIndexNameWindow`: subscript segment, PERFORM VARYING FROM/BY.
 An index data item now draws COBOLNET0844 in the subscript and in PERFORM VARYING FROM/BY. The Report Writer VARYING
-draws 0844 for an index data item and 1637 for an index-name. PB213 and PB214 were already fixed (`1884ba1ea`); only
+draws 0844 for an index data item and 1637 for an index-name. PB213 and PB214 were already fixed (`4f15f60d6`); only
 their status fields were stale.
 
 **DD — PB239 + PB234 + PB240.**

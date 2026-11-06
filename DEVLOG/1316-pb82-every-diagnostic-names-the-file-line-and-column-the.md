@@ -80,7 +80,7 @@ session running); every patch script went through the Write tool. A wave-local g
 its filter ran the whole golden corpus and outlived the tool timeout, which killed it and its testhosts — re-run
 detached with `nohup` and a narrower filter (`DisplayName~pb82|…` for the goldens that matter).
 
-**Battery #13 (tree `3d9e04de`, PB92 + PB81 batch, run before this landing): Conformance 4716/4716 · Unit
+**Battery #13 (tree `7d6bc14e`, PB92 + PB81 batch, run before this landing): Conformance 4716/4716 · Unit
 4221/4221 · Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases, 0 flips. ALL GREEN.**
 Battery #14 owed for this landing.
 

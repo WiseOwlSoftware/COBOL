@@ -7,7 +7,7 @@ records in bounded memory with sorted runs on temporary files, and PB3330 (desig
 not yet on main) replaces the whole-file RELATIVE and INDEXED store with a paged on-disk engine, groups PB3331-PB3338 and
 PB3340, whose deletion and keep lists are DESIGN-runtime-library §2.2.1.13.
 
-**The search.** All 826 open notes on origin/main 3f3e0514a, not just the operator's 47-row keyword pass: frontmatter
+**The search.** All 826 open notes on origin/main d48a35d70, not just the operator's 47-row keyword pass: frontmatter
 `area`, `title`, `tags` and `spec_refs` (§9.1, §12.4, §13.4, the file clauses of §13.18, and the I-O statements of §14.9:
 CLOSE, COMMIT, DELETE, MERGE, OPEN, READ, RELEASE, RETURN, REWRITE, ROLLBACK, SORT, START, UNLOCK, WRITE), and the bodies'
 code sites under `src/Cobol.Net.Runtime/IO/` and the binder's and emitters' I-O and sort files. About 150 candidates were
@@ -33,8 +33,8 @@ transcription sweeps (PB718, PB385, PB1822, PB903), console streams (PB3294) and
   KeyIndex extraction) go with PB3334, and PB1096 (the declined APPLY COMMIT grammar) with PB3338. They are for the operator
   to link on the design branch, as PB2129, PB2753 and PB2755 already are.
 - **Already fixed (3):** PB685 (DOC-A.1-71 written and closed by PB829), PB719 (§14.9.10.4's rules renumbered by the R66
-  repair 2f43b0961; `cite.py --check` answers `1)` and `7)`), PB861 (the tautological posture test rebuilt by the PB322
-  landing 5437188b5; `FileLockPosture.For` no longer exists).
+  repair 734eee537; `cite.py --check` answers `1)` and `7)`), PB861 (the tautological posture test rebuilt by the PB322
+  landing 85e8a305c; `FileLockPosture.For` no longer exists).
 - **Never true (5, retired):** PB2221, PB2223 and PB2224, with their siblings PB2217 and PB2218. The constructors they
   would delete are written by emitted code (`ReportWriterEmitter.cs:463/492/496`, `RuntimeApi.cs:1531`,
   `SequentialIoEmitter.cs:714`, `StatementEmitter.cs:179`, `EcEmitter.cs:691-692`). This is the census miss PB2744 and
@@ -51,7 +51,7 @@ landed or closed with evidence, and the PB3330 engine landed. Its `blocked_by` n
 PB3330 joins it when the design branch lands. `work.py check` is clean, and `work.py next --cluster PB3353` lists the 57
 members and the lead in order. The plan dry run (`plan_wave.py --cluster PB3353 --budget-points 5 --dry-run`) needed a
 member index for this tree, so `member_index.py --current` recorded one into the coordination cache first (treeKey
-6573141bf007, the same C# tree as origin/main 3f3e0514a). It then planned 8 groups for 1.76 points: PB762, PB1515, PB3314,
+6573141bf007, the same C# tree as origin/main d48a35d70). It then planned 8 groups for 1.76 points: PB762, PB1515, PB3314,
 PB2849, PB674, PB996, PB1925 and PB2533.
 
 **Branch review, round 1 (two findings, both register-only).** R1-1: PB2777's re-scoping branch landed (PR #204) with its

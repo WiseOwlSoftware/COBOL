@@ -2,7 +2,7 @@
 
 Wave 20261822, group A: the `CobolErrorStrategy` notes, fixed at their root in harm order.
 
-**PB4299 (a faulted sentence's tail swallowed the rest of the program).** Re-probed on 83a1e47f4, the note understated
+**PB4299 (a faulted sentence's tail swallowed the rest of the program).** Re-probed on aa449bda6, the note understated
 it: after `IF A = 1 THEN ADD TO A END-IF.` the recovery stopped at the tail's `A` because ANTLR's recovery set holds a
 paragraph header's first word (the rules around the sentence put it there, one token deep and predicate-blind); the
 sentence could not go on, the paragraph list could not take `A END-IF`, and the procedure division's own recovery then
@@ -125,5 +125,5 @@ in round 1.
 Self-review found the terminator pairing too wide in the predecessor's part (narrowed, 2 rows) and, in this part, the
 new operand arm's COBOL5506 orphaning the next statement's tail (the PB4286 rows failed: fixed by `LeavesNoTail`) and its
 list of the parser's full set for `NUMVAL(A FROM` (a continuation set, so now unsaid). semgrep verify passed with no rule
-count risen. Gate at b980b426d (the code head; two earlier gates went RED on conformance rows that pinned the bare COBOL0001, fixed): `=== BUILD-LOCAL GATE: GREEN — Conformance 20,833/20,833 · Unit 39,311/39,311 · Characterization 37/37 cases ran (skipped 0) ===` (run 000004-20261102T120524Z).
+count risen. Gate at 85bfd9e1f (the code head; two earlier gates went RED on conformance rows that pinned the bare COBOL0001, fixed): `=== BUILD-LOCAL GATE: GREEN — Conformance 20,833/20,833 · Unit 39,311/39,311 · Characterization 37/37 cases ran (skipped 0) ===` (run 000004-20261102T120524Z).
 

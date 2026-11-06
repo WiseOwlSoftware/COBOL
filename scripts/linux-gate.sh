@@ -376,7 +376,7 @@ if [ "${1:-}" = "--self-test" ]; then
   # ⛔ It is NOT a bash trap: the grandchild was `bash -c` with a TERM trap, and under load bash did not run it before the
   # probe's trap ended the shell, although on_signal had sent the TERM. Measured 2026-10-24: 2 of 256 runs of this arm,
   # 32 at a time, recorded PROBE while on_signal's own record showed `kill -TERM` sent to the leg, the grandchild and
-  # its child with status 0 (the Linux gate's selftests leg at c89014b6b ran this arm beside the build, and so failed).
+  # its child with status 0 (the Linux gate's selftests leg at 30edab0ea ran this arm beside the build, and so failed).
   # The grandchild is Python, the one interpreter (resolve_py: NOT RUN [interpreter] without one, as the gate itself).
   # A stop that does not end its jobs keeps on_signal's wait, and so this arm, from returning: the self-test runner
   # reports it HANG (scripts/self_tests.py, a non-observation), never a pass.
@@ -670,7 +670,7 @@ test_leg() {  # <leg> <project> — `dotnet test --no-build` against the ONE bui
   # Measured 2026-10-24 under WSL on /mnt/e: one process appending (open, seek to the end, write, close) while another
   # re-read the file lost 8 to 14 of 800 lines per run, and the reader's read failed with ENODATA ("No data available");
   # the same run on the Linux filesystem lost none and failed none. HarnessLogTests reads the log beside its writers,
-  # and on /mnt/e its read failed (the landing at c89014b6b, kb/Work PB3194).
+  # and on /mnt/e its read failed (the landing at 30edab0ea, kb/Work PB3194).
   # A FRESH Python bytecode cache per leg, as CI's watched steps get from `inert_lane.py watch` (kb/Work PB4395 review
   # R2-1): the watch here runs beside the legs, never above them, so without it a script a test runs was served from the
   # __pycache__ an earlier import left (the build's), unopened and unseen: measured 2026-11-01, this watch missed

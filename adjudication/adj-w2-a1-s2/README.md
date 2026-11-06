@@ -1,6 +1,6 @@
 # adj-w2-a1-s2 — Annex A.1 adjudication batch (kb/Work PB1522 wave 2)
 
-- Pinned sha: `0caa7d54004e81c4e34529d95764cdc1ccec1779` (read-only tree `/home/user/CobolSharp`, prebuilt Debug compiler)
+- Pinned sha: `0c24de7d9f8579093e6016c0fe4973b8ec115b3e` (read-only tree `/home/user/CobolSharp`, prebuilt Debug compiler)
 - Rows: 18 (all DOC-A.1-N), 18 input files from `/tmp/adj/adj-w2-a1-s2/in/`
 - Shape: `record_verdicts.py --dry-run` passes on all 18 records
 

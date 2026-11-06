@@ -1,6 +1,6 @@
 ## Entry 1396 — 2026-08-30 10:46 PDT — Battery #35 ALL GREEN, zero differential flips, guard whole — the PB157 + PB164 w1+w2 batch confirmed
 
-The comprehensive gate for the accumulated batch, on tree 17b2658e: FULL greenfield Conformance 5097/5097
+The comprehensive gate for the accumulated batch, on tree 2fb56cd0: FULL greenfield Conformance 5097/5097
 (the population grew by 12 over #34 — PB157's COMPUTE goldens and PB164's four image goldens, including
 the FUNCTION-ORD endianness discriminator and the algebraic float sort key), Unit 5027/5027 (the byte-level
 float lane pins, the re-derived drift table, the widened ONE-WIDTH enumeration), characterization 33/33,

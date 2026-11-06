@@ -5,7 +5,7 @@ specified or implied for an identifier-2 and identifier-2 is not an address-iden
 operand."). It was PARTIAL because the rule's exception arm had no source form: an address-identifier could not
 be written as a CALL argument at all (COBOL0001).
 
-**Re-probe.** That no longer reproduces. PB239 (`538562b36`) gave every identifier-2 slot the one
+**Re-probe.** That no longer reproduces. PB239 (`fdcc9dc6a`) gave every identifier-2 slot the one
 `addressIdentifier` operand, and `CallBinder.BindCall`'s BY REFERENCE arm binds it through `AddressArg` before the
 receiving chokepoint, so it never meets `ExpressionBinder.ResolveReceiving`. That is what §8.4.3.11.3 SR5 and
 §8.4.3.13.3 SR4 require ("This identifier format shall not be specified as a receiving operand"); Annex D.6.5.6.4

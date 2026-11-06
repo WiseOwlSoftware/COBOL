@@ -5,9 +5,9 @@
 statement, the file position indicator is set to indicate that no valid record position has been established",
 `cite.py --check` OK), and recorded it as latent: no COBOL program could observe it.
 
-**Re-probe: the START half is DISCHARGED.** kb/Work PB352 (9bb9535fb) had already replaced the five hand-written
+**Re-probe: the START half is DISCHARGED.** kb/Work PB352 (47e20fa1b) had already replaced the five hand-written
 copies with `FileConnector.StartOpenModeGuard`, which calls the virtual `InvalidateFilePosition` on both failing
-arms (703bb3c16 added the permanent-error arm). The probe on this build
+arms (19c3190f6 added the permanent-error arm). The probe on this build
 (`E:/COBOL-coord/scratch/w1084/w1084e/probe/PB359P1.cob`) prints `47` for START in OUTPUT mode and on a closed
 connector, `00` for the first READ NEXT after a reopening OPEN, and `23` then `46` for a random READ miss followed
 by READ NEXT, on relative and indexed files. Row `GR-14.9.41.4-7` was already CONFORMS.

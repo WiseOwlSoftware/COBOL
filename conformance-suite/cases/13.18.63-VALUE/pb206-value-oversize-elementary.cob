@@ -7,7 +7,7 @@
       *> ISO 13.18.63.3 SR4, sentence 2: "Alphanumeric literals in the VALUE clause of an elementary item shall
       *> not exceed the size indicated by an explicit PICTURE clause."  E1's PICTURE indicates two character
       *> positions and "ABCD" is four.
-      *> THE SIBLING kb/Work PB206's note did not claim, found by re-probing the mechanism on 1d949007: the
+      *> THE SIBLING kb/Work PB206's note did not claim, found by re-probing the mechanism on c86e0bf1: the
       *> ELEMENTARY sentence of the same rule was unenforced too, and silently truncated - `DISPLAY E1` printed
       *> AB.  Its national (SR5 sentence 2) and boolean (SR10 sentence 2) twins were both implemented, which is
       *> the two-arm-dispatch shape with the third arm missing; all three now come from ONE screen

@@ -128,7 +128,7 @@ COBOL1560 (not COBOL0001) and a reference to the constant resolves.
 `GetText()` (glued qualifiers: "SET 'AOFG'"); each now reads `DataBinder.WrittenText`.
 
 **Wave 20261821 (finisher).** The ten unlanded commits of `worktree-wf_0a800ee7-313-1` were cherry-picked onto main
-83a1e47f4 (clean) and re-gated GREEN (run 000001-20261102T085751Z: Conformance 20,784, Unit 39,265, Characterization
+aa449bda6 (clean) and re-gated GREEN (run 000001-20261102T085751Z: Conformance 20,784, Unit 39,265, Characterization
 37). PB2103 part 2 and PB2104 stay open. Part 2 reports eleven REPO codes and the wave allocated three, so PB2103 now
 records that it must be dispatched alone with eleven, and this branch lands the other seven notes.
 

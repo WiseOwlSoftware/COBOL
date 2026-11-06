@@ -93,7 +93,7 @@ binary value, as the arithmetic store does). A CALL's function value into a FIXE
 binary expansion (`0.29999` for PIC 9.9(5)), exactly as the local `MOVE FUNCTION SQRT (X) TO E2` does on this branch and on
 main; that is the scaled quantizer lead of round 1, reported again.
 
-**Landing finisher (the Linux landing gate's red, fixed).** `enqueue.py land` stopped on cb7e96b83 with one Linux conformance
+**Landing finisher (the Linux landing gate's red, fixed).** `enqueue.py land` stopped on 0de025841 with one Linux conformance
 red, `2002/pb370_move_function_value_digits` line 15: `MOVE FUNCTION PI TO W (I) W (3)` (PIC +9.9(20)E+99) stored
 `+3.14159265358979311599E+00` where its single-receiver twin `MOVE FUNCTION PI TO WQ` stores `+3.14159265358979300000E+00`.
 It is no host difference: the branch build prints the same on Windows, and the Windows leg 1 never ran the case (it sat in

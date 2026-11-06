@@ -43,9 +43,9 @@ What the self-review found: the C# drift tests pinned eight arm labels of the sc
 (`LandingLaneDriftTests`, `LandingPipelineDriftTests`, `MergeDriverDriftTests`); they name the new arms. No diagnostic code
 was used.
 
-Gate (run `TestResults/build-local/000002-20261030T043315Z`, head bb3029ec4): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
+Gate (run `TestResults/build-local/000002-20261030T043315Z`, head 5c0aea367): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
 PB2515): GREEN — leg 2 left to CI's whole-population run — Conformance 67/19,363 · Unit 5,632/38,436 · Characterization 36/36
-cases ran (skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN ===`. The first gate (000001, head 5e20763f8) was
+cases ran (skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN ===`. The first gate (000001, head 6d1326a03) was
 GREEN too; the follow-up commit added only a stderr note to `foresee_queue`.
 
 Review round 1 (R1-1, blocking): the first build replayed the queue THROUGH the drivers, but GitHub's merge group runs

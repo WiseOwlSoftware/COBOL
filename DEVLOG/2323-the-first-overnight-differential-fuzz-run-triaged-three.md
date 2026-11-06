@@ -2,7 +2,7 @@
 
 The owner started kb/Work PB3488's harness at 22:45 last night (`qwen3.6:35b`, 8 hours, 4 in flight, seed 20261021) and
 handed over the report this morning: 5,599 programs, 3,348 usable, 2,325 survivors in 378 signatures. This entry is the
-triage, done in the Mythos session against the standard on a fresh build of main (62cd0d954), with every citation
+triage, done in the Mythos session against the standard on a fresh build of main (be490236b), with every citation
 through `cite.py --check`. The record is
 `docs/rearchitecture/evidence/fleet-optimization/2026-10-21-differential-fuzz-overnight.md`; this entry is the short form.
 

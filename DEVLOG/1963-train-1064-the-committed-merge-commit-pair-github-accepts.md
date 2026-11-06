@@ -25,10 +25,10 @@ the owner's go already given: the Mythos session re-runs `ruleset.py apply` afte
 tooling, no inventory row. No diagnostic code, no golden.
 
 **The train.** `train_apply.py` GREEN (5 paths, 3 as on the branch, 2 merged with earlier changes; citation audits and
-`work.py check` PASS). Lease taken at 00:56Z; origin/main was still `01f392184`, so no rebase. Windows gate (leg 1, Normal
+`work.py check` PASS). Lease taken at 00:56Z; origin/main was still `9fb0ad7b8`, so no rebase. Windows gate (leg 1, Normal
 priority, run 20261012T005645Z-27c32a) `LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 4,950/11,488, Unit
 32,534/33,448, Characterization 36/36; leg 2 left to CI), with `TheQueueAndTheRuleset_DeclareEveryArm` Passed; Linux gate
-GREEN on the same head `35d159f50` (selftests, unit, characterization, conformance, guard). Arch oracle IDENTICAL (7,780
-cases, baseline fb934cb4a329, whose inputs are unchanged: `landing_oracle.py` PASS, no re-record). Semgrep: no count rose
+GREEN on the same head `8453c4f35` (selftests, unit, characterization, conformance, guard). Arch oracle IDENTICAL (7,780
+cases, baseline 0f932d0d397f, whose inputs are unchanged: `landing_oracle.py` PASS, no re-record). Semgrep: no count rose
 (3, 44, 2, 268). GAP unchanged (no row re-verdicted). Nothing ejected, nothing fixed in the train.
 

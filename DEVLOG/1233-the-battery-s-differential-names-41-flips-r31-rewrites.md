@@ -35,6 +35,6 @@ qualified-ambiguous-match (negative, all four editions) + screen_section_referen
 
 Gate on this tree: full Unit 4089/4089 · full Conformance 4281/4282 (the one red: the negative
 fixture's .err file missing mid-run — written before landing, the case green by name after) ·
-characterization 33/33 · the differential legs above. Battery reference advanced to 36ce29fa with the
+characterization 33/33 · the differential legs above. Battery reference advanced to 2384f3c7 with the
 NOT-GREEN-attributed narrative.
 

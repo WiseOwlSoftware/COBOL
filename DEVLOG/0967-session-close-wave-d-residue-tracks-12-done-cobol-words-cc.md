@@ -2,11 +2,11 @@
 
 **Session summary (owner: "do them all in sequence" over the 4 Wave-D residue tracks).** Landed the first two,
 both fully gated + pushed on `phase-13-grammar-batch`:
-- **① `>>COBOL-WORDS` (§7.3.10) — COMPLETE** (DEVLOG 962–965; commits `6c0c007a`/`b854fa9e`/`107dc385`/`10042f7f`).
+- **① `>>COBOL-WORDS` (§7.3.10) — COMPLETE** (DEVLOG 962–965; commits `aa0e57c5`/`2459caed`/`2755cd17`/`4171268b`).
   All four options (EQUATE/UNDEFINE/SUBSTITUTE/RESERVE) for reserved, context-sensitive, AND intrinsic-function
   words; the owner-directed post-lex token rewriter + composed `ReservedWordSet` + map-aware lexer + binder
   intrinsic-synonym resolution; SR1–SR5; COBOLNET0900 gate + COBOLNET1623. `DESIGN-cobol-words-directive.md`.
-- **② CC-directives-inside-COPY (§7.2.1) — COMPLETE** (DEVLOG 966; `c3377315`). The merged interleaved
+- **② CC-directives-inside-COPY (§7.2.1) — COMPLETE** (DEVLOG 966; `6f5fb799`). The merged interleaved
   text-manipulation driver (`ProcessWithCopy`) — copybook directives processed, false-branch COPY never expanded,
   legacy byte-identical. GnuCOBOL +2 fixes/0 regressions · legacy guard ALL GREEN · greenfield Conformance 3806/0.
   `DESIGN-cc-in-copy.md`.

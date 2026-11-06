@@ -1,6 +1,6 @@
 ## Entry 1697 — 2026-09-24 23:59 PDT — Train 60: integer narrowing, exact intrinsic arguments, record extent tables, GR14 DEFINE scope (GAP 1458 → 1453)
 
-Four wave-59 clusters in one landing, one commit each, on top of the register checkpoint cdb084309.
+Four wave-59 clusters in one landing, one commit each, on top of the register checkpoint 472e76b2b.
 
 **w59b — PB1033 + PB1058 + PB1178 (narrowing half): one saturating narrowing for integer values.** Emit-time
 `(int)`/`(long)` casts wrapped COBOL integer values past the host carrier, and binder `int.Parse`/`TryParse` sites
@@ -88,9 +88,9 @@ REPLACE (`ReplaceLineMap`), and ordinary sources converge on the first pass. Tes
 held by the normalizer, is not fixed, so PB1066 stays open and GR-14.9.28.4-14 stays PARTIAL. Its batch was re-applied
 to the base row, retiring the two moved witnesses.
 
-**The train.** The four patches were taken from the implementer branches against base df452130e. Inventory hunks were
+**The train.** The four patches were taken from the implementer branches against base ca54307a6. Inventory hunks were
 excluded, and the five verdict batches were re-applied with `record_verdicts.py` on the merged tree. The only code
-conflict was w59b × w59e, described above. Rebasing onto cdb084309 conflicted in `kb/Work/PB1178.md`, and both
+conflict was w59b × w59e, described above. Rebasing onto 472e76b2b conflicted in `kb/Work/PB1178.md`, and both
 paragraphs were kept. Checks:
 - Twelve report citations were re-run through `cite.py --check`, three per cluster, and all were OK.
 - Only COBOLNET2427 was claimed, in w59b's range, so there is no cross-cluster collision.

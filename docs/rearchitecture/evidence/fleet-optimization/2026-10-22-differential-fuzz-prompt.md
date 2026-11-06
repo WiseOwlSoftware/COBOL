@@ -22,7 +22,7 @@ validity; quoting the refused line and stopping a repeated diagnostic early make
 ## Design
 
 `differential_fuzz.py --bake-off qwen3.6:35b --count 40 --clauses 13.18,14.9,8.4 --seed 20261022 --jobs 4`, the
-generator on the owner's shared RTX 5090, both judges as on the second night (WiseOwl built from origin/main 2850429db,
+generator on the owner's shared RTX 5090, both judges as on the second night (WiseOwl built from origin/main 245797d61,
 GnuCOBOL 3.2 `-std=cobol2014` under WSL). The same `--seed` gives the same seed walk, so arms that share a seed list
 see the same 14 clauses, three programs each (the 40th program is a fourth clause's first). Measured per arm:
 first-attempt validity (usable with no repair round), usable (at least one compiler accepted), BOTH_REJECT, the

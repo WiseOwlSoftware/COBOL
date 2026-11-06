@@ -131,8 +131,8 @@ golden can reach — with both of its failure branches fired before it was trust
 `EmitUseHook` against main's PB367b (`notNormalLabel` kept, `isRead` gone). `GR-14.9.30.4-L2.3`, `-28` and
 `GR-14.9.49.4-6` PARTIAL → CONFORMS. NO NIST golden moved.
 
-**The train.** Five clusters, brought in on `a1de916e` in the order PB337 · PB398 · PB640 · PB530 · PB344, one
-commit each plus this one. Rows 1–2 were based on `90ec658e` and rows 3–5 on `a1de916e`; every conflict was a
+**The train.** Five clusters, brought in on `398fc3a3` in the order PB337 · PB398 · PB640 · PB530 · PB344, one
+commit each plus this one. Rows 1–2 were based on `23e1eadb` and rows 3–5 on `398fc3a3`; every conflict was a
 keep-both TAIL — the `DiagnosticCatalog` descriptor block twice and eight conformance-manifest `enabled` lists —
 and `tests/version-matrix/traceability-inventory.json` and `docs/DIAGNOSTICS.md` were excluded from all five
 patches on purpose: the first is rebuilt by re-applying every cluster's `record_verdicts` batch in manifest order

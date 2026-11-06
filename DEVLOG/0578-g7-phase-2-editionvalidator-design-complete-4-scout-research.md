@@ -2,7 +2,7 @@
 
 **SSOT §16 step ② started: Track-1 Phase-2 EditionValidator (removal/reserved-word gating + negative corpus).
 This session produced the complete, decision-level design + research artifacts; implementation starts next
-session. Docs-only commit — the tree is otherwise untouched at 8c1eac1.** The full resume brief (read it FIRST)
+session. Docs-only commit — the tree is otherwise untouched at 1268f3b.** The full resume brief (read it FIRST)
 is **`/e/tmp/g7/RESUME-G7-PHASE2.md`**; supporting artifacts in `/e/tmp/g7/`: `words-2023.json` (the complete
 ISO 2023 §8.9 reserved list — 410 words + 15 symbols, spec lines 10306–10788 — plus §8.10 context words, §8.11
 intrinsic names, §14.6.13.1.6 EC-* names, with OCR-fix notes incl. the METHOD omission), `removal-inventory.json`

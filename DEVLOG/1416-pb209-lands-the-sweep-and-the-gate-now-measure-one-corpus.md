@@ -104,7 +104,7 @@ the evidence was**, and it is the evidence that was repaired.
 
 ### Battery #39 recorded — and the two trees are named honestly
 
-The four greenfield/NIST legs are NOT re-run: they were earned on tree `3bc4e4db` (DEVLOG 1415) and this
+The four greenfield/NIST legs are NOT re-run: they were earned on tree `ac7690b2` (DEVLOG 1415) and this
 landing touches only `scripts/`, `tests/Cobol.Net.Tests.Unit/`, `kb/` and `docs/` — **no `src/` file**, so no
 compiler behaviour they measured can have moved. The one leg whose INPUTS did change is the differential, whose
 population is now supplied by the shared extractor, and that leg was re-run whole:

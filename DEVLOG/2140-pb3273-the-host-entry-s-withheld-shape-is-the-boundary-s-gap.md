@@ -4,7 +4,7 @@ Wave 1105 group H took PB3273: "a strong group holding both a variable-length co
 entry (the GR13 restriction in `PublishedRecordEmitter.Renders`)". The note asked whether the restriction is
 spec-required or a gap before a fix was chosen.
 
-**Re-probe.** On a fresh Debug build of main 2b5a81145 a unit whose formal is a strong group holding `PIC X DYNAMIC LENGTH`
+**Re-probe.** On a fresh Debug build of main fb5890bfa a unit whose formal is a strong group holding `PIC X DYNAMIC LENGTH`
 and `USAGE POINTER` publishes no entry class while its siblings do (`BOTH.cob`: `H3MAIN` and `H3OK` only). The note's claim
 reproduces.
 

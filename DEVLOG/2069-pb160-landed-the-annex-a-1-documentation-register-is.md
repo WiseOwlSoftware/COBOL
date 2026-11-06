@@ -5,8 +5,8 @@ note that the Annex A.1 documentation register was 169 obligations behind. Re-me
 `scripts/spec/audit_annex_a1.py` reports 182 of 182 required obligations documented in `docs/CONFORMANCE.md` §7,
 none remaining and no findings: every item the note named over its life (1, 5, 18, 19, 39, 56–58, 97, 122, 177, 178,
 210–217) now has its determination. Three of its four claimed inventory rows were already `OK`, closed by the
-doc-rows and golden lanes without a back-link here: `DOC-A.1-97` (`bc1756abb`), `DOC-A.1-122` (`6563edae7`) and
-`DOC-A.1-217` (`1de01e454`).
+doc-rows and golden lanes without a back-link here: `DOC-A.1-97` (`3d9c3fe80`), `DOC-A.1-122` (`e09f2fad2`) and
+`DOC-A.1-217` (`70e615bdc`).
 
 The fourth, `GR-8.3.3.5.4-5`, was PARTIAL only because the determination was not written down and no test pinned it.
 §8.3.3.5.4 GR5 leaves the result of a hex-character-sequence with no corresponding character to the implementor

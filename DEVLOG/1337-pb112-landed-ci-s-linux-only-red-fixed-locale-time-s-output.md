@@ -1,6 +1,6 @@
 ## Entry 1337 — 2026-08-19 18:33 PDT — PB112 LANDED: CI's Linux-only red fixed — LOCALE-TIME's output depended on the HOST's ICU version (U+202F vs U+0020 before the day period); DETERMINATION L10 addendum: pattern spacing normalizes to the plain space, so the same program prints the same bytes on every host
 
-**The break.** CI had been red for four consecutive runs (since T4, `b13d4383`) on exactly ONE job — the LINUX
+**The break.** CI had been red for four consecutive runs (since T4, `7c2daf0d`) on exactly ONE job — the LINUX
 corpus-nist conformance shard — on exactly ONE test: `2014/pb64t4_locale_functions`. The Windows corpus-nist shard
 stayed green throughout. The xUnit assert message showed two strings no eye could tell apart (`…09 PM]…` vs
 `…09 PM]…`, caret at position 175); the TRX artifact the PB108 CI work uploads carried the bytes: expected U+0020,

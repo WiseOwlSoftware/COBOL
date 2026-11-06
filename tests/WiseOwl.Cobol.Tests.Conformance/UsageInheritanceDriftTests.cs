@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <c>InheritUsageClauses</c>' <c>Binary or Packed or Comp5</c> — neither derived from anything, and every usage
 /// in neither fell through SILENTLY: a picture-less leaf under a group-level BINARY-SHORT became a ZERO-LENGTH
 /// item, a group-level FLOAT-SHORT emitted the group itself as a scalar <c>float</c>, and a PICTURE-bearing leaf
-/// under a group-level BINARY-LONG kept its usage-display width with no diagnostic. Measured on 39479e19: of the
+/// under a group-level BINARY-LONG kept its usage-display width with no diagnostic. Measured on 9e5aa66a: of the
 /// 138 (usage × picture × arm) cells this file's matrix covers, 108 DIFFERED between the two arms.</para>
 ///
 /// <para><b>⛔ WHAT THIS FILE CANNOT CATCH.</b> The one hand-written table left is

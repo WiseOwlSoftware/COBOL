@@ -796,7 +796,7 @@ def removal_of(path, removed, after):
     """The Removal of `path` from a diff: its `removed` lines, and its text after the change (None: deleted). An
     identifier the old text had and the new one lacks sits on a removed line, so the removed lines suffice. None when
     the change removes nothing a citation can name. Deleting one file of a `partial` type deletes no type: its other
-    files still declare it (cf9c85914 deleted IndexedConnector.WholeStore.cs, and IndexedConnector.Start lived on)."""
+    files still declare it (beee41525 deleted IndexedConnector.WholeStore.cs, and IndexedConnector.Start lived on)."""
     removed_text = "\n".join(removed)
     gone = declared_types(path, removed_text)
     classes = frozenset(t for t, _ in gone + declared_types(path, after or ""))

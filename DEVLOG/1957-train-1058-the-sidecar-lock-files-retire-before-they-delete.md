@@ -1,7 +1,7 @@
 ## Entry 1957 — 2026-10-11 11:00 PDT — Train 1058: the sidecar lock files retire before they delete and hide no holder, the Linux gate puts itself on its host, and four drift tests stop re-running self-tests under a clock
 
 Train 1058 carries two clusters by the owner's direction (2026-10-11, through the operator): PB2917+PB2936, which
-train 1056b ejected and a finisher completed, and PB2999, the Linux gate fix. Both bases were `f91823991`, still
+train 1056b ejected and a finisher completed, and PB2999, the Linux gate fix. Both bases were `915e7d2cb`, still
 origin/main when the lander took the landing lease, so the final rebase was a no-op. Both implementers gated leg 1 only
 (batched gating, PB2515), so this train's whole-population gate was each cluster's first population check. The gate
 also found one red that was main's, not either cluster's; its fix is the train's third commit.
@@ -39,7 +39,7 @@ lander ran B's `--self-test` from Git Bash (9 checks GREEN) and ran the second L
 Git Bash, which reported the hand-off and returned the WSL run's GREEN.
 
 **PB2882 (in the train): four drift tests hold self-test arms from source, not by re-running them.** Gate 1 (run
-`20261011T172547Z-c2678c`, head `4d59c6ac6`) was RED in Unit on one case:
+`20261011T172547Z-c2678c`, head `fd59e7e2b`) was RED in Unit on one case:
 `SelfTestDiscoveryDriftTests.TheRunner_ProvesEveryArm`, a harness non-observation. `self_tests.py --self-test` timed
 out at the harness's fixed 120 s budget twice while the whole-population leg ran beside the concurrent WSL Linux gate.
 In the same run, `GateLegDriftTests`' driver test (311 s) and `LandingLeaseDriftTests` (276 s) each timed out once and
@@ -54,11 +54,11 @@ remaining re-runs, which this run measured well under the budget (the largest, `
 
 **The train.** `train_apply.py` brought both clusters in without a conflict (A 24 paths, B 9, every one as on its
 branch), and the code-citation, doc-citation and work-register audits passed. Windows lander gate 2 (run
-`20261011T174354Z-1b0990`, head `bb79e17a3`): `GREEN — Conformance 11,460/11,460 · Unit 33,405/33,405 ·
+`20261011T174354Z-1b0990`, head `ed6ced81e`): `GREEN — Conformance 11,460/11,460 · Unit 33,405/33,405 ·
 Characterization 36/36`, every population EXACT, SELF-TESTS GREEN (74 ran). Linux gate on the same head: `GREEN (legs
-selftests unit characterization conformance guard selftests-built)`, after gate 1's Linux run on `4d59c6ac6` was also
-GREEN. Semgrep: no count moved. Arch-oracle: IDENTICAL across 7,761 cases against `7c00d5d5d729`. A's runtime files are
-inputs of that baseline, so it is re-recorded as `bb79e17a3fb8`. The lander's review read the lock-file primitive, both
+selftests unit characterization conformance guard selftests-built)`, after gate 1's Linux run on `fd59e7e2b` was also
+GREEN. Semgrep: no count moved. Arch-oracle: IDENTICAL across 7,761 cases against `8985f926d390`. A's runtime files are
+inputs of that baseline, so it is re-recorded as `ed6ced81eda0`. The lander's review read the lock-file primitive, both
 policies, the probe, the connectors' endpoint lifetimes and B's hand-off, and found no correctness defect. It filed one
 minor defect, PB3000 (open, reproduced): run from a subdirectory on Windows, the hand-off gives WSL's bash a relative
 script path that does not exist there, so it exits 127 with no verdict line, where Linux prints NOT RUN. That is a

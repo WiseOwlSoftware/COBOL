@@ -2,7 +2,7 @@
 
 **Cluster A (branch `abandon-t1047-carry`, the 22:24 land unit's record).** kb/Work/PB2708 records `note-t1047-carry`
 ABANDONED: train 1047z carried its three commits (PB2844-PB2850 and PB2855, the train-1047 trend points). The operator
-verified every added line on main (83192a33c) and deleted the branch and its worktree.
+verified every added line on main (c21b0adf8) and deleted the branch and its worktree.
 
 **Cluster B (branch `session-skills`, PB2861; owner 2026-10-08 ~22:05: "Be sure to setup all session start and resume
 processes to always use these skills, as appropriate").** A resumed attended session (`claude --resume`) had been told

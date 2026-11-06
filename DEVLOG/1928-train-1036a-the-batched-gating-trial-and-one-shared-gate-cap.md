@@ -37,5 +37,5 @@ rendered positions.
 **Oracle.** `compare_oracle.py` against 9879d9e40069: DIFFERENT, 18 of 7,476 cases, emitted C# only, in PB2151's two
 explained classes and none other (classified mechanically): an integer subscript written `+N` or with leading zeros
 renders as its value (NC132A–NC245A, the pb2113 corpus), and a D18 temporary is named for its source line rather than
-`_L1` (pb17_function_subscript). Re-recorded as 84a4542e6dd8.
+`_L1` (pb17_function_subscript). Re-recorded as 231c34337eca.
 

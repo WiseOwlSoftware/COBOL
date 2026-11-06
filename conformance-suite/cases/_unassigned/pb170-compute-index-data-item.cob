@@ -8,7 +8,7 @@
       *> ExpressionBinder's private operand-class switch had no Usage.Index arm
       *> although its receiving-side twin ScreenResultant did, so
       *> COMPUTE N = IDX + 1 compiled clean under STRICT and computed the
-      *> occurrence number (measured on 9a89fbd1: N=0003). Unifying the screen
+      *> occurrence number (measured on 02c72682: N=0003). Unifying the screen
       *> over the ONE 8.5.2.1 Table-2 classifier closes it with no extra rule.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB170N7.

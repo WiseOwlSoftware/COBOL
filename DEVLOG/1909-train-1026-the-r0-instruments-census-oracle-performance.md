@@ -1,9 +1,9 @@
 ## Entry 1909 — 2026-10-07 03:09 PDT — Train 1026: the R0 instruments (census, oracle, performance baseline) and campaign planning land; PB2115, PB2116, PB2117, PB2120
 
 Wave 1026's four R0 and process items land as one train (lander worktree `wf_71adb89f-039-5`, clusters in order F, D, C,
-E, each its own commit, rebased onto d5fc9c998, after train 1027). None changes compiler source, and the proof is direct:
-the R0 oracle recorded on the train's last product commit `f620ccf6d43d` is byte-identical, case for case, to the one
-cluster D recorded on its own base `a02b165da` (7,357 cases; only the `commit` field differs), so trains 1025 and 1027
+E, each its own commit, rebased onto 420343737, after train 1027). None changes compiler source, and the proof is direct:
+the R0 oracle recorded on the train's last product commit `ed82232a65bc` is byte-identical, case for case, to the one
+cluster D recorded on its own base `79a4b6c58` (7,357 cases; only the `commit` field differs), so trains 1025 and 1027
 (the legacy engine's deletion) and these four clusters changed no emitted C# and no diagnostic.
 
 **F — PB2120: a named kb/Work cluster is a plannable unit.** The fix lane ranks by harm to a user's program, so the two
@@ -25,14 +25,14 @@ matrix): 7,357 compiles through the option builders the theories now share (`Con
 duplicates collapsed). Each case's C# and diagnostic stream are SHA-256'd into one committed manifest (the design's
 §4.1 correction: blobs stay in gitignored TestResults); `compare_oracle.py` compares case by case. Found and fixed on
 the way: a compiled-program cache hit dropped the compilation's DISPLAY-directive output (§7.3.12.4 1)); the cache
-entry now stores it. The lander re-recorded the manifest at the train's product commit `f620ccf6d43d`, as the report
+entry now stores it. The lander re-recorded the manifest at the train's product commit `ed82232a65bc`, as the report
 asked. Its COPY-spelling lead is PB1680's second witness (19 cells differ Windows vs Linux), not a new note; its
 token-differential "next step" is already PB2113/PB2114's §4 item 3.
 
 **C — PB2115: the R0 census.** `scripts/arch/census.py` (policy: scope rule, population check against each built
 assembly's metadata, god-class threshold, dead-artifact caller queries, a 19-arm self-test) drives the Roslyn host
 `tools/ArchCensus` (facts: a semantic reachability walk confirmed by SymbolFinder, every exclusion a stated rule; clone
-families agreeing with the roslyn-analysis detector). Record at `a02b165da`: 2,087 types, 52 god-class candidates
+families agreeing with the roslyn-analysis detector). Record at `79a4b6c58`: 2,087 types, 52 god-class candidates
 (DataBinder 20,375 lines across partials), 9 clone families, 219 unreferenced and 266 test-only members, 15 dead
 artifacts, 234 findings for a clerk to file. The design doc's hand-kept god-class table is now a pointer to the record.
 Leads filed: PB2130 (three interface members kept alive only by the implementation cascade; Delete input, cluster
@@ -43,7 +43,7 @@ benchmarks, each with a witness checked in GlobalSetup; `scripts/arch/perf_basel
 GnuCOBOL comparison under WSL with a scaling curve, and gate time, and flags a row outside its noise band as a
 REGRESSION (`PerfBaselineSelfTestDriftTests`; no test asserts a time). Found and fixed: `tests/Directory.Build.props`
 linked xunit helpers into BenchmarkDotNet's generated host, so every benchmark reported NA. The record
-(`perf-baseline/354c79ef3312.md`) answers A6's questions: PERFHOT 0.7x GnuCOBOL, MOVEHOT 3.0x (926 B per pass), SEQHOT
+(`perf-baseline/5259e660dc35.md`) answers A6's questions: PERFHOT 0.7x GnuCOBOL, MOVEHOT 3.0x (926 B per pass), SEQHOT
 2.8x, IDXHOT 60x at 2,000 records and 330x at 8,000. A6 stays open for the storage-model decision; the indexed result
 is filed as PB2129 (IndexedConnector keeps no index). The branch's own DEVLOG draft (numbered 1904) was dropped for
 this entry.

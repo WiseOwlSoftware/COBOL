@@ -28,7 +28,7 @@ Classes (`report.md`): `BOTH_REJECT` 2,008 · `AGREE` 1,816 · `WE_REJECT` 811 �
 
 ## Triage method (the third night's, with two changes)
 
-The fresh judge was origin/main 300fd78bd, built in the detached worktree `E:\COBOL-wt\fuzz-triage-20261024`.
+The fresh judge was origin/main be62db511, built in the detached worktree `E:\COBOL-wt\fuzz-triage-20261024`.
 
 - **Re-judge.** The 441 `OUTPUT_DIFFERS`, `EXIT_DIFFERS` and `THEY_FAIL_RUN` rows were re-run on the fresh judge and
   rescored with the harness's normalization. That left 405 `OUTPUT_DIFFERS`, 34 `AGREE` and 2 `EXIT_DIFFERS`, for a

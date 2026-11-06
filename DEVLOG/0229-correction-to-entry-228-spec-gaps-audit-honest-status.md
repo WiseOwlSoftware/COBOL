@@ -4,7 +4,7 @@ Two claims in Entry 228 / the first cut of docs/spec-gaps.md were WRONG. Correct
 than rewriting history.
 
 1. **WHEN-COMPILED is NOT actually fixed yet.** Entry 228 added a baked-constant special-case in
-   `CilExpressionEmitter.EmitIrIntrinsicCall`, and the source is present in HEAD (commit 00713a9) and
+   `CilExpressionEmitter.EmitIrIntrinsicCall`, and the source is present in HEAD (commit 7e88b56) and
    correct *for that path* — but `MOVE FUNCTION WHEN-COMPILED TO x` still returns the execution-time
    clock. Verified end-to-end with a guaranteed-fresh build: two runs of one compiled DLL produce
    different timestamps (2026053011401818 vs …402121). So the value reaches the program through a

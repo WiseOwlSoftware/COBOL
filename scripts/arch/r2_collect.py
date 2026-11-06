@@ -109,13 +109,13 @@ TEMPLATE = REPO / ".claude" / "skills" / "workstream" / "templates" / "wf_r2_rev
 # the template's one plan line, which `--launch` replaces with the plan (the line's own comment says so)
 PLAN_LINE = re.compile(r"^const A = args\b.*$", re.M)
 # `silent` qualifies a harm and is never one by itself: a defect filed with only `silent` sets no flag in HARM_FLAGS and
-# is invisible to `work.py next` (batch 1 of 8be230068 filed one, PB2647, and `work.py check` refused it).
+# is invisible to `work.py next` (batch 1 of cd85e4901 filed one, PB2647, and `work.py check` refused it).
 RANKED_HARMS = tuple(h for h in HARMS if h.replace("-", "_") in HARM_FLAGS)
 REQUIRED = ("id", "kind", "title", "rule", "scenario", "target", "files", "sites", "members", "census_ids",
             "design_ref", "wave_kind", "severity", "existing_note", "owner_question")
 # The reference is the LEADING token — a section of the approved §8 or the open note that plans the change; whatever
 # follows a non-word character is the finder's qualifier (`§8.3(2)`, `§8.4 (PB2291, PB2333)`, `§8.7 (R4 step 4); …`).
-# Batch 1 of 8be230068 lost ten upheld findings to the earlier exact-match form. A non-§8 section (`§5.1 (…)`) or prose
+# Batch 1 of cd85e4901 lost ten upheld findings to the earlier exact-match form. A non-§8 section (`§5.1 (…)`) or prose
 # (`later`) is still INVALID: the finding names no target the approved design or the register holds.
 DESIGN_REF = re.compile(r"^(§8(\.\d+)*|PB\d+)(\W.*)?$")
 # the fields each lens judges, so a skeptic's correction lands only where its lens looked
@@ -335,7 +335,7 @@ def mechanisms(upheld: list[dict]) -> list[dict]:
 def corrected(rec: dict, stand: dict) -> tuple[dict, list]:
     """Apply the corrections of the skeptics that UPHELD the finding, each only to the fields its lens judged.
 
-    A field a skeptic returns as null is one it did NOT correct (batch 1 of 8be230068: a site-lens skeptic corrected
+    A field a skeptic returns as null is one it did NOT correct (batch 1 of cd85e4901: a site-lens skeptic corrected
     `files` and returned `"sites": null`, which overwrote the finding's sites and crashed `mechanisms`), so null never
     replaces a value."""
     rec, applied = dict(rec), []

@@ -1,7 +1,7 @@
 ## Entry 1713 — 2026-09-25 16:07 PDT — Golden lane 2 tooling: lane-unique slugs (PB1591), read-only writer/fixer roles
 
 Golden lane 2 (the 117 CONFORMS-test-needed rows + 3 DNS witnesses, 120 rows in 11 files) drafted and validated on a
-pin of main dac7c9d67. Its misc-p2 writer returned 12 rows, NONE from its 13-row input: they were golden lane 1's
+pin of main 5a6bc93e1. Its misc-p2 writer returned 12 rows, NONE from its 13-row input: they were golden lane 1's
 misc-p2 rows, read from the committed `adjudication/golden-lane-1/scratch/in/` copy that shares the bare slug. The
 tally read 119/120 ("one row dropped"); only a per-slug set comparison (overlap 0, foreign 12) showed the file wholly
 wrong. Filed as kb/Work PB1591 (half). Fixed here: `build_lane1_inputs.py` now REQUIRES a lane prefix and names

@@ -1,7 +1,7 @@
 ## Entry 2836 — 2026-10-30 21:31 PDT — SYMBOLIC CHARACTERS pairs names with ordinals across the whole clause, so a literal ordinal before a constant-name ordinal compiles (PB4108)
 
 `SYMBOLIC CHARACTERS SC1 SC2 66 K2` (K2 an integer constant-name) was refused with COBOL1670 "2 name(s) against 1 integer(s)"
-while `SC1 SC2 K1 67` compiled. Re-probe on the built compiler at main f2b93f2ab reproduced RT04, RT06, RT07 and
+while `SC1 SC2 K1 67` compiled. Re-probe on the built compiler at main 036ebb2d4 reproduced RT04, RT06, RT07 and
 `SC1 SC2 SC3 66 K2` (3 names, 66, K2), all COBOL1670, each also followed by a false COBOL1639 "'SC1' is not defined" at every use.
 
 Root cause: `symbolicCharacterEntry`'s first alternative (`cobolWord+ (IS|ARE)? integerLiteral+`) ends the entry at the

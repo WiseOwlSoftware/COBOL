@@ -5,7 +5,7 @@ characterization 33/33 · NIST 353/0 + CLEAN audit) and exactly TWO differential
 and run_functions:4457, both WE_REJECT_THEY_ACCEPT → AGREE_ACCEPT: the bare zero-argument UDF cases
 R35 fixed now compile and AGREE with the oracle, named in advance by its LANDED section. R27's and
 R29's new rejections moved nothing in the corpus. Baseline regenerated, EXACTLY 2 rows; fresh
-differential 0 flips over 1323 cases. Reference advanced to 7590ce35.
+differential 0 flips over 1323 cases. Reference advanced to 4ab5e895.
 
 In parallel, the owner pointed at the in-repo PDF for R28's §15 function table. Verified: Table 21
 (folios 807–815) IS transcribed, 94 rows = 94 function clauses — and the row-vs-clause name diff caught

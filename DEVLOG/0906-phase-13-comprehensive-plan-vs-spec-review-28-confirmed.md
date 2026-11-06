@@ -1,6 +1,6 @@
 ## Entry 906 — 2026-07-19 12:06 PDT — PHASE-13 comprehensive plan-vs-spec review — 28 confirmed findings (1 critical), the ledger persisted
 
-**What ran:** an owner-directed comprehensive review of the rearchitecture plan + implementation at HEAD `38c4a669`
+**What ran:** an owner-directed comprehensive review of the rearchitecture plan + implementation at HEAD `5a7b27f4`
 against `specs/ISO_COBOL.md` — a 16-finder Workflow across three axes (A: spec-coverage omissions per spec area ·
 B: plan-vs-implementation claim verification · C: citation drift in landed P13 code), every finding adversarially
 verified by two independent lenses (spec re-read + code re-read) with a tiebreak judge. 184 agents, 85 completed

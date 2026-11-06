@@ -1,6 +1,6 @@
 ## Entry 1279 — 2026-08-09 17:28 PDT — The 5a+5b battery lands green: 4348/4348, and the differential holds at zero flips
 
-One `bash scripts/battery.sh` run over `3f94645d`, all legs concurrent per the script's phasing:
+One `bash scripts/battery.sh` run over `7bea245c`, all legs concurrent per the script's phasing:
 FULL greenfield Conformance 4348/4348 zero skipped (11 m 44 s — fourteen rows larger than the prior
 reference, the 5a+5b theories and corpus rows in the population) · Unit 4124/4124 · characterization
 33/33 · guard-fast ALL GREEN with NIST 353 MATCH / 0 REGRESSION and a CLEAN audit · GnuCOBOL

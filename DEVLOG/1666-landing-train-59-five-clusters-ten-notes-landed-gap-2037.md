@@ -59,8 +59,8 @@ the MOVE gate and by the one relation checkpoint; the comparison association was
 Three rows moved to CONFORMS.
 
 **The train itself.**
-- **Merge.** The five cluster diffs were applied in manifest order onto 68bbdb00f. The train was rebased onto ed699e767,
-  which touched docs and skills only, and then onto train 58 (a53bce791) once that train landed. KD conflicted with KG in four places, and every conflict took both sides:
+- **Merge.** The five cluster diffs were applied in manifest order onto 79ca43df8. The train was rebased onto 768091233,
+  which touched docs and skills only, and then onto train 58 (9f8ae3f95) once that train landed. KD conflicted with KG in four places, and every conflict took both sides:
   - `DiagnosticDescriptors` got both descriptor blocks.
   - The negative manifest, `docs/DIAGNOSTICS.md` and the design doc each got both sides; KD's SEARCH paragraph closes
     §3.11, then KG's §3.12 follows.

@@ -12,11 +12,11 @@ Wave 1104 C2, 2026-10-16. The design is `docs/rearchitecture/DESIGN-conformance-
 - `batch.json`: the record_verdicts batch it wrote (215 records), applied with
   `python scripts/spec/record_verdicts.py adjudication/pb3173-editions/batch.json`.
 
-The script runs against the tree BEFORE the batch (PB3172's merge, 8eca73497), because its first check refuses a
+The script runs against the tree BEFORE the batch (PB3172's merge, 66ad47861), because its first check refuses a
 row that is no longer empty or that no longer carries the old band. To re-run it, extract that tree and run it
 from the extraction's root:
 
-    git archive -o pre.tar 8eca73497 tests/version-matrix scripts/spec specs/ISO_COBOL.md src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs docs/rearchitecture/spec-rule-catalog.json
+    git archive -o pre.tar 66ad47861 tests/version-matrix scripts/spec specs/ISO_COBOL.md src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs docs/rearchitecture/spec-rule-catalog.json
     (extract pre.tar into an empty directory, cd there)  python <worktree>/adjudication/pb3173-editions/decide.py <out.json>
 
 The batch is applied to that tree's inventory. On a later tree, overturn one decision with one record_verdicts

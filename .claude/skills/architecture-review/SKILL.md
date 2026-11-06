@@ -98,7 +98,7 @@ plus modern-C# conformance. Every agent also applies the project review overlay 
 
 ## Known god-class candidates (R0 re-measures; this list is a starting point, not the census)
 
-Measured at `e36c9c9da` (2026-10-06, `wc -l`; PB2115 replaces this with the Roslyn census): `DataBinder` (8,322 lines in
+Measured at `bf88a4efe` (2026-10-06, `wc -l`; PB2115 replaces this with the Roslyn census): `DataBinder` (8,322 lines in
 `DataBinder.cs`, plus `.Reports` 5,122, `.Switches` 2,146, `.Odo` and `.Linkage` partials) · `DiagnosticCatalog`
 (6,881, a data table written as code) · `ReferenceResolver` (3,074) · `IntrinsicBinder` (3,014) ·
 `VersionConformancePass` (2,643) · `ExceptionState` (2,359) · `RuntimeApi` (2,249) · `BoundTree` (2,087) ·

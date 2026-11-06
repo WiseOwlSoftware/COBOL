@@ -2,7 +2,7 @@
 
 Claude Code's system diagnostics reported that it IGNORES `CLAUDE_CODE_ENABLE_TELEMETRY`, `OTEL_METRICS_EXPORTER`,
 `OTEL_LOGS_EXPORTER`, `OTEL_EXPORTER_OTLP_PROTOCOL` and `OTEL_EXPORTER_OTLP_ENDPOINT` in `.claude/settings.local.json`:
-a project's settings files may only turn telemetry OFF. The R49 telemetry adoption (commit e105e0833) had placed the
+a project's settings files may only turn telemetry OFF. The R49 telemetry adoption (commit f179af25b) had placed the
 switch there, so no telemetry was ever exported, while `tooling_check.py` read that same file and reported the sink
 "OK" — a green check that measured the configuration it expected, not the configuration Claude Code honors.
 

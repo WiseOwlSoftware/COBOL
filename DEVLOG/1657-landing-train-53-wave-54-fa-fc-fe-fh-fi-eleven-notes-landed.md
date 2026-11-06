@@ -1,7 +1,7 @@
 ## Entry 1657 — 2026-09-23 00:29 PDT — Landing train 53: wave 54 (FA, FC, FE, FH, FI), eleven notes landed, PB1006 retired, PB999 dropped, GAP −13 to 2101
 
 Train 53 was pipelined behind train 52 (workstream SKILL.md "Lander throughput"). Four clusters (FA, FC, FE, FI) were
-merged and gated on `acff7ee45` while trains 51 and 52 were still in flight. The fifth, FH, was held back: its branch
+merged and gated on `456ff6ed5` while trains 51 and 52 were still in flight. The fifth, FH, was held back: its branch
 had merged train 52's DB and DD branches, which it builds on (PB1023 adds a row to DB's `OperandClassScreen`, and
 PB1021 reuses DD's `addressIdentifier` rule). The lander waited about 50 minutes for "Train 52" to reach origin/main. It
 then rebased (conflicts only in `docs/DIAGNOSTICS.md` and one corpus manifest, both whole-row keep-both), re-applied
@@ -50,7 +50,7 @@ the double-body tests. `git apply -3` conflicted in exactly those two files. The
 still real on main, because `DomainDec` hands the body the NARROWED double. The fix needs a screen that returns the
 unnarrowed carrier, which is a design choice, not a merge. PB999 stays open, and the conflict is written into its note.
 
-**The train.** Gate 1 (`acff7ee45` + FA/FC/FE/FI) ran the whole Conformance assembly: `Failed: 4, Passed: 8165`, all
+**The train.** Gate 1 (`456ff6ed5` + FA/FC/FE/FI) ran the whole Conformance assembly: `Failed: 4, Passed: 8165`, all
 four reds the FE fixture above. After the fix: Unit `Passed: 28895`, Characterization 33, legacy integration
 `Passed: 503, Skipped: 1`. Gate 3 ran on the rebased tree with FH: `=== WAVE-LOCAL GATE: GREEN (filter
 FullyQualifiedName~CobolNet.Tests) ===`, Conformance `Failed: 0, Passed: 8246, Total: 8246`, Unit

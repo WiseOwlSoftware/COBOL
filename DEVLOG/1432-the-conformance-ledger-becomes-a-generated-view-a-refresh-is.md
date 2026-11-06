@@ -16,7 +16,7 @@ build output.
 
 The page published now reads 693 closed of 4,311 (16.1%), GAP 3,618, 1,284 adjudicated, CONFORMS 833 (675 closed /
 158 owed a golden), DOCUMENTED-NON-SUPPORT 333 (18 / 315 owing a witness), and says mechanically that battery #41 on
-`2acbd842` is still the last comprehensive run with four src/tests-touching commits since — the "#42 owed" tile. The
+`41bf3492` is still the last comprehensive run with four src/tests-touching commits since — the "#42 owed" tile. The
 resolved-but-unwitnessed band, 473 rows, is the largest lever on the board and is exactly what the landing queue
 carries (witness clusters A, B1, B2 and the golden lane).
 

@@ -18,7 +18,7 @@
 # which adjudication>"`, and writes it as the `# Last recorded:` line below.
 #
 # Tab-separated, sorted by id; a leading # is a comment. Columns: id<TAB>tier<TAB>verdict
-# Last recorded: local differential at main 3e62b1816 (2026-11-03); six flips of nightly 41679939118 adjudicated correct in kb/Work PB4346
+# Last recorded: local differential at main 12620aaa7 (2026-11-03); six flips of nightly 41679939118 adjudicated correct in kb/Work PB4346
 configuration:105	ISO_PINNED	AGREE_REJECT
 configuration:126	DEFAULT_DIALECT	AGREE_REJECT
 configuration:147	DEFAULT_DIALECT	WE_REJECT_THEY_ACCEPT

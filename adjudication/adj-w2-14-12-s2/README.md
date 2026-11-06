@@ -1,6 +1,6 @@
 # adj-w2-14-12-s2 — lane-3 adjudication (kb/Work PB1522 wave 2)
 
-- Pinned sha: `0caa7d54004e81c4e34529d95764cdc1ccec1779` (0caa7d5)
+- Pinned sha: `0c24de7d9f8579093e6016c0fe4973b8ec115b3e` (0c24de7)
 - Inputs: 10 files, 19 rows (accept-statement 5, common-phrases 1, execution 1, write-statement 1,
   alternate-record-key 2, record-key 3, apply-commit 1, i-o-status 1, code-set 1, global-clause 3)
 - Wall-clock (UTC): adjudicate 22:18:02 → 22:31:24 (~13 min, 19 rows); refute ~22:32 → 22:34:33 (~3 min, 1 row)

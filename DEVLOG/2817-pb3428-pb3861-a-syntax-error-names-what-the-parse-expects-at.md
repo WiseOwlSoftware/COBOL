@@ -4,9 +4,9 @@ Wave 20261769 group C. Both notes are one mechanism: at a token of a kind its po
 error carried no account of what the position expects, and the reason was that every reading of the parse at the
 token was predicate-blind.
 
-**Re-probe (802352531).** `OBJECT-COMPUTER. XYZ MEMORY SIZE 12 FOO.` and `XYZ SEGMENT-LIMIT IS.` at `--std 85`, and
+**Re-probe (02ab45956).** `OBJECT-COMPUTER. XYZ MEMORY SIZE 12 FOO.` and `XYZ SEGMENT-LIMIT IS.` at `--std 85`, and
 `SET W-N TO "A".` at 2023, each drew a bare `COBOL0001: cannot parse construct near …`. `WRITE R AFTER ADVANCING "A".`
-(PB3861's second example) did not reproduce: it has been refused by name, COBOL2365, since a374ee660 (2026-09-23).
+(PB3861's second example) did not reproduce: it has been refused by name, COBOL2365, since 3e1861a24 (2026-09-23).
 
 **The root, in two places.** (1) The expected set: `(CHARACTERS | {memoryUnitAhead()}? IDENTIFIER)` shows the
 IDENTIFIER edge the predicate guards, so FOO looked taken, and WORDS and MODULES, no lexer tokens, could not be named.

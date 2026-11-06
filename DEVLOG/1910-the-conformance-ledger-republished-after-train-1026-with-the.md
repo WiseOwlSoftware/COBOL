@@ -1,6 +1,6 @@
 ## Entry 1910 — 2026-10-07 03:45 PDT — The conformance ledger republished after train 1026, with the in-flight narrative brought to Wednesday
 
-**Train 1026 (Entry 1909, `08bce71b3`)** landed the review's four R0 items in one train: PB2115 (the Roslyn census: at the base
+**Train 1026 (Entry 1909, `9ecfd0a39`)** landed the review's four R0 items in one train: PB2115 (the Roslyn census: at the base
 commit 2,087 types, 52 god-class candidates with `DataBinder` at 20,375 lines across 24 partials, 9 clone families, 219
 unreferenced and 266 test-only members, 15 dead artifacts, 234 findings for the clerk), PB2116 (the oracle: 7,357 cases hashed
 into a 1.09 MB manifest, two captures of one tree identical, with the design correction in §4.1 that the record is a manifest

@@ -1,6 +1,6 @@
 ## Entry 740 — 2026-07-10 12:28 PDT — PHASE-03 Step 14g.5 review-fix: the report SUM-counter PICTURE-skeleton 0900 was dropped (a third Analyze site off GateData)
 
-An adversarial find→verify review of the 14g.5 commit (`6dd27247`, one subagent, H1–H5) found **1 confirmed
+An adversarial find→verify review of the 14g.5 commit (`d4032a05`, one subagent, H1–H5) found **1 confirmed
 byte-neutrality DROP** — the same "an Analyze site whose PicInfo isn't on a gated item" class the SkeletonGate design
 had to satisfy. Fixed at the root cause + a regression witness. (H2 over-fire, H3 FUNCTION-PROTOTYPE count, H4 REPOSITORY
 scope, H5 dead-code/split — all refuted; the method-scope sub-hypothesis was refuted too — method roots land in `Roots`

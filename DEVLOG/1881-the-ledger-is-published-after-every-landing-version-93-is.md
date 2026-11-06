@@ -1,7 +1,7 @@
 ## Entry 1881 — 2026-10-04 22:30 PDT — The ledger is published after every landing: version 93 is live, a publish owed is detected and announced, and the dead stale-ledger rule is gone (PB2016)
 
 The owner: "Publish ledger each time", and "Prune as appropriate". Version 93 of the owner's artifact is published (GAP 255, measured tree
-`5d77035ac`), after the narrative in `ledger-in-flight.md` was rewritten (it still said "No wave is running" from the morning, with GAP 281)
+`a452f684c`), after the narrative in `ledger-in-flight.md` was rewritten (it still said "No wave is running" from the morning, with GAP 281)
 and the trend series gained its wave-1018 points. Pruned: `prune_worktrees.py --apply` removed ten LANDED and MERGED branches and their
 worktrees and archived their tips in `E:\Temp\pruned-branches-20261004-222300.bundle`; it skipped five touched in the last three hours or dirty.
 Making "each time" real hit a limit: a headless unit has no `Artifact` tool (a Haiku probe answers NO), so the unit cannot publish. The split follows

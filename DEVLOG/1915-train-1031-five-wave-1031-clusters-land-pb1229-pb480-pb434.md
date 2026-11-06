@@ -48,8 +48,8 @@ inverted ranges and were reworked. PB667 was not started and stays open.
 Conformance 10,829/10,829 · Unit 31,683/31,683 · Characterization 35/35, every population EXACT. Linux gate
 (`scripts/linux-gate.sh`, HEAD eb3de76be): GREEN on hooks, unit, characterization, conformance and guard. CI audits run locally, all clean (code and doc citations, evidence supersession, witness loss: 0
 unexcused, drift rules current, rule catalog, `work.py check`); semgrep 46/2/273 before and after. The oracle against
-the recorded baseline (f620ccf6d43d, train 1026) showed 86 differences; against a capture of the train's own base
-(3f0604783e3d, the compiler of 1916f7a1c) 47, so the other 39 belong to trains 1027-1029 (PB2152 carries them). The
+the recorded baseline (ed82232a65bc, train 1026) showed 86 differences; against a capture of the train's own base
+(d7c0c6d32b2c, the compiler of 79f119dae) 47, so the other 39 belong to trains 1027-1029 (PB2152 carries them). The
 47, by class: 13 ADDED (the train's new goldens and negatives); 18 emitted-C# changes from B, where activation
 descriptions now carry `Atoms` in place of `Layout`/`VariableSignature`, and pb204_vlg_invoke now calls
 `CobolVarGroup.Reshape` because its two groups differ in shape; 8 from C's reworked golden sources (pb398, pb502,
@@ -57,7 +57,7 @@ pb728, pb761, ec_range_invalid, three pb367b programs); 1 from E's corrected pb4
 pb434-finally-transfer-out now also draws E's COBOLNET2967 (its FINALLY phrase writes GO TO before EXIT PARAGRAPH,
 which SR2 forbids); and six `perform-until-exit-2023` matrix cells whose COBOLNET0900 moved from column 13 (UNTIL) to
 19 (EXIT), because A's edition gate now visits `performUntilTarget`. None is unexplained; the baseline is re-recorded
-as e0b64a4e6edf. GAP 173 → 162 (D 3, A 3, E 3, C 2). Codes claimed: COBOLNET2954, 2960, 2961, 2966-2968; returned:
+as 25be2708ae91. GAP 173 → 162 (D 3, A 3, E 3, C 2). Codes claimed: COBOLNET2954, 2960, 2961, 2966-2968; returned:
 2955, 2956, 2957-2959, 2962, 2963-2965. Notes landed: PB1229, PB480, PB434, PB387, PB397, PB2093, PB2098, PB517, PB545,
 PB552; filed: PB2280-PB2283. REVIEW: 1 finding, 1 fixed in the train, 0 clusters dropped.
 

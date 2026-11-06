@@ -2,7 +2,7 @@
 
 Wave 1078, group H, was dispatched PB934 (a catalogued EC- exception-name with no raise site and no EcEmitter gate row
 compiles clean and wires nothing; owed: a per-name drift table requiring a raise site plus a gate row, or a recorded
-determination). The re-probe on this tree's own build (0 warnings, 0 errors, main c29af1704) found nothing left to build.
+determination). The re-probe on this tree's own build (0 warnings, 0 errors, main a79f3612d) found nothing left to build.
 PB3102 (wave 1070, group E) landed `EcRaiseSiteRegistryDriftTests` over the closed `ExceptionCatalog.AllLevel3` universe:
 every level-3 name is declared by the binder (`EcBinder.AllDeclaredNames`) and raised by the runtime or code generator, or is
 on `DeclinedRaiseSites` with a CONFORMANCE.md anchor the second test reads and requires to quote the name. The three failure

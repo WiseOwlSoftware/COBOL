@@ -11,7 +11,7 @@ is the attribution.
 
 ### The measurement
 
-Four legs green on tree `6f8461d9` (artifacts `scratchpad/battery-40`): FULL greenfield Conformance
+Four legs green on tree `d960f308` (artifacts `scratchpad/battery-40`): FULL greenfield Conformance
 **5235 / 5235**, Unit **5106 / 5106**, characterization **33 / 33** concurrent with no host crash, NIST
 **353 MATCH / 0 REGRESSION** with the audit CLEAN and the guard verdict **ALL GREEN**. Then:
 
@@ -48,10 +48,10 @@ number**. The flip closes an under-reject. Nothing in `src/` needs to change.
 ### Attribution: the landing wave had the mechanism written down and still called the reach empty
 
 `ReferenceResolver.ScreenPositionOperandClass`, together with the class question in `ResolveSubscriptName`, is
-**new in `1884ba1e`** (burn-down cluster B, [[PB170]]); the symbol does not exist at `9a89fbd1`. Its own doc
+**new in `4f15f60d`** (burn-down cluster B, [[PB170]]); the symbol does not exist at `02c72682`. Its own doc
 comment carries the measurement:
 
-> *Measured on 9a89fbd1: `E(XE)` compiled clean and digit-decoded "0002" to occurrence 2, and so did the
+> *Measured on 02c72682: `E(XE)` compiled clean and digit-decoded "0002" to occurrence 2, and so did the
 > COMPOUND `E(XE + 1)`*
 
 `E(XE)` and `E(XE + 1)` **is** `syn_subscripts:23`, statement for statement. The wave knew the mechanism

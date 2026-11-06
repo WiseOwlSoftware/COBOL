@@ -39,7 +39,7 @@ existing `pb1153_counter_register_*` and `algebraic_counter_registers`. R1-3: th
 Left as a lead (R1-2, outside the group): the class-condition subject screen `ConditionBinder.cs:928` admits `IF (LINAGE-COUNTER) IS NUMERIC` and
 `IF (FUNCTION ABS(I2)) IS NUMERIC`.
 
-**Gate.** === BUILD-LOCAL GATE: GREEN — Conformance 21,891/21,891 · Unit 39,974/39,974 · Characterization 37/37 (run 000001-20261105T064224Z, head f7bfaf20f). The four new cases ran and Passed in Conformance.trx.
+**Gate.** === BUILD-LOCAL GATE: GREEN — Conformance 21,891/21,891 · Unit 39,974/39,974 · Characterization 37/37 (run 000001-20261105T064224Z, head e6926a8ef). The four new cases ran and Passed in Conformance.trx.
 
-**Gate after review round 1.** === BUILD-LOCAL GATE: GREEN — Conformance 21,943/21,943 · Unit 39,974/39,974 · Characterization 37/37 (run 000001-20261105T071724Z, head f7c9f8c2d). The four new refusals and the new accept Passed in Conformance.trx.
+**Gate after review round 1.** === BUILD-LOCAL GATE: GREEN — Conformance 21,943/21,943 · Unit 39,974/39,974 · Characterization 37/37 (run 000001-20261105T071724Z, head 61ae6d0db). The four new refusals and the new accept Passed in Conformance.trx.
 

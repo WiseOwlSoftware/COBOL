@@ -3,7 +3,7 @@
 Wave 1131 G (Opus; the third attempt on PB3263, the first two being notes-only). The note's fix shape has four
 items, and the branch builds all four.
 
-**Re-probe.** On the base `c82c9213f`, `work.note_sites` found no site block in 198 open notes naming 218 clusters (24
+**Re-probe.** On the base `12eb54e04`, `work.note_sites` found no site block in 198 open notes naming 218 clusters (24
 in PB3353, 6 in PB3160). `plan_wave.inflight_file_sets` dropped every dispatch-ledger group recorded with no files,
 so the planner never saw it, and `plan()` met a group whose own set was empty with nothing. Wave 1126 C (PB1587, no
 site block) was planned that way beside the in-flight storage engine and landed on six of its files.

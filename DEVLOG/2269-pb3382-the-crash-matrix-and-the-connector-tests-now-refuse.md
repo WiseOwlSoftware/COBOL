@@ -4,10 +4,10 @@
 earlier CLOSE) writes nothing and only syncs (`PagedFile.Close`, DESIGN-runtime-library 2.2.1.7, PB3333). A host that refuses
 that sync must be answered '30' (ISO 9.1.13.6 item 1, "A permanent error exists and no further information is available
 concerning the input-output operation"), never '00': the program would believe its file durable. The engine did this right,
-but no test refused that sync: since 1a2728f7a the page-layer matrix's CLOSE scene always rewrote record 1 first, and
+but no test refused that sync: since 154e31fef the page-layer matrix's CLOSE scene always rewrote record 1 first, and
 `KeyedStoreReloadFailureDriftTests` refused only the CLOSE of a connector that had written.
 
-**Re-probe.** On c82c9213f the code is correct. Mutation: `return TrySync() ? Ok : PermanentError` replaced by
+**Re-probe.** On 12eb54e04 the code is correct. Mutation: `return TrySync() ? Ok : PermanentError` replaced by
 `TrySync(); return Ok;` failed only the changed CLOSE's refused-sync cell and nothing at the connector level.
 
 **The fix (tests and design text; no engine change).**

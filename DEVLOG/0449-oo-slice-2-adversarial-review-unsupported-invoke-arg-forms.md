@@ -1,6 +1,6 @@
 ## Entry 449 — OO slice 2 adversarial review: unsupported INVOKE arg forms now fail loudly (COBOL0111), not silently
 
-Ran the full **Agent-tool adversarial review** of slice 2 (commit b766d16) that entry 448 had only self-reviewed.
+Ran the full **Agent-tool adversarial review** of slice 2 (commit afd6a74) that entry 448 had only self-reviewed.
 The data-reference + RETURNING path checked out (IL stack balance, RETURNING ordering, `ldarg.1` for the instance
 `args`, NEW/instance separation, the `CreateLinkageFields` refactor byte-identical for programs, per-instance state
 across multiple paragraphs — all verified by the reviewer compiling/running probes). But it caught **two real

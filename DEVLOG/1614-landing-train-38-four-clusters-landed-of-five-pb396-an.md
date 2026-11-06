@@ -118,8 +118,8 @@ eight reds live, was never measured. An implementer gate that does not run `Corp
 what the change's author thought to name.
 
 **THE TRAIN.** Four clusters landed — PB396 · PB411 · PB420 · PB391+finisher — four cluster commits plus this one.
-Every cluster was based BEFORE the trains between it and main — PB396 at `0b1b48f9` (before trains 34–37, and a
-GRAMMAR change), PB411 at `f8fa6452`, PB420 at `ccf03eed`, PB391+finisher at `9cfab584` — so all were three-way
+Every cluster was based BEFORE the trains between it and main — PB396 at `08b9bac6` (before trains 34–37, and a
+GRAMMAR change), PB411 at `6df5e2e0`, PB420 at `a8e65d7f`, PB391+finisher at `bb9d9460` — so all were three-way
 merged onto train 37's head and every conflict was resolved by reading BOTH sides against the spec, never by taking
 a side. Five conflicts, all keep-both: `ControlFlowBinder.BindPerform` keeps PB403's
 `EnclosingConstruct.InlinePerform` frame with PB396's singular `[p.statementBlock()]`; `EcBinder.ExceptionPerform`

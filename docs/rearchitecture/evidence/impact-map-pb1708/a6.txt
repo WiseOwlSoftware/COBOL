@@ -1,23 +1,23 @@
-69 Y 4d9fead76: floor 9103
-69 Z 63213d7f8: floor 9102
-69 X cfb312fbb: floor 9243
-68 W a9203e66b: floor 348
-68 T 56098c443: floor 9236
-68 R 2b85b70e1: floor 9106
-68 S 8987ede5c: floor 7159
-68 V2 1bb25a078: floor 6374
-67 4936716f6: floor 9236
-67 ce6062464: floor 6374
-67 9a1170d4f: floor 5207
-67 df366c09d: floor 3967
-66 ec1820d65: floor 9102
-66 94478632f: floor 3538
-66 907c9e189: floor 6432
-66 06a909393: floor 3430
-65 5dc2bb90f: floor 6375
-65 24a8d3bbd: floor 5311
-65 b34b0f1df: floor 3955
-65 b77f68124: floor 6734
+69 Y 8180ee74f: floor 9103
+69 Z 680cff895: floor 9102
+69 X c01fc6d98: floor 9243
+68 W e20e662bd: floor 348
+68 T edfe3a9bd: floor 9236
+68 R 2447f2a18: floor 9106
+68 S 35f2430ec: floor 7159
+68 V2 31eea108c: floor 6374
+67 30b0cfce2: floor 9236
+67 f65b9ac35: floor 6374
+67 42bdafd30: floor 5207
+67 63289ecdf: floor 3967
+66 cccf2f717: floor 9102
+66 c66fce7be: floor 3538
+66 4cc02c0fc: floor 6432
+66 e574afa0e: floor 3430
+65 956475fbf: floor 6375
+65 d272c0687: floor 5311
+65 489773b18: floor 3955
+65 1b44bb698: floor 6734
 FLOOR over 20 clusters: min 348 median 6403.5 max 9243 of 9274; >= 50%: 15
 68b X (5171c6872, dropped): registry files ['src/Cobol.Net.Editions/ConstructRegistry.g.cs', 'src/Cobol.Net.Editions/Constructs.g.cs', 'src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs', 'src/Cobol.Net.Frontend/Diagnostics/DiagnosticDescriptors.cs']; selected today 9169; with every registry contribution removed 9169 of 9190; whole reasons []
    red DiagnosticPositionTests.Copy_MainLinesStayMain_CopiedLinesNameTheCopybook: today True, registry removed True

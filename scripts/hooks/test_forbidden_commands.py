@@ -192,7 +192,7 @@ CASES = [
     ("echo 'git stash' | ( bash )", True),
     ("echo 'git stash list' | ( bash )", False),
     # R3-1: reading a pipe never makes a group's FIRST command a pipeline side, so its cd moves the group's later steps
-    # (at ff8f1c01b the first two passed, a push to this repository's main, and the third was a false block)
+    # (at c2bdc1b8d the first two passed, a push to this repository's main, and the third was a false block)
     ("cd /e/claude-skills; echo y | ( cd /e/COBOL && git push origin HEAD:main )", True),
     ("cd /e/claude-skills; true | { cd /e/COBOL; git push origin main; }", True),
     ("echo y | ( cd /e/claude-skills && git push -q origin main )", False),

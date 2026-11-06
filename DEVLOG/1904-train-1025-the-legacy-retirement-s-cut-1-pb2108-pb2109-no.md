@@ -1,7 +1,7 @@
 ## Entry 1904 — 2026-10-07 01:13 PDT — Train 1025: the legacy retirement's Cut 1 (PB2108 + PB2109); no greenfield test, script or CI job reaches the CobolSharp engine
 
 **Cluster A — PB2108 (the conformance project drops its legacy oracle).** Wave 1025 group A re-probed both notes on
-`a425fcb2b` and found more than they measured: six Conformance classes (`AbbreviatedCondition`, `AllLiteral`,
+`8dca19031` and found more than they measured: six Conformance classes (`AbbreviatedCondition`, `AllLiteral`,
 `ClassCondition`, `GroupData`, `MoveEdition`, `SignedAlphanumericMove` `*DifferentialTests`) still ran the legacy engine
 LIVE in the default mode as a cross-check beside their spec assertion, and `windows-build-test` still ran the legacy Unit
 and Integration suites. `tests/Cobol.Net.Tests.Conformance` now references no `CobolSharp.*` project: the two
@@ -29,7 +29,7 @@ PIPELINE_DESIGN, plan P15 Cut 1 Steps 1-4). Both notes landed with `closes_rows:
 no inventory row). The engine directories themselves go in PB2110 (group B), which carries the list of remaining
 references the implementer handed it.
 
-**The train.** One cluster, applied cleanly on `4b8045980` (the working tree then differed from the implementer's branch
+**The train.** One cluster, applied cleanly on `166eb8984` (the working tree then differed from the implementer's branch
 only by main's five later files). Whole-population gate, run `20261007T080144Z-4f45d6`:
 `=== BUILD-LOCAL GATE: GREEN — Conformance 10,715/10,715 · Unit 31,724/31,724 · Characterization 35/35 cases ran
 (skipped 0) in 1 of 1 leg(s) ===`. The legacy `CobolSharp.Tests.Integration` assembly, `--no-build`: 503 passed, 1

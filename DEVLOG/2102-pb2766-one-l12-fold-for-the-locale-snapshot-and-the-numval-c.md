@@ -29,7 +29,7 @@ covers a leading Cf, Cf inside parentheses, a no-break-space adjacency, §15.94.
 and r1 c's LENGTH + 1 with a trailing Cf. Unit tests: `NumvalCLocaleScanTests.L12Equivalence_*`, and
 `EveryHostCulture_RecognizesItsOwnFormattedCurrencyString`, which requires every host culture's own
 `ToString("C")` to be conforming and to evaluate to its value. mn-Mong-MN is excluded because its mon_thousands_sep
-equals its mon_decimal_point, which is the §8.2.1 invalid-content case. `compare_oracle.py` against 32f372674:
+equals its mon_decimal_point, which is the §8.2.1 invalid-content case. `compare_oracle.py` against 4c399830a:
 1 of 8021 cases differ, the ADDED golden; no existing case's emitted C# or diagnostics moved (the change is in the
 runtime library).
 

@@ -673,7 +673,7 @@ both ways); negative corpus +1 (based-level-05).
   `.out` line 8 (`N2A=GHI`) exercise **MOVE national → alphanumeric — prohibited by Table 16 at every
   national-bearing edition** (:28847 National row, AN column = No; DISPLAY-OF §15.26 :35335 is the sanctioned
   narrowing, itself residue). The golden predates the pivot (authored against the permissive legacy engine,
-  commits d8cf144/338ba5a) — per the #1 process rule the spec wins: **DELETE the N2A leg** (source lines 42–45,
+  commits d4c4b9e/42e10ce) — per the #1 process rule the spec wins: **DELETE the N2A leg** (source lines 42–45,
   `.out` line 8 → 12 lines), extend the header's deferral note with the Table-16 citation, and convert the
   adjudication into enforced coverage via a NEW negative case `move-national-to-an` (below). Legacy re-run on
   the edited program in the same commit (pure deletion — expected green; escalation ladder in the test plan).
@@ -907,7 +907,7 @@ both ways); negative corpus +1 (based-level-05).
   `national_data.out` drops line 8 (13→12 lines). (3) **LEGACY runner: NO GreenfieldOnly exclusion** — the
   seams brief's closing claim is WRONG for these two programs: discovery is manifest-blind
   (ConformanceTests.cs:30–42) and the legacy engine ALREADY compiles+runs both goldens green TODAY (they were
-  authored against the legacy national/boolean implementation, commits d8cf144/338ba5a; verified neither
+  authored against the legacy national/boolean implementation, commits d4c4b9e/42e10ce; verified neither
   appears in GreenfieldOnly :62–102). The DEVLOG-618 standing rule applies only to programs the legacy
   cannot run. ONE contingency: after the N2A re-baseline, re-run the legacy conformance suite in the same
   commit ([[feedback_legacy_suite_on_shared_corpus]]) — a pure statement deletion is expected green; if the

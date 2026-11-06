@@ -24,7 +24,7 @@ intent, and `EditionGateHints`→`ReservedWordEditionHints` (the reservation-wor
 nuance recorded: the validator will depend only on the `EditionInfo`+`IDiagnosticSink` TYPES; the concrete sink
 may stay the `EditionContext` collector (P2 kept it, Q5).
 
-Baseline (green, from the PHASE-02 close `61248d88`): conformance 2055 · unit 227 · characterization 32; FULL
+Baseline (green, from the PHASE-02 close `7f0991c2`): conformance 2055 · unit 227 · characterization 32; FULL
 legacy guard NIST 353 MATCH. Docs synced: PHASE-03 STATUS block (the table), the master roadmap banner,
 `resume-prompt.md`, and the memory index — all now say PHASE 03 IN PROGRESS @ step 2. No code change.
 

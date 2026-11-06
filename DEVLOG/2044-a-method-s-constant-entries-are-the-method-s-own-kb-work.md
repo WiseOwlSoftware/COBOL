@@ -1,6 +1,6 @@
 ## Entry 2044 — 2026-10-14 18:42 PDT — A method's CONSTANT entries are the method's own (kb/Work PB3164)
 
-**Re-probe (w1080e build, base 2b60d9fa9).** The note's repro p10 printed `A A` / `B A`: method SHOWA's
+**Re-probe (w1080e build, base 5ad76f90f).** The note's repro p10 printed `A A` / `B A`: method SHOWA's
 `01 K CONSTANT AS "A"` replaced the object's data item K in its sibling SHOWB. p11 (each method its own K) drew a false
 COBOLNET1547, §13.10.3 SR9 compared across two methods. The sibling arms measured beside them were all wrong too: a
 method's own data item lost to its object's constant of the same name (`A O`, expected `A M`); a method's `PIC X(N)` took

@@ -10,7 +10,7 @@
       *> alphanumeric") and N"AB" is a NATIONAL literal (8.3.3.5), a different category, and not a figurative
       *> constant.  SR4's first sentence agrees for the same subject - an alphanumeric item's VALUE literals
       *> "shall be alphanumeric literals".
-      *> MEASURED BEFORE THIS SCREEN (kb/Work PB206, on 1d949007): compiled CLEAN, E2 = AB - the national
+      *> MEASURED BEFORE THIS SCREEN (kb/Work PB206, on c86e0bf1): compiled CLEAN, E2 = AB - the national
       *> literal's characters deposited into an alphanumeric area with no conversion and no diagnostic, which
       *> is exactly the crossing 14.9.25.3 Table 16 refuses in a MOVE ("national" row, "alphanumeric" column).
       *> The whole category axis was unscreened for group subjects: DataBinder's elementary funnel is guarded

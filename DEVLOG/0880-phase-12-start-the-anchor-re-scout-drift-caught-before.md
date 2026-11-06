@@ -1,6 +1,6 @@
 ## Entry 880 — 2026-07-17 15:40 PDT — PHASE-12 START — the anchor re-scout (drift caught before coding) + wave 1: the live FLOAT trio matrix-locked
 
-PHASE-12 (M3 / COBOL-2014 deltas) opens on branch `phase-12-m3-2014`. Baseline green at HEAD `91ff7301`:
+PHASE-12 (M3 / COBOL-2014 deltas) opens on branch `phase-12-m3-2014`. Baseline green at HEAD `fe90ea87`:
 **3521 conformance · 301 unit** (both re-run on the fresh build).
 
 **The re-scout (methodology first, per the P10/P11 lesson `feedback_persist_anchor_rescout`).** The PHASE-12 plan

@@ -44,5 +44,5 @@ delete the Dec arm). Full code: the exact base keeps `n == 1 -> b`, `b.Digits > 
 `X ** 2` / `X ** N` over `PIC 9(9)` took 0.58 s against 0.42 s (about 25 ns per power). Duplication: no second rule, `CheckPowRule6`
 unchanged.
 
-Gate: GREEN at 9001ef043, run 000003-20261104T194354Z — Conformance 21,489/21,489 · Unit 39,778/39,778 · Characterization 37/37.
+Gate: GREEN at a4b5e7b68, run 000003-20261104T194354Z — Conformance 21,489/21,489 · Unit 39,778/39,778 · Characterization 37/37.
 

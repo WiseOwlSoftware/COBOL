@@ -14,7 +14,7 @@ the first attempt (the owner's goal in the PB3523 record) and which gives the mo
 ## Design
 
 Run by the Mythos session, 14:4x to 15:0x PDT, from the PB3523 branch's worktree at its landing head (the same content as
-PR #398, now main 4ea4be06a):
+PR #398, now main a04c2c74b):
 
 `differential_fuzz.py --bake-off qwen3.6:35b,qwen3-coder:30b,laguna-xs-2.1,nemotron-3.5-bolt,qwen3.8:27b --count 20 --jobs 2 --seed 20261023 --cobol <that worktree's cobol.exe> --out E:/COBOL-coord/scratch/bakeoff-20261022`
 
@@ -64,7 +64,7 @@ The lead rows (survivors) are in the raw report and are the next triage pass's i
 
 The model for the next overnight run was the owner's decision. At about 15:12 PDT on 2026-10-22 the owner answered "yes"
 to the question "Should tonight's run use nemotron-3.5-bolt?", and the third overnight run started with it (judge
-`E:\tmp\fuzz-judge-20261022\cobol.exe`, the compiler of main 4ea4be06a, seed 20261024, 8 hours and 4 jobs). That choice
+`E:\tmp\fuzz-judge-20261022\cobol.exe`, the compiler of main a04c2c74b, seed 20261024, 8 hours and 4 jobs). That choice
 was reversed at about 17:25 PDT (see the addendum below): the model of the third night is qwen3.6:35b, because
 nemotron-3.5-bolt degenerated into enumeration loops that filled the token cap.
 

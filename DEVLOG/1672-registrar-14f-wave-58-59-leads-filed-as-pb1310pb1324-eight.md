@@ -3,7 +3,7 @@
 **What this was.** Registrar 14f ran a lead-filing pass, not an adjudication batch, over `leads-w58.md`. That file
 held 53 leads from the wave-58 implementers (KA–KJ), battery #86, registrar #13, and the train-58/59 landers.
 Duplicates collapse them to about 30 distinct findings. Every lead was grepped against `kb/Work/` first. Every
-repro was re-run once on this worktree's own `dotnet build CobolSharp.sln -c Debug` of main `071ff04ea`: 26
+repro was re-run once on this worktree's own `dotnet build CobolSharp.sln -c Debug` of main `9cd3b32ba`: 26
 programs, 9 of them written fresh because the lead named only a code site. Every citation went through
 `cite.py --check`.
 
@@ -61,8 +61,8 @@ GR-13.18.2.4-1 (unwitnessed), FMT-8.8.4.7.2 and FMT-11.9.10.2 (the figurative ha
 only), and SR-14.9.40.3-14 c)/d) (unprobed). PB1071's owner-visibility item is already in its note.
 
 **Finisher mechanics.** Registrar 14f stopped on the STOP file while it waited for 14e, with its work in a WIP
-commit (`d1ca1d474` on `071ff04ea`). The finisher waited for Registrar 14e to reach origin/main, then cherry-picked
-the notes onto it (`fc95fb889`). It took origin/main's `traceability-inventory.json` and re-recorded the batch with
+commit (`d1ca1d474` on `9cd3b32ba`). The finisher waited for Registrar 14e to reach origin/main, then cherry-picked
+the notes onto it (`ff9f31fcf`). It took origin/main's `traceability-inventory.json` and re-recorded the batch with
 `record_verdicts.py` on that tree, never merging JSON hunks. The batch was regenerated first, and it asserted that
 all six rows were still CONFORMS. Result: rows changed 6, **GAP 1839 → 1845**. Three notes conflicted with the
 14a/14d extensions, and both sides of each were kept. PB917 kept 14a's file-control sibling. PB1059 took the union
@@ -76,7 +76,7 @@ closing line said the 77 and 05 arms were still open, but 14d had re-probed them
 (GR-13.18.45.4-2) and PB992 (GR-14.2.3-8). Each claim was withdrawn from `closes_rows`, with a paragraph in the
 note naming the open owner, as 14a did for PB829. Where a list emptied, a `closes_rows_reason` was written.
 
-**Gate** (finisher worktree, on `fc95fb889` + this change): `dotnet build CobolSharp.sln -c Debug` exit 0. The
+**Gate** (finisher worktree, on `ff9f31fcf` + this change): `dotnet build CobolSharp.sln -c Debug` exit 0. The
 WHOLE Unit assembly gave `Failed: 2, Passed: 29188`. The two reds are `ExternalCorpusPopulationDriftTests`, and
 both are attributed: "EXTERNAL POPULATION ABSENT - no corpus at tests/external/gnucobol/tests/testsuite.src",
 because the GPL corpus is never fetched into a worktree. `work.py check` reported 1325 work items, all

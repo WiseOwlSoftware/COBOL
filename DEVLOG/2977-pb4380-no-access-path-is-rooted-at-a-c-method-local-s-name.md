@@ -6,7 +6,7 @@ locals a `MethodLocal` identity, but three access paths still started at a `Root
 local's name, and the §6 contract test tolerated `RootFieldSegment.CsField` and `DataItem.ResidentCarrier` as its L8
 leak row.
 
-**Re-probe (base 51a9ba52f).** All three stood. `DataBinder.OoBindMethodData` set `DataItem.ResidentCarrier` to the
+**Re-probe (base ab63c898e).** All three stood. `DataBinder.OoBindMethodData` set `DataItem.ResidentCarrier` to the
 string `__lnk{Uid}` (`OoFormal.CarrierLocal`) and `ReferenceResolver.AddRoot` rooted the method formal at it; the
 base's emitted C# for `suite/2002/oo_method_args` declares it as a local, `ManagedPointer<string> __lnk1 = ...`.
 `PlaceIdentification.FreezeView` re-rooted a hoisted cell at `new RootFieldSegment(local, ...)`, and
@@ -24,7 +24,7 @@ recreation's element cell are `CSharpLocal`s on a `LocalRootSegment`.
 
 **The emitted C# changed in one class.** The method carrier's stem is `__mlnk`, not `__lnk`. `__lnk{Uid}` is also the
 program's carrier MEMBER, which the binder names, and `MethodLocalIdentityDriftTests` refuses a binder literal that
-holds a local's stem. The two shared a spelling, never a name. `compare_oracle.py --base 51a9ba52f` found 104 of 15829
+holds a local's stem. The two shared a spelling, never a name. `compare_oracle.py --base ab63c898e` found 104 of 15829
 cases different. Each is an OO method with a resident formal, and a script checked that each is byte-identical once
 `__mlnk` reads as `__lnk`. The `FreezeView` and `AtElementCell` changes emit identical C#.
 
@@ -41,5 +41,5 @@ CORRESPONDING phrase"). A method's LOCAL-STORAGE and non-formal LINKAGE roots ar
 the item's `ClrName`, still rooted at a `RootFieldSegment`; that is an allocated CLR name, not an invented one, and is
 left to the report as a lead.
 
-**Gates.** Windows: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,540/20,540 · Unit 39,155/39,155 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261102T034805Z, at ebbe81afd; the new `AMethodsResidentFormal_IsRootedAtItsCarrierLocalsIdentity` Passed in `Unit.trx`). Linux: not part of the per-change gate (PB4327). `python scripts/semgrep/verify.py`: PASS, no count raised.
+**Gates.** Windows: `=== BUILD-LOCAL GATE: GREEN — Conformance 20,540/20,540 · Unit 39,155/39,155 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261102T034805Z, at 45c866805; the new `AMethodsResidentFormal_IsRootedAtItsCarrierLocalsIdentity` Passed in `Unit.trx`). Linux: not part of the per-change gate (PB4327). `python scripts/semgrep/verify.py`: PASS, no count raised.
 

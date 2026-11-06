@@ -5,7 +5,7 @@ The red was `RunUnitStateDriftTests.NoStaticMutableCollection_OutsideTheDocument
 static `ConditionalWeakTable` to the runtime without registering it. The branch's GREEN local gate lists the test as
 NOT RUN. That test reflects over every field of the runtime assembly. The drift-rule index sees only file paths and
 declared tree scopes, and the coverage impact map sees only executed code, so neither one puts the test in leg 1 for a
-runtime change. The operator registered the field by hand (`d917370e0`), and the rest of the queue then passed. That
+runtime change. The operator registered the field by hand (`0fa870dd9`), and the rest of the queue then passed. That
 is kb/Work PB4228 (MAJOR): a declared assembly scope that `drift_rules.py` reads, a guard drift test, and a pass over
 the 20+ existing `GetTypes()` tests.
 

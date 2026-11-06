@@ -111,7 +111,7 @@ returned the deferral carrier, so they emitted an error and a contradicting "not
 each now binds to `BoundNop`, and the sweep deliberately spared `Edition.Removed`/`Warning`/`Declined` sites
 where dropping the node under `--permissive` would turn a tolerated construct into a silent no-op. One thing the
 note said did not hold: its entire `SR-14.9.2.3-4` section no longer reproduces — PB128's `ScreenResultant`
-(`6f85040d`) closed it, and closed the ref-mod arm for the right reason, by screening the **Place** rather than
+(`d0a98f42`) closed it, and closed the ref-mod arm for the right reason, by screening the **Place** rather than
 the decorated item; that row had been carrying a fixed defect and is now CONFORMS with the two witnesses it never
 had. Nine negative goldens, a four-fact drift test whose announce arms were falsified once by disabling the
 announce, nine rows re-verdicted, GAP -4. The two residue rows are a different mechanism and moved out at the
@@ -150,7 +150,7 @@ citation caught on the way in: the `-9` row's prose attributed `'51'` to §14.9.
 rejects — it is §9.1.13.8 item 1.
 
 **The train.** Five clusters, one build and one gate, on top of a main that had moved past every base (bases
-`6e7caa91`..`08314683`; landed on `408e360f`). Conflicts were all structural rather than semantic and every one
+`0adbecfe`..`50d6c75e`; landed on `b58e1c8f`). Conflicts were all structural rather than semantic and every one
 resolved as a union: five golden manifests, `DiagnosticCatalog.cs` (PB485's two descriptors placed BEFORE PB205's
 comment so the comment stayed attached to its own descriptor), and `kb/Work/PB485.md` taken from the branch
 because the implementer had already rebased it on main's registrar-extended version. The traceability inventory
@@ -181,7 +181,7 @@ ISO/IEC 1989:2023, and §14.9.40.3 SR1 requires alphabet-name-1 to "reference an
 alphanumeric collating sequence". Rejecting it is enforcing the standard against a vendor extension, which is
 latitude we never follow, so the row was rewritten rather than the check softened. Differential after: **1
 per-case flip**, the PB598 one. **And semgrep went UP by two.** `cobolnet-raw-diagnostic-code-literal` 439 -> 441,
-diffed per FILE against a semgrep run over `git archive 408e360f` rather than assumed from the total: both are
+diffed per FILE against a semgrep run over `git archive b58e1c8f` rather than assumed from the total: both are
 PB236 call sites (`KeyedIoBinder.cs` 13 -> 14, `SortBinder.cs` 5 -> 6) of two codes that ALREADY have no
 catalogue descriptor — `COBOLNET0862`, the START statement rule band, and `COBOLNET0898`, the SORT/MERGE and
 USAGE-family band. Reusing them was the right call under one_rule_one_place, and no new code was allocated, so
@@ -192,7 +192,7 @@ re-baselined to 441 so an `UP` again means a real increase.
 
 **One pre-existing defect repaired at the landing.** `audit_code_citations.py` was at ONE finding on main and 
 none of the five clusters had touched it: a PHANTOM §8.8.4.1.2 at `kb/Work/PB594.md:87`, landed by golden-lane
-round 3 (`03b59a1d`). There is no §8.8.4.1.2 — §8.8.4.1 is "General" and has no sub-clauses at all; simple
+round 3 (`c96283f6`). There is no §8.8.4.1.2 — §8.8.4.1 is "General" and has no sub-clauses at all; simple
 relation conditions are §8.8.4.2. The rule PB594 means is **§8.8.4.2.7**, "Comparison is made with respect to
 the collating sequence of characters specified for the current alphanumeric program collating sequence", with
 the national twin at **§8.8.4.2.9**; both `--check`ed, both written into the note's prose and its `spec_refs`,

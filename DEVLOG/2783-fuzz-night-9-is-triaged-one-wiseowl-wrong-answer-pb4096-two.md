@@ -1,7 +1,7 @@
 ## Entry 2783 — 2026-10-30 10:34 PDT — Fuzz night 9 is triaged: one WiseOwl wrong answer (PB4096), two new GnuCOBOL records (PB4094, PB4095)
 
 The ninth differential-fuzz night (run `fuzz-20261029-224533`, qwen3.6:35b, 8 hours, seed 20261030) judged 6,851
-programs on main 8803a84ff. Of them, 1,901 survived the harness's own filters, in 324 signatures, and 267 of those
+programs on main 2f689176f. Of them, 1,901 survived the harness's own filters, in 324 signatures, and 267 of those
 signatures (1,819 programs) went to 13 read-only adjudicator slices. The run's judge was still main's head, so the
 recorded results stand and nothing could be fixed-since.
 

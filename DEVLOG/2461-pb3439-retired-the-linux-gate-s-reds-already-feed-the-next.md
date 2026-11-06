@@ -3,7 +3,7 @@
 PB3439 (filed 2026-10-19) said `gate_plan.read_previous_run` reads only the Windows gate's run directory, so a red found
 only by the landing's Linux gate is not a previous red and the finisher's re-gate leaves it in leg 2.
 
-Re-probe on a worktree cut from main `e5cf90436`: the mechanism is gone. Commit `3a7660117` (PB3155, with PB3184, filed
+Re-probe on a worktree cut from main `a5d77309c`: the mechanism is gone. Commit `3099fb0f3` (PB3155, with PB3184, filed
 for the same defect on 2026-10-22 and 2026-10-23) made `gate_plan.previous_gates` the one reader of a worktree's previous
 gates: build-local's previous run (timings and reds) plus `TestResults/linux-gate/` (reds only, since another host's
 durations would mis-time this host's plan). `run_gate_legs.py` and the `gate_plan.py` CLI both call it, and

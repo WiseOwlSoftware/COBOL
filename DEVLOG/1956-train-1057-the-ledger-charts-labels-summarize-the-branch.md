@@ -27,7 +27,7 @@ cleanly with A's.
 
 **C — records-t1055 (PB2426): the trend points through train 1056b.** These are the points `gen_ledger.py` back-filled
 (`missed_points`) after trains 1055 and 1056b. The file has 211 points and 8 program points. The lander checked it as a
-point-by-point superset of A's file (194), main's file at `dc2bca9a7` (200) and its own first commit (208), with no
+point-by-point superset of A's file (194), main's file at `d697bea33` (200) and its own first commit (208), with no
 duplicates. It applied cleanly on A's commit, because A's commit had kept main's file.
 
 **D — PB2708 + PB2987: the branch survey sees a landed train's members, cherry-picks, and the train landing now.**
@@ -49,11 +49,11 @@ LANDED path, the IN FLIGHT train-lease members or the `origin/` deletion. The tr
 
 **The train.** `train_apply.py` brought the four in and stopped twice, at A and at D, on the conflicts above. Its
 code-citation, doc-citation and work-register audits all passed. Origin/main had not moved since the base
-`dc2bca9a7`, so the final rebase under the landing lease was a no-op. Windows lander gate run 20261011T082237Z-a5a266:
+`d697bea33`, so the final rebase under the landing lease was a no-op. Windows lander gate run 20261011T082237Z-a5a266:
 `GREEN — Conformance 11,460/11,460 · Unit 33,360/33,360 · Characterization 36/36`, with every population EXACT, the
-first run. SELF-TESTS: GREEN, 73 ran. The Linux gate on the same head (`c95097857`): `GREEN (legs selftests unit
+first run. SELF-TESTS: GREEN, 73 ran. The Linux gate on the same head (`846f818e9`): `GREEN (legs selftests unit
 characterization conformance guard selftests-built)`. Semgrep: no count moved. Arch-oracle: IDENTICAL across 7,761
-cases against baseline `7c00d5d5d729`. `landing_oracle.py`: PASS, no input changed, so no re-record. The review
+cases against baseline `8985f926d390`. `landing_oracle.py`: PASS, no input changed, so no re-record. The review
 covered `gen_ledger.py` and `prune_worktrees.py`. It found no correctness defect. It fixed the O10 doc above. No
 inventory verdicts, so the GAP holds at 103. No diagnostic codes. No cluster was dropped or ejected.
 

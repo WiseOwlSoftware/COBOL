@@ -1,6 +1,6 @@
 ## Entry 2036 — 2026-10-14 16:46 PDT — PB3147: COBOL-85's areas A and B are enforced at --std 85 — the reference format records where each fixed-form line's text begins, one pre-bind pass asks every token
 
-**Re-probe (w1078f, base c29af1704).** At `--std 85` a paragraph header written in column 12 (`E:/COBOL-coord/scratch/w1078f/probe/p1.cob`)
+**Re-probe (w1078f, base a79f3612d).** At `--std 85` a paragraph header written in column 12 (`E:/COBOL-coord/scratch/w1078f/probe/p1.cob`)
 compiled and ran, and so did a program with every area-A item in area B and statements, a continued PIC clause and a USE
 statement in area A (`q1.cob`). The compiler had no reference-format placement check at all; PB2720 had removed the last
 line-position parse predicate and left the 1985 half open.

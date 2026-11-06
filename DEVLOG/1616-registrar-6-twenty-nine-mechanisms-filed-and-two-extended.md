@@ -5,7 +5,7 @@ reports (PB416, PB426, PB482, PB368, PB391, PB555, PB401, PB403, PB388, PB436, P
 PB443, PB396, PB411, PB420, PB425, PB877, PB391-finisher, PB405, PB522, PB502), the lander reports for
 trains 33-38 and train-pb877, and DEVLOG entries 1603-1615. **Fifty-two leads.** Every one was grepped
 against `kb/Work/` FIRST; every lead that survived was REBUILT as a probe and RE-RUN on this worktree's own
-`dotnet build CobolSharp.sln -c Debug` (0 errors) at main `80dd97e2`; every citation was re-derived with
+`dotnet build CobolSharp.sln -c Debug` (0 errors) at main `2cbd1689`; every citation was re-derived with
 `python scripts/spec/cite.py --check`, and the command line is printed beside the quotation inside each
 note. Twenty-nine notes filed as **PB878-PB906**, two notes EXTENDED with real content (PB388, PB446),
 fifteen given `cluster:` back-links, and fourteen leads dropped with their owner named. **This pass moves no

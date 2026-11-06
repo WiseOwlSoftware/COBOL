@@ -7,7 +7,7 @@ evidence for that facility's introducing edition, each piece of which this scrip
   ("intrinsic", NAME, edition) -> IntrinsicCatalog.cs row NAME is gated at that edition (the COBOLNET1502 window)
   ("reserved", WORD, edition)  -> tests/version-matrix/reserved-words.json first reserves WORD at that edition
   ("row", rule-id, band)       -> the inventory row rule-id (a decided sibling) carries that band
-Runs from the root of the tree BEFORE the batch (PB3172's merge, 8eca73497), extracted as README.md says:
+Runs from the root of the tree BEFORE the batch (PB3172's merge, 66ad47861), extracted as README.md says:
     python <this> <out-batch.json>
 """
 import json, pathlib, re, subprocess, sys

@@ -17,7 +17,7 @@ to store 345 silently). SAME AS takes USAGE only from the group kinds §13.18.49
 GR5 names, and `ItemCategory.GroupKindsOf` reads the implied GROUP-USAGE pull-style so it answers the same before
 the usage walk. ⚠ DETERMINATION: §13.18.63.3 SR4 bounds a VALUE literal by "the size indicated by an explicit
 PICTURE clause", so a TYPE subject's longer literal over a VALUE-implied template breaks no syntax rule. PB1475 did
-NOT reproduce: PB1166 (`a38622ede`) had already fixed the DPC and locale-identification arms; this cluster adds its
+NOT reproduce: PB1166 (`5e489a9cb`) had already fixed the DPC and locale-identification arms; this cluster adds its
 goldens, corrects the §8.5.3.1 doc comment and moves GR-8.5.3.1-2 to CONFORMS. Goldens:
 2002/w66g_pb1300_type_same_as_composition and 2002/w66g_pb1475_strong_type_locale_identification. Negatives:
 w66g-pb1300-composed-based-level (COBOLNET2510) and w66g-pb1475-strong-type-dpc-differs (COBOLNET1688). Unit:
@@ -52,7 +52,7 @@ defect) uses it too. `CobolClass.NumericEditedNational` makes a national numeric
 statement (GR2). §14.9.22.3 SR3 refuses every ALL figurative at literal-1 to literal-4 and admits one at literal-5.
 The runtime sizes a figurative literal-3 / literal-5 against its pattern and raises EC-RANGE-INSPECT-SIZE for
 GR14/GR15/GR22; `InspectStaticWidth` and the bind-time expansion are deleted. PB908 no longer reproduced
-(`66fcfda30`). GR4 d)'s negative zero stays open on PB1128: a native signed DISPLAY item has no -0, which is a
+(`7647d0c37`). GR4 d)'s negative zero stays open on PB1128: a native signed DISPLAY item has no -0, which is a
 data-model question. Goldens 2002/pb1128_inspect_identifier1_class_store and 2002/pb1126_inspect_size_ec, two
 negatives, and the regenerated `char_string_ops` snapshot. Five rows closed; GR-14.9.22.4-4 re-noted DIVERGES for
 GR4 d) only.

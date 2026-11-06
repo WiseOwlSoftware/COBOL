@@ -7,7 +7,7 @@ ranker, so this pass reads every "new defects" / "leads" / "for the register" se
 the three scratchpads, de-duplicates them BY MECHANISM, and files them.
 
 **Method.** Every lead was rebuilt as a probe and RE-RUN on this worktree's own `dotnet build CobolSharp.sln -c
-Debug` - first at `b5ca78fb`, then again at `e13ef810` after train 32 landed under the pass; 44 probes, all
+Debug` - first at `ed9b5e2c`, then again at `412bd2f2` after train 32 landed under the pass; 44 probes, all
 reproducing identically at both heads except the one noted below. Every citation was re-derived with
 `python scripts/spec/cite.py --check` and the command line is printed beside the quotation in the note; three
 inherited clause numbers did not survive that check and were replaced (§13.4.2 -> §13.18.33.4 for the record

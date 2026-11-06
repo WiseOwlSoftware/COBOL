@@ -4,7 +4,7 @@
 environment division (§12.2–§12.3: configuration section, SOURCE-/OBJECT-COMPUTER, SPECIAL-NAMES p1–p3,
 REPOSITORY) and the input-output section (§12.4: FILE-CONTROL entry and its clauses, ALTERNATE/RECORD/RELATIVE KEY,
 COLLATING SEQUENCE, FILE STATUS, LOCK MODE, ORGANIZATION, RESERVE, SHARING, SAME, APPLY COMMIT). The adjudicators
-worked on the pinned tree `adj-d1` @68bbdb00f; trains 58/59's src diff since the pin was checked and fixes none of
+worked on the pinned tree `adj-d1` @79ca43df8; trains 58/59's src diff since the pin was checked and fixes none of
 the findings.
 
 **Shape.** 168 rules adjudicated; 6 NEEDS-OWNER-DECISION rows excluded (PB1099); 163 records written (162 from the
@@ -66,7 +66,7 @@ Q3 §8.13 external repository — implement, or document a determination (A.1 66
 this registrar's scripts moved to a private `r14a/` subdirectory. `merge_batch.py` printed "owner-decision excluded:
 7" where six rows were absent from the batch — recorded, not chased.
 
-**CI red, fixed before landing.** The first push (761d326a7, run 35991662728) went red on two Unit drift gates the
+**CI red, fixed before landing.** The first push (d573f6f23, run 35991662728) went red on two Unit drift gates the
 registrar's filtered gate did not include: `FileControlKeyRuleDriftTests` (an adjudicator code-location credited
 SR-12.4.5.2-11/-13 to `FileControlKeyRules.cs#Screen`, which does not screen them — re-sited to `BindFileControl`) and
 `ClosesRowsBackLinkDriftTests` (landed PB829 claimed FMT-13.4.5.2, now DIVERGES — the claim withdrawn, PB1081 owns

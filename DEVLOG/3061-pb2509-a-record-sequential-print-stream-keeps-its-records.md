@@ -12,7 +12,7 @@
 
 **Rows.** None claimed, none closed (`closes_rows: []`): DOC-A.1-146 was closed by PB1278 and keeps its verdict.
 
-**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 21,393/21,393 · Unit 39,635/39,635 · Characterization 37/37 cases ran (skipped 0) …` (run 000002-20261104T000734Z, after a first RED named above), `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built inert-watch; HEAD 0b1288ee2) ===`, semgrep verify PASS.
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 21,393/21,393 · Unit 39,635/39,635 · Characterization 37/37 cases ran (skipped 0) …` (run 000002-20261104T000734Z, after a first RED named above), `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built inert-watch; HEAD 76569d92f) ===`, semgrep verify PASS.
 
 **Self-review.** Architecture: one predicate for the shape, no second copy of the LINAGE/report test. Full code: the print and plain arms now agree (a fixed record on the plain arm was already written whole). Performance: no allocation beyond the record fit the arm already made. Duplication: `EmitFrameHead` is the one head writer for both arms.
 

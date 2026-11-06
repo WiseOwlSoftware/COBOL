@@ -2,8 +2,8 @@
 
 Launched a 6-agent **worktree-isolated** fix workflow (Intrinsics / Initialize / Currency / CopyReplace /
 CompFloat / EditedDisplay). It completed with all 18 bugs reported fixed + CLI-verified — **but the worktrees
-were branched from a STALE commit `e577e32`** ("session-end sync to DEVLOG 310"), ~2 sessions behind main
-(`a14507b`): the worktree guard ran against **268 NIST** baselines, `SPEC_FIX_BACKLOG.md` didn't exist there, and
+were branched from a STALE commit `9114cb6`** ("session-end sync to DEVLOG 310"), ~2 sessions behind main
+(`644b534`): the worktree guard ran against **268 NIST** baselines, `SPEC_FIX_BACKLOG.md` didn't exist there, and
 an agent appended a colliding "Entry 311". The diffs are therefore **unsafe to apply** to current main (divergent
 grammar `.g4` + this session's binder/IR/emit changes; they also excluded the regenerated ANTLR artifacts).
 

@@ -1,6 +1,6 @@
 ## Entry 1632 — 2026-09-22 06:19 PDT — Battery #83 at train 45's head: every compiler leg green, and BOTH per-case differential flips are conformance FIXES — §8.8.4.4.3 SR4 read from the case, §8.3.2.2 read from GnuCOBOL's own comment, re-baselined; and the Unit population jump the lander blamed on the corpus was PB653's fifth theory
 
-Battery #83 ran at `c982251df` — landing train 45's head, with train 44 under it — in an isolated worktree
+Battery #83 ran at `ec501c796` — landing train 45's head, with train 44 under it — in an isolated worktree
 already pinned at exactly that commit, never on `main` and never in the shared checkout. The gitignored GPL
 GnuCOBOL corpus was copied in FIRST, so `ExternalCorpusPopulationDriftTests` and the rest of the Unit
 assembly's external-population tests measured a real corpus instead of being red by absence. One
@@ -94,8 +94,8 @@ theory (5 × 4,224 + 3 = 21,123) — PB653 added the fifth. `DEVLOG.md` 1631 and
 makes the two `ExternalCorpusPopulationDriftTests` real passes, which is true, so no repo document carried the
 refuted sentence and nothing needed correcting.
 
-**Batch covered:** everything since battery #82's head `c774def44` — eighteen commits;
-`git diff --stat c774def44 c982251df -- src/ tests/` is 216 files, +8,052 / −1,068. **Landing train 44**
+**Batch covered:** everything since battery #82's head `904c2abc4` — eighteen commits;
+`git diff --stat 904c2abc4 ec501c796 -- src/ tests/` is 216 files, +8,052 / −1,068. **Landing train 44**
 (DEVLOG 1630 — the report group's second axis, the class-condition table read three ways, the intrinsic
 argument intake; three clusters, nine notes) and **landing train 45** (DEVLOG 1631 — the printed format's
 repeated brace, one rendered sentence at every operand, one float landing, one tape phrase and a lock every

@@ -44,7 +44,7 @@ shape. That is one finisher dispatch saved, and the wave would have gone straigh
 33,958/35,379 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) … (run 20261023T002325Z-aa7b26) ===`,
 the first gate the new driver ran DETACHED. Re-gated at once on the same tree, it answered in about three seconds:
 `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — REUSED (kb/Work PB3536): tree 42951658c89c at head
-222e9d07403c was gated in run 20261023T002325Z-aa7b26 and has not changed since, so nothing ran …`.
+79e9449a98f8 was gated in run 20261023T002325Z-aa7b26 and has not changed since, so nothing ran …`.
 
 **A red that passed alone.** The re-gate after the docs commit went RED in its audits: `test_dispatch_guard.py`'s
 "unchecked rendered spec" case expected a BLOCK and got a PASS, and it was green when run alone. The host was

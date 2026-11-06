@@ -1,6 +1,6 @@
 ## Entry 1362 — 2026-08-29 01:52 PDT — Battery #29 over the PB124 campaign: green with one schedule-dependent legacy red the log could not NAME — so the harness learns to name them (PB127)
 
-`bash scripts/battery.sh` over `3b3bc921`: FULL Conformance 4954/4954 · Unit 4589/4589 · characterization
+`bash scripts/battery.sh` over `5f06135e`: FULL Conformance 4954/4954 · Unit 4589/4589 · characterization
 33/33 · NIST 353 MATCH / 0 REGRESSION (audit CLEAN) · GnuCOBOL differential 0 PER-CASE FLIP(S). The one red:
 guard-fast's `int_rc=1` — a single failure among the LEGACY CobolSharp.Tests.Integration suite's 504, whose
 name the log could not carry: both .NET legs ran `--verbosity quiet` and the report grepped only summary

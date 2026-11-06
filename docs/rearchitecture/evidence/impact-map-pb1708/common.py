@@ -2,8 +2,8 @@
 
 Re-running the evidence (every path is repo-relative; nothing reads a session scratchpad):
 1. Record the two maps the numbers were measured on, into the shared store `<git common dir>/cobol-impact/`:
-       python scripts/spec/record_impact_map.py --commit dbea12428
-       python scripts/spec/record_impact_map.py --commit 4b0f3e22a
+       python scripts/spec/record_impact_map.py --commit dad934c91
+       python scripts/spec/record_impact_map.py --commit ba3aba6b9
    (each ~19 min at BelowNormal; the recorder's `--store DIR` redirects where it WRITES, and `--work DIR --keep`
    keeps the raw per-test contexts that `a11.py` reads). These maps are NOT in the repository (README.md).
    The scripts READ `<git common dir>/cobol-impact/`, or the directory the COBOLNET_IMPACT_STORE environment
@@ -34,7 +34,7 @@ def store() -> Path:
     return (common if common.is_absolute() else (WT / common).resolve()) / "cobol-impact"
 
 
-def load(sha="dbea1242895386b1ce3ae9ef75c621f470e6aec6"):
+def load(sha="dad934c91e3c24c9d1283fdc4da77071775c6ebe"):
     m = it.load_map(store() / f"{sha}.json.gz")
     return m, it.MapIndex(m)
 

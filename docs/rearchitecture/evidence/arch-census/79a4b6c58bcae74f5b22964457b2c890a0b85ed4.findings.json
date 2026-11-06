@@ -1,6 +1,6 @@
 {
  "_frozen": "⛔ FROZEN EVIDENCE — the architecture census of ONE commit, recorded by scripts/arch/census.py and never edited to stay current (owner decision, kb/Work/PB785): a newer measurement is a new census run and a new file named by its commit. Findings are actioned through kb/Work/ notes, never by editing this record. A claim the tree has since REFUTED carries a `superseded_by` object — note · devlog · date · why — as the FIRST key of the object holding it. ⚠ Every path:line coordinate is a coordinate AS OF the measured commit — resolve the NAME.",
- "commit": "a02b165dae86b674e16399468144e1386171236b",
+ "commit": "79a4b6c58bcae74f5b22964457b2c890a0b85ed4",
  "schema": 1,
  "findings": [
   {

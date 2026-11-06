@@ -49,7 +49,7 @@ tests/nist/programs/*.runtimeconfig.json
 
 # Run output at the repository root (kb/Work PB2608): a conformance golden's relative ASSIGN names its file in the
 # working directory, so a by-hand `cobol run` from the root leaves .dat/.rpt/.txt files here, and a `git add -A` once
-# committed thirteen of them (d8f9168e7). The suites run each program in its own directory; no root file is one of these.
+# committed thirteen of them (9139170ff). The suites run each program in its own directory; no root file is one of these.
 /*.dat
 /*.rpt
 /*.txt
@@ -150,7 +150,7 @@ STATUS.md
 # DEVLOG.rendered.md`); the entry files are the source (kb/Work PB3025).
 DEVLOG.rendered.md
 
-# The harness's scheduled-tasks lock — a per-session artifact, committed by accident in 8abe9726 and untracked in train 23's record.
+# The harness's scheduled-tasks lock — a per-session artifact, committed by accident in 853631ca and untracked in train 23's record.
 .claude/scheduled_tasks.lock
 
 # The conformance suites are BUILD OUTPUT (DESIGN-conformance-suite.md §4; kb/Work PB3174): generate.py writes

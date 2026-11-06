@@ -96,13 +96,13 @@ compilation group"), and a library's parameterized class left nothing in the rep
   with one key, AS literal, the interface arm, a foreign file, REPO-1) and `CompileStateDriftTests`.
 - **Rows.** SR-12.3.8.3-6/-9/-16, GR-12.3.8.4-6/-9, DOC-A.1-161/-162 DIVERGES|PARTIAL → CONFORMS (GAP 19 → 12) with witnesses added to
   GR-12.3.8.4-5 and DOC-A.1-138; PB1086 keeps the program and function rows.
-- **Gate 1** (6ef43bb, before the model-layer move): RED on five drift tests (layering ratchet, name-fold marker, edition-read inventory,
+- **Gate 1** (367c890, before the model-layer move): RED on five drift tests (layering ratchet, name-fold marker, edition-read inventory,
   host-entry shape for the new unit kinds, the ambient-read recorder), all fixed; the Conformance population was otherwise green
   (21,012 of 21,013).
-- **Gate 2** (7617a45): RED on two `BackendContractDriftTests` — the placements record was keyed by `object` (the backend-input walk cannot see
+- **Gate 2** (a67eea1): RED on two `BackendContractDriftTests` — the placements record was keyed by `object` (the backend-input walk cannot see
   through it) and its text members were unclassified; the placements are now keyed by the CLR name the module gives the class or
   interface (unique across both) and carry plain data (no `Compiler.Oo` pair into the model layer), and `BackendContract` classifies
-  every new member. **Gate 3** (36a1d33, run `000003-20261103T030227Z`): GREEN — Conformance 21,020/21,020, Unit 39,457/39,457,
+  every new member. **Gate 3** (d74b9ba, run `000003-20261103T030227Z`): GREEN — Conformance 21,020/21,020, Unit 39,457/39,457,
   Characterization 37/37, including the new goldens at three editions and their refusal, `ExternalRepositoryExpansionTests` (11) and
   `CompileStateDriftTests` (5).
 - **Self-review.** Architecture: the key is computed once, by one pass, from bound surfaces; `OoExpansion` stays the one expander for a

@@ -1,6 +1,6 @@
 ## Entry 736 — 2026-07-09 23:26 PDT — PHASE-03 Step 14g.3 review-fix: OCCURS DYNAMIC over-fired in report/screen scopes (shared-rule hazard)
 
-An adversarial find→verify review of the 14g.3 commit (`729b6c4f`, one subagent, H1–H5) found **1 confirmed
+An adversarial find→verify review of the 14g.3 commit (`8fd92e43`, one subagent, H1–H5) found **1 confirmed
 byte-neutrality violation** — and it exposes a general hazard for the whole parse-arm approach: a grammar rule shared
 across sections. Fixed at the root cause; 2 regression witnesses added. (H1 CheckOnly divergence, H2 count, H4
 where-string, H5 level-88 guard all cleanly refuted — notably H1 is the OPPOSITE of the 14g.2 finding: `OoClassTable.Build`

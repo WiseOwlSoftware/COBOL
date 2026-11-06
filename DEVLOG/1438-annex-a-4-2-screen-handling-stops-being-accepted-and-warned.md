@@ -54,7 +54,7 @@ implementor-switch reading instead of drawing a screen verdict (feedback_two_arm
 MEASURED, not guessed: **22 more §8.10 words of the same shape** outside this module are still parse errors on
 legal source, which is why `kb/Work` **PB301** lands at `status: half` and names all 22.
 
-**What the merge cost, and what it revealed.** The wave was cut from `9f11a8d6`; the golden lane had since
+**What the merge cost, and what it revealed.** The wave was cut from `32398ca1`; the golden lane had since
 landed three POSITIVE goldens (`2023/pb260_screen_facility_witness`, `_screen_locale_sign_witness`,
 `pb260_accept_screen_reference`) and four `DocumentedNonSupportWitnessTests` methods pinning the WARNING
 posture. A refusal cannot be witnessed by a program that compiles, so those goldens and those four tests are

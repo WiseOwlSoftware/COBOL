@@ -1,6 +1,6 @@
 ## Entry 2803 — 2026-10-30 13:22 PDT — PB2867, PB1906, PB1673, PB1920: a TYPE subject composes in its bounds phase, and four refusals name what the source really says
 
-Wave 20261769 group B took four DataBinder notes. Each was re-probed on the base 802352531 before any code changed.
+Wave 20261769 group B took four DataBinder notes. Each was re-probed on the base 02ab45956 before any code changed.
 
 **PB2867 rejected legal source; the note had the wrong expected outcome.** `05 V TYPE T OCCURS K.` with `01 K CONSTANT
 AS LENGTH OF M OF V (1).` drew COBOL1547 "the data-name is not defined". The note asked for the being-described

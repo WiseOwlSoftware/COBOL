@@ -1584,7 +1584,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             //    left-justified, as MOVE would store them): error strict, warning + that store under --permissive.
             //    On a GROUP subject there is no such store — §13.18.63.4 GR5 deposits the operand's CHARACTERS
             //    over the group area and a numeric literal has none, so SR13 sentence 1's "shall be of the same
-            //    category as the group item" is an error on both axes (kb/Work PB206; measured on 1d949007:
+            //    category as the group item" is an error on both axes (kb/Work PB206; measured on c86e0bf1:
             //    `01 GN VALUE 1234. 05 N1 PIC X(2). 05 N2 PIC X(2).` compiled clean and seeded SPACES).
             case PicCategory.Alphanumeric when isNumeric && IsNumericLiteralForm(raw) && subject.IsGroup:
                 Edition.Error(DiagnosticCatalog.ValueLiteralClass, $"{where}: the VALUE literal {raw} is numeric "
@@ -1603,7 +1603,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             //    its national (SR5) and boolean (SR10) twins had theirs above: "Alphanumeric literals in the VALUE
             //    clause of an elementary item shall not exceed the size indicated by an explicit PICTURE clause.
             //    Alphanumeric literals in the VALUE clause of an alphanumeric group item shall not exceed the size
-            //    of the group item." Measured on 1d949007, both silently TRUNCATED: `01 E1 PIC X(2) VALUE "ABCD".`
+            //    of the group item." Measured on c86e0bf1, both silently TRUNCATED: `01 E1 PIC X(2) VALUE "ABCD".`
             //    displayed `AB`, and `01 GZ VALUE "ABCDEF". 05 O1 PIC X(2). 05 O2 PIC X(2).` displayed `ABCD`
             //    (kb/Work PB206). Scoped to a plain alphanumeric literal: a FIGURATIVE constant is repeated and
             //    truncated to the subject's size BY RULE (§8.3.3.6.4 GR2, which names the VALUE clause), so

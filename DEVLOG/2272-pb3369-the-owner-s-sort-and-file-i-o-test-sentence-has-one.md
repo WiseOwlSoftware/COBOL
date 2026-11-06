@@ -7,7 +7,7 @@ The 2026-10-18 landing already put the rule into MANDATORY-PRACTICES I11 and int
 finisher brief, which closed the notes in no campaign and the hand-dispatched finishers. This change finishes what the
 note left.
 
-**Re-probe.** On a fresh worktree of main (c82c9213f), `git grep "out test cases for sort"` found the sentence in
+**Re-probe.** On a fresh worktree of main (12eb54e04), `git grep "out test cases for sort"` found the sentence in
 I11 and, as a campaign requirement, in kb/Work/PB3353.md and kb/Work/PB3330.md, and the `review` skill's branch form
 already checked I11 on every diff that reaches a SORT, MERGE or file I/O path. The public base (v1.21.0) already
 carries the generalized failure-path standard in `engineering-standards` and `review`.

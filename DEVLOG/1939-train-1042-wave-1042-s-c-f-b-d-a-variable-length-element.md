@@ -70,20 +70,20 @@ still gives COBOLNET0899; PB2051 still compiles; PB1965 needs an owner layering 
 
 **The train.** Five clusters dispatched, five landed, none ejected or dropped. Four clusters' reds were fixed in the
 train: D's Windows reader lock (six Conformance cases), stale inventory sites in A, C and D, A's banner and F's doc
-token. Gating was batched: every implementer gated leg 1 only. All five branches applied cleanly on `7fb5cab75`, which stayed
+token. Gating was batched: every implementer gated leg 1 only. All five branches applied cleanly on `e9925d5e2`, which stayed
 origin/main under the landing lease (taken at once), so no rebase was needed. Whole-population run 1 (run
 20261008T155543Z-3f7735) was RED: Conformance 6 and Unit 3 failures. Attribution re-ran only the failing cases on each
 cluster's branch head alone (7 minutes, no interaction): D 6 Conformance + one inventory site, A two, C one, F one, B
 none. Run 2 (run 20261008T161520Z-b26f2c) was GREEN: Conformance 11,248/11,248 · Unit 32,776/32,776 ·
-Characterization 36/36. The Linux gate was GREEN on `8d3bf88e2` (unit 32,807, characterization 36, conformance
+Characterization 36/36. The Linux gate was GREEN on `a25be6d9d` (unit 32,807, characterization 36, conformance
 11,248, guard: NIST 362 MATCH, 0 regressions). The lander's review of the train diff found one correctness defect, D's
 Windows reader lock, fixed in D's commit. The checkpoint history was rebuilt as one commit per cluster, and its tree is byte-identical
-to the gated one. The oracle differed in 642 of 7625 cases against 39a6ad782bfe: 631 emitted-C# changes and 11 added
+to the gated one. The oracle differed in 642 of 7625 cases against e9dc9c08f440: 631 emitted-C# changes and 11 added
 goldens, no diagnostic changes. Per-cluster captures attribute every case: A 503 (table initial state as
 `CobolTable.Fill` over occurrence runs, switch arms, rank-range INITIALIZE), B 59 (`formals:` MoveLanding
 registrations, `with { Sending }` arguments, moved records), C 44 (`SpaceFillElements` takes the element image,
 `Reshape`/`Compare` over atoms replacing `To/FromFixedImage`), 31 cases changed by two or three of A, B and C, F and D
-none. Re-recorded as 8d3bf88e2926. Semgrep unchanged (biginteger 46, decimal 2, rendered-text 3, raw-code 268). CI
+none. Re-recorded as a25be6d9dbb2. Semgrep unchanged (biginteger 46, decimal 2, rendered-text 3, raw-code 268). CI
 audits all green; work register 2236 items well-formed. Inventory GAP 136 → 136; no diagnostic codes claimed
 (COBOLNET3194–3205 and 3209–3211 returned).
 

@@ -1,6 +1,6 @@
 {
  "schema": 2,
- "census": "a02b165dae86b674e16399468144e1386171236b",
+ "census": "79a4b6c58bcae74f5b22964457b2c890a0b85ed4",
  "source": "DESIGN-architecture-review.md §8.1 (tolerated rows), §8.3 (decompositions and their step orders), §8.4 (the grammar regroup) and §8.5 (the NumX re-model), R1 Draft 5 (kb/Work PB2118)",
  "targets": {
   "R0-0001": {
@@ -1272,12 +1272,12 @@
     [
      "CobolNet.Binding.Bound",
      "CobolNet.Binding.Procedure",
-     "39 (the walk reads 39 at 669e32aa9: two pairs landed after a02b165da, PlacementRules and UntilExitPlacement)"
+     "39 (the walk reads 39 at 669e32aa9: two pairs landed after 79a4b6c58, PlacementRules and UntilExitPlacement)"
     ],
     [
      "CobolNet.Binding.Bound",
      "CobolNet.Binding.Validation",
-     "1 (landed after a02b165da by the fix lane, StatementBinder -> StatementValidation; walk at 669e32aa9; Draft 7, H1)"
+     "1 (landed after 79a4b6c58 by the fix lane, StatementBinder -> StatementValidation; walk at 669e32aa9; Draft 7, H1)"
     ],
     [
      "CobolNet.Binding.Bound",
@@ -1322,7 +1322,7 @@
    "seam": "the edges file (one rule, one file) and the checker's what-if, which every Move/rename and Extract wave's brief runs on its map",
    "order": "A",
    "order_text": "A: a test and a data file, no product code; the first wave after the owner approves §8, before every Move/rename and Extract wave of the program",
-   "note": "the file is keyed to this note's landing tree, not to a02b165da: the fix lane lands between the census and this wave (at 669e32aa9 the walk already holds Binding.Bound -> Binding.Validation, 1, and two more Binding.Bound -> Binding.Procedure pairs; PB2347 removes both), and from this wave on a landing that adds a cross-layer pair fails the drift test in its own gate; a rename wave (a folder-equals-namespace move or a root flip) re-keys the file in the same change: it places the new namespace in its folder's layer, so no layer pair changes, and splits each tolerated row by the walk's measure, the parts summing to the row; a type move re-keys the pairs by its move map",
+   "note": "the file is keyed to this note's landing tree, not to 79a4b6c58: the fix lane lands between the census and this wave (at 669e32aa9 the walk already holds Binding.Bound -> Binding.Validation, 1, and two more Binding.Bound -> Binding.Procedure pairs; PB2347 removes both), and from this wave on a landing that adds a cross-layer pair fails the drift test in its own gate; a rename wave (a folder-equals-namespace move or a root flip) re-keys the file in the same change: it places the new namespace in its folder's layer, so no layer pair changes, and splits each tolerated row by the walk's measure, the parts summing to the row; a type move re-keys the pairs by its move map",
    "blocked_by": [
     "PB2118"
    ],

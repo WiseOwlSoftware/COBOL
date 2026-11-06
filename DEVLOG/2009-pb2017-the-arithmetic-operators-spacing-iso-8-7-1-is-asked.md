@@ -4,7 +4,7 @@
 `run_misc:156`) said two things: `COMPUTE X=1*2` compiles with no diagnostic although 8.7.1 requires an arithmetic operator
 to be "preceded by a space and followed by a space", and under DECIMAL-POINT IS COMMA `COMPUTE X = 1 *,1` drew COBOLNET2631
 ("write a space after it"), advice that yields `1 *, 1`, which is conforming, compiles clean and computes 1 times 1 instead
-of 1 times 0,1. Both reproduced on the wave-1071 tree (`77f10dfb2`); the controls `1 * ,1`, `1 + ,1`, `1,5 * 2` and
+of 1 times 0,1. Both reproduced on the wave-1071 tree (`0f56a9aa3`); the controls `1 * ,1`, `1 + ,1`, `1,5 * 2` and
 `(1 + ,5) * 2` behaved. `cite.py --check` OK for 8.7.1 (with its unary exception), 8.3.5 2) and 8.3.3.3.2 3).
 
 **The root.** 8.7.1 was the one operator clause nothing asked. Its siblings, 8.7.3 and 8.7.4, are decided from the token run

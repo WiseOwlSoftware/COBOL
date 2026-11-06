@@ -54,7 +54,7 @@ creation-refused cases fail without the fix (they do) and that the abnormal path
 (`SharedReadCoherenceDriftTests`: the keyed lifecycle sizes the input-output areas in one place), so `Recreate` and `Attach`
 share `AttachHandleTo`.
 
-**Gates.** Windows, at `898b2315a` (run `TestResults/build-local/20261021T221239Z-622f69`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
+**Gates.** Windows, at `7bdde0fbf` (run `TestResults/build-local/20261021T221239Z-622f69`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
 gating, PB2515): GREEN — … Conformance 10,724/18,047 · Unit 34,118/35,285 · Characterization 5/36 cases ran`; the creation and
 association cases ran in leg 1. The first gate (`…T220701Z-25adee`) was RED on the drift test above. Linux (`--legs unit,conformance`)
 at the same head: conformance GREEN 18,047/18,047, unit RED on four cases of the vanished-file test, which is effective only on
@@ -67,7 +67,7 @@ origin/main (165 commits, no conflicts), the Windows gate at that head
 (run `TestResults/build-local/20261022T213012Z-d8b9dd`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — …
 Conformance 10,708/18,125 · Unit 34,423/35,356 · Characterization 5/36 cases ran`, the four vanished-file cases among them.
 Linux (`--legs unit,conformance`) at the same head: `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD
-2c3275cb1) ===`, unit 35,391/35,391 and conformance 18,125/18,125.
+e37384b2d) ===`, unit 35,391/35,391 and conformance 18,125/18,125.
 
 **The branch review (round 1) and its finisher.** R1-1 (blocking): a refused creation whose UNDO the medium also refused left
 the commit slot holding the empty meta at N, but `FileReplaced` read "no store handed back" as "the file is not affected", so

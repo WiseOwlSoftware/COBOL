@@ -1,6 +1,6 @@
 # adj-w2-misc-s3 — lane-3 adjudication (kb/Work PB1522 wave 2)
 
-- **Pinned sha:** `0caa7d54004e81c4e34529d95764cdc1ccec1779` (probe compiler = the pre-built Debug `cobol` of that tree)
+- **Pinned sha:** `0c24de7d9f8579093e6016c0fe4973b8ec115b3e` (probe compiler = the pre-built Debug `cobol` of that tree)
 - **Inputs:** 10 files, 23 rows (§4.2.10, §4.4, §5.2/§5.5, §8.4.3.10.4, §8.8.4.2.1, §9.3.6, §11.9.5.2, §11.9.9.3, §16.2.1.2, §16.2.2.2)
 - **Wall-clock (UTC, `date -u`):** adjudicate 22:18:02 → 22:32:01 (single phase; build skipped per orchestrator, inputs pre-generated) · refute: 22:33 → 22:34:30
 - **Shape:** every line passes `record_verdicts.py --dry-run` (23 records; GAP 1664 → 1664 after refute (final.jsonl)).

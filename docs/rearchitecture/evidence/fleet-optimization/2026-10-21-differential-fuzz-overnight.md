@@ -12,7 +12,7 @@ gained evidence (PB3467).
 |---|---|
 | Command (owner, 22:45 PDT 2026-10-20) | `differential_fuzz.py --model qwen3.6:35b --hours 8 --jobs 4 --seed 20261021` from `E:\COBOL-wt\fuzz-yield` (PB3488's branch, since merged as PR #354) |
 | Generator | `qwen3.6:35b` on the RTX 5090, winner of bake-off 4 (14 of 20 usable, median 10 s; PB3488) |
-| Judges | WiseOwl built from main at 0421be4df (the `cobol.exe` of 2026-10-18 19:41), `--std 2014 --source-format free`; GnuCOBOL 3.2.0 `-std=cobol2014` under WSL |
+| Judges | WiseOwl built from main at 54854cb17 (the `cobol.exe` of 2026-10-18 19:41), `--std 2014 --source-format free`; GnuCOBOL 3.2.0 `-std=cobol2014` under WSL |
 | Seeds | 258 clauses of §8.8, §13.18, §14.9 and §15 (2023's additions removed, Annex E), shuffled, 3 variations each, up to 3 repair rounds |
 | Programs | 5,599 written and judged in 8 h (about 12 a minute, four in flight); median model time 16 s a program |
 | Usable (both compiled) | 3,348 (60 %), 1,635 of them after a repair round |
@@ -24,7 +24,7 @@ Classes: `BOTH_REJECT` 2,249 · `OUTPUT_DIFFERS` 1,141 · `AGREE` 1,023 · `WE_R
 
 ## Triage method
 
-The standard decides (CLAUDE.md rule 1); GnuCOBOL is a net. Every lead below was re-run on a fresh build of main (62cd0d954, the
+The standard decides (CLAUDE.md rule 1); GnuCOBOL is a net. Every lead below was re-run on a fresh build of main (be490236b, the
 morning's HEAD, built before any run) and read against `specs/ISO_COBOL.md`; every citation passed `cite.py --check`. The report's
 378 signatures were ranked by count; the crash-class rows (hangs, crashes, early exits) were all examined; the output rows were
 first folded by a value canonicalization and the residue examined by signature; the reject rows were examined by diagnostic

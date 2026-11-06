@@ -46,5 +46,5 @@ that wrote a synonym and the hint (which reads the parser's map) names GR4 and t
 unit test. The lead is fixed too: the SEARCH COBOL0900 gate quoted identifier-1 with `GetText()` (`HOFG(GIHI)`) and now quotes it as
 written (`SearchIdentifier1GateTests`).
 
-Gate (run 000002-20261104T194613Z, head f8408029e): === BUILD-LOCAL GATE: GREEN — Conformance 21,503/21,503 · Unit 39,811/39,811 · Characterization 37/37 cases ran (skipped 0) ===. The first gate (000001) was RED on one case, EditionGateArmDriftTests.GatedConstruct_NamesItsEdition_EvenWhenItsOperandsDoNotResolve for the new SEARCH construct, which moved the gate from the binder to the parse arm.
+Gate (run 000002-20261104T194613Z, head 42629fb48): === BUILD-LOCAL GATE: GREEN — Conformance 21,503/21,503 · Unit 39,811/39,811 · Characterization 37/37 cases ran (skipped 0) ===. The first gate (000001) was RED on one case, EditionGateArmDriftTests.GatedConstruct_NamesItsEdition_EvenWhenItsOperandsDoNotResolve for the new SEARCH construct, which moved the gate from the binder to the parse arm.
 

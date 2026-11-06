@@ -8,7 +8,7 @@ and never wrote to disk, so a SORT whose input exceeded the process's memory end
 bounds its sort memory (`COB_SORT_MEMORY`, default 128M), writes sorted runs to temporary files and merges them, and
 kb/Work PB3339 (BLOCKER) set the same bar. Wave 1110 group A took it.
 
-**Re-probe.** At 5ee921375 the code sites were as the note measured (the store list, the index `Array.Sort` and its full
+**Re-probe.** At a3639ea5e the code sites were as the note measured (the store list, the index `Array.Sort` and its full
 copy, MERGE's third list, no disk write). The structure is the defect, so the re-probe is the code and the new bound test.
 
 **Design first.** COBOLNET_DESIGN §8.2 gained "The sort-merge store is an EXTERNAL MERGE SORT in BOUNDED MEMORY",
@@ -105,7 +105,7 @@ swept out of four comments (CobolSort.AssociationMade, FileConnector.Association
 OoEmitter). The round-4 gate 20261017T224009Z-ffb38d: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
 GREEN` (Conformance 11,585 · Unit 33,591 · Characterization 5 cases ran in leg 1, the new witness among them).
 
-**Landing finisher (one Linux red, fixed).** enqueue.py's Linux gate on 8ec9dc01c ran the whole conformance
+**Landing finisher (one Linux red, fixed).** enqueue.py's Linux gate on 4a0f80c8d ran the whole conformance
 population and failed one case, `RunUnitTerminationTests.MainModuleRefusedAtRegistration_RaisesAbnormalTerminationSurface`,
 in its own setup: it patches the module's recorded runtime version in the compiled assembly's user-string heap and
 built the skewed text as `Major + 1`, so this branch's runtime move from major 8 to 9 made it "10.0.0.0" (16 UTF-16

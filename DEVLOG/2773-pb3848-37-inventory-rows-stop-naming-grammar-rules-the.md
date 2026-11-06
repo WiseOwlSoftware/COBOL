@@ -1,7 +1,7 @@
 ## Entry 2773 — 2026-10-29 21:39 PDT — PB3848: 37 inventory rows stop naming grammar rules the grammar no longer has, and a drift test refuses the next one
 
 kb/Work PB3848 said ten traceability-inventory rows still named the per-statement phrase rules PB3830 deleted
-(`arithmeticOnSizeError`, `readAtEnd`, `writeInvalidKey`). Re-measured on main 20fecec14: ten rows, as the note said, but
+(`arithmeticOnSizeError`, `readAtEnd`, `writeInvalidKey`). Re-measured on main 805621ac8: ten rows, as the note said, but
 four of them (GR-14.5.3.2-2, GR-14.5.3.3-2, GR-14.5.3.3-4, FMT-14.9.26.2) name the rule only inside a `retired-witness:`
 mark, which is the recorded history of PB3830's retirement and stays. The other six named it in prose: SR-14.9.2.3-5,
 FMT-14.9.10.2, FMT-14.9.44.2, SR-14.9.30.3-9, GR-14.9.30.4-19 and SR-14.9.51.3-2. Each is restated against the grammar and

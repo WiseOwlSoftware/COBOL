@@ -6,5 +6,5 @@ Goldens re-derived: `pb152_options_initialize_background` (NUM=[ZZZZ]; new COMP,
 
 Sibling sweep of the storage-byte law found no remaining `(char)(byte)` or U+00FF HIGH-VALUE literal in the compiler or runtime; `StorageByteLawDriftTests` now refuses both, so the next byte-form codec or figurative site cannot bypass the law.
 
-Gate honesty: the first implementer gate on 28c4ebcee (entry 1806) was RED on DOC CITATIONS alone (NOTE 4 of §14.9.35.4 GR17 cited under §14.9.30.4 in DOC-A.1-115); fixed in 5010e5e29, whose implementer gate (Conformance 9,452 · Unit 29,839 · Characterization 35, EXACT) and WSL Linux gate were GREEN.
+Gate honesty: the first implementer gate on e62bb795e (entry 1806) was RED on DOC CITATIONS alone (NOTE 4 of §14.9.35.4 GR17 cited under §14.9.30.4 in DOC-A.1-115); fixed in 826a39b23, whose implementer gate (Conformance 9,452 · Unit 29,839 · Characterization 35, EXACT) and WSL Linux gate were GREEN.
 

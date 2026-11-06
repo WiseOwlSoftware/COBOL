@@ -32,13 +32,13 @@ and twelve negatives were added. PB1294's seven rows are now CONFORMS. PB1947 cl
 and SR-13.10.3-2 stays PARTIAL under PB780. GAP 503 → 497. The group's one lead, the non-report integer-n positions
 (RESERVE, BLOCK CONTAINS, RECORD CONTAINS, DYNAMIC LENGTH LIMIT and their siblings), is filed as PB1948.
 
-**The train.** Both clusters were cut from fb6a6747e, which was also origin/main when the train landed. Their patches
+**The train.** Both clusters were cut from 0308e7609, which was also origin/main when the train landed. Their patches
 applied cleanly in order: B touched 26 files, A touched 64. Diffstats were identical to each implementer branch, and
 no conflict markers were found in the tree or the index. Re-applying the three verdict batches in a dry run on the
 merged tree was a no-op, and the inventory reads GAP 497. Lander gate (one leg, whole population, run
 20261004T004459Z-b4cacd): `=== BUILD-LOCAL GATE: GREEN — Conformance 10,040/10,040 · Unit 30,417/30,417 ·
 Characterization 35/35 cases ran (skipped 0)`. The legacy integration assembly passed 503, failed 0 and skipped 1. The
-Linux gate was `GREEN (legs unit characterization conformance; HEAD 61067add2)`. semgrep verify reported PASS with no
+Linux gate was `GREEN (legs unit characterization conformance; HEAD e1ca4f61f)`. semgrep verify reported PASS with no
 count up. audit_code_citations, audit_doc_citations, audit_evidence_supersession and audit_witness_loss (0
 unexcused, 2 retired, 9 re-sited) passed, along with drift_rules --check and work.py check. Five spot-checked
 citations were all OK. The review pass over the train diff (grammar order, the ALSO boundary, the rolled-addition

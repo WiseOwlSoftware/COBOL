@@ -49,6 +49,6 @@ wrote had gone green. The targeted probes were all in arithmetic contexts becaus
 none of them was a string intrinsic. That is the lesson: a hand-built probe set inherits the author's framing, and
 the corpus is what does not.
 
-**Gates.** Tree reverted to `df8dc11a` behaviour and re-verified: the three alphanumeric forms compute again exactly
+**Gates.** Tree reverted to `57abc81e` behaviour and re-verified: the three alphanumeric forms compute again exactly
 as before. Nothing landed from this attempt except the queue entry.
 

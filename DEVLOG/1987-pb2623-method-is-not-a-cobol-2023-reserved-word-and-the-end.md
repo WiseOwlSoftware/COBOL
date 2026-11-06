@@ -10,7 +10,7 @@
 
 **Rows.** None claimed, none closed.
 
-**Arch-oracle.** `compare_oracle.py` against 00435d6e90c0: 4 of 7792 cases differ. Two are ADDED (this branch's two goldens). Two are DIAGNOSTICS on `negative/l1c22-format3-in-method` and `negative/l1c22-format3-in-program`, both already-rejected nested-method programs whose first error (COBOL0001 at the inner method) is unchanged and is the `.err` the corpus pins: the cascade at the stray `END METHOD` that followed used to read `COBOLNET0901: 'METHOD' is a reserved word in COBOL-2023` (the false claim this note removes) and now reads a plain COBOL0001 syntax error. Baseline re-recorded at c41f1b82af2c.
+**Arch-oracle.** `compare_oracle.py` against 99a0fc859e63: 4 of 7792 cases differ. Two are ADDED (this branch's two goldens). Two are DIAGNOSTICS on `negative/l1c22-format3-in-method` and `negative/l1c22-format3-in-program`, both already-rejected nested-method programs whose first error (COBOL0001 at the inner method) is unchanged and is the `.err` the corpus pins: the cascade at the stray `END METHOD` that followed used to read `COBOLNET0901: 'METHOD' is a reserved word in COBOL-2023` (the false claim this note removes) and now reads a plain COBOL0001 syntax error. Baseline re-recorded at 57c36e5b56d9.
 
 **Gate.** `LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261013T031258Z-099e52). Semgrep verify PASS, no count moved.
 

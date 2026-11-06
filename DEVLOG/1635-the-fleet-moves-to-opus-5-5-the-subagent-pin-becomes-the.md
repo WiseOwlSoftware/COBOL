@@ -12,5 +12,5 @@ quadratic turn-cost law and the 160/220 turn caps. They are now hypotheses to re
 first 5.5 wave, not constants. The re-created 03:05 auto-resume cron says so in its prompt.
 
 Housekeeping: the last locked battery worktree (`wf_77fd8a7b-5e3-7`) was removed — its process (pid 41792) was gone,
-its tree clean, and its head `e69515fe7` already on main.
+its tree clean, and its head `9d7d87e1f` already on main.
 

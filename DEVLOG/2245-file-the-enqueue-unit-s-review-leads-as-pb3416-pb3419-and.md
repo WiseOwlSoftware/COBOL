@@ -1,6 +1,6 @@
 ## Entry 2245 — 2026-10-19 00:39 PDT — File the enqueue unit's review leads as PB3416-PB3419 and correct the keyed host-failure predicate in the files design
 
-Filed four kb/Work notes from the enqueue unit's leads, each re-read on origin/main 0eba56a75. PB3416 (low, runtime/io): the
+Filed four kb/Work notes from the enqueue unit's leads, each re-read on origin/main 16679f350. PB3416 (low, runtime/io): the
 REWRITE and DELETE guards `target.Length > 0 && c.PermanentErrorInEffect is null` in `FileRegistry.cs` can never change an
 outcome because `FileConnector.MutationTargetRecordId` already returns "" while the permanent error replays; the rule is
 written twice (sequenced beside PB2749's lock-governance extraction). PB3417 (low, test-coverage): DESIGN-runtime-library

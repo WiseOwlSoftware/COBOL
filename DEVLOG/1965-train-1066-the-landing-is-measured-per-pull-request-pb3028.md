@@ -20,7 +20,7 @@ floor they are. `train_measure.py`, `TrainMeasureDriftTests` and every caller ar
 finished lander's ledger entry on its terminal report or its branch's merged `landing-measurements.jsonl` record, never
 on the retired train file. The lander briefs' step 9, MANDATORY-PRACTICES, the land unit and DESIGN-test-build-ci.md
 §3.17.5 follow. PB3028 is `landed` (`closes_rows: []`, process tooling); PB3040 stays open. No code, no golden. The
-branch carried C (already on main) and train 1064's content; `train_apply.py` diffed from its old base `01f392184`, and
+branch carried C (already on main) and train 1064's content; `train_apply.py` diffed from its old base `9fb0ad7b8`, and
 its one conflict, `DEVLOG.md`, held only entries main already has, so main's form was kept. The staged tree was checked
 to equal the branch head plus train 1065's six paths.
 
@@ -35,10 +35,10 @@ tooling); PB3024 stays open.
 
 **The train.** `train_apply.py` GREEN (C2 resumed after the DEVLOG resolution; H 13 paths, 10 as on the branch, 3 merged
 with earlier changes; citation audits and `work.py check` PASS). Lease taken at 03:12Z; origin/main was still
-`79d760ab6`, so no rebase. Windows gate (leg 1, Normal priority, run 20261012T031242Z-ca1de4) `LEG 1 ONLY (batched
+`a2c6c495e`, so no rebase. Windows gate (leg 1, Normal priority, run 20261012T031242Z-ca1de4) `LEG 1 ONLY (batched
 gating, PB2515): GREEN` (Conformance 4,816/11,488, Unit 32,585/33,450, Characterization 36/36; the three
-`LandingMeasureDriftTests` passed in leg 1; leg 2 left to the merge group); Linux gate GREEN on the same head `a990e48f8`
-(selftests, unit, characterization, conformance, guard). Arch oracle IDENTICAL (7,780 cases, baseline fb934cb4a329;
+`LandingMeasureDriftTests` passed in leg 1; leg 2 left to the merge group); Linux gate GREEN on the same head `0debf5510`
+(selftests, unit, characterization, conformance, guard). Arch oracle IDENTICAL (7,780 cases, baseline 0f932d0d397f;
 `landing_oracle.py` PASS, no re-record). Semgrep: no count rose (3, 44, 2, 268). GAP unchanged (no row re-verdicted).
 Nothing ejected, nothing fixed in the train.
 

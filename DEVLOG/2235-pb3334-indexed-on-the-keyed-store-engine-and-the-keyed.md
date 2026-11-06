@@ -61,11 +61,11 @@ is a seek; a sequential READ re-seeks from values (warm-cache page lookups) so i
 one key comparison mechanism (the key orders), one frame codec, one boundary mapping (`Failed`). Silent failures: every
 `StoreStatus` maps to '24'/'30' or a READ/START `Unsuccessful`.
 
-**Gate.** Run `TestResults/build-local/20261018T170109Z-82a5d9` (gated at `ac19595c5`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — Conformance 11,235/17,605 · Unit 33,858/34,267 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`. The first gate (`20261018T165843Z-bc88d9`) was RED on one CITATIONS phantom (a design-section reference split across a doc-comment line, `KeyedStoreTable.cs`), fixed. The golden passed in leg 1 at 2002 and 2023; the 32 `IndexedEngineTests` cases passed. Semgrep verify PASS (one count down, not this branch's). LINUX GATE: the lander's (batched gating).
+**Gate.** Run `TestResults/build-local/20261018T170109Z-82a5d9` (gated at `f729b0a16`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — Conformance 11,235/17,605 · Unit 33,858/34,267 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`. The first gate (`20261018T165843Z-bc88d9`) was RED on one CITATIONS phantom (a design-section reference split across a doc-comment line, `KeyedStoreTable.cs`), fixed. The golden passed in leg 1 at 2002 and 2023; the 32 `IndexedEngineTests` cases passed. Semgrep verify PASS (one count down, not this branch's). LINUX GATE: the lander's (batched gating).
 
 **Review round 1 (wave 1118 review finisher, branch `worktree-wf_14a1e62b-326-26`).** Four findings, all fixed. R1-2 first:
 the branch carried PB3331-PB3333 at their implementer heads, so it merged the reviewed PB3331+PB3332 link
-`worktree-wf_a49f0036-841-7` (14398a0e2) and PB3333's reviewed head `worktree-wf_14a1e62b-326-20` (7f5d2dcf8). The engine side
+`worktree-wf_a49f0036-841-7` (8610fe7fd) and PB3333's reviewed head `worktree-wf_14a1e62b-326-20` (61d6f485d). The engine side
 came from -841-7 (`IPageMedium.Length`/`SetLength`, `StatementBound`, the key length on `WeightedKeyOrder`,
 `MediumSizeLimitException` replacing PB3333's first-cut `IsFileTooLarge`; `HandlePageMedium.Refusal` became the one place a host
 code becomes the contract's exception, which the fault-injecting test media raise through). PB3333's connector fixes were
@@ -81,14 +81,14 @@ They run in every USE x FILE STATUS combination with checking off and on, and ev
 I-O's fence complete. That measurement showed a fence reserves its bound and so fails a few pages short of the format's end,
 which design 2.2.1.9 now states.
 
-Review round 1 gate: run `TestResults/build-local/20261018T193020Z-b4351c` (gated at `57b0af458`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — Conformance 11,338/17,706 · Unit 34,000/34,359 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`. Every new case passed in leg 1: the ten compiled programs, the CLOSE and OPEN refusal and death theories, the R1-2 sibling and the indexed boundary case. Semgrep verify PASS. LINUX GATE: the lander's (batched gating).
+Review round 1 gate: run `TestResults/build-local/20261018T193020Z-b4351c` (gated at `d93b16cf6`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — Conformance 11,338/17,706 · Unit 34,000/34,359 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`. Every new case passed in leg 1: the ten compiled programs, the CLOSE and OPEN refusal and death theories, the R1-2 sibling and the indexed boundary case. Semgrep verify PASS. LINUX GATE: the lander's (batched gating).
 
 **Review round 2 (wave 1118, review finisher on branch `worktree-wf_14a1e62b-326-32`).** One finding, R2-1 (critical): 67
 NIST programs failed `NistProgram_MatchesGolden` on the written-file check, and the round-1 gate never ran them (all 72 IX
 and RL rows sat in its leg 2). The 30 RL programs failed because the branch did not carry A3's re-captured relative
-goldens; merging PB3333's landing tip `worktree-wf_14a1e62b-326-20` (2f5b26d36, at d745abaab) brought them in, with its
+goldens; merging PB3333's landing tip `worktree-wf_14a1e62b-326-20` (edcca1629, at 91d430abc) brought them in, with its
 stamped DEVLOG 2220. The 37 IX programs failed because the branch moves INDEXED onto the paged store (meta-page format 6)
-while `tests/nist/valid-files` still held the format-5 whole store. At 56c69829c their written files were captured
+while `tests/nist/valid-files` still held the format-5 whole store. At 26b17d4f7 their written files were captured
 through `COBOLNET_UPDATE_NIST_FILES=1`, 48 files in all: 41 format-5 goldens of 30 programs re-captured, and 7 new ones,
 the `tf024.txt` of IX114A-IX120A, which main never captured. The CCVS reports, which read every record back, still
 match. IX114A-IX120A each chain from IX109A's `tf024.txt`, open it I-O and CLOSE it with no record changed, and the
@@ -102,7 +102,7 @@ sibling in the same blind spot was `SpecTraceabilityInventoryDriftTests.EveryCod
 
 The round-2 gates then found two more reds, both fixed here. (1) Both hosts' unit legs failed
 `PagedFileCrashMatrixTests.A_refused_read_at_every_read_of_every_path_answers_30_and_decides_nothing(path: Close)`. The
-d745abaab merge took A3's `SceneFor`, whose CLOSE scene changes A so the CLOSE runs its whole promotion, but kept this
+91d430abc merge took A3's `SceneFor`, whose CLOSE scene changes A so the CLOSE runs its whole promotion, but kept this
 branch's arm asserting that the CLOSE reads nothing; that arm is gone, so every read of the CLOSE's promotion is now refused
 one at a time. (2) CI's guard leg, run from WSL, failed IX114A-IX120A on `tf024.txt`. `guard-run-group.sh` ran a chain
 component in ONE shared directory, so a consumer ran over whatever the members before it left: IX115A, which declares only
@@ -193,15 +193,15 @@ COBOLNET_FILES_DESIGN (the format, the boundary, the per-file store, the medium 
 **Gate.** The first run, `TestResults/build-local/20261018T180903Z-d823b9`, was RED on one case,
 `HostWitnessTraitDriftTests`. The ban test carried a `Sweep` trait, but `drift_rules.py` classes it by the depth of the
 paths it reads, and `Runtime/IO` is specific, so the trait went and the docs now say so. The second run,
-`TestResults/build-local/20261018T182734Z-f4edbc` (gated at `7c4351bca`), printed:
+`TestResults/build-local/20261018T182734Z-f4edbc` (gated at `8e514e99e`), printed:
 `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance
 6,438 · Unit 358 · Characterization 31 — Conformance 11,241/17,679 · Unit 33,930/34,288 · Characterization 5/36 cases ran
 (skipped 0) in 1 of 2 leg(s) ===`. Every `StoreCoherenceTests` and `WholeStoreBanDriftTests` case ran in leg 1 and passed.
 LINUX GATE: the lander's (batched gating). Semgrep verify: PASS (one rule went 244 → 243, not this branch's).
 
 **Finisher (round 1).** The branch had merged PB3334 at its unreviewed implementer head (kb/Work PB3380), so the finisher
-merged the reviewed heads, `worktree-wf_14a1e62b-326-26` at `7e585e723` and then `worktree-wf_14a1e62b-326-20` at
-`46934aa87`. The merged side won where it answers a review finding. Its `PagedFile.Enter(exclusive)` fixed the same
+merged the reviewed heads, `worktree-wf_14a1e62b-326-26` at `ad21f304c` and then `worktree-wf_14a1e62b-326-20` at
+`3e2726bc5`. The merged side won where it answers a review finding. Its `PagedFile.Enter(exclusive)` fixed the same
 shared-mutex defect as this branch (A3 review R1-2), so its PROMOTING rule stands. Its `FormatPages` replaces this branch's
 `MaxPages` and `MaxFileBytes`. `KeyedStoreTable.cs` stays deleted, and -26's host-refusal seam in `FileBoundaryTests`
 carries the PB3333 side's REWRITE leg. Four inventory rows named members that no longer exist; one `record_verdicts.py`
@@ -217,27 +217,27 @@ on the unfixed code; the refused-read case witnesses behaviour that was right bu
 
 The finisher's gates. The first Windows run stopped in its audits (FLEET PRACTICES): the merge commits had been staged
 with `git add -A` while the worktree's submodule was still checked out at brent-tools 1.20.0, which reverted the 1.21.0
-pin both merged heads carried. The pin is restored at `a828e3ea8`. The second run, `20261018T210832Z-926085`, was RED on
+pin both merged heads carried. The pin is restored at `24b556bbb`. The second run, `20261018T210832Z-926085`, was RED on
 `PagedFileCrashMatrixTests.A_refused_read_at_every_read_of_every_path_answers_30_and_decides_nothing(path: Close)`,
 expected 0 reads but 3. The two heads had changed that case's halves independently: -26 asserted that the Close scene's
 CLOSE reads nothing, and -20 made the scene change A first, so the CLOSE promotes. The stronger form wins, as main and
-PB3334's round-2 finisher have it. The run at `d3d2fdfd8`, `20261018T215211Z-457feb`, printed:
+PB3334's round-2 finisher have it. The run at `72983a494`, `20261018T215211Z-457feb`, printed:
 `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance
 6,902 · Unit 709 · Characterization 31 — Conformance 10,915/17,817 · Unit 33,684/34,393 · Characterization 5/36 cases ran
 (skipped 0) in 1 of 2 leg(s) ===`. The six new `StoreCoherenceTests` cases ran in leg 1 and passed. CI's Linux legs under
-WSL at `8ec12f7cb` printed `=== LINUX GATE: RED (failed or not run: conformance guard; HEAD 8ec12f7cb; logs in
+WSL at `21744b810` printed `=== LINUX GATE: RED (failed or not run: conformance guard; HEAD 21744b810; logs in
 TestResults/linux-gate/) ===`. The unit leg (34,428), the characterization leg and both self-test legs were GREEN. Every
 red of the conformance and guard legs is one of the 37 INDEXED NIST programs whose report matched but whose written file
-differs from its format-5 golden. That is review w1118-a4 R2-1, on -26's reviewed head `7e585e723`, and it is fixed on
-PB3334's round-2 finisher branch (`worktree-wf_14a1e62b-326-32` at `d633581e9`), which lands before this branch; the
+differs from its format-5 golden. That is review w1118-a4 R2-1, on -26's reviewed head `ad21f304c`, and it is fixed on
+PB3334's round-2 finisher branch (`worktree-wf_14a1e62b-326-32` at `c0558d25a`), which lands before this branch; the
 landing's merge of origin/main brings the re-captured goldens in.
 
 **Finisher (round 2).** Two jobs: merge PB3334's reviewed head before it lands, and add the test that review lead R2-L1
-asked for. The branch merged `worktree-wf_14a1e62b-326-32` at `d633581e9` (PB3334's round-2 finisher, with the written-file
+asked for. The branch merged `worktree-wf_14a1e62b-326-32` at `c0558d25a` (PB3334's round-2 finisher, with the written-file
 goldens of the 37 INDEXED programs, 41 re-captured and 7 new, that were the reds of this branch's Linux legs), then origin/main. Eight files
 conflicted, and every resolution keeps both sides. The runtime hunks were doc comments and one blank line. The
 `PagedFile.Enter` rule (`_writable && exclusive`) and `_fenceOwed` are unchanged. In `FileBoundaryTests`, -32's only change
-was the loss, at its own merge `d745abaab`, of PB3333's REWRITE leg of the host-refusal theory, which main carries; this
+was the loss, at its own merge `91d430abc`, of PB3333's REWRITE leg of the host-refusal theory, which main carries; this
 branch keeps the leg. The inventory's four boundary rows keep this branch's text and take -32's witnesses through one
 `record_verdicts.py` batch (GAP 66 → 66).
 
@@ -252,28 +252,28 @@ covers the CLOSE or when checking is enabled with no USE procedure, and the next
 refused promotion; after a refused re-adoption the sibling keeps reading, and the next OPEN I-O fences. All 20 cases are
 red with both arms of `KeyedConnector.CloseCore` disabled.
 
-The round-2 gates. CI's Linux legs at `ffc17d2d0` were RED on one unit case,
+The round-2 gates. CI's Linux legs at `669a14689` were RED on one unit case,
 `AnnexA1RegisterDriftTests.EveryDocRow_IsFiledUnderTheItemAnnexA1Names`. The inventory's DOC-A.1-103 row named the new
-case and the register's Pinned by cell did not, so the cell now names it (`d2530f7d2`). The conformance and guard legs were
-GREEN at that head, because PB3334's re-captured goldens came in with the merge. At `d2530f7d2` the Windows run
+case and the register's Pinned by cell did not, so the cell now names it (`a63266090`). The conformance and guard legs were
+GREEN at that head, because PB3334's re-captured goldens came in with the merge. At `a63266090` the Windows run
 `20261018T232911Z-0220c3` printed `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's
 whole-population run: Conformance 6,574 · Unit 569 · Characterization 31 — Conformance 11,245/17,819 · Unit 33,844/34,413
 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`, and the 20 new cases passed in leg 1. CI's Linux
 legs printed `=== LINUX GATE: GREEN (legs selftests unit characterization conformance guard selftests-built; HEAD
-d2530f7d2) ===`.
+a63266090) ===`.
 
 **Finisher (round 3).** The branch now lands PB3334 with it: PB3334's own landing bounced on a `docs/CONFORMANCE.md`
 conflict with main's PB1880 landing, and its pending entry folds into this one at the stamp. Three review leads, all fixed.
 R3-L1 is the landing conflict, in two parts. First the reviewed bounded-walk branch `worktree-wf_2ae0707b-b3d-4`
-(PB3331 and PB3332 round 3, `5a0f7783c`), which is about to land, was merged at `9fdd84b1d`. Its one conflict was
+(PB3331 and PB3332 round 3, `c3917f7ae`), which is about to land, was merged at `43935dc2e`. Its one conflict was
 `IndexedConnector.cs`: this branch had deleted the string-keyed engine whose `KeyCompare` b3d-4 changed, so the merge keeps
 this branch's engine plus b3d-4's `SequenceOf` and `FreezeOpenSequences`, and `ResetPosition` builds each tree's
 `WeightedKeyOrder` from the sequence frozen at the OPEN (§12.4.5.7.4 GR1: "Each collating sequence is a fixed file
 attribute"). The golden `pb3331_locale_key_sequence_fixed_at_open` is red with the trees on the declared sequences and green
-with the frozen ones. Then origin/main (`8f7df8caf`, at `5852ba65a`; `38926bffb`, clean, at `da8cd56d8`). Of the three
+with the frozen ones. Then origin/main (`42b115875`, at `817573609`; `9833c574f`, clean, at `9b9c95679`). Of the three
 conflicted Annex A.1 rows, DOC-A.1-103 and DOC-A.1-107 keep this branch's text and pins, which already include main's, and
 DOC-A.1-105 takes main's row, which adds the WITH LOCK sentence and three pins to text this branch never changed. The
-carried PB3334 entry and note now give the golden count the tree supports: 56c69829c captured 48 IX written files, 41
+carried PB3334 entry and note now give the golden count the tree supports: 26b17d4f7 captured 48 IX written files, 41
 format-5 goldens of 30 programs re-captured and 7 new (IX114A-IX120A's `tf024.txt`). R3-L2: the test's comment had
 §14.9.6.4 GR8 backwards and cited `FileConnector.IsOpen`. GR8 takes the connector out of its open mode after a successful
 CLOSE and says nothing of an unsuccessful one. DOC-A.1-105 is where an unsuccessful CLOSE also leaves the connector closed.
@@ -283,16 +283,16 @@ and a declarative for EC-I-O (rule 5). Each trace ends at "USE", and the run uni
 EC-I-O-PERMANENT-ERROR. All 32 cases are red with both '30' arms of `KeyedConnector.CloseCore` disabled, and the new
 covers are red at the trace too.
 
-The round-3 gates ran at `a2f97fc91`. The Windows run `20261019T003930Z-e04bf9` printed `=== BUILD-LOCAL GATE: LEG 1
+The round-3 gates ran at `b97f145dd`. The Windows run `20261019T003930Z-e04bf9` printed `=== BUILD-LOCAL GATE: LEG 1
 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 6,592 · Unit 561 ·
 Characterization 31 — Conformance 11,352/17,944 · Unit 33,953/34,514 · Characterization 5/36 cases ran (skipped 0) in 1
 of 2 leg(s) ===`, and all 32 witness cases passed in leg 1. CI's Linux legs printed `=== LINUX GATE: GREEN (legs
-selftests unit characterization conformance guard selftests-built; HEAD a2f97fc91) ===`. Both gates were also GREEN at
-`da8cd56d8`, before the last two commits (the fourth cover, the counts and this entry) and the clean merge of b3d-4's
+selftests unit characterization conformance guard selftests-built; HEAD b97f145dd) ===`. Both gates were also GREEN at
+`9b9c95679`, before the last two commits (the fourth cover, the counts and this entry) and the clean merge of b3d-4's
 landing.
 
 Round 4 answered R4-L1, the conflict the landing would have met: main had landed PB1587 (PR #265) on the whole store
-after the round-3 tip. `90fc2692c` merged origin/main `bb24cae07`. The deletion of `IndexedConnector.WholeStore.cs` wins,
+after the round-3 tip. `676d93847` merged origin/main `d58199952`. The deletion of `IndexedConnector.WholeStore.cs` wins,
 since PB1587's change there (`CoherentUnder` asking `AdmitsAnotherRunUnit`) is already the engine's rule in
 `KeyedConnector.TakeFileLock`. PB1587's READ ONLY refused-persist case now lives in the engine's own refusal theories in
 `KeyedStoreReloadFailureDriftTests`. `APageWriteTheHostRefuses_Is30_AtTheStatement` and
@@ -307,7 +307,7 @@ output only. In the inventory this branch's side was taken and main's four PB158
 points at `KeyedConnector.cs#TakeFileLock`, and the GAP stays at 66. DESIGN-runtime-library 2.2.1.7's "why not only ALL
 OTHER" paragraph and the PB3334 and PB1587 notes now describe the engine.
 
-The first round-4 gates at `1f86951c4` were RED twice, and both reds came from the merge. On Windows the witness-loss
+The first round-4 gates at `cc6698b23` were RED twice, and both reds came from the merge. On Windows the witness-loss
 audit stopped the run (`20261019T015012Z-c7d1ac`) because GR-14.9.51.4-12 had dropped main's `WholeStore.cs#CoherentUnder`
 with no retirement mark: taking this branch's side of the row was a loss to the audit, not a retirement. Two
 `record_verdicts` batches fixed it. `-2a` puts main's witness back and `-2b` retires it with its reason, so the audit reads
@@ -315,13 +315,13 @@ with no retirement mark: taking this branch's side of the row was a loss to the 
 retired: it expected a `SHARING WITH READ ONLY` sequential writer to buffer until CLOSE and `AdmitsAnotherRunUnit` to be
 asked only in `KeyedConnector.cs`. It now pins PB1587's rule. The release asks about any other connector (READ ONLY and
 ALL OTHER hand the record over at the WRITE, NO OTHER keeps it until the CLOSE). The append position, the ordinal count
-and the shared append stream still ask about another writer only. The test is red at `1f86951c4` and green now.
+and the shared append stream still ask about another writer only. The test is red at `cc6698b23` and green now.
 
-The round-4 gates ran at `b3a83d9e8`. The Windows run `20261019T020846Z-c57ec5` printed `=== BUILD-LOCAL GATE: LEG 1 ONLY
+The round-4 gates ran at `52e01fed6`. The Windows run `20261019T020846Z-c57ec5` printed `=== BUILD-LOCAL GATE: LEG 1 ONLY
 (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 6,563 · Unit 493 · Characterization
 31 — Conformance 11,384/17,947 · Unit 34,060/34,553 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`,
 and the renamed `StoreCoherenceTests` case ran in its leg 1. CI's Linux legs printed `=== LINUX GATE: GREEN (legs
-selftests unit characterization conformance guard selftests-built; HEAD b3a83d9e8) ===`.
+selftests unit characterization conformance guard selftests-built; HEAD 52e01fed6) ===`.
 
 ### PB3336: the keyed store engine's performance witnesses, counted in pages, and the bounds the counts corrected
 
@@ -389,7 +389,7 @@ Lead: the ledger could be organized so that a statement's entries land on one le
 
 **Review round 1 (three findings, all fixed).**
 - R1-1 (high): the branch carried PB3331-PB3335 at their implementer heads and flipped their notes. Fixed by merging the
-  reviewed content in order, origin/main (cba91326e) and then `worktree-wf_14a1e62b-326-19` (f5ee2a9cd), with every file
+  reviewed content in order, origin/main (2480f5b6d) and then `worktree-wf_14a1e62b-326-19` (94c020ad5), with every file
   outside PB3336's own set taken as the reviewed side has it; the predecessors' notes are theirs again.
 - R1-2 (medium): the replay witness had pinned "reads page 2", which contradicts DOC-A.1-105. The replay is now answered
   before the connector enters the store, and the per-verb cases above assert zero pages in both sharing modes.
@@ -398,12 +398,12 @@ Lead: the ledger could be organized so that a statement's entries land on one le
 - Cleanup owed to rule 4: nothing was left. PB3335's reviewed head had already deleted `RecordFraming.ComposeStore`,
   `DecodeStore`, `MaxStoreBytes`, their test and the `OutOfMemoryException` catch of `FileConnector.MappedCloseCore`.
 
-**Gate.** At 93ef4cbd1 (the predecessors' reviewed content merged: origin/main, then PB3335's branch at b3a83d9e8),
+**Gate.** At 08236ea66 (the predecessors' reviewed content merged: origin/main, then PB3335's branch at 52e01fed6),
 run `TestResults/build-local/20261019T020842Z-9a08d6`, the 36 replay cases Passed in leg-1-Unit.trx:
 `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance
 6,563 · Unit 493 · Characterization 31 … Conformance 11,384/17,947 · Unit 34,147/34,640 · Characterization 5/36 cases ran
 (skipped 0) in 1 of 2 leg(s) … ===`. Linux, the same commit: `=== LINUX GATE: GREEN (legs selftests unit characterization
-conformance guard selftests-built; HEAD 93ef4cbd1) ===`. The gate one merge earlier (c13feb6cf) was RED on exactly the two
+conformance guard selftests-built; HEAD 08236ea66) ===`. The gate one merge earlier (8513ab3e0) was RED on exactly the two
 reds PB3335's branch then had from its PB1587 merge (a lost witness of GR-14.9.51.4-12 and one StoreCoherenceTests case,
 red on its own gates too); they were fixed there and merged here, not fixed twice.
 
@@ -430,7 +430,7 @@ failure, never as a branch's state (its self-test asserts a failing command rais
 
 Before it went back to the queue, the self-test runner was run once more on a Linux clone of that tip under the isolation
 CI has (an empty HOME, `GIT_CONFIG_GLOBAL=/dev/null`, no `gh`, a minimal PATH): `prune_worktrees.py --self-test` GREEN,
-`=== SELF-TESTS: GREEN — 72 ran`. Then origin/main (49e1c6b79) was merged in, cleanly: main's PB3381 rewrite of
+`=== SELF-TESTS: GREEN — 72 ran`. Then origin/main (97aa1d767) was merged in, cleanly: main's PB3381 rewrite of
 `prune_worktrees.py` and this branch's checked fixture git and private-config maintenance settings each survive. Main's
 PB3383 and PB3385 were filed `blocked: true` with `blocked_by: PB3334`; this landing lands PB3334, so both now read
 `blocked: false` (no other open note waits on a note this branch lands).

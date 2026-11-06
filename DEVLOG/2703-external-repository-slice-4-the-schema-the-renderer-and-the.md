@@ -120,7 +120,7 @@ the self-review widened the reader's catch to what `RepositoryIndex.Open` catche
 8e7d3c05c: `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half GREEN, the 24 added cases `Passed`.
 
 **PB2100, the OO arm (wave 20261734 group A).** The predecessor's thirteen commits cherry-picked cleanly onto main
-40b853db4 and re-gated GREEN (run 000001-20261028T021719Z). Re-probe: before this part a class or an interface carried no
+edba736b8 and re-gated GREEN (run 000001-20261028T021719Z). Re-probe: before this part a class or an interface carried no
 `[CobolUnit]` and no `Units` row, so a module holding only classes published nothing the repository could find, and no
 method's description was anywhere in metadata; ISO §8.13 lists "the type of the source unit - program, function, class, or
 interface", "the object properties of the source unit, if any" and "the methods contained in the source unit, if any, and
@@ -170,7 +170,7 @@ slice that changes that file next (`work.py check`). The self-review (silent-fai
 that names no factory type, or an interface record that names one, is `Malformed` rather than read as a class without factory
 methods (`RepositoryReaderTests.AClassRecordTheRendererCannotHaveWritten_IsMalformed`, with the missing factory type, the
 factory method that does not say so and the formal on a CLR method without `[CobolMethod]`). Gate: run 000002-20261028T030809Z
-at c24278e25, `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half GREEN; run 000003-20261028T031610Z at a1f8d823e (the
+at 447c85f25, `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half GREEN; run 000003-20261028T031610Z at 9b8773061 (the
 hardening), `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half GREEN; the note's Landing section re-gated after it.
 
 **The branch review's findings (wave 20261739 group A).** R1-1 (blocking): the record kept an OCCURS DEPENDING ON object as
@@ -192,7 +192,7 @@ failed the same test against the old code. The placement rule the binder states 
 positions in the tree for every formal it round-trips, so the whole corpus checks them from now on. R1-2: a
 `CliParserTests` case for `--repository-update` (default on, both spellings, case, refusals, no swallowed flag) and
 `RunCompile` gets back its own summary. R1-3: the README option table lists `--repository-update`. Design 6.1 and its
-table of read members say how the object is recorded. Gate: run 000002-20261028T191256Z at a0d9cf7cd,
+table of read members say how the object is recorded. Gate: run 000002-20261028T191256Z at 0e88694bd,
 `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half (WSL clone of HEAD) GREEN; the four Facts above `Passed` in its
 leg-1-Unit.trx.
 

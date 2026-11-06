@@ -13,6 +13,6 @@ battery #85's mark on an August point. `render()` took the FIRST trend point car
 — and labelled it with the CURRENT battery's number; `trend_svg()` did the same. The series records a point only when
 the generator happens to run, so even "the latest point before the battery" can predate whole trains (it gave -136).
 Fixed at the root in `scripts/spec/gen_ledger.py`: `gap_at(sha)` measures the GAP of the inventory AS COMMITTED at
-the battery's tree (2198 at `0abe2c80f`), so the tile now reads **-68 since battery #85**, which is right; the chart
+the battery's tree (2198 at `5f51299c2`), so the tile now reads **-68 since battery #85**, which is right; the chart
 mark is placed only on a point recorded at that battery (`battery_point`), never on a stand-in. Published as v63.
 

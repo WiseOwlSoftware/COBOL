@@ -1,7 +1,7 @@
 ## Entry 923 — 2026-07-19 18:55 PDT — Session bootstrap for the grammar batch: a ~40-site diagnostic-code drift in the remaining-waves scout, and the Wave H legacy-token risk CLEARED
 
 Started the P13 grammar batch (the top of the D16 close-line). Bootstrap per plan §0: probe green
-(`phase-13-m4-2023` @ `6d6c655d`, clean, pushed, next-free `COBOLNET1578`, 104 VCR todos, 166/109 corpus),
+(`phase-13-m4-2023` @ `e553001b`, clean, pushed, next-free `COBOLNET1578`, 104 VCR todos, 166/109 corpus),
 baseline battery launched, and a 7-construct research fan-out started. Before touching code, four pre-checks
 turned up one large piece of drift and cleared one flagged blocker. Owner directive received mid-session:
 *"update docs as you identify errors so they drift for a minimal amount of time"* — so this landed immediately

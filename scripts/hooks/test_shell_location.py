@@ -236,7 +236,7 @@ with tempfile.TemporaryDirectory() as tmp:
     check("a Bash `{ … }` pipeline side is a subshell: its cd ends at the pipe",
           dirs_of(f"{{ cd {W}; dotnet build; }} | cat; dotnet test", main, B), [wt, main])
     # the branch review of PB3198, R3-1: a group on the READ side of a pipe hands its stdin to its commands, never its
-    # pipeline-side-ness: the cd inside it moves the group's later steps (at ff8f1c01b each of these ran in main)
+    # pipeline-side-ness: the cd inside it moves the group's later steps (at c2bdc1b8d each of these ran in main)
     check("a `( … )` reading a pipe: its cd moves its later steps",
           dirs_of(f"echo y | ( cd {W} && git stash )", main, B, "git"), [wt])
     check("a `( … )` reading a file's pipe, `;`", dirs_of(f"cat f | ( cd {W}; git status )", main, B, "git"), [wt])

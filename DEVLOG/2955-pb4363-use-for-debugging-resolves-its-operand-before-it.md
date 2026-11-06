@@ -7,7 +7,7 @@ text for whatever it could not find as a procedure. So a program that was wrong 
 different kind of subject (a paragraph) was told the compiler was incomplete, and PB4237's own test pinned that message for
 `ALL P1`.
 
-**Re-probe (f0e4650e5, Debug build, `--std 85`, WITH DEBUGGING MODE).** `ALL P1`, `ALL MAIN` (a section) and `ALL NOSUCH`
+**Re-probe (01f882711, Debug build, `--std 85`, WITH DEBUGGING MODE).** `ALL P1`, `ALL MAIN` (a section) and `ALL NOSUCH`
 each drew COBOL1571 as filed. The sibling arm did the same for `ON NOSUCH`, and refused the legal qualified procedure-name
 `ON P1 OF MAIN` with the file / cd / data text and the qualifier dropped from the message (the bare arm resolved a
 procedure only when the operand had no suffix at all).

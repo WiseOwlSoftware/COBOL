@@ -8,8 +8,8 @@ in leg 2, and nothing tied it to the C# file the diff changed.
 
 **Re-probe.** The note's first form, a diff that edits the register, was already closed by PB3531's tier 0d:
 `drift_rules.py` lists the inventory's and `docs/CONFORMANCE.md`'s checking classes as specific rules of those files,
-and a replay of 00a3735e5 (an inventory edit) puts them in leg 1. The second form still reproduced. A no-map replay of
-611bdb3a2 (the PB2740 test rename) put 124 classes in tier 0d, and `SpecTraceabilityInventoryDriftTests` was not one
+and a replay of f65d07b65 (an inventory edit) puts them in leg 1. The second form still reproduced. A no-map replay of
+185f33f96 (the PB2740 test rename) put 124 classes in tier 0d, and `SpecTraceabilityInventoryDriftTests` was not one
 of them.
 
 **Fix.** The drift-rule index answers a second question for the planner: which drift classes govern a register that
@@ -19,8 +19,8 @@ declares. `drift_rules.citing` indexes each non-C# file a drift test names (91 f
 three shapes a register uses to cite a symbol: a path, a `path#Member` chain, and a dotted `Class.Member` name. It
 returns the classes that govern each citing register specifically, and `reach_of` adds them to tier 0d with a note
 naming the broken citation. Nothing is listed by hand, so a new register is covered as soon as a drift test names it.
-In no-map replays, all four landing stops now name the class and the citation they broke (611bdb3a2, 684d01b4b,
-1a473341f, c3c6879ab). The citation step costs about 2-5 s per plan; a first version ran one regex per removed
+In no-map replays, all four landing stops now name the class and the citation they broke (185f33f96, 7e9b8e3df,
+4e8a740af, bc50dbfbd). The citation step costs about 2-5 s per plan; a first version ran one regex per removed
 identifier and cost 12-49 s.
 
 **Tests.** `impacted_tests.py --self-test` gains nine arms: the three citation shapes, a deleted suite test, a
@@ -43,7 +43,7 @@ deletion promoted up to 102 classes into tier 0d, which sits outside the leg-1 b
 - A deleted file breaks a path citation only when the citation, resolved against the tree before the change
   (`TreeFiles`), names no file the change keeps.
 
-Five of the six commits now promote nothing beyond their governed classes. The sixth, cf9c85914, promotes the
+Five of the six commits now promote nothing beyond their governed classes. The sixth, beee41525, promotes the
 inventory's classes on a real code-location of the file it deleted. The four landing stops still name their class.
 The lead R1-2 is fixed too: a patch header whose path holds a space ends in a TAB, and a quoted one is C-unquoted.
 Seven new self-test arms are pinned in `ImpactedTestsDriftTests`.

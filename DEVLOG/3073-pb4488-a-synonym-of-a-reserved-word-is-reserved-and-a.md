@@ -6,7 +6,7 @@ the directive, and the stage order of 7.2.1 agrees (COPY in Step 1, COPY REPLACI
 directive last, in Step 4). `CPY BOOK.` after `EQUATE "COPY" WITH "CPY"` is therefore not legal source, and refusing it was
 right. Two defects with one root remained, and this entry fixes both.
 
-**Re-probe.** Built the tree at 385231e27 and ran the determination's probes: p01, p16, p23 (the COBOL0307 "a period may be
+**Re-probe.** Built the tree at 6760f3353 and ran the determination's probes: p01, p16, p23 (the COBOL0307 "a period may be
 missing" hint after a synonym of COPY, in source text, in library text and after SUBSTITUTE), p26 (a bare COBOL0001 at `RPL OFF.`),
 and p21, p27, p30, p35, p40 (`01 CPY`, `01 LOC`, `01 RPL` compiled and ran and printed `C`). All reproduced.
 

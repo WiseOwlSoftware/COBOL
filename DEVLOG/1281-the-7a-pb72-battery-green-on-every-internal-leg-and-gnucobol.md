@@ -1,6 +1,6 @@
 ## Entry 1281 — 2026-08-09 18:06 PDT — The 7a+PB72 battery: green on every internal leg, and GnuCOBOL votes FOR the new refusals
 
-One `bash scripts/battery.sh` run over `e219be59` (artifacts /tmp/battery-20260809-174919): FULL
+One `bash scripts/battery.sh` run over `5c1203a8` (artifacts /tmp/battery-20260809-174919): FULL
 greenfield Conformance 4354/4354 zero skipped (the five PB72 negatives and the admitted-cells golden in
 the population) · Unit 4124/4124 · characterization 33/33 · guard-fast ALL GREEN with NIST 353 MATCH /
 0 REGRESSION and a CLEAN audit — so the shared MOVE seam moved and not one internal case regressed.

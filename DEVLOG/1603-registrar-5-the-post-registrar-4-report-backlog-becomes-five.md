@@ -1,9 +1,9 @@
 ## Entry 1603 — 2026-09-13 13:30 PDT — Registrar #5: the post-registrar-#4 report backlog becomes five notes and four extensions (PB871–PB875) — and the pass's own edit exposed a gate that fails OPEN
 
 **The pass.** A LEAD-FILING pass over the "New defects" sections of the twenty-four implementer, finisher and
-lander reports that arrived AFTER registrar #4 landed `a1d1b200`. Method unchanged from #4: every lead's probe
+lander reports that arrived AFTER registrar #4 landed `193dd954`. Method unchanged from #4: every lead's probe
 was REBUILT from the report paragraph and RE-RUN on this worktree's own `dotnet build CobolSharp.sln -c Debug`
-at `a2255819`, and every citation re-derived with `python scripts/spec/cite.py --check` before it entered a note.
+at `33936312`, and every citation re-derived with `python scripts/spec/cite.py --check` before it entered a note.
 Thirty-eight leads were read; **twenty-six were already owned** by PB835–PB870 or by an older note and were
 dropped with the owner named, which is the pass working as intended — registrar #4 had already filed most of
 this backlog.

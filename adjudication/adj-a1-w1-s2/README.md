@@ -1,6 +1,6 @@
 # adj-a1-w1-s2 — Annex A.1 documentation rows, wave 1 session 2 of 4
 
-- **Pinned sha:** `0a83d2d22836ddf39644d0a32d5303542edbdb94` (main at session start)
+- **Pinned sha:** `01c0d34b8b1d14869eba265f94bd95a1bad500f6` (main at session start)
 - **Inputs:** `python scripts/spec/phase_b_batch.py A.1 --max-rules 10 --out /tmp/adj/in`, the 20 assigned slugs only.
 - **Wall-clock (UTC, 2026-09-24):** setup + build 21:06–21:08 · adjudication 21:08–21:20 · refute 21:20–21:23 · deliver 21:24.
 

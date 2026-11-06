@@ -46,12 +46,12 @@ STRING INTO is receiving-only (§14.9.43.3 SR10, §8.4.3.9.4 GR2). PB1932: a pro
 at its argument's place (`SUM(CNT, P OF A)` gave 2, now 1). Four positives, eight negatives; 12 rows closed,
 GR-13.18.42.4-1/-2 PARTIAL under PB1274; semgrep raw-code-literal 283 → 282.
 
-**The train.** Applied R, S, U onto f02e71350 (train 1013 had landed): conflicts only in `DIAGNOSTICS.md`,
+**The train.** Applied R, S, U onto 33fd1173c (train 1013 had landed): conflicts only in `DIAGNOSTICS.md`,
 `DiagnosticCatalog.cs` and the 2002 manifest (whole rows, both sides), `DRIFT_RULES.md` (regenerated, 266) and one
 `ReferenceResolver.cs` line (R's `CobolNames.Same("FUNCTION")` with S's qualified-name split). The inventory hunks
 applied cleanly; every S and U `record_verdicts` batch dry-runs as a no-op on the merged tree. Gate 1 (run
 20261004T175608Z-e13471) was RED on one Unit case, `CobolNameFoldDriftTests.NoOrdinalIgnoreCase_OverACobolWord_…`:
-train 1013 (`008babef7`) had added three `OrdinalIgnoreCase` method- and interface-name tables after R's base. R's
+train 1013 (`bdadba069`) had added three `OrdinalIgnoreCase` method- and interface-name tables after R's base. R's
 report names this rebase fold as its own step, so the lander folded the three through `CobolNames.Comparer` inside
 R's commit and corrected the `Invoke-Antlr4CSharp.ps1` header, which still described the dropped ASCII rule. Gate 2
 (run 20261004T180157Z-a4bfd4): `=== BUILD-LOCAL GATE: GREEN — Conformance 10,384/10,384 · Unit 30,559/30,559 ·

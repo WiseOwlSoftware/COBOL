@@ -8,7 +8,7 @@ scripts as `<name>.txt`.
 
 | input | what reads it | how to reproduce it |
 |---|---|---|
-| the impact maps at `dbea12428` and `4b0f3e22a` | `common.py#load` → `a1`–`a10`, `a12`, `b4` | `python scripts/spec/record_impact_map.py --commit dbea12428` and `--commit 4b0f3e22a` (about 19 min each at BelowNormal). The recorder writes to `<git common dir>/cobol-impact/` unless given `--store DIR`; the evidence scripts read that default, or the directory named by the environment variable `COBOLNET_IMPACT_STORE` (read only by `common.py`). |
+| the impact maps at `dad934c91` and `ba3aba6b9` | `common.py#load` → `a1`–`a10`, `a12`, `b4` | `python scripts/spec/record_impact_map.py --commit dad934c91` and `--commit ba3aba6b9` (about 19 min each at BelowNormal). The recorder writes to `<git common dir>/cobol-impact/` unless given `--store DIR`; the evidence scripts read that default, or the directory named by the environment variable `COBOLNET_IMPACT_STORE` (read only by `common.py`). |
 | `a1.pkl` | `a2`, `a3`, `a5`, `a6` | an intermediate written by `a1.py`; run `a1.py` first. |
 | raw per-test contexts of a recording | `a11.py` | `record_impact_map.py --work DIR --keep` leaves them under `DIR/rec-<sha>-<n>/raw/contexts/`; pass the `rec-*` directories as arguments. |
 | a battery's `conformance.trx` (and `unit.trx`) | `b1.py`, `b5.py`, `b7.py` | `bash scripts/battery.sh <outdir>` writes them (PHASE 1). The committed outputs were measured on battery #87 (2026-09-27). |
