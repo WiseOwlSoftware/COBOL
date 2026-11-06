@@ -1,7 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Runtime.Mcs;
-
 namespace WiseOwl.Cobol.Runtime.Messaging;
 
 /// <summary>How a RECEIVE waits (ISO §14.9.31.4 GR2; §0 Q5).</summary>

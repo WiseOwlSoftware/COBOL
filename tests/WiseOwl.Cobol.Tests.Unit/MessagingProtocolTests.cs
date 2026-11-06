@@ -973,8 +973,23 @@ public sealed class MessagingProtocolTests
         server.Serve();
         server.Receive(default);
         Assert.Empty(server.Results);
-        server.Post(new ActionFailed(server.Log.OfType<RingBells>().Single(), "bell directory refused"));
+        server.Post(new ActionFailed(server.Log.OfType<Publish>().Single(), "directory refused"));
         Assert.Equal(ExceptionCatalog.McsImp, server.Last.ExceptionName);
+    }
+
+    [Fact]
+    public void ALostRingCostsTheServerNothing()
+    {
+        var network = Network();
+        var server = new Peer(network, "srvA", "SRV");
+        server.Serve();
+        server.Post(new ActionFailed(server.Log.OfType<RingBells>().Single(), "one bell's socket failed"));    // design 5.4.1: a ring decides nothing
+        var requestor = new Peer(network, "req1");
+        requestor.Send("SRV", "X");
+        server.Receive(default);
+        Pump(requestor, server);
+        Assert.True(requestor.Last.Successful);
+        Assert.Equal("X", server.Last.Image);
     }
 
     [Fact]

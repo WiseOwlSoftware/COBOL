@@ -366,11 +366,13 @@ internal sealed class MessagingProtocol
             case Activate:
                 if (_send is { Phase: SendPhase.Activating } activating) FinishSend(activating, StatementResult.Failed(ExceptionCatalog.McsImp, detail));
                 break;
-            case Publish { Endpoint.Kind: PeerEndpointKind.Server } or RingBells:
-                // The listener never published, or the bells never rang (Serve, before any statement): the first RECEIVE that needs a requestor says so.
+            case Publish { Endpoint.Kind: PeerEndpointKind.Server }:
+                // The listener never published (Serve, before any statement): the first RECEIVE that needs a requestor says so.
                 _serveFailure ??= detail;
                 if (_receive is { Kind: not ReceiveKind.FromServer } waiting) CompleteReceive(waiting, StatementResult.Failed(ExceptionCatalog.McsImp, detail));
                 break;
+            case RingBells:
+                break;                                             // design 5.4.1: a ring decides nothing; a lost one costs one enumeration
             case Unpublish:
                 break;                                             // cleanup after the statement it belonged to completed: nothing is left to fail
             default:                                               // the bell's Publish, a Write, a CloseLink

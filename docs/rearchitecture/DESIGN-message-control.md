@@ -550,7 +550,7 @@ Slice S2a builds the protocol and its medium without a socket. The full action s
 `Unpublish`, `Enumerate`, `Connect`, `RingBells`, `ArmDeadline`, `Activate` and `Complete`; the full event set adds the
 answers to those actions (`Enumerated`, `Connected`, `ActivationEnded`) and `ActionFailed`, which is EC-MCS-IMP for the
 statement the failed action served (Q8); it names the action, because a failed `Connect` frees its server for the next SEND, an
-`Enumerate` or `Connect` owes an answer that it replaces, and a `Publish` or `RingBells` owes none (a listener that never published
+`Enumerate` or `Connect` owes an answer that it replaces, and a `Publish` or `RingBells` owes none (a lost ring costs nothing; a listener that never published
 makes the first RECEIVE that needs a requestor EC-MCS-IMP). `IPeerTransport` is the medium an action runs on: `Publish`, `Unpublish`,
 `EnumerateServers`, `Connect` (which applies the refusal rule), `Write`, `Close`, `RingBells` and `TryTake`, which hands
 the peer the next `FrameReceived`, `LinkLost`, `LinkAccepted` or `BellRung` in arrival order. `InMemoryTransport` implements it over a shared
