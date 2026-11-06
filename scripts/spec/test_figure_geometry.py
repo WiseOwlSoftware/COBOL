@@ -8,6 +8,7 @@ a bracket turned the wrong way (kb/Work PB3530). The genuine brackets beside tho
 """
 import pathlib
 import sys
+import types
 from typing import NamedTuple
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -49,10 +50,45 @@ def main() -> int:
         got = G._foot_side(stem, FEET)
         if got != want:
             fails.append(f"{name}: read as {got!r}, want {want!r}")
+    dispatch = edition_dispatch()
+    fails.extend(dispatch)
     for f in fails:
         print(f"FAIL: {f}")
-    print(f"figure_geometry self-test: {len(CASES) - len(fails)}/{len(CASES)} " + ("GREEN" if not fails else "RED"))
+    total = len(CASES) + EDITION_CASES
+    print(f"figure_geometry self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))
     return 1 if fails else 0
+
+
+#: How many checks `edition_dispatch` makes: two vector editions, the raster arm called, the raster arm absent.
+EDITION_CASES = 4
+
+
+def edition_dispatch() -> list[str]:
+    """`page_classifier` picks the arm the edition table records (kb/Work PB4815), on a planted raster module."""
+    fails = []
+    for edition in (2002, 2023):
+        if G.page_classifier(edition) is not G.classify_page:
+            fails.append(f"{edition} is a vector edition and must read strokes with classify_page")
+    planted = types.ModuleType("figure_raster")
+    planted.measure_page = lambda edition, page: [("measured", edition, page)]
+    saved = sys.modules.get("figure_raster", False)
+    try:
+        sys.modules["figure_raster"] = planted
+        if G.page_classifier(1985)("a page") != [("measured", 1985, "a page")]:
+            fails.append("1985 is a raster edition and must call figure_raster.measure_page(edition, page)")
+        sys.modules["figure_raster"] = None          # an import of None raises ModuleNotFoundError: the module is absent
+        try:
+            G.page_classifier(1985)
+            fails.append("1985 with no figure_raster module must exit, not read strokes from a scan")
+        except SystemExit as ex:
+            if "PB4817" not in str(ex.code):
+                fails.append("1985 with no figure_raster module must exit naming PB4817")
+    finally:
+        if saved is False:
+            sys.modules.pop("figure_raster", None)
+        else:
+            sys.modules["figure_raster"] = saved
+    return fails
 
 
 if __name__ == "__main__":

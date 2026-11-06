@@ -116,10 +116,10 @@ def main() -> int:
     ap.add_argument("--write", action="store_true", help=f"record the measurement in {DATA.relative_to(REPO)}")
     args = ap.parse_args()
     spec_pdf.require(2023)
-    import fitz                                                    # PyMuPDF, as the sibling tools use it
+    import pymupdf                                                    # PyMuPDF, as the sibling tools use it
 
     rules = json.loads(CATALOG.read_text(encoding="utf-8"))["rules"]
-    with fitz.open(PDF) as doc:
+    with pymupdf.open(PDF) as doc:
         measured = measure(doc, rules)
     bad = [m for m in measured if m["level"] != 0]
     for m in measured:

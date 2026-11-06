@@ -120,9 +120,9 @@ class RasterPage:
 
 def render(edition: int, page: int, dpi: int = DPI) -> np.ndarray:
     """The page as a grayscale array (rows x columns, 0 black .. 255 white)."""
-    import fitz
-    doc = fitz.open(spec_pdf.require(edition))
-    pix = doc[page - 1].get_pixmap(matrix=fitz.Matrix(dpi / 72, dpi / 72), colorspace=fitz.csGRAY)
+    import pymupdf
+    doc = pymupdf.open(spec_pdf.require(edition))
+    pix = doc[page - 1].get_pixmap(matrix=pymupdf.Matrix(dpi / 72, dpi / 72), colorspace=pymupdf.csGRAY)
     return np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width)
 
 
@@ -543,9 +543,9 @@ def overlay(gray: np.ndarray, rp: RasterPage) -> np.ndarray:
 
 
 def save_png(rgb: np.ndarray, path: pathlib.Path) -> None:
-    import fitz
+    import pymupdf
     h, w = rgb.shape[:2]
-    fitz.Pixmap(fitz.csRGB, w, h, np.ascontiguousarray(rgb).tobytes(), False).save(str(path))
+    pymupdf.Pixmap(pymupdf.csRGB, w, h, np.ascontiguousarray(rgb).tobytes(), False).save(str(path))
 
 
 def calibrate(edition: int, pages: list, out: pathlib.Path) -> None:

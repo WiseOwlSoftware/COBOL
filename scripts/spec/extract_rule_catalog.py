@@ -46,7 +46,8 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC = REPO / "specs" / "ISO_COBOL_2023.md"
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
+SPEC = spec_pdf.markdown(2023)
 OUT = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
 #: The COMMITTED inventory of clauses that carry ``N)``-shaped rules this extractor does not harvest — the
 #: manifest the content-keyed scan compares against, so "nothing new fell out of the denominator" is an

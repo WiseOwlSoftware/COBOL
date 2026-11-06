@@ -53,7 +53,7 @@ naive `Figure D\.\d+` regex.
 
 ```python
 # locating a printed figure
-import fitz, re
+import pymupdf, re
 for pno in range(doc.page_count):
     if re.search(r"Figure\s+D\.6\s*—", doc[pno].get_text()): print(pno + 1)
 ```

@@ -42,7 +42,9 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[2]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[3]
-SPEC = REPO / "specs" / "ISO_COBOL_2023.md"
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/spec, for the edition table
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
+SPEC = spec_pdf.markdown(2023)
 
 AT_OLD_PREFIX = "$$\\left[\\begin{array}{l} \\text{AT} \\left\\{"
 EXC_OLD = ("$$\\left[\\begin{array}{l} \\text{ON EXCEPTION imperative-statement-1} \\\\ "

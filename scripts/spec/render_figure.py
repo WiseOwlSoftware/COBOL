@@ -21,6 +21,7 @@ See `find_bands`. An explicit `--band` overrides it for a page the structure can
     python scripts/spec/render_figure.py 784                     # START, printed page 754 — every figure
     python scripts/spec/render_figure.py 632 --bands-only        # COMPUTE — just report what it located
     python scripts/spec/render_figure.py 607 --band 140 250      # override: one band, given explicitly
+    python scripts/spec/render_figure.py 190 --edition 2002      # another edition (default 2023); a scan is refused
 """
 from __future__ import annotations
 
@@ -37,9 +38,7 @@ from spec_headings import GENERAL_FORMAT_TITLE   # THE one spelling of the headi
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
-PDF = spec_pdf.path(2023)
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 
 # THE HOUSE STYLE — see FIGURE-STYLE.md for the measurements behind each choice.
 # BOX DRAWING ONLY (U+2500–U+257F). The Miscellaneous Technical extension glyphs (⎡⎧⎪, U+23A1–U+23AD) look right
@@ -981,7 +980,7 @@ p.lbl { font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:
 """
 
 
-def clause_title(doc, pno, back=6):
+def clause_title(doc, pno, folio_offset, back=6):
     """The clause this page's figures belong to, walking back through continuation pages.
 
     A figure region that runs over a page break leaves the continuation page with no heading of its own, and
@@ -991,19 +990,20 @@ def clause_title(doc, pno, back=6):
     for n in range(pno, max(pno - back, 0), -1):
         heads = [t for _, t in headings(doc[n - 1]) if GENERAL_FORMAT_TITLE.search(t)]
         if heads:
-            return heads[0] + (f" — continued on folio {pno - 30}" if n < pno else "")
+            return heads[0] + (f" — continued on folio {pno - folio_offset}" if n < pno else "")
     return "(continued from the previous page)"
 
 
 def printed_crop(page, lo, hi, dpi=170):
     """The printed figure as a data: URI, so the sheet can be compared against the page it came from."""
     import base64
-    clip = fitz.Rect(50, max(lo - 10, 0), 565, hi + 12)
+    import pymupdf
+    clip = pymupdf.Rect(50, max(lo - 10, 0), 565, hi + 12)
     png = page.get_pixmap(dpi=dpi, clip=clip).tobytes("png")
     return "data:image/png;base64," + base64.b64encode(png).decode("ascii")
 
 
-def sheet(doc, pages, out_path, extract, classify_page):
+def sheet(doc, pages, out_path, extract, classify_page, folio_offset):
     """Render every figure on the given pages into one standalone HTML page."""
     parts = [f"<style>{SHEET_CSS}</style>", "<h1>General-format figures, generated from measurement</h1>",
              '<p class="note">Every figure below is laid out from the printed page: the words and their '
@@ -1012,7 +1012,7 @@ def sheet(doc, pages, out_path, extract, classify_page):
              'hand. Bands are located from the clause structure, not from spacing.</p>']
     for pno in pages:
         page = doc[pno - 1]
-        title = clause_title(doc, pno)
+        title = clause_title(doc, pno, folio_offset)
         bands = find_bands(page, extract)
         for n, (lo, hi) in enumerate(bands, 1):
             grid, marks = build(page, lo, hi, extract, classify_page)
@@ -1020,7 +1020,7 @@ def sheet(doc, pages, out_path, extract, classify_page):
                 continue
             body = "\n".join(render(grid, marks, False))
             parts.append(f"<h2>{title}</h2>")
-            parts.append(f'<p class="meta">printed folio {pno - 30} &middot; PDF page {pno} &middot; '
+            parts.append(f'<p class="meta">printed folio {pno - folio_offset} &middot; PDF page {pno} &middot; '
                          f'figure {n} of {len(bands)}</p>')
             parts.append('<div class="pair">')
             parts.append(f'<div><p class="lbl">printed</p>'
@@ -1033,28 +1033,30 @@ def sheet(doc, pages, out_path, extract, classify_page):
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("page", type=int, help="PDF page number (printed folio + 30)")
+    ap.add_argument("page", type=int, help="PDF page number (printed folio + the edition's folio offset)")
     ap.add_argument("--band", nargs=2, type=float, metavar=("Y0", "Y1"),
                     help="render ONE band explicitly, instead of the figures the clause structure locates")
     ap.add_argument("--plain", action="store_true", help="omit the <u> tags")
     ap.add_argument("--bands-only", action="store_true", help="report the located bands; render nothing")
     ap.add_argument("--sheet", metavar="OUT.html", help="render PAGE plus --also into one HTML sheet")
     ap.add_argument("--also", nargs="*", type=int, default=[], help="further pages for --sheet")
+    spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
-    spec_pdf.require(2023)
-    import fitz
-    globals()["fitz"] = fitz
+    spec_pdf.require_vector(args.edition, "render_figure.py")
+    pdf = spec_pdf.require(args.edition)
+    import pymupdf
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
     from figure_extract import extract
-    from figure_geometry import classify_page
+    from figure_geometry import page_classifier
 
-    doc = fitz.open(PDF)
+    classify_page = page_classifier(args.edition)
+    doc = pymupdf.open(pdf)
     page = doc[args.page - 1]
 
     if args.sheet:
         out = pathlib.Path(args.sheet)
-        sheet(doc, [args.page] + args.also, out, extract, classify_page)
+        sheet(doc, [args.page] + args.also, out, extract, classify_page, spec_pdf.folio_offset(args.edition))
         print(f"wrote {out}")
         return 0
 

@@ -37,10 +37,7 @@ import sys
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
-import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
-PDF = spec_pdf.path(2023)
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 
 TOKEN = re.compile(r"[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*")
 RUNNING_HEADER = re.compile(r"ISO/IEC\s*1989")
@@ -100,7 +97,7 @@ def hyphen_artifact(token: str, present: set[str]) -> bool:
 # what it needs to live on for the rest.
 def _require_page_anchors(figs):
     if not figs:
-        sys.exit("HALTED: no page anchors in specs/ISO_COBOL_2023.md — pages were removed from the transcription, "
+        sys.exit("HALTED: no page anchors in the transcription (specs/*.md) — pages were removed from it, "
                  "so this page-keyed audit can no longer bucket it. For figures use "
                  "`python scripts/spec/sweep_figures.py --check`, which regenerates and diffs exactly. "
                  "This audit needs re-keying onto the clause hierarchy.")
@@ -112,15 +109,16 @@ def main() -> int:
     ap.add_argument("--pages", nargs=2, type=int, metavar=("FROM", "TO"))
     ap.add_argument("--show", action="store_true", help="list the tokens for each flagged page")
     ap.add_argument("--json")
+    spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
-    spec_pdf.require(2023)
-    import fitz
+    pdf = spec_pdf.require(args.edition)
+    import pymupdf
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
     from figure_extract import extract
 
-    doc = fitz.open(PDF)
-    md = SPEC_MD.read_text(encoding="utf-8").splitlines()
+    doc = pymupdf.open(pdf)
+    md = spec_pdf.markdown(args.edition).read_text(encoding="utf-8").splitlines()
     slices = page_slices(md)
     lo, hi = args.pages if args.pages else (1, doc.page_count)
 

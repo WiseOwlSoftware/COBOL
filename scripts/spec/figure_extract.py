@@ -30,6 +30,7 @@ underlined on the rendered page and this function said it was not.
 
     python scripts/spec/figure_extract.py 632
     python scripts/spec/figure_extract.py 607 --band 130 320
+    python scripts/spec/figure_extract.py 190 --edition 2002     # another edition (default 2023); a scan is refused
 """
 from __future__ import annotations
 
@@ -39,9 +40,7 @@ import sys
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
-PDF = spec_pdf.path(2023)
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 
 # A bracket FOOT and an underline are both short horizontal rules, and they CANNOT be told apart by width.
 # An earlier version of this file used MIN_RULE_W = 9.0 to exclude feet, and silently mis-read every two-letter
@@ -184,11 +183,13 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("page", type=int)
     ap.add_argument("--band", nargs=2, type=float, metavar=("Y0", "Y1"), help="restrict to a vertical band")
+    spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
-    spec_pdf.require(2023)
-    import fitz
+    spec_pdf.require_vector(args.edition, "figure_extract.py")
+    pdf = spec_pdf.require(args.edition)
+    import pymupdf
 
-    doc = fitz.open(PDF)
+    doc = pymupdf.open(pdf)
     page = doc[args.page - 1]
     words = extract(page, tuple(args.band) if args.band else None)
     if not words:

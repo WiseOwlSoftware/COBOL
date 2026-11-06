@@ -96,7 +96,7 @@ import rename_retired_names as retired_names  # noqa: E402  (scripts/: the ONE m
 #: Files MOVED whole, by a rename outside the product rename's rules: the frozen record keeps the name it was measured
 #: under, and the citation resolves to the same file under its present name. The spec transcription took its edition
 #: (owner 2026-11-05: "rename all spec files with their appropriate version #").
-MOVED = {"specs/ISO_COBOL.md": "specs/ISO_COBOL_2023.md"}
+MOVED = {"specs/ISO_COBOL.md": "specs/ISO_COBOL_2023.md"}  # spec_pdf: names-the-file
 
 
 def present_path(path: str) -> str:

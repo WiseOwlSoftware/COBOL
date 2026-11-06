@@ -85,9 +85,9 @@ def main() -> int:
     ap.add_argument("--write", action="store_true", help="update scripts/spec/data/index-levels.json")
     args = ap.parse_args()
     spec_pdf.require(2023)
-    import fitz
+    import pymupdf
 
-    first, measured = measure(fitz.open(PDF))
+    first, measured = measure(pymupdf.open(PDF))
     print(f"printed index: PDF pages {first + 1}..")
     print(f"entries measured : {len(measured)} "
           f"({sum(1 for _, l in measured if l == 0)} top-level, {sum(1 for _, l in measured if l == 1)} sub)")

@@ -31,7 +31,9 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[2]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[3]
-SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/spec, for the edition table
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
+SPEC_MD = spec_pdf.markdown(2023)
 
 PAD = 1
 AXIS = 30          # the column every box is centred on

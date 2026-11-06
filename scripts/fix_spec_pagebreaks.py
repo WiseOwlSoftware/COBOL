@@ -28,6 +28,8 @@ Everything else is left exactly as it is.
 from __future__ import annotations
 import argparse, re, sys
 from standard_streams import ensure_utf8
+sys.path.append(str(__import__('pathlib').Path(__file__).resolve().parent / 'spec'))
+import spec_pdf  # the one edition table (kb/Work PB4815)
 
 ANCHOR = re.compile(r'^<a id="page-(\d+)"></a>$')
 PAGE_H = re.compile(r'^#+\s*Page\s+\d+$')
@@ -90,7 +92,7 @@ def repair(lines: list[str], splits) -> list[str]:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument('--path', default='specs/ISO_COBOL_2023.md')
+    ap.add_argument('--path', default=str(spec_pdf.markdown(2023)))
     ap.add_argument('--apply', action='store_true')
     ap.add_argument('--show', type=int, default=6)
     a = ap.parse_args()

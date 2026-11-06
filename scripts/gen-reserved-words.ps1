@@ -42,7 +42,8 @@
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'LfText.psm1') -Force   # every tracked output is written LF (kb/Work PB3029)
 $repo = Split-Path -Parent $PSScriptRoot
-$specPath = Join-Path $repo 'specs/ISO_COBOL_2023.md'
+$specPath = (& python (Join-Path $PSScriptRoot 'spec/spec_pdf.py') --markdown 2023)   # the one edition table (kb/Work PB4815)
+if ($LASTEXITCODE -ne 0) { throw 'spec_pdf.py --markdown failed' }
 $vcrPath  = Join-Path $repo 'docs/VERSION_CHANGE_REFERENCE.md'
 $csOut    = Join-Path $repo 'src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs'
 $jsonOut  = Join-Path $repo 'tests/version-matrix/reserved-words.json'

@@ -14,10 +14,11 @@ import re
 from pathlib import Path
 
 from . import common
+import spec_pdf  # scripts/spec, on sys.path via common
 from .common import Check
 
 CONSTRUCTS = "tests/version-matrix/constructs.json"
-SPEC = "specs/ISO_COBOL_2023.md"
+SPEC = spec_pdf.markdown(2023).relative_to(spec_pdf.REPO).as_posix()   # the one edition table (kb/Work PB4815)
 START, END = "<!-- GEN:VCR-STATUS START -->", "<!-- GEN:VCR-STATUS END -->"
 GATE_ANCHOR = re.compile(r"<!--\s*((?:gate:[^\s>]+\s*)+)-->")
 # A clause number is either the body's dotted decimal (14.9.39.4) or an annex's letter-headed form (E.2, A.4.14); the
