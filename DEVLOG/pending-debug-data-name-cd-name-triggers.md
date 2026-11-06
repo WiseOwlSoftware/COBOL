@@ -20,8 +20,8 @@ bound tree structurally (`BoundReferences`, reflection over the stored fields of
 stores through the existing total taxonomy, `BoundStores`, gaining `DirectStoreOf` as its third client. `DebugTriggerEmitter` places each fire
 as one guarded call; the moments interior to a verb (before a WRITE's I-O, a RECEIVE's data arrival, a PERFORM's init, test and augment) are
 held by the wrapper and landed by the verb's emitter, and a fire no emitter landed is an internal error. DEBUG-CONTENTS is declared as wide
-as the largest target; DEBUG-SUB-1 to DEBUG-SUB-3 hold the occurrence numbers, outermost first (alphanumeric, the four digits and a space,
-the MOVE image of the implicit S9(4) SIGN LEADING SEPARATE item). New diagnostics: COBOL6334 (a subscripted or reference-modified target,
+as the largest target; DEBUG-SUB-1 to DEBUG-SUB-3 hold the occurrence numbers, outermost first (the numeric items of rule 10, S9999 SIGN
+LEADING SEPARATE, image-carried: `+0003`). New diagnostics: COBOL6334 (a subscripted or reference-modified target,
 syntax rules 10 and 12) and COBOL6335 (a target named twice, syntax rule 6). COBOL6336 is returned unused.
 
 **Evidence.** CCVS DB201A now runs with no failing test (4 deleted by the program's own logic, 8 for inspection); before, it did not compile. Goldens

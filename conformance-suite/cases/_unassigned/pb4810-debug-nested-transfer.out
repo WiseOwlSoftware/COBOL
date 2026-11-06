@@ -1,0 +1,15 @@
+A: IF D = 1 GO TO
+DB0 [D         ][001]
+B: ADD NOT SIZE ERROR GO TO
+DB1 [E         ][002]
+C: ADD NOT SIZE ERROR DISPLAY
+NESTED003
+DB1 [E         ][003]
+D: IF, both arms GO TO
+DB0 [D         ][001]
+E: IF, arm not taken
+DB0 [D         ][001]
+F: IF, NEXT SENTENCE
+DB0 [D         ][001]
+AFTER F
+END

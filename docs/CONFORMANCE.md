@@ -2251,24 +2251,25 @@ of an unsupported facility.
   loop moments of rule 5 c / 6 b are each initialization, each augment and each evaluation of a VARYING, AFTER or UNTIL phrase that
   references the item, TEST BEFORE and TEST AFTER alike. (3) A statement nested in another is a statement of its own (rule 7), so an
   IF's condition and its nested MOVE are planned separately, and the section of an item the IF's condition references runs after the
-  IF. (4) A group reference does not reference its subordinate items, nor a subordinate item its group, and a qualifier is no reference
-  (rule 9). (5) DEBUG-CONTENTS is the item's character image, the CD record-area image for a cd-name (rule 23 e), and DEBUG-LINE the
+  IF, except that a nested transfer of control leaves the statement and the section runs immediately before it. (4) A group reference does not reference its subordinate items, nor a subordinate item its group, and a qualifier is no reference
+  (rule 9). (5) DEBUG-CONTENTS is the STORAGE image of the whole referenced item, whatever window the statement used (rule 24 c, syntax rule 12) and with no conversion of internal representation (rule 11), the CD record-area image for a cd-name (rule 23 e), and DEBUG-LINE the
   physical source line of the referencing statement (rule 12 leaves the form to the implementor). (6) RECEIVE's cd-name section runs
   when the data arrived and before the WITH DATA statements. **Departures from GnuCOBOL, each where the 1985 text decides:** SORT, MERGE,
   RELEASE and RETURN run the ALL REFERENCES OF section (rule 5 d: "any other COBOL statement"); a cd-name section runs (rule 8; GnuCOBOL
   never fires it). A special register and a REPORT SECTION sum counter are staged (COBOL1571: they have no data item of their own for
   the trigger to watch; syntax rule 9 admits the sum counter). Witnesses: `conformance:cases/_unassigned/pb4810-debug-data-name-triggers`,
-  `conformance:cases/_unassigned/pb4810-debug-write-go-to-perform`, `conformance:cases/_unassigned/pb4810-debug-rewrite-and-failed-write`, `conformance:cases/_unassigned/pb4810-debug-sub-and-name`,
+  `conformance:cases/_unassigned/pb4810-debug-write-go-to-perform`, `conformance:cases/_unassigned/pb4810-debug-rewrite-and-failed-write`, `conformance:cases/_unassigned/pb4810-debug-sub-and-name`, `conformance:cases/_unassigned/pb4810-debug-nested-transfer`, `conformance:cases/_unassigned/pb4810-debug-explicit-references`,
   `conformance:wiseowl/cases/_unassigned/pb4759_debug_cd_name_triggers`, `conformance:cases/_unassigned/pb4810-debug-target-subscripted`
   (COBOL6334), `conformance:cases/_unassigned/pb4810-debug-target-repeated` (COBOL6335),
   `conformance-test:DebugFacilityTests.StatementInADebuggingSection_At85_CausesNoSection`; CCVS DB201A runs with no failing test.
 
-- **D-DEBUG-SUB — what DEBUG-SUB-1 to DEBUG-SUB-3 are** (kb/Work PB4810). The 1985 implicit description makes each `PIC S9999 SIGN IS LEADING
-  SEPARATE CHARACTER`, and rule 11 leaves a member the reference does not use SPACES. **Determination:** WiseOwl COBOL reads each as an
-  ALPHANUMERIC view of five characters holding the image a MOVE to an alphanumeric item gives the numeric item (ISO/IEC 1989:2023
-  §14.9.25.4 GR6: the separate sign is not moved): the four digits of the occurrence number and a space, or five spaces. CCVS DB201A moves
-  DEBUG-SUB-1 to `PIC X(5)` and compares `"0005"`, which that image satisfies. The sign is never visible and a numeric comparison of the
-  member decodes its digits; a numeric place view of an implicit register is not built (`DebugRegisterPlace` is alphanumeric).
+- **D-DEBUG-SUB — what DEBUG-SUB-1 to DEBUG-SUB-3 are** (kb/Work PB4810). General rule 10 of the 1985 text describes each as `PICTURE S9999
+  SIGN IS LEADING SEPARATE`, and a member the reference does not use is SPACES. **Determination (the text decides, no latitude):** each is a
+  NUMERIC item of that PICTURE, carried as its five-character image (`+0003`, or five spaces; one description and one profile for the three,
+  `ImplicitRegisters.DebugSubRegister`), so a numeric comparison, COMPUTE and DISPLAY read the occurrence number (DISPLAY shows `+0003`), and a
+  MOVE to an alphanumeric item drops the separate sign (ISO/IEC 1989:2023 §14.9.25.4 GR6): CCVS DB201A moves DEBUG-SUB-1 to `PIC X(5)` and
+  compares `"0005"`, which `"0005 "` satisfies. A member the reference does not use is spaces, which a numeric use reads as invalid data.
+  Witness: `conformance:cases/_unassigned/pb4810-debug-contents-and-sub-values`.
 
 - **D-CE1 — where a FREE-form comment-entry ends** (kb/Work PB3245, review finding R1-1; PB1494, PB1758). The
   comment-entry paragraphs (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY, REMARKS) are COBOL-85's,

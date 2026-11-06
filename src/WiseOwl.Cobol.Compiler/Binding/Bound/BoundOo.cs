@@ -231,7 +231,7 @@ public sealed record BoundSelfReference(Place Target) : BoundStatement;
 /// (<see cref="BoundGoback"/>). Rendered as <c>throw new MethodReturn()</c>, caught at the method's public
 /// entry (the ProgramReturn-pattern realization of D8: a plain <c>return</c> cannot unwind the nested bounded
 /// <c>__Dispatch</c> frames an out-of-line PERFORM stacks).</summary>
-public sealed record BoundMethodReturn(BoundRaising? Raising = null) : BoundStatement;
+public sealed record BoundMethodReturn(BoundRaising? Raising = null) : BoundStatement, IBoundTransfersControl;
 // Raising: GOBACK/EXIT METHOD … RAISING from a method (§14.9.18.4 GR1b; the EC-OO wave) — STAGED before
 // the MethodReturn throw; the INVOKE site's pickup applies the §14.6.13.1.5 activator rules AFTER the
 // RETURNING delivery + copy-outs (GR1b's result-before-exception ordering falls out of the throw/catch).

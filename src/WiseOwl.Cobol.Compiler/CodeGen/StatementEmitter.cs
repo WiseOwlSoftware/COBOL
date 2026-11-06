@@ -121,6 +121,9 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     /// per-operation step (<c>ControlFlowEmitter.RenderPerEvaluation</c>) alike.</summary>
     internal bool EmitStatement(BoundStatement s)
     {
+        // A statement that leaves the sequence owes the after-statement debugging sections of the statements enclosing it first
+        // (X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c; DebugTriggerEmitter.LandBeforeTransfer).
+        if (s is IBoundTransfersControl) _debug.LandBeforeTransfer();
         if (!s.OperandEvaluation || _dispatchState.InOperandEvaluation) return s.Accept(this);
         bool saved = _dispatchState.EnterOperandEvaluation();
         try { return s.Accept(this); }

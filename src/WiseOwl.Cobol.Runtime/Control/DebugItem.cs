@@ -36,12 +36,10 @@ public enum DebugCause
 /// injects at a subject procedure's entry space-fills the whole register then sets the members for the triggering
 /// occurrence (<see cref="Populate"/>) before it runs the declarative body.
 /// <para>Layout (the X3.23-1985 implicit description — DEBUG-SUB-n is S9(4) SIGN LEADING SEPARATE, five
-/// characters). The CCVS DB201A witness (<c>MOVE DEBUG-SUB-1 TO SUB-1-1</c>, <c>SUB-1-1 PIC X(5)</c>, then
-/// <c>IF SUB-1-1 = "0004"</c>) is SIGN-AGNOSTIC, not a disproof of the signed form: per ISO MOVE GR6a
-/// (§14.9.25.4, specs/ISO_COBOL_2023.md:28921) a signed numeric's SEPARATE sign character is NOT moved to an
-/// alphanumeric receiver, so S9(4) SIGN LEADING SEPARATE holding +4 → X(5) yields <c>"0004 "</c> — identical to
-/// the unsigned image the witness tests. WiseOwl COBOL pins the authoritative signed 5-char width; DEBUG-SUB is
-/// SPACES when the triggering reference is not subscripted.</para>
+/// characters; general rule 10). The register holds each member's IMAGE: DEBUG-SUB-n as <c>+0004</c> (the sign, then four digits), so a
+/// numeric use decodes it, and a MOVE to an alphanumeric item drops the separate sign (ISO MOVE GR6a, §14.9.25.4,
+/// specs/ISO_COBOL_2023.md:28921): the CCVS DB201A witness (<c>MOVE DEBUG-SUB-1 TO SUB-1-1</c>, <c>SUB-1-1 PIC X(5)</c>, then
+/// <c>IF SUB-1-1 = "0004"</c>) sees <c>"0004 "</c>. DEBUG-SUB is SPACES when the triggering reference is not subscripted.</para>
 /// <code>
 /// 01  DEBUG-ITEM.
 ///     02  DEBUG-LINE     PIC X(6).
@@ -137,14 +135,13 @@ public sealed class DebugItem(int contentsWidth = DebugItem.MinContentsWidth)
         DebugContents = Fit(contents, ContentsWidth, right: false);
     }
 
-    /// <summary>The image of occurrence number <paramref name="at"/>, or SPACES when the reference has no such level: what the
-    /// implicit description's S9(4) SIGN LEADING SEPARATE item becomes in an alphanumeric item it is MOVEd to — the four digits
-    /// left-justified and a space, the separate sign not being moved (§14.9.25.4 GR6). An occurrence number is positive; one past four
+    /// <summary>The image of occurrence number <paramref name="at"/>, or SPACES when the reference has no such level: the five characters of
+    /// general rule 10's S9(4) SIGN LEADING SEPARATE item, the sign and then four digits. An occurrence number is positive; one past four
     /// digits keeps its low-order four, the size of the item.</summary>
     private static string SubImage(ReadOnlySpan<long> occurrences, int at)
     {
         if (at >= occurrences.Length) return new string(' ', SubWidth);
-        return (Math.Abs(occurrences[at]) % 10000).ToString("0000", System.Globalization.CultureInfo.InvariantCulture) + " ";
+        return "+" + (Math.Abs(occurrences[at]) % 10000).ToString("0000", System.Globalization.CultureInfo.InvariantCulture);
     }
 
     /// <summary>The DEBUG-CONTENTS token for a procedure-trigger cause (X3.23-1985; the DB101A-witnessed taxonomy).

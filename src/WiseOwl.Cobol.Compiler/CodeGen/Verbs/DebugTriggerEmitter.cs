@@ -20,16 +20,18 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// (<see cref="LandBeforeIo"/>, <see cref="LandAfterAction"/>); the loop phases are held for the PERFORM emitter the same way
 /// (<see cref="TakeLoopFires"/>). A fire the verb never landed is an internal error raised at the wrapper — never a trigger that silently
 /// did not run.</para>
-/// <para>DEBUG-CONTENTS is the item's character image (rule 24 c: "the content of the data item referenced by identifier-1 at the time that
-/// control passes to the debugging section"), the CD's record-area image for a cd-name (rule 23 e); DEBUG-SUB-n are the occurrence numbers of
+/// <para>DEBUG-CONTENTS is the item's storage image (rule 24 c: "the content of the data item referenced by identifier-1 at the time that
+/// control passes to the debugging section"; rule 11: no conversion), the CD's record-area image for a cd-name (rule 23 e); DEBUG-SUB-n are the occurrence numbers of
 /// the reference's subscripted levels, outermost first (rule 14).</para>
 /// </summary>
-internal sealed class DebugTriggerEmitter(EmitContext ctx, NumericRenderer num)
+internal sealed class DebugTriggerEmitter(EmitContext ctx)
 {
     private IReadOnlyList<DebugFire> _beforeIo = [];
     private IReadOnlyList<DebugFire> _afterAction = [];
     private LoopFires? _loop;
     private int _line;
+    /// <summary>The after-statement fires of the statements now being emitted, innermost first: what a nested transfer of control must run first.</summary>
+    private readonly Stack<(IReadOnlyList<DebugFire> Fires, int Line)> _owedAfter = new();
 
     /// <summary>The loop-phase fires a PERFORM emitter takes, with the PERFORM statement's source line (DEBUG-LINE).</summary>
     internal sealed record LoopFires(IReadOnlyList<DebugFire> Fires, int Line);
@@ -44,6 +46,9 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, NumericRenderer num)
         _afterAction = Of(n, DebugWhen.AfterAction);
         var loop = n.Fires.Where(f => f.When is DebugWhen.LoopInit or DebugWhen.LoopAugment or DebugWhen.LoopTest).ToList();
         _loop = loop.Count > 0 ? new LoopFires(loop, n.SourceLine) : null;
+        var after = Of(n, DebugWhen.After);
+        bool owes = after.Count > 0;
+        if (owes) _owedAfter.Push((after, n.SourceLine));
         try
         {
             foreach (var fire in Of(n, DebugWhen.Before)) EmitFire(fire, n.SourceLine);
@@ -54,13 +59,26 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, NumericRenderer num)
                     + $"(BeforeIo {_beforeIo.Count}, AfterAction {_afterAction.Count}, loop phases {_loop?.Fires.Count ?? 0}); "
                     + $"{n.Inner.GetType().Name} has no emission point for them (docs/CONTROL_FLOW_DESIGN.md D20)");
             if (!terminated)
-                foreach (var fire in Of(n, DebugWhen.After)) EmitFire(fire, n.SourceLine);
+                foreach (var fire in after) EmitFire(fire, n.SourceLine);
             return terminated;
         }
         finally
         {
+            if (owes) _owedAfter.Pop();
             (_beforeIo, _afterAction, _loop, _line) = (savedIo, savedAction, savedLoop, savedLine);
         }
+    }
+
+    /// <summary>⛔ The statement emitter calls this immediately before it emits a statement that transfers control away
+    /// (<see cref="IBoundTransfersControl"/>) from inside the statements now being emitted: a statement that triggers an after-statement
+    /// debugging section and holds the transfer in one of its imperative phrases (<c>IF D = 1 GO TO P</c>, <c>ADD 1 TO E NOT ON SIZE ERROR
+    /// GO TO P</c>) has finished its own action when the nested statement runs (rule 7: the nested statement is another statement), and
+    /// the code after the transfer is never reached, so its section runs here, innermost statement first. A path that does not take the
+    /// transfer reaches the statement's ordinary after-statement fires, so each path runs each section once.</summary>
+    public void LandBeforeTransfer()
+    {
+        foreach (var (fires, line) in _owedAfter)
+            foreach (var fire in fires) EmitFire(fire, line);
     }
 
     private static List<DebugFire> Of(BoundDebugTriggered n, DebugWhen when) => n.Fires.Where(f => f.When == when).ToList();
@@ -108,11 +126,19 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, NumericRenderer num)
     {
         string contents = fire.Target.Kind is DebugTargetKind.CdName
             ? OperandText.RecordAreaImage(fire.Referenced)
-            : OperandText.AsTransferString(new BoundFieldOperand(fire.Referenced), num, "the DEBUG-CONTENTS of");
+            : DataItemImage(fire.Referenced);
         string occurrences = string.Concat(OccurrenceNumbers(fire.Referenced).Select(o => ", " + o));
         ctx.Writer.Line($"if (__DebugReady) __RunDebugRef({line}, {CsLiteral(fire.Target.Name)}, {contents}, "
             + $"{fire.Target.SectionStartPc}, {fire.Target.SectionEndPc}{occurrences});");
     }
+
+    /// <summary>⛔ DEBUG-CONTENTS of a data-name target: "the content of the data item referenced by identifier-1" (X3.23-1985 USE FOR
+    /// DEBUGGING general rule 24 c) — the WHOLE item, never the window a reference-modified statement used (syntax rule 12 bars
+    /// reference modification of identifier-1, and the item is what the rule moves), and moved "exactly as if it was an alphanumeric to
+    /// alphanumeric elementary move with no conversion of data from one form of internal representation to another" (general rule 11):
+    /// its storage image, the one channel (<see cref="OperandText.AsStorageImage"/>) a binary, packed or float item's bytes travel in.</summary>
+    private static string DataItemImage(Place referenced) =>
+        OperandText.AsStorageImage(referenced.Undecorated, "the DEBUG-CONTENTS of");
 
     /// <summary>The occurrence number each subscripted level of the reference computes, outermost first (general rule 14: "the occurrence
     /// number of each level is entered in DEBUG-SUB-1, DEBUG-SUB-2, DEBUG-SUB-3"), as C# <c>long</c> expressions read when the section runs.</summary>

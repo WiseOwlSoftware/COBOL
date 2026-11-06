@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using WiseOwl.Cobol.Binding.Model;
 
 namespace WiseOwl.Cobol.Binding.Bound;
@@ -28,8 +29,9 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// </summary>
 internal static class BoundReferences
 {
-    /// <summary>The places <paramref name="statement"/> references itself, in source order; <paramref name="except"/> (a node held
-    /// by the statement, compared by reference) is left out — the PERFORM planner takes the loop-control phrase apart itself.</summary>
+    /// <summary>The places <paramref name="statement"/> WRITES a reference to itself, in source order (an operand a node names in
+    /// <see cref="IBoundImplicitOperands"/> is one the program did not write, and is left out); <paramref name="except"/> (a node the statement
+    /// holds, compared by reference) is left out too — the planner takes READ INTO's move apart itself.</summary>
     public static IReadOnlyList<Place> Of(BoundStatement statement, object? except = null) => Collect(statement, except);
 
     /// <summary>The places an operand tree <paramref name="node"/> (a condition, an expression, a set target, a bound operand)
@@ -39,7 +41,9 @@ internal static class BoundReferences
     private static List<Place> Collect(object root, object? except)
     {
         var found = new List<Place>();
-        Visit(root, found, except, yieldPlace: true, statementsAreDirect: true);
+        var skip = new HashSet<object>(ReferenceEqualityComparer.Instance);
+        if (except is not null) skip.Add(except);   // a part of the statement the caller plans on its own (READ INTO's move)
+        Visit(root, found, skip, yieldPlace: true, statementsAreDirect: true);
         return found;
     }
 
@@ -55,17 +59,24 @@ internal static class BoundReferences
         || typeof(Position).IsAssignableFrom(t) || t == typeof(OffsetTerm)
         || typeof(WindowCoding).IsAssignableFrom(t) || typeof(AllCount).IsAssignableFrom(t);
 
-    private static void Visit(object? node, List<Place> found, object? except, bool yieldPlace, bool statementsAreDirect)
+    private static void Visit(object? node, List<Place> found, HashSet<object> skip, bool yieldPlace, bool statementsAreDirect)
     {
-        if (node is null || ReferenceEquals(node, except)) return;
+        if (node is null || skip.Contains(node)) return;
         var type = node.GetType();
         if (type.IsPrimitive || type.IsEnum || node is string) return;
+        if (node is ITuple tuple)   // a tuple list's elements are operands too (CANCEL's (name, operand) pairs)
+        {
+            for (int i = 0; i < tuple.Length; i++) Visit(tuple[i], found, skip, yieldPlace, statementsAreDirect);
+            return;
+        }
         if (node is IEnumerable list && !Enters(type))
         {
-            foreach (var element in list) Visit(element, found, except, yieldPlace, statementsAreDirect);
+            foreach (var element in list) Visit(element, found, skip, yieldPlace, statementsAreDirect);
             return;
         }
         if (!Enters(type)) return;
+        if (node is IBoundImplicitOperands implied)
+            foreach (var operand in implied.ImplicitOperands) skip.Add(operand);   // held for the statement's meaning, never written
         switch (node)
         {
             case PositionItemRead read:
@@ -75,21 +86,21 @@ internal static class BoundReferences
                 if (yieldPlace) found.Add(place);
                 // Inside a place only the positions it computes are references (T (I) references I); a wrapped place is the
                 // same reference, never a second one.
-                VisitFields(node, found, except, yieldPlace: false, statementsAreDirect: false);
+                VisitFields(node, found, skip, yieldPlace: false, statementsAreDirect: false);
                 return;
             case BoundStatement statement:
                 if (!statementsAreDirect) return;   // a statement nested in the one asked
-                VisitFields(node, found, except, yieldPlace: true, statementsAreDirect: IsTransparent(statement));
+                VisitFields(node, found, skip, yieldPlace: true, statementsAreDirect: IsTransparent(statement));
                 return;
             default:
-                VisitFields(node, found, except, yieldPlace: true, statementsAreDirect: false);
+                VisitFields(node, found, skip, yieldPlace: true, statementsAreDirect: false);
                 return;
         }
     }
 
     /// <summary>Every field a record stores — the compiler-generated backing fields of its properties included, which a computed
     /// property has none of, so the walk reads state and never derived answers — over the whole base chain.</summary>
-    private static void VisitFields(object node, List<Place> found, object? except, bool yieldPlace, bool statementsAreDirect)
+    private static void VisitFields(object node, List<Place> found, HashSet<object> skip, bool yieldPlace, bool statementsAreDirect)
     {
         for (var c = node.GetType(); c is not null && c != typeof(object); c = c.BaseType)
             foreach (var field in c.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
@@ -97,7 +108,7 @@ internal static class BoundReferences
                 if (field.FieldType.IsPrimitive || field.FieldType.IsEnum || field.FieldType == typeof(string)) continue;
                 // A single BoundMove-typed field is the implicit move a verb's FROM or INTO phrase performs (WRITE ... FROM x, READ ... INTO x):
                 // part of the verb's own statement, whose operands the verb explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5 a).
-                Visit(field.GetValue(node), found, except, yieldPlace, statementsAreDirect || field.FieldType == typeof(BoundMove));
+                Visit(field.GetValue(node), found, skip, yieldPlace, statementsAreDirect || field.FieldType == typeof(BoundMove));
             }
     }
 }

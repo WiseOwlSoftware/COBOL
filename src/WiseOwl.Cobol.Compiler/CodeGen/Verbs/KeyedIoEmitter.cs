@@ -244,7 +244,8 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 // GR4 b) — READ INTO is READ then MOVE THE CURRENT RECORD (the §13.18.43.4 GR16 slice of the
                 // record area, never the padded area): the BOUND move, built by the SAME binder call the
                 // sequential arm makes (kb/Work PB348 over PB339).
-                if (into) move.Emit(rd.IntoMove!);
+                // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs (D20).
+                if (into) { move.Emit(rd.IntoMove!); Debug.LandAfterAction(); }
                 if (rd.NotAtEnd is { } nae) SeqIo.EmitNotPhrase(hook, nae);                  // §14.9.30 — NOT AT END on success
                 if (rd.InvalidKey?.NotInvalid is { } nik) SeqIo.EmitNotPhrase(hook, nik);    // §9.1.14 — success only
             }

@@ -29,6 +29,8 @@ public sealed record BoundProgram(
     // docs/CONTROL_FLOW_DESIGN.md D20) and the DEBUG-CONTENTS width the register is declared with (general rule 15).
     IReadOnlyList<BoundDebugTarget>? DebugTargets = null,
     int DebugContentsWidth = DebugItem.MinContentsWidth,
+    // The description the DEBUG-SUB-n members share (general rule 10: PICTURE S9999 SIGN IS LEADING SEPARATE): the emitter declares its profile.
+    DataItem? DebugSubRegister = null,
     // The exception-checking (Format-3) PERFORM handler pc-ranges (imp-2/3/4) appended above the main pc space
     // (ISO §14.9.28.4 GR17). F3HandlerBasePc is the first such pc (null when the unit has none — the byte-identity
     // gate: a non-F3 unit adds zero synthetic pcs and needs no fall-through wall); F3HandlerOwners[pc - base] is the
@@ -975,7 +977,12 @@ public sealed record BoundNot(BoundCondition Operand) : BoundCondition;
 public sealed record BoundBooleanCondition(BoundBoolExpr Expr) : BoundCondition;
 
 /// <summary>A level-88 condition-name membership test over its (already-resolved) conditional variable place.</summary>
-public sealed record BoundCondition88(Place Parent, Condition88 Condition, bool CheckRangeInvalid = false) : BoundCondition;
+public sealed record BoundCondition88(Place Parent, Condition88 Condition, bool CheckRangeInvalid = false) : BoundCondition, IBoundImplicitOperands
+{
+    /// <summary>A condition-name reference names the condition-name, not its conditional variable, which the test reads on the statement's
+    /// behalf (X3.23-1985 USE FOR DEBUGGING general rule 5: "explicitly references").</summary>
+    public IEnumerable<object> ImplicitOperands => [Parent];
+}
 
 /// <summary>An alphanumeric/national THRU-range membership test (the EVALUATE WHEN <c>lo THRU hi</c> form, and the
 /// carrier for EC-RANGE-INVALID checking): <c>Left</c> is within [<c>Lo</c>, <c>Hi</c>] in the effective collating
@@ -1192,7 +1199,7 @@ public sealed record TerminationStatus(bool Error, BoundOperand? Value);
 /// passing <see cref="Status"/> to the operating system as the process exit code. The edition gate
 /// (StopRunStatus2002) reads the PARSE tree in the post-bind <see cref="Validation.VersionConformancePass"/>,
 /// not this node.</summary>
-public sealed record BoundStop(TerminationStatus? Status = null) : BoundStatement;
+public sealed record BoundStop(TerminationStatus? Status = null) : BoundStatement, IBoundTransfersControl;
 
 /// <summary>STOP literal (X3.23-1985 §14 Format 2, deleted 2002; edition-gated ≥2002 by the validator): "the
 /// literal is communicated to the operator" and, on resume, "execution continues with the next executable
@@ -1598,14 +1605,14 @@ public sealed record BoundOutOfLinePerform(PcRange Range, BoundPerformControl Co
 /// <summary><c>GO TO p</c> — set the program counter to <paramref name="TargetPc"/> (ISO §14.9.17 Format 1;
 /// §14.9.17.4 GR1 "control is transferred to procedure-name-1"). (§14.9.20 — carried here and on the DEPENDING
 /// node — is the INITIALIZE statement.)</summary>
-public sealed record BoundGoTo(int TargetPc, int SourceLine = 0) : BoundStatement;
+public sealed record BoundGoTo(int TargetPc, int SourceLine = 0) : BoundStatement, IBoundTransfersControl;
 
 /// <summary><c>GO TO p1 p2 … DEPENDING ON sel</c> — transfer to <c>Targets[sel-1]</c>; out-of-range falls through
 /// to the next statement (ISO §14.9.17 Format 2; §14.9.17.4 GR2).</summary>
 public sealed record BoundGoToDepending(BoundOperand Selector, IReadOnlyList<int> Targets, int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>EXIT PARAGRAPH</c> — transfer to the end of the current paragraph (fall through to the next).</summary>
-public sealed record BoundExitParagraph(int SourceLine = 0) : BoundStatement;
+public sealed record BoundExitParagraph(int SourceLine = 0) : BoundStatement, IBoundTransfersControl;
 
 /// <summary><c>EXIT SECTION</c> (ISO §14.9.14 Format 4, GR7) — transfer control to the unnamed empty paragraph
 /// following the LAST paragraph of the current section (pc <paramref name="SectionEndPc"/> + 1), "preceding any
@@ -1613,10 +1620,10 @@ public sealed record BoundExitParagraph(int SourceLine = 0) : BoundStatement;
 /// end (a PERFORM SECTION / PERFORM … THRU the section end / SORT-or-USE procedure / the top-level end wall), that
 /// section return mechanism fires — realized in the emitter by an explicit <c>return</c> when <c>__exitPc</c> equals
 /// the section end (the mid-section fall-through the bounded dispatch's own <c>__atExit</c> tail-check cannot see).</summary>
-public sealed record BoundExitSection(int SectionEndPc, int SourceLine = 0) : BoundStatement;
+public sealed record BoundExitSection(int SectionEndPc, int SourceLine = 0) : BoundStatement, IBoundTransfersControl;
 
 /// <summary><c>EXIT PERFORM [CYCLE]</c> — break (or continue, when CYCLE) the nearest inline PERFORM loop.</summary>
-public sealed record BoundExitPerform(bool Cycle) : BoundStatement;
+public sealed record BoundExitPerform(bool Cycle) : BoundStatement, IBoundTransfersControl;
 
 /// <summary>A no-op statement: bare <c>EXIT</c>, <c>CONTINUE</c>, or <c>EXIT PROGRAM</c> in the main program.</summary>
 public sealed record BoundNop : BoundStatement;
@@ -1703,7 +1710,7 @@ public sealed record BoundCommitRollback(bool IsCommit, IReadOnlyList<FileModel>
 /// node for both, since the two rules state the same transfer and nothing downstream may diverge on the arm; also
 /// §14.9.37 as a SEARCH AT END/WHEN phrase — archaic per Annex F.1, legal at every edition): transfer to the
 /// implicit CONTINUE following the current sentence's separator period.</summary>
-public sealed record BoundNextSentence(int SourceLine = 0) : BoundStatement;
+public sealed record BoundNextSentence(int SourceLine = 0) : BoundStatement, IBoundTransfersControl;
 
 /// <summary><c>SET {{ condition-name-1 } … TO { TRUE | FALSE }} …</c> (ISO §14.9.39 Format 4) — each names a
 /// level-88 whose selected VALUE literal is stored into its (already-resolved) parent place.
@@ -2123,8 +2130,12 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundMove? FromMov
 /// enforced on the keyed arm only) and no INVALID KEY phrase (so a <c>NOT INVALID KEY</c> block was compiled
 /// away) — kb/Work PB334. The drift test that keeps this true for the next phrase is PB340.</para></summary>
 public sealed record BoundRead(
-    FileModel File, BoundMove? IntoMove, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement, IBoundRead
+    FileModel File, BoundMove? IntoMove, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement, IBoundRead, IBoundImplicitOperands, IBoundIntoPhrase
 {
+    /// <summary>The record area the implicit INTO move sends is the verb's own, not an operand the program wrote (X3.23-1985 USE FOR
+    /// DEBUGGING general rule 5: "explicitly references"); the INTO identifier is written.</summary>
+    public IEnumerable<object> ImplicitOperands => IntoMove is null ? [] : [IntoMove.Source];
+
     /// <summary>The §14.9.30.4 GR19 read kind — <see cref="ReadKind.Next"/> (written or implied by §14.9.30.3
     /// SR8) or <see cref="ReadKind.Previous"/>. <see cref="ReadKind.Random"/> cannot occur here: §12.4.5.5.2 SR2
     /// bars ACCESS MODE RANDOM/DYNAMIC on a sequential file, so SR8 always implies NEXT when no direction is

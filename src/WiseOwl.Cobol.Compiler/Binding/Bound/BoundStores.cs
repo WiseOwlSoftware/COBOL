@@ -249,7 +249,7 @@ public static class BoundStores
         public StoreKind Visit(BoundCompute n) => StoreOrKids(ReceiversHit(n.Targets), StoreKind.Write, n.SizeError?.OnError, n.SizeError?.NotOnError);
         public StoreKind Visit(BoundComputeBoolean n) => n.Targets.Any(Hit) ? StoreKind.Write : StoreKind.None;   // §14.9.8 F2 — no size-error phrase
         public StoreKind Visit(BoundPositionValue n) => Hit(n.Temp) ? StoreKind.Write : StoreKind.None;
-        public StoreKind Visit(BoundCorresponding n) => StoreOrKids(n.Pairs.Any(p => Hit(p.Target)),
+        public StoreKind Visit(BoundCorresponding n) => StoreOrKids(n.Pairs.Any(p => Hit(p.Target)) | Hit(n.ReceivingGroup),
             n.Verb == CorrVerb.Move ? StoreKind.Write : StoreKind.ReadWrite,
             n.SizeError?.OnError, n.SizeError?.NotOnError);
         public StoreKind Visit(BoundInitialize n) => InitStores(n.Actions) ? StoreKind.Write : StoreKind.None;

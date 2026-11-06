@@ -78,7 +78,11 @@ internal static class DebugTriggerPlanner
             return;
         }
         var item = target.Item!;
-        var referenced = FirstReferenceTo(BoundReferences.Of(leaf), item);
+        // The INTO phrase of READ and RETURN executes only when the verb delivered a record ("not executed or evaluated", rules 5 and 6): it is
+        // planned as its own moment, after the verb's action, and the rest of the statement is planned without it.
+        var into = (leaf as IBoundIntoPhrase)?.IntoMove;
+        if (into is not null) PlanInto(into, target, fires);
+        var referenced = FirstReferenceTo(BoundReferences.Of(leaf, except: into), item);
         if (referenced is null) return;   // a statement that does not reference the item runs nothing (a qualifier is no reference, rule 9)
         switch (leaf)
         {
@@ -94,8 +98,21 @@ internal static class DebugTriggerPlanner
             return;
         }
         // Rule 6 c: the item alone runs the section after a statement that CHANGES it.
-        if (BoundStores.DirectStoreOf(leaf, item) is { } stored)
+        if (BoundStores.DirectStoreOf(leaf, item) is { } stored && !(into?.Targets.Any(t => ReferenceEquals(t, stored)) ?? false))
             fires.Add(new DebugFire(target, stored, DebugWhen.After));
+    }
+
+    /// <summary>The INTO phrase of a READ or RETURN (its implicit move of the record area into the receiver): the receiver is a written
+    /// operand, run after the verb's action (<see cref="DebugWhen.AfterAction"/>, landed by the verb's emitter after the move) and only on the
+    /// path that moved the record.</summary>
+    private static void PlanInto(BoundMove into, BoundDebugTarget target, List<DebugFire> fires)
+    {
+        var item = target.Item!;
+        if (FirstReferenceTo(BoundReferences.OfOperand(into.Targets), item) is not { } referenced) return;
+        if (target.Kind is DebugTargetKind.AllReferences)
+            fires.Add(new DebugFire(target, referenced, DebugWhen.AfterAction));
+        else if (BoundStores.DirectStoreOf(into, item) is { } stored)
+            fires.Add(new DebugFire(target, stored, DebugWhen.AfterAction));
     }
 
     /// <summary>Rule 8: a cd-name target is referenced by the communication statements of its own description, and the section

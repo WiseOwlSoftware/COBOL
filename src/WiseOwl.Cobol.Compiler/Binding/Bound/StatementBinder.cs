@@ -284,6 +284,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             DebugSubjects: table.DebugSubjects.Count > 0 ? table.DebugSubjects : null,
             DebugTargets: table.DebugTargets.Count > 0 ? table.DebugTargets : null,
             DebugContentsWidth: table.DebugContentsWidth,
+            DebugSubRegister: table.DebugSubRegister,
             F3HandlerBasePc: table.F3Handlers.Count > 0 ? handlerBase : null,
             F3HandlerOwners: table.F3Handlers.Count > 0 ? table.F3HandlerOwners : null,
             Raising: raising);

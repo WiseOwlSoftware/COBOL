@@ -994,7 +994,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // READ … INTO is READ then MOVE THE CURRENT RECORD to the target (ISO §14.9.30.4 GR4 b)) — the
             // move is BOUND (kb/Work PB348), its sender the record sliced to the §13.18.43.4 GR16 byte count
             // through the ONE builder the keyed READ and the sort RETURN also use (kb/Work PB339).
-            if (rd.IntoMove is { } intoMove) move.Emit(intoMove);
+            // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs (D20).
+            if (rd.IntoMove is { } intoMove) { move.Emit(intoMove); Debug.LandAfterAction(); }
             if (rd.NotAtEnd is { } not) EmitNotPhrase(hook, not);
             // §14.9.30.4 GR13c — on a successful READ "control is transferred to the end of the READ statement,
             // or, if the NOT AT END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2".
