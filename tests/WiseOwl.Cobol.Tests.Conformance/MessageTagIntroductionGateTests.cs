@@ -90,6 +90,48 @@ public sealed class MessageTagIntroductionGateTests
         else EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
     }
 
+    /// <summary>kb/Work PB4771: below 2023 a SET Format 17 the SR35 rules refuse (a numeric receiver, a numeric sender, two
+    /// receivers, a literal sender) draws ONLY the operands' COBOL0900 gate, because the usage the class refusals read
+    /// does not exist there (DESIGN-message-control.md §7.1: "no second one may appear"); at 2023 each draws its
+    /// COBOL0869 and no gate. The harness's refusal files check a code is reported, not that another is not.</summary>
+    [Theory]
+    [InlineData("SET N TO T", 85)]
+    [InlineData("SET N TO T", 2002)]
+    [InlineData("SET N TO T", 2014)]
+    [InlineData("SET T TO N", 2014)]
+    [InlineData("SET T U TO NULL", 2014)]
+    [InlineData("SET T TO 5", 2014)]
+    [InlineData("SET N TO T", 2023)]
+    [InlineData("SET T TO N", 2023)]
+    [InlineData("SET T U TO NULL", 2023)]
+    [InlineData("SET T TO 5", 2023)]
+    public void SetFormat17Refusals_AreTheGateAloneBelowTheIntroduction(string statement, int edition)
+    {
+        var errors = EditionHarness.CompileFull($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. MTISR.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T USAGE MESSAGE-TAG.
+            01 U USAGE MESSAGE-TAG.
+            01 N PIC 9(4).
+            PROCEDURE DIVISION.
+            MAIN-P.
+                {statement}.
+                STOP RUN.
+            """, edition).Errors;
+        if (edition >= 2023)
+        {
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
+            EditionHarness.AssertNoDiagnostic(errors, "COBOL0900");
+        }
+        else
+        {
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
+            EditionHarness.AssertNoDiagnostic(errors, "COBOL0869");
+        }
+    }
+
     /// <summary>The note's arm 2 from the other side: a group's message-tag usage handed to a leaf that wrote a
     /// PICTURE is refused as a MESSAGE-TAG usage at every edition, and never as a floating-point one.</summary>
     [Theory]

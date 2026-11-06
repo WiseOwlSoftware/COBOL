@@ -546,10 +546,18 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// written when NULL is. The format, every other SET format and §14.9.39.1 ("setting the content of a message-tag
     /// data item to NULL or another message-tag") agree on the receiver, so the two rules are read as misprints.</para>
     /// <para>The printed format has ONE receiving operand (no repetition, unlike Formats 7, 8 and 9), so a list of
-    /// receivers is refused.</para></summary>
+    /// receivers is refused.</para>
+    /// <para>⛔ BELOW 2023 THE STATEMENT IS NOT THIS EDITION'S TO REFUSE (kb/Work PB916, PB4771): Format 17 is selected by
+    /// its operand's message-tag USAGE, which exists from 2023 only (<c>usage-message-tag-2023</c>), and below it that
+    /// operand's entry already draws the COBOL0900 introduction gate, which fails the compile.
+    /// DESIGN-message-control.md §7.1: each refusal also runs at 2014, "where COBOL0900 is the expected diagnosis and no
+    /// second one may appear", so the statement binds to a no-op there and the SR35 class refusals below speak only
+    /// where the usage exists.</para></summary>
     private BoundStatement BindMessageTagSet(
         IReadOnlyList<Core.DataReferenceContext> receivers, SetSender? sender, bool toNull, string senderText)
     {
+        if (!ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.UsageMessageTag2023))
+            return new BoundNop();   // no-op: the operands' usage-message-tag-2023 gate (COBOL0900) refuses this compile (kb/Work PB916, PB4771)
         string written = SetFormatSelection.Written(receivers);
         if (receivers.Count != 1)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
