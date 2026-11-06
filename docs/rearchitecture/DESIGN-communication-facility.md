@@ -230,7 +230,11 @@ statement's tail only until then. Step 2 orders the device before page 2, so a p
 device's durable bytes. The engine's durability contract (2.2.1.2) still holds: a power loss can return the store to its last promotion;
 the devices are then cut to match on the next open, and the messages the lost statements took or transmitted are in the store again. A
 device file shorter than its committed end was changed outside the MCS: the next transmission writes at the file's actual end and records
-that. A transmission is O(1) in the device's size.
+that. A transmission is O(1) in the device's size. A device the store has never transmitted to is committed at 0: the first statement of a run unit cuts
+the file of every device-bearing name the definitions give (`MessageDefinitions.Devices`) and of every `DeviceEnds` row to its committed end, so a file
+a dead first transmission created is emptied. A statement that answers 92 also puts the devices it wrote to back to their committed ends, and deletes one
+it created, best effort (`McsStore.CutBack`): the positional protocol above does not depend on it, and a host that refuses it leaves the tail only until the
+next transmission or the next run unit's first statement. A statement that answers 93 or as completed leaves the devices as written.
 
 **The RECEIVE wait.** A RECEIVE without a NO DATA phrase that finds no data waits until data is made available (ISO/IEC 1989:2002 A.2.5.3
 GR5 b). It waits on its bell, never on a timer.
@@ -407,8 +411,8 @@ Ordered; each lands alone with its doc changes, goldens and tests, and is one kb
 3. (kb/Work PB4736) **The paged MCS store.** `McsStore`; `MessageStore.Run` as one engine statement under the mutex, with `Unavailable` refused as 92;
    seeding; `MessageStoreState`'s finders, takes and deliveries over the tag tables, and `StoredMessage`'s binary codec; devices
    positioned at `DeviceEnds`; the session's handle, endpoint and presence byte, ended by `RunUnit.Terminate`. It deletes `LockWait`,
-   `AcquireLock`, `mcs.lock`, `mcs-state.json`, `Commit`'s state file, `TakeBack`, and `MessageStoreState`'s `ToJson`, `Overlay`,
-   `Touch`, `Dirty` and `Empty`, with every caller. Witnesses: the region-lock refusal, seeding and `McsStoreCrashMatrixTests`; the CCVS
+   `AcquireLock`, `mcs.lock`, `mcs-state.json`, `Commit`'s state file, `TakeBack` (`McsStore.CutBack` is its best-effort successor, §6 "Devices"), and `MessageStoreState`'s `ToJson`, `Overlay`,
+   `Touch`, `Dirty` and `Empty`, with every caller (`MessageStoreState.Undefined`, the state of an MCS nobody defined, reaches no table, and stands where `Empty` stood). Witnesses: the region-lock refusal, seeding and `McsStoreCrashMatrixTests`; the CCVS
    and `pb4677_mcs_*` goldens unchanged. The in-hold reopen after a refusal and status 93. docs/CONFORMANCE.md's 9x determination gains the `Unavailable`
    host and 93, and so does the user guide's status paragraph (`docs/manual/user-guide/communication.md`; 2002 B.1 item 28 requires
    a provided 9x value in the user documentation), whose "a program can repeat the statement" then holds for 91 and 92 only. Slice 3

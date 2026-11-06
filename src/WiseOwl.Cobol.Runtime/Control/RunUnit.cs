@@ -199,7 +199,14 @@ public sealed class RunUnit
         }
         finally
         {
-            foreach (var reset in _staticStorage) reset();
+            try
+            {
+                MessageControl.Dispose();   // the message control system's store handle, endpoint and presence byte (DESIGN-communication-facility.md §6)
+            }
+            finally
+            {
+                foreach (var reset in _staticStorage) reset();
+            }
         }
     }
 
