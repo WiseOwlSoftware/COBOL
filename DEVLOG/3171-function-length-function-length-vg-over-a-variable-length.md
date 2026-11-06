@@ -1,4 +1,4 @@
-## FUNCTION LENGTH (FUNCTION LENGTH (VG)) over a variable-length group is accepted
+## Entry 3171 — 2026-11-05 16:56 PST — FUNCTION LENGTH (FUNCTION LENGTH (VG)) over a variable-length group is accepted
 
 kb/Work PB4764. A bare `FUNCTION LENGTH (FUNCTION LENGTH (VG))` or `BYTE-LENGTH (FUNCTION LENGTH (VG))` over an OCCURS DEPENDING group was refused
 COBOL1627 as "an arithmetic expression", though §15.50.3 r1 and §15.14.3 r1 admit a data item of any class and §8.4.3.2.4 r1 makes a function-identifier one.
@@ -11,3 +11,4 @@ Goldens: `pb4764_length_of_variable_length_group_length` (accept 2002) and `pb47
 No inventory row closes (AR-15.50.3-1 and AR-15.14.3-1 already CONFORM). Self-review: one predicate per arm, no second copy of a rule, no allocation.
 
 Review round 1 (R1-1): the class tests FARTHEST-FROM-ZERO and NEAREST-TO-ZERO over FUNCTION LENGTH (VG) aborted at run time, because ComputedExtremeTest read the same call-only tree shape; it and IsIntegerOperand now admit the FunctionValue BoundBinary sum as an integer function value. Golden pb4764_length_of_variable_length_group_extreme (accept 2023, the edition that has the tests). Gate: GREEN, Conformance 22,194/22,194.
+
