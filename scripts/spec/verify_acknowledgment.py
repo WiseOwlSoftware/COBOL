@@ -19,25 +19,41 @@ of FIDELITY rather than of internal consistency.
 Whitespace and line wrapping are normalised — those are typesetting, not text. Everything else must match
 exactly, and any difference fails loudly.
 
-    python scripts/spec/verify_acknowledgment.py
+    python scripts/spec/verify_acknowledgment.py [--edition 1985|2002|2023]
+    python scripts/spec/verify_acknowledgment.py --self-test       # planted text, no PDF
+
+The acknowledgment's first and last words, the PDF page that prints it and the shape of the per-copy stamp to strip from
+that page are keyed by edition (ACKNOWLEDGMENT); an edition with no row exits naming that table, never borrowing 2023's
+(kb/Work PB4815).
 """
 from __future__ import annotations
 
+import argparse
 import pathlib
 import re
 import sys
+from typing import NamedTuple
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
-import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
-PDF = spec_pdf.path(2023)
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
+
+
+class Acknowledgment(NamedTuple):
+    """Where one edition prints its acknowledgment, how it opens and closes, and the per-copy stamp shape on that page."""
+    pdf_page: int       # the PDF page that prints it (1-based)
+    first: str          # its first words
+    last: str           # its last words
+    stamp: str          # the shape of the reseller's per-copy stamp, removed from the printed page before comparing
+
 
 # The acknowledgment runs from the first paragraph to the end of the authorization sentence. The trademark
-# footnotes are attached to it and are carried too.
-FIRST = "COBOL is an industry language and is not the property of any company"
-LAST = "programming manuals or similar publications."
+# footnotes are attached to it and are carried too. Keyed by edition: 1985 prints the CODASYL grant on PDF page 3 and
+# 2002 prints none (PB4812, PB4813), so their rows are read from those PDFs when their runs begin.
+ACKNOWLEDGMENT: dict[int, Acknowledgment] = {
+    2023: Acknowledgment(28, "COBOL is an industry language and is not the property of any company",
+                         "programming manuals or similar publications.", r"Licensed to .*?prohibited\."),
+}
 
 
 def norm(s: str) -> str:
@@ -61,11 +77,13 @@ def slice_between(text: str, first: str, last: str, label: str) -> str:
     return text[i:j + len(last)]
 
 
-def main() -> int:
-    spec_pdf.require(2023)
+def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
+    ack = spec_pdf.edition_data(ACKNOWLEDGMENT, edition, "acknowledgment text (verify_acknowledgment.ACKNOWLEDGMENT)")
+    first, last = ack.first, ack.last
+    pdf = spec_pdf.require(edition)
     import fitz
 
-    md = SPEC_MD.read_text(encoding="utf-8")
+    md = spec_pdf.markdown(edition).read_text(encoding="utf-8")
     if not md.lstrip().startswith("# Preface"):
         sys.exit("FATAL: the file does not open with the Preface — page 28 asks for the acknowledgment "
                  "'as part of the preface', so it has to come first")
@@ -77,18 +95,18 @@ def main() -> int:
     cut = md.find('<a id="section-1"></a>')
     if cut < 0:
         sys.exit("FATAL: the clause-1 anchor is missing; cannot delimit the front matter")
-    preface = slice_between(md[:cut], FIRST, LAST, "preface")
+    preface = slice_between(md[:cut], first, last, "preface")
 
     # 2 — the in-position copy, inside the Introduction.
     intro = md.find("\n## Introduction")
     if intro < 0:
         sys.exit("FATAL: the Introduction heading is missing; cannot locate the in-position acknowledgment")
-    inplace = slice_between(md[intro:cut], FIRST, LAST, "the Introduction")
+    inplace = slice_between(md[intro:cut], first, last, "the Introduction")
 
     # 3 — the printed text.
-    doc = fitz.open(PDF)
-    printed_raw = re.sub(r"Licensed to .*?prohibited\.", " ", doc[27].get_text(), flags=re.S)
-    printed = slice_between(printed_raw, FIRST, LAST, "the PDF")
+    doc = fitz.open(pdf)
+    printed_raw = re.sub(ack.stamp, " ", doc[ack.pdf_page - 1].get_text(), flags=re.S)
+    printed = slice_between(printed_raw, first, last, "the PDF")
 
     ok = True
     for label, got in (("preface vs printed", preface), ("Introduction vs printed", inplace)):
@@ -112,6 +130,38 @@ def main() -> int:
     return 0
 
 
+def self_test() -> int:
+    """The edition plumbing and the slicing, on a PLANTED text: no PDF and no transcription are read."""
+    failures: list[str] = []
+
+    def check(name: str, cond: bool) -> None:
+        print(("  ok    " if cond else "  FAIL  ") + name)
+        if not cond:
+            failures.append(name)
+
+    ack = ACKNOWLEDGMENT[2023]
+    planted = f"front {ack.first} and the middle,\n<sup>1</sup> a footnote {ack.last} then the body"
+    got = slice_between(planted, ack.first, ack.last, "planted")
+    check("the acknowledgment is sliced from its first words to its last, across a line wrap and a footnote marker",
+          got.startswith(ack.first) and got.endswith(ack.last) and "1 a footnote" in got)
+    stamped = f"x Licensed to someone, single copy. Copying prohibited. y {ack.first}"
+    check("the stamp shape of the edition is removed before the comparison",
+          ack.first in re.sub(ack.stamp, " ", stamped, flags=re.S) and "Licensed" not in re.sub(ack.stamp, " ", stamped, flags=re.S))
+    for edition in (1985, 2002):
+        try:
+            main(edition)
+            check(f"{edition} with no acknowledgment row exits", False)
+        except SystemExit as ex:
+            check(f"{edition} with no row exits naming the table and the edition, before it reads any file",
+                  str(edition) in str(ex.code) and "verify_acknowledgment.ACKNOWLEDGMENT" in str(ex.code))
+    print(f"=== VERIFY ACKNOWLEDGMENT SELF-TEST: {'FAIL - ' + str(len(failures)) if failures else 'PASS'} ===")
+    return 1 if failures else 0
+
+
 if __name__ == "__main__":
     ensure_utf8()
-    sys.exit(main())
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--self-test", action="store_true", help="run the planted-text self-test")
+    spec_pdf.add_edition_argument(ap)
+    args = ap.parse_args()
+    sys.exit(self_test() if args.self_test else main(args.edition))

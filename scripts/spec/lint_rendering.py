@@ -56,6 +56,7 @@ WHAT IT CATCHES, each earned by a real defect:
 
     python scripts/spec/lint_rendering.py
     python scripts/spec/lint_rendering.py --verbose
+    python scripts/spec/lint_rendering.py --edition 2002     # another edition's transcription (default 2023)
 """
 from __future__ import annotations
 
@@ -67,8 +68,7 @@ import sys
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 
 SEPARATOR = re.compile(r"^\s*\|(?:\s*:?-+:?\s*\|)+\s*$")
 ROW = re.compile(r"^\s*\|.*\|\s*$")
@@ -284,9 +284,13 @@ def main() -> int:
     ap.add_argument("--verbose", action="store_true", help="list every occurrence, not the first few")
     # Any Markdown file, so the lint can be pointed at an older revision to prove it still fails on the
     # defects it was written for. A check that has never been seen to fail is not evidence of anything.
-    ap.add_argument("file", nargs="?", default=SPEC_MD, type=pathlib.Path)
+    ap.add_argument("file", nargs="?", type=pathlib.Path,
+                    help="the Markdown to lint (default: the transcription of --edition)")
+    spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
-    spec = args.file
+    spec = args.file or spec_pdf.markdown(args.edition)
+    if not spec.is_file():
+        sys.exit(f"FATAL: {spec} does not exist - the {args.edition} transcription has not been written in this tree.")
 
     text = spec.read_text(encoding="utf-8")
     lines = text.splitlines()
@@ -354,7 +358,7 @@ def main() -> int:
     # The file that was ACTUALLY read — the point of the positional argument is to lint an older revision,
     # and reporting the default path there names the wrong file under a verdict line.
     try:
-        where = spec.resolve().relative_to(REPO)
+        where = spec.resolve().relative_to(spec_pdf.REPO)
     except ValueError:
         where = spec
     print(f"\n{where} — {len(lines):,} lines")

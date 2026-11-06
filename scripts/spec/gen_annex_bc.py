@@ -29,7 +29,8 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for stand
 from standard_streams import ensure_utf8  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEC = ROOT / "specs" / "ISO_COBOL_2023.md"
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
+SPEC = spec_pdf.markdown(2023)
 
 # The section boundaries: (name, first line that OPENS the list, the line that CLOSES it). Each opener and closer
 # is a literal prefix of one line of specs/ISO_COBOL_2023.md; the drift test uses the same markers.

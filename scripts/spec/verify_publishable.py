@@ -3,7 +3,8 @@
 
 WHY THIS EXISTS. `specs/ISO_COBOL_2023.md` is published; the PDF it was transcribed from is NOT. Two things therefore
 have to be true of the Markdown before it leaves the private submodule, and neither is guaranteed by any other
-gate:
+gate (`--edition {1985,2002,2023}`, default 2023, names the transcription; what is edition-specific, the stamp shapes
+and the acknowledgment's wording, is keyed by edition below, and an edition with no row exits naming the table):
 
   1. **It carries no per-copy licence stamp.** Every page of the source PDF is stamped by the reseller with the
      purchaser's name, order number and download date — "Licensed to …. Single user license only. Copying and
@@ -30,43 +31,65 @@ printed page, and needs the PDF to do it. This check needs to run in the public 
 absent by design — so it verifies presence and structure only, and defers fidelity to the other gate. The two are
 complements, not duplicates.
 
-    python scripts/spec/verify_publishable.py
+    python scripts/spec/verify_publishable.py [--edition 1985|2002|2023]
+    python scripts/spec/verify_publishable.py --self-test        # planted texts: no PDF, no tracked tree
 """
 from __future__ import annotations
 
+import argparse
 import pathlib
 import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from cite import CORRECTION_NOTE  # noqa: E402  — ONE definition of what an editorial correction note looks like
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
+REPO = spec_pdf.REPO
 
-# The reseller's per-copy stamp, in pieces, so a partial survival is caught as readily as the whole line.
-FORBIDDEN = [
-    (r"Licensed to\b", "per-copy licence stamp"),
-    (r"Single user licen[cs]e", "per-copy licence stamp"),
-    (r"Copying and networking", "per-copy licence stamp"),
-    (r"ANSI order\b", "reseller order reference"),
-    (r"\bX_\d{6}\b", "reseller order number"),
-    (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
-]
+#: The reseller's per-copy stamp of each edition, in pieces (SHAPES, never a licensee's name or an order number), so a
+#: partial survival is caught as readily as the whole line. 1985: PB4812 records the stamp as "Licensed to ... order # ...";
+#: more pieces are added when that PDF's stamp line is read at the first run. 2002 has no row until PB4813's run reads its
+#: stamp line, so `--edition 2002` exits naming this table (kb/Work PB4815).
+FORBIDDEN: dict[int, list[tuple[str, str]]] = {
+    1985: [
+        (r"Licensed to\b", "per-copy licence stamp"),
+        (r"\border\s*#", "reseller order reference"),
+    ],
+    2023: [
+        (r"Licensed to\b", "per-copy licence stamp"),
+        (r"Single user licen[cs]e", "per-copy licence stamp"),
+        (r"Copying and networking", "per-copy licence stamp"),
+        (r"ANSI order\b", "reseller order reference"),
+        (r"\bX_\d{6}\b", "reseller order number"),
+        (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
+    ],
+}
 
 #: The personally identifying pieces of a stamp, searched in every tracked file (check_tree). Narrower than FORBIDDEN:
-#: a tool that strips the stamp names "Licensed to" itself, and only a purchaser's NAME after it is a leak.
-TREE_FORBIDDEN = [
-    (r"\bX_\d{6}\b", "reseller order number"),
-    (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
-    (r"Licensed to [A-Z][a-z]+ [A-Z][a-z]+", "per-copy licence stamp naming a purchaser"),
-]
+#: a tool that strips the stamp names "Licensed to" itself, and only a purchaser's NAME after it is a leak. The tree is one
+#: set of files, so it is searched for the shapes of EVERY edition that has a row, on every run.
+TREE_FORBIDDEN: dict[int, list[tuple[str, str]]] = {
+    1985: [
+        (r"\border\s*#\s*[A-Za-z_]*\d{4,}", "reseller order number"),
+    ],
+    2023: [
+        (r"\bX_\d{6}\b", "reseller order number"),
+        (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
+        (r"Licensed to [A-Z][a-z]+ [A-Z][a-z]+", "per-copy licence stamp naming a purchaser"),
+    ],
+}
+
+
+def tree_shapes() -> list[tuple[str, str]]:
+    """Every edition's TREE_FORBIDDEN shapes, each once."""
+    return list(dict.fromkeys(shape for edition in sorted(TREE_FORBIDDEN) for shape in TREE_FORBIDDEN[edition]))
 
 
 def check_tree(repo: pathlib.Path = REPO) -> list[str]:
-    """Every tracked file, as the index holds it, carries none of TREE_FORBIDDEN."""
+    """Every tracked file, as the index holds it, carries none of the tree shapes."""
     import subprocess
     print("\nper-copy licence data in ANY tracked file (the index) — must be ABSENT:")
     listed = subprocess.run(["git", "-C", str(repo), "ls-files", "-s", "-z"], capture_output=True, check=True).stdout
@@ -77,7 +100,7 @@ def check_tree(repo: pathlib.Path = REPO) -> list[str]:
     batch = subprocess.run(["git", "-C", str(repo), "cat-file", "--batch"], input="\n".join(blobs).encode() + b"\n",
                            capture_output=True, check=True).stdout
     failures, at = [], 0
-    pats = [(re.compile(p), what) for p, what in TREE_FORBIDDEN]
+    pats = [(re.compile(p), what) for p, what in tree_shapes()]
     while at < len(batch):
         nl = batch.index(b"\n", at)
         sha, _kind, size = batch[at:nl].decode().split()
@@ -100,17 +123,24 @@ def check_tree(repo: pathlib.Path = REPO) -> list[str]:
 
 # Must be present. The acknowledgment's own opening words, and the preface framing that marks our editorial
 # matter as ours.
-REQUIRED = [
-    (r"^#\s*Preface", "the file must open with the Preface (page 28: 'as part of the preface')"),
-    (r"COBOL is an industry language and is not the property of any company",
-     "the acknowledgment's first paragraph"),
-    (r"No warranty, expressed or implied, is made by any contributor",
-     "the acknowledgment's no-warranty paragraph"),
-    (r"have specifically authorized the use of this material in whole or in part",
-     "the acknowledgment's authorization paragraph"),
-    (r"NOT part of ISO/IEC 1989:2023",
-     "the Preface must state that it is not part of the standard"),
-]
+#: Keyed by edition: an earlier edition's acknowledgment and Preface are worded by its own text (the 2002 PDF prints no
+#: CODASYL grant, PB4813), so its row is written from that text when its run begins, never borrowed from 2023's.
+REQUIRED: dict[int, list[tuple[str, str]]] = {
+    2023: [
+        (r"^#\s*Preface", "the file must open with the Preface (page 28: 'as part of the preface')"),
+        (r"COBOL is an industry language and is not the property of any company",
+         "the acknowledgment's first paragraph"),
+        (r"No warranty, expressed or implied, is made by any contributor",
+         "the acknowledgment's no-warranty paragraph"),
+        (r"have specifically authorized the use of this material in whole or in part",
+         "the acknowledgment's authorization paragraph"),
+        (r"NOT part of ISO/IEC 1989:2023",
+         "the Preface must state that it is not part of the standard"),
+    ],
+}
+
+#: The words that open the acknowledgment, which must precede clause 1 (the Preface), by edition.
+ACKNOWLEDGMENT_OPENING: dict[int, str] = {2023: "COBOL is an industry language"}
 
 
 #: An Addendum correction entry: `### C6 · page 607 · 14.9.10.4 … · printed → corrected`.
@@ -211,32 +241,37 @@ def check_corrections(text: str) -> list[str]:
     return failures
 
 
-def main() -> int:
-    if not SPEC_MD.exists():
-        sys.exit(f"FATAL: {SPEC_MD} not found")
-    text = SPEC_MD.read_text(encoding="utf-8")
-    lines = text.splitlines()
-
+def check_stamp(lines: list[str], edition: int) -> list[str]:
+    """The stamp shapes of `edition` must be absent from `lines`; an edition the table lacks exits naming the table."""
+    forbidden = spec_pdf.edition_data(FORBIDDEN, edition, "per-copy stamp shapes (verify_publishable.FORBIDDEN)")
     failures = []
     print("per-copy licence data — must be ABSENT:")
-    for pat, what in FORBIDDEN:
+    for pat, what in forbidden:
         hits = [i + 1 for i, l in enumerate(lines) if re.search(pat, l)]
         if hits:
             failures.append(f"{what} ({pat}) at line(s) {hits[:5]}")
             print(f"  ✗ {pat:<34} FOUND at {hits[:5]}")
         else:
             print(f"  ✓ {pat:<34} absent")
+    return failures
+
+
+def check_text(text: str, edition: int) -> list[str]:
+    """The checks that read one transcription's text and nothing else: the stamp shapes of `edition` must be absent, its
+    acknowledgment and Preface present, and the acknowledgment before clause 1. Each row is keyed by edition; an
+    edition the table lacks exits naming the table (spec_pdf.edition_data)."""
+    failures = check_stamp(text.splitlines(), edition)
+    required = spec_pdf.edition_data(REQUIRED, edition, "acknowledgment and Preface patterns (verify_publishable.REQUIRED)")
+    opening = spec_pdf.edition_data(ACKNOWLEDGMENT_OPENING, edition,
+                                    "acknowledgment opening (verify_publishable.ACKNOWLEDGMENT_OPENING)")
 
     print("\nacknowledgment and preface — must be PRESENT:")
-    for pat, what in REQUIRED:
+    for pat, what in required:
         if re.search(pat, text, re.M):
             print(f"  ✓ {what}")
         else:
             failures.append(f"missing: {what}")
             print(f"  ✗ MISSING — {what}")
-
-    failures.extend(check_corrections(text))
-    failures.extend(check_tree())
 
     # The acknowledgment has to be in the preface, i.e. before the body starts, not only in position at 0.2.
     # The body is delimited by the FIRST CLAUSE, not by a page anchor: pages were removed from the document
@@ -245,20 +280,79 @@ def main() -> int:
     cut = text.find('<a id="section-1"></a>')
     if cut < 0:
         failures.append("the clause-1 anchor is missing; cannot locate where the front matter ends")
-    elif "COBOL is an industry language" not in text[:cut]:
+    elif opening not in text[:cut]:
         failures.append("the acknowledgment appears in the body but NOT in the preface")
         print("  ✗ the acknowledgment is not in the preface (it must precede clause 1)")
     else:
         print("  ✓ the acknowledgment precedes the body, as the preface")
+    return failures
+
+
+def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
+    spec_md = spec_pdf.markdown(edition)
+    if not spec_md.exists():
+        sys.exit(f"FATAL: {spec_md} not found")
+    text = spec_md.read_text(encoding="utf-8")
+
+    failures = check_text(text, edition)
+    failures.extend(check_corrections(text))
+    failures.extend(check_tree())
 
     if failures:
         print("\n".join(["", "FATAL — not publishable:"] + [f"  - {f}" for f in failures]))
         return 1
-    print(f"\nPUBLISHABLE — {len(lines):,} lines, no per-copy licence data, acknowledgment in the preface")
+    print(f"\nPUBLISHABLE — {len(text.splitlines()):,} lines, no per-copy licence data, acknowledgment in the preface")
     print("(word-for-word fidelity of the acknowledgment is verify_acknowledgment.py, which needs the PDF)")
     return 0
 
 
+def self_test() -> int:
+    """The edition plumbing and the stamp shapes, on PLANTED texts: no PDF, no transcription, no tracked tree."""
+    import contextlib
+    import io
+    failures: list[str] = []
+
+    def check(name: str, cond: bool) -> None:
+        print(("  ok    " if cond else "  FAIL  ") + name)
+        if not cond:
+            failures.append(name)
+
+    def quietly(fn, *args):
+        with contextlib.redirect_stdout(io.StringIO()):
+            return fn(*args)
+
+    good = ("# Preface\n\nCOBOL is an industry language and is not the property of any company\n"
+            "No warranty, expressed or implied, is made by any contributor\n"
+            "have specifically authorized the use of this material in whole or in part\n"
+            "This preface is NOT part of ISO/IEC 1989:2023.\n\n<a id=\"section-1\"></a>\n\n## 1 Scope\n")
+    check("a clean 2023 text passes", quietly(check_text, good, 2023) == [])
+    stamped = good.replace("## 1 Scope", "Licensed to someone. Single user license only.\nDownloaded 1/2/2026\n## 1 Scope")
+    found = quietly(check_text, stamped, 2023)
+    check("a 2023 text carrying the stamp pieces fails once per piece", len(found) == 3)
+    check("1985 reads its own stamp shapes: an `order #` line is refused and the 2023-only `X_######` is not looked for",
+          len(quietly(check_stamp, ["order # 12"], 1985)) == 1
+          and quietly(check_stamp, ["X_123456"], 1985) == [])
+    for edition in (1985, 2002):
+        try:
+            quietly(check_text, good, edition)
+            check(f"{edition} with no acknowledgment row exits instead of borrowing 2023's", False)
+        except SystemExit as ex:
+            check(f"{edition} with no row exits naming the table and the edition",
+                  str(edition) in str(ex.code) and "verify_publishable" in str(ex.code))
+    check("the tree shapes of every edition are searched on every run",
+          (r"\border\s*#\s*[A-Za-z_]*\d{4,}", "reseller order number") in tree_shapes()
+          and (r"\bX_\d{6}\b", "reseller order number") in tree_shapes())
+    check("a shape names no licensee and no order number",
+          not any(re.search(r"\d{6}", p) for table in (FORBIDDEN, TREE_FORBIDDEN)
+                  for rows in table.values() for p, _ in rows))
+    print(f"=== VERIFY PUBLISHABLE SELF-TEST: {'FAIL - ' + str(len(failures)) if failures else 'PASS'} ===")
+    return 1 if failures else 0
+
+
 if __name__ == "__main__":
     ensure_utf8()
-    sys.exit(main())
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--self-test", action="store_true", help="run the planted-text self-test")
+    spec_pdf.add_edition_argument(ap)
+    args = ap.parse_args()
+    sys.exit(self_test() if args.self_test else main(args.edition))

@@ -249,6 +249,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
     'scripts/spec/cite.py': (
         'fires EMPTY-NEEDLE (check)', 'fires EMPTY-NEEDLE (find)', 'pins 14.7.7 2) bare', 'pins 14.9.8.4 1) b)',
         'accepts the PRINTED form (C6)', 'fires on a wrong clause',
+        'reads the transcription of the edition named (2002), not 2023', 'an edition whose transcription is absent exits naming it',
     ),
     # THE RUNNER (kb/Work PB2563, PB2914): the planted-tree arms are the "a failing self-test turns the gate red" proof,
     # the fleet arms the reuse, the machine-wide budget and the hang detector; the real-tree arms the net and the entry
