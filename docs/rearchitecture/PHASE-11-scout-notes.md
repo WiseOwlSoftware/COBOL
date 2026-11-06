@@ -3,7 +3,7 @@
 > **STATUS: RETAINED REFERENCE (PHASE-11 is DONE).** This is the persisted output of the P11 anchor re-scout
 > (11 parallel read-only agents, 2026-07-17) run per the P10 recurring lesson (*every wave re-scouts its
 > anchors spec-first before implementing*). Each section is one scout's verified findings: exact ISO/IEC
-> 1989:2023 §/GR/SR anchors as `specs/ISO_COBOL.md` numbers them (with line numbers), hand-derived golden
+> 1989:2023 §/GR/SR anchors as `specs/ISO_COBOL_2023.md` numbers them (with line numbers), hand-derived golden
 > values with rule citations, and the code seams (file:line) each family touches. It was the working reference
 > DURING P11; it is KEPT as a durable spec-to-code traceability record for future waves that touch these
 > functions (e.g. the deferred Tier-C Step D, or a P12/P13 wave over the date/national/boolean families).
@@ -43,7 +43,7 @@
 
 ### Semantics
 
-## §15.13 BOOLEAN-OF-INTEGER (spec file E:/COBOL/specs/ISO_COBOL.md, line 34594)
+## §15.13 BOOLEAN-OF-INTEGER (spec file E:/COBOL/specs/ISO_COBOL_2023.md, line 34594)
 
 General (15.13.1): "The BOOLEAN-OF-INTEGER function returns a boolean item of usage bit representing the binary value of argument-1. Argument-2 specifies the length of the boolean data item that is returned. The function type is boolean." Per §15.2 item 2, a boolean function is "of the class and category boolean" with "implicit usage bit".
 
@@ -134,7 +134,7 @@ Neither §15.13 nor §15.45 has function-local EC rules. The EC machinery is ent
 
 ### Semantics
 
-=== §15.14 BYTE-LENGTH (spec file E:/COBOL/specs/ISO_COBOL.md, line 34634) ===
+=== §15.14 BYTE-LENGTH (spec file E:/COBOL/specs/ISO_COBOL_2023.md, line 34634) ===
 
 GENERAL (§15.14.1): "The BYTE-LENGTH function returns an integer equal to the length of the argument in bytes. The type of the function is integer."
 
@@ -318,7 +318,7 @@ Range via §15.5.5: "If the LEAP-SECOND directive with the OFF phrase is in effe
 
 ### Semantics
 
-Header format in E:/COBOL/specs/ISO_COBOL.md: sections are `## 15.NN Title`, subsections `### 15.NN.M` (EXCEPT §15.67.4 and §15.68.4 which are mis-leveled as `## 15.67.4` / `## 15.68.4`).
+Header format in E:/COBOL/specs/ISO_COBOL_2023.md: sections are `## 15.NN Title`, subsections `### 15.NN.M` (EXCEPT §15.67.4 and §15.68.4 which are mis-leveled as `## 15.67.4` / `## 15.68.4`).
 
 === §15.90 TEST-DATE-YYYYMMDD (type: integer; argument rule 1: "Argument-1 shall be an integer") ===
 §15.90.4 Returned value rule 1 — an if/else-if CHAIN, so precedence is year → month → day:
@@ -439,7 +439,7 @@ General format: FUNCTION NUMVAL-C ( argument-1 [LOCALE [locale-name-1] | argumen
 
 ### Semantics
 
-== NAMING VERDICT (load-bearing) == The 2023 spec §15.18 defines CONCAT. The word CONCATENATE has ZERO occurrences anywhere in specs/ISO_COBOL.md — not in Annex D substitution/alternative lists, not in archaic/obsolete lists, not in the reserved/intrinsic word lists. Annex E.3 item 29->23 (line 50283): \"FUNCTION CONCAT. The CONCAT function has been added to be able to concatenate data items in the same fashion as the concatenation operator does for literals.\" It also appears in the Foreword new-intrinsics list (line 1230) and Annex E.2 item 13 (line 49178) as one of the \"new intrinsic function names\" prohibited as user-defined words under FUNCTION ALL INTRINSIC. So per this spec CONCAT is NEW-IN-2023, and there is no evidence CONCATENATE was ever an ISO name (see gotchas).
+== NAMING VERDICT (load-bearing) == The 2023 spec §15.18 defines CONCAT. The word CONCATENATE has ZERO occurrences anywhere in specs/ISO_COBOL_2023.md — not in Annex D substitution/alternative lists, not in archaic/obsolete lists, not in the reserved/intrinsic word lists. Annex E.3 item 29->23 (line 50283): \"FUNCTION CONCAT. The CONCAT function has been added to be able to concatenate data items in the same fashion as the concatenation operator does for literals.\" It also appears in the Foreword new-intrinsics list (line 1230) and Annex E.2 item 13 (line 49178) as one of the \"new intrinsic function names\" prohibited as user-defined words under FUNCTION ALL INTRINSIC. So per this spec CONCAT is NEW-IN-2023, and there is no evidence CONCATENATE was ever an ISO name (see gotchas).
 
 == §15.18 CONCAT ==
 Format (15.18.2): FUNCTION CONCAT ( argument-1, argument-2 … ) — variable arity, >= 2 arguments.
@@ -603,7 +603,7 @@ DIAGNOSTIC WORDING CITATIONS: reject unsupported locale-module syntax citing "IS
 
 ### Semantics
 
-ALL § numbers verified against E:/COBOL/specs/ISO_COBOL.md (ISO/IEC 1989:2023).
+ALL § numbers verified against E:/COBOL/specs/ISO_COBOL_2023.md (ISO/IEC 1989:2023).
 
 == §13.18.44 REDEFINES clause (line 21470) ==
 General (13.18.44.1): "The REDEFINES clause allows the same computer storage area to be described by different data description entries."

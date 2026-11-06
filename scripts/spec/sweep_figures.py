@@ -39,8 +39,9 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
-PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
+SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
+import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
+PDF = spec_pdf.path(2023)
 
 PAGE_ANCHOR = re.compile(r'^<a id="page-(\d+)"></a>\s*$')
 MD_HEADING = re.compile(r"^\s*#{1,6}\s+\**(\d+(?:\.\d+)+)\s+(.+?)\**\s*$")
@@ -353,9 +354,7 @@ def main() -> int:
     ap.add_argument("--clause", help="restrict to one clause number, e.g. 14.9.8.2")
     ap.add_argument("--limit", type=int, default=40, help="how many problems to list")
     args = ap.parse_args()
-    if PDF is None or not PDF.exists():
-        sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in "
-                 "a PRIVATE submodule: git submodule update --init specs-private")
+    spec_pdf.require(2023)
     import fitz
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))

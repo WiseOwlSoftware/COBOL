@@ -794,7 +794,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   rewritten to the compile-time COBOL1543 with the R30 landing) — the wave-local filter never matched
   that class name, which is why the full legs ran before every later landing.
 - **⛔ THE REPO LAYOUT CHANGED 2026-07-27.** `specs/` is now an ORDINARY PUBLIC DIRECTORY holding
-  `specs/ISO_COBOL.md`; the private submodule moved to **`specs-private/`** and holds only the licensed PDF.
+  `specs/ISO_COBOL_2023.md`; the private submodule moved to **`specs-private/`** and holds only the licensed PDF.
   The Markdown path is unchanged, so all 1,663 spec citations still resolve. Tools that MEASURE the printed page
   resolve `specs-private/` and say so if it is absent: `git submodule update --init specs-private`.
 - **Page citations in the transcription are PRINTED FOLIOS**, not PDF pages. The `#page-N` anchors remain PDF
@@ -1176,7 +1176,7 @@ not. **Three** mechanisms decided the property: the scalar `IntrinsicType` colum
 lists** in `IntrinsicBinder` (CA25's three names, V54's two). ISO §15 gives **twenty** functions a type that
 depends on their arguments, so the ten nobody had a list for stayed mislabelled. The rule is now a catalog
 COLUMN (`IntrinsicResultRule`) with **one** reader, and `IntrinsicResultTypeDriftTests` **re-derives the
-population from `specs/ISO_COBOL.md` itself**, so the next such function fails the build instead of being missed.
+population from `specs/ISO_COBOL_2023.md` itself**, so the next such function fails the build instead of being missed.
 ⭐ **THE TRANSFERABLE RESULT IS THE SAME ONE AS THE LAST TWO SESSIONS, EARNED AGAIN: MEASURE THE ENTRY.** PB15
 named four functions; eight were broken. It was filed `wrong_answer`; the run-time value was correct in every
 case and the defect is a silent **under-rejection** — a different defect needing a different fix.
@@ -1563,7 +1563,7 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
 > here.
 
 2. **SPEC RECONCILIATION — ⛔ PAGES ARE GONE FROM THE TRANSCRIPTION; it is CLAUSE-STRUCTURED and PUBLISHED.**
-   - **`specs/ISO_COBOL.md` no longer has page anchors, `## Page N` headings or running headers** (owner
+   - **`specs/ISO_COBOL_2023.md` no longer has page anchors, `## Page N` headings or running headers** (owner
      directive: pages are not a thing in Markdown). 1,260 anchors · 1,260 page headings · 1,248 running headers
      removed; **zero content words lost.** Every cross-reference is now an intra-document link: the TOC is 896
      pure section links, and the index's 3,243 page references became CLAUSE links (52% exact — the term is a
@@ -1595,7 +1595,7 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    - **⚠ MY CHECKERS WERE BUGGIER THAN THE TRANSCRIPTION.** The figure-text audit went 76 findings → 1 as three
      separate tool bugs came out; the underlining audit accused two CORRECT pages. **Confirm every measured
      "defect" against the raw rectangles before changing anything.**
-   - **PUBLISHED.** `specs/ISO_COBOL.md` is in the public repo under the page-28 grant, opening with a Preface
+   - **PUBLISHED.** `specs/ISO_COBOL_2023.md` is in the public repo under the page-28 grant, opening with a Preface
      carrying ISO's acknowledgment verbatim and closing with an **Addendum** listing every correction beside the
      printed form so each is reversible. Gates: `verify_acknowledgment.py` (needs the PDF) and
      `verify_publishable.py` (deliberately does NOT, so it runs in the public repo).
@@ -2180,7 +2180,7 @@ result. Run the long legs ONE AT A TIME.
   some clause the line ALREADY NAMES admits the ordinal. Measured: 209 findings without it, 170 with
   it, 54 under a join-only reading that would have discarded 116 real accusations. Wired into `scripts/build-local.{sh,ps1}`
   before the build, `scripts/battery.sh` PHASE -1, and — since kb/Work PB1574 — CI's `audits` job, which
-  runs on EVERY push, docs-only pushes included, and is a `needs:` of `ci-gate`. `specs/ISO_COBOL.md` is tracked
+  runs on EVERY push, docs-only pushes included, and is a `needs:` of `ci-gate`. `specs/ISO_COBOL_2023.md` is tracked
   in this repository, so the checkout needs no submodule, and `--check` REFUSES (exit 2) rather than skip
   PHANTOM when the spec is absent. The `audits` job also runs
   `audit_evidence_supersession`, `audit_witness_loss` (against the push's own base) and `work.py check`.
@@ -2809,14 +2809,14 @@ result. Run the long legs ONE AT A TIME.
   grammar lands). Fixed anchors: introduction gate 0900 · new-reserved-word 0901 · obsolete 0903 · §4.2.6
   recognize-and-name warning band 1560 · staged-not-implemented 0899. **A wave that does not need its whole
   reservation releases the remainder in its own §0 edit rather than leaving a hole.**
-- **⛔ The transcription is under active repair — see NEXT item 2.** `specs/ISO_COBOL.md` is lossy in a *directed*
+- **⛔ The transcription is under active repair — see NEXT item 2.** `specs/ISO_COBOL_2023.md` is lossy in a *directed*
   way: every normative defect found so far is FALSELY RESTRICTIVE. Treat any grammar rule or diagnostic derived
   from a FIGURE as suspect until that figure has been checked against the printed page. The reproduction question
   is settled: the standard's own Introduction permits reproducing it in whole or in part provided the
   acknowledgment paragraphs are carried (they are, at page 28), and the copy is licensed — so a page that cannot
   be transcribed FAILS LOUDLY with a `TRANSCRIPTION-FAILED` marker and is never summarised.
 - **⛔ Spec DIAGRAMS: render the PDF page whenever a general format is load-bearing** — `pwsh`/`python3
-  scripts/render-spec-page.py <page>` (anchor `page-N` == PDF page N). `specs/ISO_COBOL.md` is OCR'd from the
+  scripts/render-spec-page.py <page>` (anchor `page-N` == PDF page N). `specs/ISO_COBOL_2023.md` is OCR'd from the
   printed standard: rule TEXT survived faithfully, DIAGRAMS did not. All 244 general-format diagrams were audited
   and 226 corrections applied (specs submodule `763a521`), but the failure mode was always FALSELY RESTRICTIVE
   syntax — legal source made to look illegal. Never derive a general format from prose alone, and treat any
@@ -2886,7 +2886,7 @@ every phase boundary.
    corpus, and only then delete the old — never on faith.
 2. **Typed-native data ONLY.** A COBOL record IS a C# record struct; an elementary item IS a native field. A `byte[]`
    appears only at the genuine REDEFINES Tier-C codec or a file boundary. Never regress to a byte `ProgramState`.
-3. **Spec-first.** Behavior is defined by ISO/IEC 1989:2023 (`specs/ISO_COBOL.md`), derived and cited by § BEFORE
+3. **Spec-first.** Behavior is defined by ISO/IEC 1989:2023 (`specs/ISO_COBOL_2023.md`), derived and cited by § BEFORE
    implementing. The NIST goldens and the GnuCOBOL differential are regression nets with known holes, not authority. Implement each
    feature COMPLETELY to the spec + its deep-dive; tests verify, never scope.
 4. **One canonical mechanism per job.** `StorageForm` (not scattered `Pic`/`StoreAsImage`/Tier inference), one
@@ -3519,7 +3519,7 @@ shared-`.g4` guardrail (ONE full NIST guard for the wave). Sized 4–8 sessions;
 - **Gate it** (the row names a real, in-scope gating obligation whose feature is implemented by P13): add/confirm the `constructs.json` row + its `VersionConformancePass` check + a negative witness, run the row's matrix cell, then flip the status cell to `GATED (…, DEVLOG NNN)` with the code and site — mirroring the existing `GATED (W2: move-alphanumeric-figurative-removed-2023, 0902 …)` shape already in the file.
 - **Disposition it** (the row is intentionally not gated — e.g. an Annex A.4 documented-non-support module per ratified decision #3, a behavior with no observable edition delta, or a spec-undefined choice): replace `TODO` with `DISPOSITION: <one line + ISO § + reason>`. Non-support dispositions must trace to a `COMPLETION_ROADMAP_COUNCIL.md` §5 decision (screen/MCS/commit-rollback/locale/extended-letters/A.4.8/A.4.13/VALIDATE) or the §4.2 conformance document plan.
 
-Work in row-family batches (do NOT try all 117 at once). Natural batches: Table 1 (2014→2023 E.2 substantive), Table 2/3 (new directives / reserved words), Table 5 (behavior rows), the archaic/obsolete flags (VCR 89/90/126/127), the 85→2002 interim rows. For each batch, cite the ISO § and the edition. This is a spec-first burn-down: derive the expected outcome from `specs/ISO_COBOL.md` and cite the § in the row and (for a gate) in the code (`feedback_spec_is_the_oracle`, `project_spec_to_code_traceability`).
+Work in row-family batches (do NOT try all 117 at once). Natural batches: Table 1 (2014→2023 E.2 substantive), Table 2/3 (new directives / reserved words), Table 5 (behavior rows), the archaic/obsolete flags (VCR 89/90/126/127), the 85→2002 interim rows. For each batch, cite the ISO § and the edition. This is a spec-first burn-down: derive the expected outcome from `specs/ISO_COBOL_2023.md` and cite the § in the row and (for a gate) in the code (`feedback_spec_is_the_oracle`, `project_spec_to_code_traceability`).
 
 **Why:** a `TODO` row is an unproven version-correctness claim; the exit criterion is zero. Making status *derived* (Step 2) is what stops it drifting back.
 
@@ -3819,7 +3819,7 @@ pwsh scripts/gen-vcr.ps1 -Check
 
 ### 7. ISO feature work in this phase
 
-P14 is primarily verification/tooling, but the VCR burn-down (Step 1) closes the last version-gating gaps and the INV sweeps (Step 5) may surface un-gated behavior deltas. All work is spec-first; cite `specs/ISO_COBOL.md` §s in every row and gate.
+P14 is primarily verification/tooling, but the VCR burn-down (Step 1) closes the last version-gating gaps and the INV sweeps (Step 5) may surface un-gated behavior deltas. All work is spec-first; cite `specs/ISO_COBOL_2023.md` §s in every row and gate.
 
 **Spec sections / editions in play (Step 1 batches + Step 5 discoveries):**
 - **2014→2023, Annex E.2 substantive changes** (VCR Table 1, ~50 rows): the remaining `TODO` removal/behavior rows — CALL … ON OVERFLOW removal (E.2 item 1c, §14.9.11), ALIGN/strong-typing bit alignment (E.2 item 2), boolean shift operators B-SHIFT-* (E.2 item 3, §8.8.x — new-feature-gate ≥2023), UCS user-defined-word character changes (E.2 item 4), the nine new directive words (E.2 item 5). Each: positive at ≥ intro, negative (reject with the edition-band code) at intro−1; behavior rows diff stdout per `--std` (INV-3).
@@ -4130,7 +4130,7 @@ The ONLY ISO feature *work* in P15 is authoring the mandatory user documentation
 are implemented here (they landed in P9–P13). The document is the artifact that lets the compiler *claim* conformance.
 
 #### 7.1 What §4.2.16 requires
-`specs/ISO_COBOL.md` §4.2.16 (line 2539): "An implementation shall satisfy the user documentation requirements
+`specs/ISO_COBOL_2023.md` §4.2.16 (line 2539): "An implementation shall satisfy the user documentation requirements
 specified in **4.2.3, 4.2.4, 4.2.5, 4.2.6, 4.2.10, 4.2.12, and 4.2.13** by specification in at least one form of
 documentation." Documentation may reference other documents. So the required set is:
 

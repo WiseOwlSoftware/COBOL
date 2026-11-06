@@ -303,7 +303,7 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
 
     // ── The DRIFT guard: the three arms, re-read from the standard on every run ──────────────────────────────
 
-    /// <summary>⛔ §13.16.3 SR9's three arms AGAINST THEIR OWN SOURCE, re-read out of <c>specs/ISO_COBOL.md</c>
+    /// <summary>⛔ §13.16.3 SR9's three arms AGAINST THEIR OWN SOURCE, re-read out of <c>specs/ISO_COBOL_2023.md</c>
     /// — which PICTURE character-string each literal class implies. The classifier's class→symbol table is the
     /// one thing here a compiler-side probe cannot contradict (a wrong symbol moves the synthesis and every
     /// behavioural expectation together), so the standard's own sentences are the only independent oracle —
@@ -311,9 +311,9 @@ public sealed class ImpliedPictureTests : WiseOwlCobolTestBase
     [Fact]
     public void Sr9_ImpliedPictureText_MatchesTheStandardsThreeArms()
     {
-        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = Array.FindIndex(lines, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.16\.3\b"));
-        Assert.True(start >= 0, "§13.16.3 is missing from specs/ISO_COBOL.md — this guard must follow the clause.");
+        Assert.True(start >= 0, "§13.16.3 is missing from specs/ISO_COBOL_2023.md — this guard must follow the clause.");
         int end = Array.FindIndex(lines, start + 1, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.16\.4\b"));
         Assert.True(end > start, "§13.16.4 not found after §13.16.3 — the heading shape changed.");
 

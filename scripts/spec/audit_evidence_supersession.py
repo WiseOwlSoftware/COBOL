@@ -70,7 +70,7 @@ run so that sentence keeps its evidence. `--anchors` lists them.
 
 ⚠ IT NEEDS NO SUBMODULE, and that is measured rather than hoped. Its two siblings must announce a loud SKIP
 when `specs/` is absent because they read the standard; this one reads only the tree it checks against. The 46
-`specs/ISO_COBOL.md:<line>` citations in the corpus point at a file TRACKED IN THIS REPOSITORY — the private
+`specs/ISO_COBOL_2023.md:<line>` citations in the corpus point at a file TRACKED IN THIS REPOSITORY — the private
 submodule is `specs-private/`, which no evidence file cites and whose prefix this pattern does not even match —
 so `--check` behaves identically in a checkout with `submodules: false`.
 
@@ -92,6 +92,16 @@ import grammar_source  # noqa: E402  (same directory; THE reader of the grammar'
 import work  # noqa: E402  (work.tracked_paths: a path exists when the COMMITTED tree has it; PB1957 2026-10-07)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 import rename_retired_names as retired_names  # noqa: E402  (scripts/: the ONE map from a retired path to its present one)
+
+#: Files MOVED whole, by a rename outside the product rename's rules: the frozen record keeps the name it was measured
+#: under, and the citation resolves to the same file under its present name. The spec transcription took its edition
+#: (owner 2026-11-05: "rename all spec files with their appropriate version #").
+MOVED = {"specs/ISO_COBOL.md": "specs/ISO_COBOL_2023.md"}
+
+
+def present_path(path: str) -> str:
+    """The present name of a path a frozen record cites: a whole-file move, else the product rename's rules."""
+    return MOVED.get(path, retired_names.renamed_path(path))
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
@@ -238,9 +248,9 @@ def scan(files: list[pathlib.Path], rules: dict[str, list[tuple[str, int, int]]]
             for path, lo, hi, rule in cites:
                 if not rule:
                     stats["citations"] += 1
-                    # A file the product rename moved (kb/Work PB3837) is the same file under its present name:
+                    # A file the product rename (kb/Work PB3837) or a whole-file move (MOVED) renamed is the same file under its present name:
                     # moving it refuted nothing, and the frozen record keeps the name it was measured under.
-                    if retired_names.renamed_path(path) not in tracked:
+                    if present_path(path) not in tracked:
                         if not exempt:
                             findings.append(Finding("path", rel, _line_of(raw, f"{path}:{lo}"), where,
                                                     f"cites {path}:{lo} — that file no longer exists"))

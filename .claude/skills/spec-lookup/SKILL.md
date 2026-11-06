@@ -18,7 +18,7 @@ rule 1). If you catch yourself starting from a failing diff, stop and restart at
 
 ## 1. Find the governing rule
 
-`specs/ISO_COBOL.md` — TRACKED in this repository. (The private `specs-private` submodule holds only the licensed
+`specs/ISO_COBOL_2023.md` — TRACKED in this repository. (The private `specs-private` submodule holds only the licensed
 PDF, needed only to render a page.)
 
 Rules live as **Syntax Rules (SR)** and **General Rules (GR)** per statement (§14.9.x) and clause (§11/§12/§13.x),

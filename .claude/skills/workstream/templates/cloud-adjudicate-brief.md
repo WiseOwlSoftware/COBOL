@@ -8,7 +8,7 @@ before use.
 ## Setup
 
 Work in `/home/user/COBOL`. Read `CLAUDE.md` first; its eight rules bind you. The spec text
-(`specs/ISO_COBOL.md`) and `cite.py` are in this repo. The `specs-private` submodule holds only the licensed PDF,
+(`specs/ISO_COBOL_2023.md`) and `cite.py` are in this repo. The `specs-private` submodule holds only the licensed PDF,
 needed to RENDER a page when a general-format diagram is load-bearing (`scripts/render-spec-page.py`); it is checked
 out only when BrentRector/COBOL-private is attached (web-page sessions; `claude --cloud` attaches one repo).
 Without it, a verdict that hinges on a diagram is PARTIAL with "diagram not rendered" in notes. Record `git rev-parse HEAD` as the PINNED sha. Build once: `dotnet build WiseOwl.Cobol.sln -c Debug` (probe
@@ -20,7 +20,7 @@ probes under `/tmp/adj/{BATCH}/probe/`). Inputs: `python scripts/spec/phase_b_ba
 
 ## What each row kind means
 
-- **DOC-A.1-N (Annex A.1 implementor-defined item).** The item's own sentence in `specs/ISO_COBOL.md` says it "shall
+- **DOC-A.1-N (Annex A.1 implementor-defined item).** The item's own sentence in `specs/ISO_COBOL_2023.md` says it "shall
   be documented" or "need not be documented". This project's documentation is `docs/CONFORMANCE.md` (a
   `| DOC-A.1-N |` determination row). CONFORMS only when (a) a determination for exactly this item exists — unless it
   need not be documented — AND (b) the compiler/runtime behaves as stated or required (read the code; probe when

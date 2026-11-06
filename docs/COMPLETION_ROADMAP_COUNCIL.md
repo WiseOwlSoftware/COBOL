@@ -4,7 +4,7 @@
 > remain the reference for that work. ⚠ FROZEN HISTORICAL RECORD (2026-07-19): superseded by the consolidated plan `docs/REARCHITECTURE_PLAN.md` (its §0 banner
 > points to the rearchitecture plan, not here. The owner resolved the §5
 > decision packet: **#1 = NO further standards acquisition** — the ISO docs in hand are the authority
-> (`specs/ISO_COBOL_2023.pdf` + the extracted `specs/ISO_COBOL.md`); prior-edition
+> (`specs/ISO_COBOL_2023.pdf` + the extracted `specs/ISO_COBOL_2023.md`); prior-edition
 > edges derive from the 2023 spec's Annex E + the legacy inventory as interim authority, with
 > provisional-confidence markers retained wherever the 2023 text cannot adjudicate (the "blocked on standards
 > acquisition" track in Phase 4 is thereby re-scoped to that permanent policy). **#2–#11 = the council's
@@ -15,7 +15,7 @@
 > feature-catalog, architecture-readiness, verification, sequencing — → 2 adversarial critics [26 challenges,
 > 14 gaps] → chair synthesis with in-repo re-verification of contested claims).
 >
-> **ISO-VALIDATED.** Systematically validated against `specs/ISO_COBOL.md` by a
+> **ISO-VALIDATED.** Systematically validated against `specs/ISO_COBOL_2023.md` by a
 > 12-agent workflow (4 claim-group verifiers + a double-verified edition-adjudication group
 > + residual-claim extraction + 3 reverse-direction completeness sweeps + chair): **39 claims — 30 CONFIRMED,
 > 9 PARTIAL, 0 REFUTED, 0 UNVERIFIABLE; 0 fatal / 10 serious coverage gaps.** All corrections (D1–D16 +
@@ -179,7 +179,7 @@ The council **confirms** the SSOT §16 / kickoff-banner backbone (now the plan �
 > conformance clause 4 in full; the §13.18/§14.9/§15 catalogs by header enumeration), and a chair that
 > re-verified every contested point in the spec text. All *Change* instructions in §2 below are APPLIED INLINE
 > in the roadmap above; this appendix is the permanent audit trail and citation source. Spec
-> references are line numbers in `specs/ISO_COBOL.md` at submodule commit c1435f3.
+> references are line numbers in `specs/ISO_COBOL_2023.md` at submodule commit c1435f3.
 # Appendix — ISO Validation of the Completion Roadmap (2026-07-03)
 
 ## 1. Verdict
@@ -188,7 +188,7 @@ The roadmap is **ISO-sound in substance and safe to execute as ratified, subject
 
 ## 2. Defects requiring correction
 
-Ordered by severity. Spec references are line numbers in `specs/ISO_COBOL.md`; roadmap references are line numbers in `docs/COMPLETION_ROADMAP_COUNCIL.md`.
+Ordered by severity. Spec references are line numbers in `specs/ISO_COBOL_2023.md`; roadmap references are line numbers in `docs/COMPLETION_ROADMAP_COUNCIL.md`.
 
 ### Serious — internal contradiction with a ratified owner decision
 

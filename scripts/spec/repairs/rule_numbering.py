@@ -43,7 +43,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[2]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[3]
-SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
+SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
 
 # The three edits, each keyed on the shape MEASURED in the file (see the module docstring for the counts).
 # Order matters only in that each pattern is anchored, so they cannot overlap.

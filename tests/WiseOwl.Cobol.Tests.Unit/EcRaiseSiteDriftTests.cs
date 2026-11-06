@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// hand edit that "corrects" one of them — fails here instead of misdirecting a reader to the wrong rule.</para>
 ///
 /// <para>The catalog is the generated enumeration of the standard's numbered rules; <c>CatalogCoverageDriftTests</c>
-/// holds it honest against <c>specs/ISO_COBOL.md</c>, so deriving from it is deriving from the spec.</para>
+/// holds it honest against <c>specs/ISO_COBOL_2023.md</c>, so deriving from it is deriving from the spec.</para>
 /// </summary>
 public sealed class EcRaiseSiteDriftTests
 {

@@ -1278,7 +1278,7 @@ else in the entry (§12.4.5.2 SR10) and an "operand breaks a rule" rule are the 
 **Why a table and not seven `if`s.** A rule set with one member written down is where the missing members hide:
 PB354 found two of these three OCCURS bans absent, PB699 found the third fired only under a verb. The table makes
 the next key rule a ROW, and `FileControlKeyRuleDriftTests` keeps that true — it re-derives every row's rule text
-from `specs/ISO_COBOL.md` (clause region *and* printed ordinal), asserts each row's shipped message names the
+from `specs/ISO_COBOL_2023.md` (clause region *and* printed ordinal), asserts each row's shipped message names the
 row's own citation, asserts each row is screened either on EXACTLY the kind whose format carries its clause or on
 a set DISJOINT from it (never a partial overlap, and only §12.4.5.2 may hold the disjoint half), asserts every
 rule the standard states as TWO obligations has a row per arm — re-deriving the split from the printed sentence —
@@ -2028,7 +2028,7 @@ editions; `conformance:cases/13.18.43-RECORD/pb721_zero_length_record_85` is the
 downward.
 
 **Why a table, and the drift guard that keeps it one.** `RecordClauseRuleDriftTests` re-derives every row from
-`specs/ISO_COBOL.md` on every run — the clause region, the printed ordinal, the two arms of SR4, and the FORMAT
+`specs/ISO_COBOL_2023.md` on every run — the clause region, the printed ordinal, the two arms of SR4, and the FORMAT
 column, which it reads off the standard's own bare `ALL FORMATS` / `FORMAT 1` / `FORMAT 2` / `FORMAT 3` division
 lines. That last one matters more than it looks: a row screened on the wrong format either fires on source the
 standard permits or is silent on source it forbids, and neither shows up as a compile error or a golden failure.

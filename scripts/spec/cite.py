@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate a spec citation against `specs/ISO_COBOL.md` — the mechanical check for CLAUDE.md rule 1.
+"""Validate a spec citation against `specs/ISO_COBOL_2023.md` — the mechanical check for CLAUDE.md rule 1.
 
 WHY THIS EXISTS. Rule 1 requires the exact §/GR for any semantics question, and the failure mode is not
 inventing a citation — it is INHERITING one. A fix-queue entry or design doc carries "§8.4.1.2 GR2", the text
@@ -42,7 +42,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC = REPO / "specs" / "ISO_COBOL.md"
+SPEC = REPO / "specs" / "ISO_COBOL_2023.md"
 
 # A clause number is either the body's dotted decimal (14.9.39.4) or an ANNEX's letter-headed form
 # (E.2, A.4.14, D.2.2.5.1). The annex alternative requires at least one dot segment, which is what keeps it

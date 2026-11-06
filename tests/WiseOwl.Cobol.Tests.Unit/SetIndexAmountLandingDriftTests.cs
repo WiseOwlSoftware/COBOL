@@ -151,7 +151,7 @@ public sealed class SetIndexAmountLandingDriftTests
     [Fact]
     public void TheSpecStatesTheSetAmountIntegralityGuard_InExactlyTheRulesThisTestCovers()
     {
-        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md"));
+        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = spec.IndexOf("##### 14.9.39.4 General rules", StringComparison.Ordinal);
         Assert.True(start > 0, "the SET general rules moved in the transcription.");
         int end = spec.IndexOf("\n#### ", start, StringComparison.Ordinal);

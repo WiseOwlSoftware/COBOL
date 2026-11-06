@@ -8,7 +8,7 @@
 
 > **STATUS: the Wave C worklist (trusted over the drift-prone phase plan — [[feedback_persist_anchor_rescout]]).**
 > Produced by an 8-agent parallel spec-first re-scout (each construct independently derived from
-> `specs/ISO_COBOL.md`, CLI-probed against the as-built compiler, and adversarially checked against the
+> `specs/ISO_COBOL_2023.md`, CLI-probed against the as-built compiler, and adversarially checked against the
 > `PHASE-13-audit.md` claims). Each section is a decision-complete derivation: exact §, quoted format,
 > GR-level semantics, the below-2023 gate, file:line code anchors, a golden program + hand-derived stdout,
 > and gotchas. Implement FROM this doc + the spec; do not re-derive.
@@ -681,7 +681,7 @@ SPEC SUBTLETIES:
 WORD-LENGTH GOTCHAS:
 7. It is a RELAXATION (E.3.3 "Not affecting"), so the gate direction is inverted from a 0900 introduction: at 2023 accept ≤63, below 2023 REJECT 32–63, and reject >63 at ALL editions. Do NOT model it as introducedIn-2023-COBOL0900 the way a new construct is (a 40-char word program COMPILES at 2023 and FAILS below — the matrix row's expected outcome is "compiles at 2023, diagnostic below").
 8. Length is CHARACTERS, and §8.3.1(c) makes extended/combining letters count separately — ctx.Start.Text.Length (UTF-16 code units) can diverge from character count for non-ASCII words; for the portable ASCII repertoire (the practical corpus) they coincide. Flag if national/extended user words are ever exercised.
-9. Prior-edition caps (31 for 2002/2014, 30 for 1985) are NOT in the in-repo spec (which is 2023-only, showing 63). They come from the earlier ISO standards; cite them as edition history, not from ISO_COBOL.md. The only in-repo authority for the delta is §8.3.2.1 (63) + E.3.3 item 11 (was less).
+9. Prior-edition caps (31 for 2002/2014, 30 for 1985) are NOT in the in-repo spec (which is 2023-only, showing 63). They come from the earlier ISO standards; cite them as edition history, not from ISO_COBOL_2023.md. The only in-repo authority for the delta is §8.3.2.1 (63) + E.3.3 item 11 (was less).
 10. DYNAMIC LENGTH itself is gated 2014 here (Constructs.DynamicLengthItem2014); the golden combines a 2014 clause + a 2023 SET — both legal at --std 2023. If DYNAMIC LENGTH's 2014 gating is ever revisited it does not change the SET-SIZE 2023 gate.
 
 **Complexity:** M — SET SIZE OF is a self-contained new format (grammar alt + bare-form binder peek + BoundSetSize + emitter + one CobolDynString.SetSize runtime method + 0900 gate + one golden), closely mirroring the already-landed Format-14 dynamic-capacity SET, so low risk. The 63-char word gate is small (one VisitCobolWord length test + a new diagnostic code + edition-max table) but adds a matrix construct whose expected outcome is inverted (compiles-at-2023/rejects-below) and needs a per-distinct-word dedup like the 0901 funnel. Two diagnostics, two constructs.json rows, ~2 goldens.

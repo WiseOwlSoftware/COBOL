@@ -35,7 +35,8 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
+import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
+PDF = spec_pdf.path(2023)
 DATA = REPO / "scripts" / "spec" / "data" / "index-levels.json"
 
 SUB_INDENT_PT = 8          # a sub-entry sits well beyond this; wrapped continuation lines sit further still
@@ -83,9 +84,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--write", action="store_true", help="update scripts/spec/data/index-levels.json")
     args = ap.parse_args()
-    if PDF is None or not PDF.exists():
-        sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives "
-                 "in a PRIVATE submodule: git submodule update --init specs-private")
+    spec_pdf.require(2023)
     import fitz
 
     first, measured = measure(fitz.open(PDF))

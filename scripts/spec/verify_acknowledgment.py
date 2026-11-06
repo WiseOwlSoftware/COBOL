@@ -30,8 +30,9 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
-PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
+SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
+import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
+PDF = spec_pdf.path(2023)
 
 # The acknowledgment runs from the first paragraph to the end of the authorization sentence. The trademark
 # footnotes are attached to it and are carried too.
@@ -61,9 +62,7 @@ def slice_between(text: str, first: str, last: str, label: str) -> str:
 
 
 def main() -> int:
-    if PDF is None or not PDF.exists():
-        sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a PRIVATE submodule; the public repository carries only the Markdown transcription at specs/ISO_COBOL.md. This tool measures the printed page, so it needs the PDF: "
-             "git submodule update --init specs-private")
+    spec_pdf.require(2023)
     import fitz
 
     md = SPEC_MD.read_text(encoding="utf-8")

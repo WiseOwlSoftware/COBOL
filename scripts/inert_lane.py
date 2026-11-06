@@ -112,7 +112,7 @@ there, against the compiler's facts in tests/doc-facts/compiler-facts.json, neve
 (audit_annex_a1.py, audit_derivations.py) and ARCH SUBSYSTEMS; a datum a test needs that a document also states is an
 extract the document is held to (tests/version-matrix/conformance-register.json, tests/doc-facts/). `check` holds every
 compiler test to opening no Markdown file (`markdown_readers`), and the watch proves it. NOT inert, as READ entries: the
-ISO text (specs/ISO_COBOL.md, the oracle ~45 classes derive expected tables from: CLAUDE.md rule 1) and the data files a test
+ISO text (specs/ISO_COBOL_2023.md, the oracle ~45 classes derive expected tables from: CLAUDE.md rule 1) and the data files a test
 reads under docs/ (the rule catalog, the architecture edges, the census records). NOT inert, by being code: the
 `tools/claude-skills` pin, and everything under `src/`, `tests/`, `conformance-suite/` that is not Markdown. The
 conflict-marker sweep, which read every tracked file, became an audit (scripts/conflict_markers.py) so that it no
@@ -348,7 +348,7 @@ CLASSIFICATION = Classification(inert={
                "audits (scripts/, run in every lane), never by a compiler test (kb/Work PB4453; the one exception is the "
                "ISO text, a READ entry)",
 }, read={
-    "specs/ISO_COBOL.md": "the standard's text, the ORACLE (CLAUDE.md rule 1): ~45 Unit and Conformance classes derive their "
+    "specs/ISO_COBOL_2023.md": "the standard's text, the ORACLE (CLAUDE.md rule 1): ~45 Unit and Conformance classes derive their "
                           "expected tables from it",
     "docs/rearchitecture/spec-rule-catalog.json": "CatalogCoverageDriftTests and the traceability-inventory drift tests",
     "docs/rearchitecture/architecture-edges.json": "ArchitectureEdgesDriftTests",
@@ -372,7 +372,7 @@ CLASSIFICATION = Classification(inert={
        "conformance-suite/harness/": "scripts/line_endings.py, live_tools.py, temp_names.py and the harness self-tests (the "
                                      "names of the harness files)",
        "docs/rearchitecture/spec-rule-catalog.json": "scripts/spec/audit_annex_a1.py, audit_code_citations.py",
-       "specs/ISO_COBOL.md": "scripts/spec/cite.py, audit_code_citations.py, audit_doc_citations.py, "
+       "specs/ISO_COBOL_2023.md": "scripts/spec/cite.py, audit_code_citations.py, audit_doc_citations.py, "
                              "scripts/differential_fuzz.py",
        "src/WiseOwl.Cobol.Cli/WiseOwl.Cobol.Cli.csproj": "scripts/guard-compiler.sh, guard-verify.sh, linux-gate.sh",
        "src/WiseOwl.Cobol.Frontend/Grammar/": "scripts/spec/grammar_source.py (the grammar files, whole)",
@@ -1167,7 +1167,7 @@ def self_test() -> int:
                                         ".claude/skills/x/SKILL.md", "CLAUDE.md", "src/WiseOwl.Cobol.Runtime/README.md",
                                         "docs/rearchitecture/evidence/x.json", "docs/manual/user-guide/files.md",
                                         "src/a.cs", "tests/b.cs", "tools/claude-skills", "DEVLOG", "DEVLOGX/a.cs", "kb",
-                                        "kbx/a.cs", "specs/ISO_COBOL.md", "docs/rearchitecture/spec-rule-catalog.json",
+                                        "kbx/a.cs", "specs/ISO_COBOL_2023.md", "docs/rearchitecture/spec-rule-catalog.json",
                                         "docs/rearchitecture/architecture-edges.json",
                                         "docs/rearchitecture/evidence/arch-census/a.json")],
            [True] * 9 + [False] * 11)
@@ -1224,7 +1224,7 @@ def self_test() -> int:
            [(real.classify(p).name, real.classify(p).tooling, real.classify(p).reads_tooling) for p in
             (["tests/_shared/TestRepo.cs"], ["src/a.cs", "scripts/x.py"], ["src/a.cs", "tests/b.cs"],
              ["src/a.cs", "docs/CONFORMANCE.md"], ["docs/CONFORMANCE.md"], ["docs/REARCHITECTURE_PLAN.md", "README.md"],
-             ["DEVLOG/a.md"], ["specs/ISO_COBOL.md"], ["docs/rearchitecture/spec-rule-catalog.json"])],
+             ["DEVLOG/a.md"], ["specs/ISO_COBOL_2023.md"], ["docs/rearchitecture/spec-rule-catalog.json"])],
            [("full", False, True), ("full", True, True), ("full", False, False), ("full", False, False), ("inert", False, False),
             ("inert", False, False), ("inert", False, False), ("full", False, True), ("full", False, True)])
     expect("an empty change touches tooling and what a self-test reads: nothing proves it does not",
@@ -1326,14 +1326,14 @@ def self_test() -> int:
             "tests/T2.cs": 'class T2 { string a = TestRepo.Docs(); string b = TestRepo.Docs("rearchitecture", "a.json"); }\n',
             "tests/T3.cs": 'class T3 { static readonly TreeScope A = new(Under: ["src/"]);\n'
                            '  static readonly TreeScope B = new(Under: ["src/", "tests/"],\n    Kinds: [".cs"]); }\n',
-            "tests/T4.cs": 'class T4 { string a = TestRepo.Specs("ISO_COBOL.md"); /* TestRepo.At("c.md") */ // "d.md"\n'
+            "tests/T4.cs": 'class T4 { string a = TestRepo.Specs("ISO_COBOL_2023.md"); /* TestRepo.At("c.md") */ // "d.md"\n'
                            '  string m = "see docs/CONFORMANCE.md rows"; }\n',
             "src/Program.cs": 'class P { string a = "README.md"; }\n',
         }
         for rel, body in planted.items():
             (Path(td) / rel).parent.mkdir(parents=True, exist_ok=True)
             (Path(td) / rel).write_text(body, encoding="utf-8", newline="\n")
-        found = markdown_readers(Path(td), sorted(planted), {"ISO_COBOL.md": "the oracle"})
+        found = markdown_readers(Path(td), sorted(planted), {"ISO_COBOL_2023.md": "the oracle"})
         expect("markdown_readers: a Markdown path a test spells, a docs walk and a TreeScope with no Kinds are each one "
                "finding; an allowed name, a comment, a message that merely mentions a Markdown file and a non-test file are none",
                sorted(f.split(" ", 1)[0] for f in found), ["tests/T1.cs", "tests/T2.cs", "tests/T3.cs"])

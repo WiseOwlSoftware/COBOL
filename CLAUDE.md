@@ -4,7 +4,7 @@
 Owner-emphasized, each earned by a correction. These nine are the SSOT; `PROMPT.md` holds the standing doctrine
 (mission, architectural commitments, the four required reviews) and does not restate them.
 
-1. **The ISO/IEC 1989:2023 spec (`specs/ISO_COBOL.md`) defines correct behavior for EVERY case.** Read it and cite
+1. **The ISO/IEC 1989:2023 spec (`specs/ISO_COBOL_2023.md`) defines correct behavior for EVERY case.** Read it and cite
    the exact §/GR for any semantics, syntax, or output question. The NIST goldens and the
    GnuCOBOL differential are regression NETS with known holes — never authority. **Where there are several
    implementation options, the precedence is: the ISO spec if it controls → otherwise GnuCOBOL → if GnuCOBOL has
@@ -118,7 +118,7 @@ comprehensive pass once the design settles (`PROMPT.md` §4).
 - **History:** `DEVLOG/` (one file per entry), and nowhere else. **Doctrine:** `PROMPT.md`.
 - **Doc map:** `docs/DOC_INDEX.md` — consult it to find the right doc and keep it in sync. Exactly one canonical
   doc per subsystem: extend it, never fork a second.
-- **Spec:** `specs/ISO_COBOL.md` (tracked in this repo). The licensed PDF is the private submodule `specs-private`
+- **Spec:** `specs/ISO_COBOL_2023.md` (tracked in this repo). The licensed PDF is the private submodule `specs-private`
   (`git submodule update --init --recursive`) — needed only to render a page (`scripts/render-spec-page.py`).
 
 ## Testing

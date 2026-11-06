@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// each owner's general formats print — the table the association predicate asks.</para>
 ///
 /// <para><b>What this holds, from the spec and the grammar rather than from a list.</b> (1) Table 12's conditional-phrase
-/// column, scraped from <c>specs/ISO_COBOL.md</c>, equals the owners' phrases at the latest edition, statement by
+/// column, scraped from <c>specs/ISO_COBOL_2023.md</c>, equals the owners' phrases at the latest edition, statement by
 /// statement, both directions — so a statement cannot be missed and a phrase cannot be invented. (2) The grammar rules
 /// that write <c>conditionalPhrases</c> are exactly the table's owners, each writing it bare (the rule matches empty, and
 /// a quantified reference would move the predicate one rule deep, where ANTLR ignores a context-dependent predicate).
@@ -145,7 +145,7 @@ public sealed class ConditionalPhraseDriftTests
     private static List<HashSet<ConditionalPhraseFamily>> FormatFamilies(string spec, string statement)
     {
         var heading = Regex.Match(spec, $@"^#### (14\.9\.\d+) {Regex.Escape(statement)} statement\s*$", RegexOptions.Multiline);
-        Assert.True(heading.Success, $"no §14.9 heading for the {statement} statement in specs/ISO_COBOL.md");
+        Assert.True(heading.Success, $"no §14.9 heading for the {statement} statement in specs/ISO_COBOL_2023.md");
         var formats = Regex.Match(spec[heading.Index..],
             @"^##### 14\.9\.\d+\.2 " + SpecClauseText.GeneralFormatNoun + @"\s*$(?<body>.*?)^##### ",
             RegexOptions.Multiline | RegexOptions.Singleline);
@@ -198,7 +198,7 @@ public sealed class ConditionalPhraseDriftTests
     [Fact]
     public void EveryStatementWithDifferingFormatBrackets_IsTold_ApartByRuleOrBySelector()
     {
-        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL.md"));
+        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL_2023.md"));
         var statements = Table12StatementNameDriftTests.ScrapeTable12Rows()
             .Where(r => KindsOfCell(r.Phrase).Any()).Select(r => r.Name).ToList();
         Assert.Equal(19, statements.Count);

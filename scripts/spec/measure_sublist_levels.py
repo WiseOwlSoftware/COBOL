@@ -16,7 +16,7 @@ margin is the leftmost line start in the body band (63.49 pt on an even page, 80
 nesting level sits 17.5 pt further right (`a)` at +17.5, a list under `a)` at +35). Level 0 is a list the
 standard prints at the block's own margin — a PEER list, introduced by its own prose lead-in ("The size error
 condition exists in the following cases:", §14.7.5), whose items are rules in their own right. Anything deeper
-is a flattened nested list and must be indented in `specs/ISO_COBOL.md`, never recorded.
+is a flattened nested list and must be indented in `specs/ISO_COBOL_2023.md`, never recorded.
 
 `--write` records the measurement in `scripts/spec/data/sublist-levels.json`, which is committed so that
 `extract_rule_catalog.py --check` can hold every sub-list to it in the public repository and in CI, where the
@@ -40,7 +40,8 @@ from cite import norm  # noqa: E402  — ONE notion of "the same words" as the c
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
+import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
+PDF = spec_pdf.path(2023)
 CATALOG = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
 DATA = REPO / "scripts" / "spec" / "data" / "sublist-levels.json"
 
@@ -114,9 +115,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--write", action="store_true", help=f"record the measurement in {DATA.relative_to(REPO)}")
     args = ap.parse_args()
-    if PDF is None or not PDF.exists():
-        sys.exit("FATAL: the ISO PDF was not found under specs-private/ (a private submodule: "
-                 "git submodule update --init specs-private). This tool measures the printed page.")
+    spec_pdf.require(2023)
     import fitz                                                    # PyMuPDF, as the sibling tools use it
 
     rules = json.loads(CATALOG.read_text(encoding="utf-8"))["rules"]
@@ -129,7 +128,7 @@ def main() -> int:
     print(f"\n{len(measured)} sub-list(s) measured; {len(measured) - len(bad)} printed at the block's own margin")
     if bad:
         print(f"⛔ {len(bad)} sub-list(s) NOT measured at level 0 — a flattened nested list (indent it in "
-              "specs/ISO_COBOL.md at its printed level) or a line this tool could not find (read the page).")
+              "specs/ISO_COBOL_2023.md at its printed level) or a line this tool could not find (read the page).")
     if args.write:
         if bad:
             print("NOT WRITTEN: only lists measured at the margin are recorded.")

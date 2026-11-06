@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>SearchAllFormat2Rules</c> builds both and writes each rule as a predicate over them.
 /// <para>The value of that shape is that the NEXT Format-2 rule is a predicate rather than another tree walk —
 /// and this test is what keeps the claim honest. It SCRAPES the Format-2 syntax rules out of
-/// <c>specs/ISO_COBOL.md</c> rather than listing them, so a rule added to the transcription (a later edition, or
+/// <c>specs/ISO_COBOL_2023.md</c> rather than listing them, so a rule added to the transcription (a later edition, or
 /// a transcription repair that recovers one the OCR lost) turns red here until it is both implemented and
 /// assigned a diagnostic code. A hand-written list of "the seven rules" would have gone quietly stale instead.
 /// </para>
@@ -38,7 +38,7 @@ public sealed class SearchAllFormat2RuleCoverageDriftTests
     /// whole question here, so the scrape tracks them rather than assuming a numeric range.</summary>
     private static Dictionary<string, List<int>> ScrapeSearchSyntaxRules()
     {
-        string[] lines = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md")).Split('\n');
+        string[] lines = File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md")).Split('\n');
         var by = new Dictionary<string, List<int>>(StringComparer.Ordinal)
         {
             ["ALL FORMATS"] = [], ["FORMAT 1"] = [], ["FORMAT 2"] = [],

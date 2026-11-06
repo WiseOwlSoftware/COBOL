@@ -1,6 +1,6 @@
 # The COBOL standard, as a searchable transcription
 
-`ISO_COBOL.md` is a transcription of **ISO/IEC 1989:2023(E)** — *Information technology — Programming languages,
+`ISO_COBOL_2023.md` is a transcription of **ISO/IEC 1989:2023(E)** — *Information technology — Programming languages,
 their environments and system software interfaces — Programming language COBOL* (third edition, 2023-01).
 © ISO/IEC 2023.
 
@@ -15,7 +15,7 @@ governs. ISO sells the original; this is a working transcription, not a substitu
 
 | | |
 |---|---|
-| `ISO_COBOL.md` | the transcription — 1,261 pages, every clause, general format and rule |
+| `ISO_COBOL_2023.md` | the transcription — 1,261 pages, every clause, general format and rule |
 | the source PDF | **not here.** It is licensed per copy and stays in a private submodule (`specs-private/`) |
 
 Tools that MEASURE the printed page — underlining, bracket and choice-indicator geometry — need the PDF and will
@@ -23,7 +23,7 @@ say so if it is absent. Everything that works on the transcription alone runs wi
 
 ## Corrections
 
-`ISO_COBOL.md` is the working copy of the standard for the project that keeps it (kb/Work R66), and **correctness
+`ISO_COBOL_2023.md` is the working copy of the standard for the project that keeps it (kb/Work R66), and **correctness
 rules over faithfulness to a typographical error**. It is faithful to the printed standard except where the standard
 itself is defective, and there the defect is corrected in place, in the change set that finds it: a character the
 typesetting dropped (the reserved-word list on printed page 206 prints `EMD-START` where the rest of the standard says

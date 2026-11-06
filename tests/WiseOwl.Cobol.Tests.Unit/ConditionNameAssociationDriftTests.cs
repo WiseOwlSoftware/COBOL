@@ -49,7 +49,7 @@ public sealed class ConditionNameAssociationDriftTests
         return g;
     }
 
-    /// <summary>ISO §13.16.3 SR24's exclusion list, transcribed from <c>specs/ISO_COBOL.md</c> and validated
+    /// <summary>ISO §13.16.3 SR24's exclusion list, transcribed from <c>specs/ISO_COBOL_2023.md</c> and validated
     /// with <c>python scripts/spec/cite.py --check 13.16.3</c>. The table under test must say exactly this.
     /// ⛔ If a row's words change, do not "fix" this string — re-read the clause and re-derive the predicate;
     /// the words are what the diagnostic quotes back to the programmer.</summary>

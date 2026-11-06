@@ -52,7 +52,7 @@ public sealed class ImplicitStatementSeriesDriftTests
     {
         var family = new Dictionary<string, string>(StringComparer.Ordinal);
         string clause = "";
-        foreach (string line in File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md")))
+        foreach (string line in File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md")))
         {
             if (ClauseHeading.Match(line) is { Success: true } h)
             {
@@ -86,7 +86,7 @@ public sealed class ImplicitStatementSeriesDriftTests
         var family = SpecFamily();
 
         Assert.True(family.Count >= 7,
-            "specs/ISO_COBOL.md no longer yields the per-implicit-statement resumption rule for the known verbs "
+            "specs/ISO_COBOL_2023.md no longer yields the per-implicit-statement resumption rule for the known verbs "
             + $"(found {family.Count}: {string.Join(", ", family.Keys.OrderBy(k => k, StringComparer.Ordinal))}). "
             + "Either the transcription changed or the regex stopped matching — re-derive it before trusting a "
             + "green run; a census that matches nothing passes vacuously.");

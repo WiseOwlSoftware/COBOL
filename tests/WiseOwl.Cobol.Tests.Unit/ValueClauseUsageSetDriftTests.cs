@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ <see cref="UsageFamilies.AdmitsNoValueLiteral"/> AGAINST ITS OWN SOURCES — ISO §13.16.3 SR10 (the classes, through
 /// §8.5.2.1 Table 2) and §13.18.63.3 SR9 (four of them by usage), re-read out
-/// of <c>specs/ISO_COBOL.md</c> on every run. The twin of <see cref="PicturelessUsageSetDriftTests"/>, for the
+/// of <c>specs/ISO_COBOL_2023.md</c> on every run. The twin of <see cref="PicturelessUsageSetDriftTests"/>, for the
 /// same reason and against the same failure: SR9 names FOUR usages and the compiler screened TWO of them —
 /// exactly the two that already had a diagnostic band — for the life of the tree (kb/Work PB557). An
 /// OBJECT REFERENCE entry with a quoted VALUE literal compiled, linked and ran clean with the literal silently
@@ -29,9 +29,9 @@ public sealed class ValueClauseUsageSetDriftTests
     /// OBJECT-REFERENCE, or PROGRAM-POINTER is also specified."</summary>
     private static List<string> Sr9UsageNames()
     {
-        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = Array.FindIndex(lines, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.18\.63\.3\b"));
-        Assert.True(start >= 0, "§13.18.63.3 is missing from specs/ISO_COBOL.md — this guard must follow the clause.");
+        Assert.True(start >= 0, "§13.18.63.3 is missing from specs/ISO_COBOL_2023.md — this guard must follow the clause.");
         int end = Array.FindIndex(lines, start + 1, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.18\.63\.4\b"));
         Assert.True(end > start, "§13.18.63.4 not found after §13.18.63.3 — the heading shape changed.");
 
@@ -81,9 +81,9 @@ public sealed class ValueClauseUsageSetDriftTests
     /// for data items of class index, message-tag, object, or pointer."</summary>
     private static List<string> Sr10ClassNames()
     {
-        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = Array.FindIndex(lines, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.16\.3\b"));
-        Assert.True(start >= 0, "§13.16.3 is missing from specs/ISO_COBOL.md — this guard must follow the clause.");
+        Assert.True(start >= 0, "§13.16.3 is missing from specs/ISO_COBOL_2023.md — this guard must follow the clause.");
         string? sr10 = lines[start..].Take(200).FirstOrDefault(
             l => Regex.IsMatch(l, @"^10\\?\)\s") && l.Contains("VALUE clause shall not be specified", StringComparison.Ordinal));
         Assert.NotNull(sr10);
@@ -98,9 +98,9 @@ public sealed class ValueClauseUsageSetDriftTests
     /// <summary>ISO §8.5.2.1 Table 2, read out of the spec: each class → the categories it holds.</summary>
     private static Dictionary<string, List<string>> TableTwo()
     {
-        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = Array.FindIndex(lines, l => l.Contains("Table 2 — Class and category relationships", StringComparison.Ordinal));
-        Assert.True(start >= 0, "§8.5.2.1 Table 2 is missing from specs/ISO_COBOL.md.");
+        Assert.True(start >= 0, "§8.5.2.1 Table 2 is missing from specs/ISO_COBOL_2023.md.");
         var map = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         foreach (string l in lines[(start + 1)..].SkipWhile(l => !l.StartsWith('|')).TakeWhile(l => l.StartsWith('|')))
         {

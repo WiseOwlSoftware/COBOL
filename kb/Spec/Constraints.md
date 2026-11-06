@@ -4,7 +4,7 @@ area: spec
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - specs/ISO_COBOL.md
+  - specs/ISO_COBOL_2023.md
   - docs/CONFORMANCE.md
   - CONSTRAINTS.md
 tags:

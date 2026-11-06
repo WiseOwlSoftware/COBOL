@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <remarks>
 /// <para>The property is <c>MaxArgs == int.MaxValue</c>: a row is unbounded exactly when its §15.x.2 general
 /// format carries an ellipsis (<c>{ argument-1 } …</c>, <c>argument-2 …</c>, <c>[ argument-2 ] …</c>). This test
-/// re-reads every catalogued function's general format from <c>specs/ISO_COBOL.md</c> and asserts the equivalence
+/// re-reads every catalogued function's general format from <c>specs/ISO_COBOL_2023.md</c> and asserts the equivalence
 /// BOTH ways: an unbounded row whose format repeats nothing would admit `T(ALL)` where the standard forbids it, and
 /// a bounded row whose format repeats an argument would reject legal source (and, separately, is an arity bug).
 /// CONVERT and FIND-STRING are the instructive rows — Variadic in the catalog through their PHRASE words, MaxArgs
@@ -33,7 +33,7 @@ public sealed class IntrinsicRepeatedArgumentDriftTests
 
     private static Dictionary<string, bool> SpecFormatRepeats()
     {
-        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md"));
+        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md"));
         // "### 15.60 MEAN function" → section 15.60; its general format is the "#### 15.60.2 General format"
         // block up to "#### 15.60.3".
         var result = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
@@ -43,7 +43,7 @@ public sealed class IntrinsicRepeatedArgumentDriftTests
             if (!fmt.Success) continue;
             result[name] = fmt.Groups[1].Value.Contains('…');
         }
-        Assert.True(result.Count >= 79, $"only {result.Count} §15.x.2 general formats found in specs/ISO_COBOL.md — the heading shape changed; fix the scanner, do not lower the floor.");
+        Assert.True(result.Count >= 79, $"only {result.Count} §15.x.2 general formats found in specs/ISO_COBOL_2023.md — the heading shape changed; fix the scanner, do not lower the floor.");
         return result;
     }
 

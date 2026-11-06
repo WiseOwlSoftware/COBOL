@@ -65,7 +65,7 @@ public sealed class NumericRoundUpSiteDriftTests
     [Fact]
     public void TheSpecSaysRoundedUp_InExactlyTheClausesThisTestCovers()
     {
-        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md"));
+        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md"));
         var clauses = new List<string>();
         foreach (string line in spec.Split('\n'))
         {

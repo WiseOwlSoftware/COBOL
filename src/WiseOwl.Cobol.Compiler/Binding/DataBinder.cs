@@ -1700,7 +1700,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         string digits = dot < 0 ? t : t.Remove(dot, 1);
         if (digits.Length == 0 || !digits.All(char.IsAsciiDigit)) return;
 
-        // SR3 (ISO §13.18.63.3, ISO_COBOL.md:22914): a signed numeric literal requires a signed numeric subject or "a
+        // SR3 (ISO §13.18.63.3, ISO_COBOL_2023.md:22914): a signed numeric literal requires a signed numeric subject or "a
         // numeric-edited data item with a representation of a sign" (an editing sign symbol +, -, CR or DB — the
         // floating-point form's significand sign included). EVERY signed literal is refused by an unsigned subject, '+'
         // as '-' (kb/Work PB3567): §8.3.3.3.2 2) makes a literal written with a sign a signed literal whatever its value, and
@@ -1748,7 +1748,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return;
         }
 
-        // SR2 (ISO §13.18.63.3, ISO_COBOL.md:22906): the literal shall be a permissible value in the PICTURE range,
+        // SR2 (ISO §13.18.63.3, ISO_COBOL_2023.md:22906): the literal shall be a permissible value in the PICTURE range,
         // representable without truncation of a leading or trailing nonzero digit. Compare the literal's nonzero
         // digit-exponent span against the subject's stored-digit exponent span [-Scale, Digits-Scale-1] —
         // StoredShapeOf, the ONE fixed-point (digits, scale) geometry (kb/Work PB155 lifted it so the §14.7.7

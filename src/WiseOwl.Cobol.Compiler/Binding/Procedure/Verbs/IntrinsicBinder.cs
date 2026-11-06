@@ -832,7 +832,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // arm (V54) — so the other TEN functions silently kept the catalog's hardcoded Alphanumeric. The rule now
         // lives on the catalog ROW (IntrinsicSig.Result) and is read HERE and nowhere else; adding a function is
         // a column, not an edit to this method. IntrinsicResultTypeDriftTests re-derives the population from
-        // specs/ISO_COBOL.md so a new §15.x.1 table cannot be missed.
+        // specs/ISO_COBOL_2023.md so a new §15.x.1 table cannot be missed.
         var category = IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, args));
         // ⛔ AN INTEGER-ROW CALL TAKES ITS ARGUMENTS WITHOUT FRACTION DIGITS (§15.2 5) - "no digits to the right of the decimal point",
         // kb/Work PB4709: ABS(I2 + 1.0) is Integer by §15.3 item 6 (the expression always results in an integer), and its returned

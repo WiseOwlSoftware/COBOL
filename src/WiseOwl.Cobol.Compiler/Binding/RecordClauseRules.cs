@@ -51,7 +51,7 @@ internal readonly record struct RecordClauseSubject(DataItem? Record, int MinByt
 /// <param name="Citation">The citation as it appears in the shipped diagnostic — clause plus printed ordinal.</param>
 /// <param name="RuleText">A verbatim span of the PRINTED rule, long enough to identify it.
 /// <c>RecordClauseRuleDriftTests</c> asserts this span is inside <paramref name="Clause"/>'s own region of
-/// <c>specs/ISO_COBOL.md</c> AND inside the printed ordinal <paramref name="RuleId"/> names, so an inherited or
+/// <c>specs/ISO_COBOL_2023.md</c> AND inside the printed ordinal <paramref name="RuleId"/> names, so an inherited or
 /// drifted clause number turns a test red instead of shipping (CLAUDE.md rule 1).</param>
 /// <param name="Format">The §13.18.43.2 general format the rule is printed under. §13.18.43.3 heads its rules
 /// FORMAT 1 / FORMAT 2 / FORMAT 3, so this column is the standard's own, not an invention — and it is a SCALAR
@@ -99,7 +99,7 @@ internal sealed record RecordClauseRule(
 /// variable-length format — and a set of rules with one member written down as an <c>if</c> is exactly the shape
 /// in which the missing members hide (kb/Work PB354, PB699, PB742). One row per obligation, one loop, one report
 /// site: implementing the next rule of this subclause is adding a row, and <c>RecordClauseRuleDriftTests</c>
-/// re-derives every row's RULE TEXT from <c>specs/ISO_COBOL.md</c> so a row can neither carry an inherited
+/// re-derives every row's RULE TEXT from <c>specs/ISO_COBOL_2023.md</c> so a row can neither carry an inherited
 /// clause number nor go stale.</para>
 ///
 /// <para>⛔ SR4 IS ONE SENTENCE WITH TWO OBLIGATIONS AND THEREFORE TWO ROWS ("neither … a lesser number of bytes

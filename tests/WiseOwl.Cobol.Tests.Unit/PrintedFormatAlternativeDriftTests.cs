@@ -72,7 +72,7 @@ public sealed class PrintedFormatAlternativeDriftTests
     /// carries, so a future edition's extra format moves this number without anyone editing a test.</summary>
     private static int PrintedFormats(string clause)
     {
-        string[] lines = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md")).Split('\n');
+        string[] lines = File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md")).Split('\n');
         bool inSection = false, inPre = false, sectionSeen = false;
         int blocks = 0;
         foreach (string raw in lines)
@@ -90,7 +90,7 @@ public sealed class PrintedFormatAlternativeDriftTests
             if (line.StartsWith("<pre", StringComparison.Ordinal)) { inPre = true; continue; }
             if (inPre && line.StartsWith("</pre>", StringComparison.Ordinal)) { inPre = false; blocks++; }
         }
-        Assert.True(sectionSeen, $"§{clause} General formats was not found in specs/ISO_COBOL.md — the scrape is broken");
+        Assert.True(sectionSeen, $"§{clause} General formats was not found in specs/ISO_COBOL_2023.md — the scrape is broken");
         Assert.True(blocks > 0, $"§{clause} General formats printed no figure — the scrape is broken");
         return blocks;
     }
@@ -233,7 +233,7 @@ public sealed class PrintedFormatAlternativeDriftTests
 
         // Shape assertion 2: and its figure notes really do describe outer repetitions, which is the fact the
         // grammar shape below exists to carry. Derived from the transcription, not from a list kept here.
-        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md"));
+        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md"));
         var section = Regex.Match(spec, @"^#+\s+14\.9\.39\.2\s+" + SpecClauseText.GeneralFormatNoun + @"\s*$(.*?)^#+\s+14\.9\.39\.3\s",
                                   RegexOptions.Singleline | RegexOptions.Multiline);
         Assert.True(section.Success, "§14.9.39.2's own section was not found — the scrape is broken");

@@ -1182,10 +1182,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
     public void EveryFunctionRule_StartsNoEarlierThanItsFunction()
     {
         var rows = LoadInventory();
-        var functionOfSection = SpecClauseText.FunctionSections(File.ReadAllText(TestRepo.Specs("ISO_COBOL.md")))
+        var functionOfSection = SpecClauseText.FunctionSections(File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md")))
             .ToDictionary(f => f.Section, f => f.Name, StringComparer.Ordinal);
         Assert.True(functionOfSection.Count >= 79,
-            $"only {functionOfSection.Count} clause 15 function headings found in specs/ISO_COBOL.md — the heading "
+            $"only {functionOfSection.Count} clause 15 function headings found in specs/ISO_COBOL_2023.md — the heading "
             + "shape changed; fix SpecClauseText.FunctionSections, do not lower the floor.");
         int scanned = rows.Count(r => FunctionSectionOf.Match(r.Section) is { Success: true } m
                                       && functionOfSection.ContainsKey(m.Groups[1].Value));

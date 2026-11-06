@@ -4,7 +4,7 @@ area: spec
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - specs/ISO_COBOL.md
+  - specs/ISO_COBOL_2023.md
   - docs/CONFORMANCE.md
   - CLAUDE.md
   - PROMPT.md
@@ -18,7 +18,7 @@ tags:
 
 **ISO/IEC 1989:2023** is the third edition (2023-01) of the international COBOL standard — successor to the
 1985, 2002, and 2014 editions. The full normative text lives in the repo as a private submodule at
-[[specs/ISO_COBOL]]. It is treated as the **single authoritative source**: the #1 non-negotiable process rule
+[[specs/ISO_COBOL_2023]]. It is treated as the **single authoritative source**: the #1 non-negotiable process rule
 ([[CLAUDE]], [[PROMPT]]) is that *the spec defines correct behavior for every case — read it and cite the exact
 `§`/General-Rule for any semantics, syntax, or output question.* The NIST goldens and the GnuCOBOL differential are demoted to
 regression nets "with known holes," never authority. See [[kb/Context/Goals]].

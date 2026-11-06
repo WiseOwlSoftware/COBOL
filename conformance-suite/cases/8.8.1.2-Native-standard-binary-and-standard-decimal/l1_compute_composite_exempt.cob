@@ -20,7 +20,7 @@
       *>   COMPUTE, and §14.9.8.4 GR1 b routes arithmetic-expression-1 to §8.8.1, where rule 7 is the exemption
       *>   ("Otherwise, arithmetic-expression-1 is evaluated to produce an algebraic value according to the
       *>   specifications in 8.8.1, Arithmetic expressions."; cite.py --check reports that text as "1) a)"
-      *>   because specs/ISO_COBOL.md:23167 has lost b)'s indentation — §14.9.8.4 2), "The value obtained
+      *>   because specs/ISO_COBOL_2023.md:23167 has lost b)'s indentation — §14.9.8.4 2), "The value obtained
       *>   according to rule 1 is then stored", proves it is rule 1's sub-item b); reported with this batch).
       *> THE OPERANDS: L1CA is 18 integer digits and no fraction digits; L1CB is 1 integer digit and 17 fraction
       *> digits.  Superimposed aligned on their decimal points that is max(18,1) + max(0,17) = 35 digits, which

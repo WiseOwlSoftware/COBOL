@@ -1,5 +1,5 @@
 {
- "about": "The edition each ISO/IEC 1989 intrinsic function was INTRODUCED in, derived from the standards themselves and committed because the 2002 and 2009 drafts are not tracked in git (kb/Work PB4296). specs/ISO_COBOL.md is the 2023 text, whose section 8.11 lists names with no edition data and whose Annex E covers only 2014 to 2023, so an introduction year below 2023 can be read only from the older standards' own new-function lists. IntrinsicIntroductionDriftTests holds IntrinsicCatalog's IntroducedIn equal to this file for every clause-15 function, in BOTH directions (a catalog row with no list, a listed name with no catalog row, a name in two lists), and holds the 2023 list equal to Annex E.2 item 13 of specs/ISO_COBOL.md re-read on every run.",
+ "about": "The edition each ISO/IEC 1989 intrinsic function was INTRODUCED in, derived from the standards themselves and committed because the 2002 and 2009 drafts are not tracked in git (kb/Work PB4296). specs/ISO_COBOL_2023.md is the 2023 text, whose section 8.11 lists names with no edition data and whose Annex E covers only 2014 to 2023, so an introduction year below 2023 can be read only from the older standards' own new-function lists. IntrinsicIntroductionDriftTests holds IntrinsicCatalog's IntroducedIn equal to this file for every clause-15 function, in BOTH directions (a catalog row with no list, a listed name with no catalog row, a name in two lists), and holds the 2023 list equal to Annex E.2 item 13 of specs/ISO_COBOL_2023.md re-read on every run.",
  "editions": [
   {
    "edition": 85,
@@ -35,7 +35,7 @@
   },
   {
    "edition": 2023,
-   "source": "ISO/IEC 1989:2023 Annex E.2 item 13 'FUNCTION ALL INTRINSIC and new intrinsic functions' (specs/ISO_COBOL.md): the 7 new intrinsic function names. Re-read from the specification on every run by IntrinsicIntroductionDriftTests.",
+   "source": "ISO/IEC 1989:2023 Annex E.2 item 13 'FUNCTION ALL INTRINSIC and new intrinsic functions' (specs/ISO_COBOL_2023.md): the 7 new intrinsic function names. Re-read from the specification on every run by IntrinsicIntroductionDriftTests.",
    "functions": [
     "BASECONVERT", "CONCAT", "CONVERT", "FIND-STRING", "MODULE-NAME", "SMALLEST-ALGEBRAIC", "SUBSTITUTE"
    ]

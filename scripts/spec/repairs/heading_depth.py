@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Repair heading depth in specs/ISO_COBOL.md against the PDF's embedded outline.
+"""Repair heading depth in specs/ISO_COBOL_2023.md against the PDF's embedded outline.
 
 WHY THE OUTLINE IS THE AUTHORITY. Heading level is nowhere in the printed page: the body does not distinguish
 levels typographically (a §13.18.41.4 heading is set identically to §13.18.40.4), and the printed Contents pages
@@ -37,8 +37,10 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[2]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[3]
-SPEC = REPO / "specs" / "ISO_COBOL.md"
-PDF = REPO / "specs-private" / "ISO_COBOL_2023.pdf"
+SPEC = REPO / "specs" / "ISO_COBOL_2023.md"
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/spec, for the one PDF locator
+import spec_pdf  # noqa: E402  (kb/Work PB3208)
+PDF = spec_pdf.path(2023)
 
 # A numbered section heading. Deliberately NOT matching "## Page 27" (no dot-number form beyond a bare integer is
 # fine, but page markers are excluded by requiring the title to follow the number) or the running header.
@@ -50,7 +52,7 @@ def authoritative_levels() -> dict[str, int]:
     import fitz  # PyMuPDF
 
     out: dict[str, int] = {}
-    for lvl, title, _ in fitz.open(str(PDF)).get_toc():
+    for lvl, title, _ in fitz.open(str(spec_pdf.require(2023))).get_toc():
         m = re.match(r"^([A-Z]?\d+(?:\.\d+)*)\s", title)
         if m:
             # First occurrence wins: a section number is unique in the outline, and a later duplicate would be

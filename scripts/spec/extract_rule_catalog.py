@@ -46,7 +46,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC = REPO / "specs" / "ISO_COBOL.md"
+SPEC = REPO / "specs" / "ISO_COBOL_2023.md"
 OUT = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
 #: The COMMITTED inventory of clauses that carry ``N)``-shaped rules this extractor does not harvest — the
 #: manifest the content-keyed scan compares against, so "nothing new fell out of the denominator" is an
@@ -88,7 +88,7 @@ FURNITURE = re.compile(
 # "RELATIVE FILES", "FORMAT 3", "ALL FORMATS", "FORMATS 1, 2 AND 4", "CLASS SPECIFIER"). It scopes the rules that
 # follow it and is NEITHER a heading NOR rule prose, which is exactly the pair of mistakes this project made with
 # it (fix-queue PB689):
-#   · read as a HEADING it TRUNCATES the block. `specs/ISO_COBOL.md` rendered nine of them as `## FORMAT n` /
+#   · read as a HEADING it TRUNCATES the block. `specs/ISO_COBOL_2023.md` rendered nine of them as `## FORMAT n` /
 #     `## SEQUENTIAL FILES`; the block scan closes at any heading, so §14.9.51.4 (WRITE) contributed 16 of its 42
 #     general rules and the traceability inventory's denominator — the number v1.0 is defined against (D13) —
 #     was silently short by 60 rows across five clauses. GR-14.9.51.4-23, the line-sequential '71' status, was
@@ -914,7 +914,7 @@ def main() -> int:
     # ⛔ THE TRANSCRIPTION DEFECT PB689 WAS BUILT ON, REPORTED RATHER THAN ABSORBED IN SILENCE. The extractor no
     # longer LOSES rules to a heading-ified group label, but a transcription that prints one is still wrong
     # against the page (body type, not a heading) and still misleads every human reader and every other tool
-    # that keys on headings. Demote it to a plain line in specs/ISO_COBOL.md.
+    # that keys on headings. Demote it to a plain line in specs/ISO_COBOL_2023.md.
     if heading_labels:
         print(f"\n⛔ {len(heading_labels)} in-clause GROUP LABEL(S) transcribed as a markdown HEADING — the shape")
         print("   that cost 60 rules in five clauses (PB689). The printed standard sets these in BODY type;")
@@ -929,7 +929,7 @@ def main() -> int:
     if flattened_tails:
         print(f"\n⛔ {len(flattened_tails)} nested-list TAIL item(s) transcribed at COLUMN 0 — folded into the")
         print("   parent rule here, but `cite.py` still mis-reports their printed path (PB698). Indent each to")
-        print("   its printed level in specs/ISO_COBOL.md (measure the page: the item's x0 against the body margin):")
+        print("   its printed level in specs/ISO_COBOL_2023.md (measure the page: the item's x0 against the body margin):")
         for sec, ln, n, text in flattened_tails:
             print(f"      §{sec}  line {ln}  '{n}. {text}'")
 
@@ -946,7 +946,7 @@ def main() -> int:
     unmeasured = [r for r in sublist_openings(rules) if sublist_key(r["section"], r["text"]) not in measured_peers]
     if unmeasured:
         print(f"\n⛔ {len(unmeasured)} SUB-LIST(S) not MEASURED as printed at the block's own margin (PB55) — each one")
-        print("   is a flattened NESTED list (indent its items at their printed level in specs/ISO_COBOL.md) or a")
+        print("   is a flattened NESTED list (indent its items at their printed level in specs/ISO_COBOL_2023.md) or a")
         print("   peer list nobody has measured (python scripts/spec/measure_sublist_levels.py --write):")
         for r in unmeasured:
             print(f"      {r['id']}  '{r['text'][:70]}'")
@@ -1066,7 +1066,7 @@ def main() -> int:
 
     # ⛔ THE COMMITTED CATALOG IS THIS RUN'S OUTPUT, OR IT IS STALE (kb/Work PB55). The inventory, every drift
     # test and every derived-verdict selector read the COMMITTED catalog, never the transcription; three landings
-    # (PB1221, PB1374, PB351+PB1146+PB937) corrected general-format text in specs/ISO_COBOL.md without regenerating it, and the
+    # (PB1221, PB1374, PB351+PB1146+PB937) corrected general-format text in specs/ISO_COBOL_2023.md without regenerating it, and the
     # catalog carried the old text of FMT-7.3.15.2, FMT-13.18.35.2 and FMT-14.9.38.2 until PB55's rebuild found it.
     # `--check` compared the transcription with the manifests and never with the file it writes.
     stale: list[str] = []

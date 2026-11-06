@@ -12,7 +12,7 @@
 #     ftp.gnu.org                   (scripts/fetch-gnucobol-tests.ps1 — the GnuCOBOL 3.2 differential corpus)
 # GitHub (the repo AND the private specs-private submodule) goes through the separate GitHub proxy regardless — but
 # that proxy only authorizes repositories ATTACHED TO THE SESSION, so the specs-private submodule (the licensed PDF,
-# needed only by render-spec-page.py and the figure audits — specs/ISO_COBOL.md and cite.py are in the main repo)
+# needed only by render-spec-page.py and the figure audits — specs/ISO_COBOL_2023.md and cite.py are in the main repo)
 # clones only when BrentRector/COBOL-private is attached too; otherwise "could not read Username … terminal
 # prompts disabled". `claude --cloud` attaches ONE repository; the claude.ai/code page attaches both ("+" beside the
 # repo chip, or the link https://claude.ai/code?repositories=WiseOwlSoftware/COBOL,BrentRector/COBOL-private).

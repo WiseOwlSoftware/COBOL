@@ -20,7 +20,7 @@ public sealed class CompilerDirectiveWordsDriftTests
     /// section heading and the "In addition to the above list" sentence.</summary>
     private static HashSet<string> SpecTable()
     {
-        string path = TestRepo.Specs("ISO_COBOL.md");
+        string path = TestRepo.Specs("ISO_COBOL_2023.md");
         Assert.True(File.Exists(path), $"the ISO transcription is missing: {path}");
         string text = File.ReadAllText(path);
         int head = text.IndexOf("### 8.12 Compiler-directive words", StringComparison.Ordinal);

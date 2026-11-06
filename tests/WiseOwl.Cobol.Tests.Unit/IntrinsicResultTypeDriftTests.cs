@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// BASECONVERT and the four FORMATTED-*.
 /// </para>
 /// <para>
-/// ⭐ SO THIS TEST DOES NOT CARRY A LIST. It re-derives the population from <c>specs/ISO_COBOL.md</c> on every
+/// ⭐ SO THIS TEST DOES NOT CARRY A LIST. It re-derives the population from <c>specs/ISO_COBOL_2023.md</c> on every
 /// run, by the STRUCTURAL key — a markdown table in §15.x.1 whose header names the "Function type" column. A
 /// future edition that gives an existing function a result-type table, or adds a function that has one, fails
 /// this test until its catalog row declares a rule. That is what makes the next case automatic rather than
@@ -57,7 +57,7 @@ public sealed class IntrinsicResultTypeDriftTests
     /// </summary>
     private static Dictionary<string, string> SpecArgumentDependentFunctions()
     {
-        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
 
         // "### 15.39 FORMATTED-DATE function" → clause 15.39 = FORMATTED-DATE
         var names = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -113,7 +113,7 @@ public sealed class IntrinsicResultTypeDriftTests
         // Floors, not exact counts: adding functions must not fail these, but a regex that silently stops
         // matching must. 20 argument-dependent clauses were measured in ISO/IEC 1989:2023.
         Assert.True(spec.Count >= 20,
-            $"only {spec.Count} §15.x.1 result-type tables found in specs/ISO_COBOL.md (expected at least 20) — "
+            $"only {spec.Count} §15.x.1 result-type tables found in specs/ISO_COBOL_2023.md (expected at least 20) — "
             + "the scanner has gone blind; fix it, do not lower the floor.");
         Assert.True(rows.Count >= 79,
             $"only {rows.Count} catalog rows parsed — the Add(new(...)) shape changed and this guard has gone "

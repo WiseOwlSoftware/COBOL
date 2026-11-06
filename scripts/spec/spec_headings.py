@@ -103,7 +103,7 @@ def _self_test() -> int:
     else:
         heading = re.compile(r"^#+\s+(\d+(?:\.\d+)*)\s+" + m.group(1) + r"\s*$", re.IGNORECASE)
         py_heading = re.compile(r"^#+\s+(\d+(?:\.\d+)*)\s+(.+?)\s*$")
-        spec = (repo / "specs" / "ISO_COBOL.md").read_text(encoding="utf-8").splitlines()
+        spec = (repo / "specs" / "ISO_COBOL_2023.md").read_text(encoding="utf-8").splitlines()
         cs_set = {h.group(1) for line in spec if (h := heading.match(line))}
         py_set = {h.group(1) for line in spec
                   if (h := py_heading.match(line)) and GENERAL_FORMAT_TITLE.fullmatch(h.group(2).strip())}

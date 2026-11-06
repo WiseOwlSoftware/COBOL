@@ -4,7 +4,7 @@
 > typed-native C# via Roslyn; no byte substrate). This doc CLOSES the SSOT's "designed only to the seam"
 > scope flag for Report Writer (`docs/DESIGN.md` §14 verb table / §15.5): the subsystem is now
 > implemented. The locked invariants and cross-cutting consistency live in the SSOT; spec authority is
-> `specs/ISO_COBOL.md` (ISO/IEC 1989:2023) — every behavior below carries its § citation.
+> `specs/ISO_COBOL_2023.md` (ISO/IEC 1989:2023) — every behavior below carries its § citation.
 
 ## Summary
 

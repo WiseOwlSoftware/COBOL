@@ -1,6 +1,6 @@
 # Transcription state — what is done, what is next
 
-> Live state for `specs/ISO_COBOL.md` specifically. Plan §0 remains the SSOT for the project; this is the
+> Live state for `specs/ISO_COBOL_2023.md` specifically. Plan §0 remains the SSOT for the project; this is the
 > detail behind its spec-reconciliation bullets, kept here so a new session can resume without re-deriving it.
 
 ## Run these first

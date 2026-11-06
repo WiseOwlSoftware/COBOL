@@ -2,7 +2,7 @@
 (kb/Work PB4453; was the Conformance test VcrDriftTests and scripts/gen-vcr.ps1, which ran it with an environment variable).
 
 Four rules: every `<!-- gate:CONSTRUCT-ID -->` anchor names a construct constructs.json holds (forward coverage); every
-`§clause` and every `§clause `quoted text`` the document writes resolves in specs/ISO_COBOL.md (the standard's text is
+`§clause` and every `§clause `quoted text`` the document writes resolves in specs/ISO_COBOL_2023.md (the standard's text is
 read HERE, never by a compiler test); the document cites no spec LINE number (it does not survive a spec edit); and the
 generated gating status index between the GEN:VCR-STATUS markers is what the anchors and constructs.json render.
 `python scripts/doc_audits.py --write-vcr` regenerates the index.
@@ -17,7 +17,7 @@ from . import common
 from .common import Check
 
 CONSTRUCTS = "tests/version-matrix/constructs.json"
-SPEC = "specs/ISO_COBOL.md"
+SPEC = "specs/ISO_COBOL_2023.md"
 START, END = "<!-- GEN:VCR-STATUS START -->", "<!-- GEN:VCR-STATUS END -->"
 GATE_ANCHOR = re.compile(r"<!--\s*((?:gate:[^\s>]+\s*)+)-->")
 # A clause number is either the body's dotted decimal (14.9.39.4) or an annex's letter-headed form (E.2, A.4.14); the

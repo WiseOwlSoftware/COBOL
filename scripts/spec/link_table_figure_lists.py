@@ -34,7 +34,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
+SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
 
 CAPTION = re.compile(r"^\*\*(Table|Figure) ([A-Z]?\.?[\d.]+) — (.+?)\*\*\s*$")
 

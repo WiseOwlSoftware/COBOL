@@ -56,7 +56,7 @@ The row now carries `IntrinsicResultRule` — seven spec-derived shapes covering
 
 **Resolve returns the §15.2 TYPE, not the category.** `ResultCategory` folds INTEGER, NUMERIC and INDEX into `PicCategory.Numeric` — correct for every consumer that exists today, and precisely why resolving to a category would have made the four integer-following rules unrepresentable, i.e. dead members reading as coverage. Resolving the type keeps D1's §15.2 classification intact and leaves the answer already correct for the first consumer of integer-ness that arrives.
 
-**`IntrinsicResultTypeDriftTests` re-derives the population from `specs/ISO_COBOL.md` itself** — the structural key is a markdown table in §15.x.1 whose header names the "Function type" column — so a function whose clause grows a table, or a new function that has one, fails the build until its row declares a rule. Without that, this decision decays exactly the way it decayed the first time: silently, because a name list cannot say what it omits.
+**`IntrinsicResultTypeDriftTests` re-derives the population from `specs/ISO_COBOL_2023.md` itself** — the structural key is a markdown table in §15.x.1 whose header names the "Function type" column — so a function whose clause grows a table, or a new function that has one, fails the build until its row declares a rule. Without that, this decision decays exactly the way it decayed the first time: silently, because a name list cannot say what it omits.
 
 **Rejected alternatives.** Per-call-site if/else chains (the legacy ad-hoc approach) — violates the refactor-first/canonical-dispatch doctrine and drifts out of sync; PB15 is the measured proof, since that is what the two name lists were. A class-per-function hierarchy — over-engineered for a static catalog. Keying the drift test on the clauses' PROSE rather than on the table — the wordings differ ("depends on the argument type" §15.38.1, "depends on the type of argument-1" §15.39.1, "depends upon the argument types" §15.18.1) and a prose key found ten of twenty, a dead guard inside the guard against a dead lookup.
 
@@ -903,7 +903,7 @@ A later declaration or reference of another type is **COBOL2692** unless
 `UserWordKinds.MayBeOneWord` allows it — the standard's three exceptions as DATA (a compilation-variable-name; a
 level-number beside a paragraph- or section-name; the constant-name / data-name / property-name / record-key-name /
 record-name group), which `UserWordDeclarationDriftTests.TheSharingRelation_IsRebuiltFromTheStandardsExceptions`
-rebuilds from the text of `specs/ISO_COBOL.md`. Two declarations that are not declarations of a name the source
+rebuilds from the text of `specs/ISO_COBOL_2023.md`. Two declarations that are not declarations of a name the source
 wrote do NOT reach it: a REPOSITORY specifier naming the unit itself is ignored (§12.3.8.3 SR11 / SR15), and a
 declarative section's paragraph-name-OMITTED paragraph is registered anonymously (§14.4.3) rather than under the
 section's own name. Goldens `85/pb990_user_word_types_one_per_word`, negatives `pb990-*`.

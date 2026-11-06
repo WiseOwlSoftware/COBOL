@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// fell THROUGH the statement onto a record area §14.9.34.4 GR3 leaves undefined.</para>
 ///
 /// <para>ONE such line is not a pattern worth a hand-maintained list (CLAUDE.md rule 8) — so this SCRAPES them
-/// out of <c>specs/ISO_COBOL.md</c> instead, and asserts that every one is adjudicated WITH THE MECHANISM THAT
+/// out of <c>specs/ISO_COBOL_2023.md</c> instead, and asserts that every one is adjudicated WITH THE MECHANISM THAT
 /// ENFORCES IT, and that each adjudication's stated mechanism is still there. A transcription repair, a new
 /// edition's format, or a grammar restructure that moves the enforcement point fails here.</para>
 ///
@@ -59,7 +59,7 @@ public sealed class RequiredFormatPhraseDriftTests
     /// general format, plus the number of format blocks scanned.</summary>
     private static (List<(string Clause, string Lead, string Line)> Hits, int Blocks) ScrapeUnbracketedPhraseLines()
     {
-        string[] lines = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md")).Split('\n');
+        string[] lines = File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md")).Split('\n');
         var hits = new List<(string, string, string)>();
         string? clause = null;
         bool inPre = false;

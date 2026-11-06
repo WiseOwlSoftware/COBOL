@@ -692,7 +692,7 @@ public sealed class IntrinsicArgumentClassDriftTests
             ("LOCALE-TIME", "15.53.3", "Argument-1 shall be of class alphanumeric or national and shall be 6 character positions in length", false),
         };
 
-        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md"));
+        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md"));
         var problems = new List<string>();
         foreach (var (fn, clause, text, category) in wording)
         {
@@ -736,7 +736,7 @@ public sealed class IntrinsicArgumentClassDriftTests
     [Fact]
     public void EveryTable21IntegerPosition_IsTypedInteger_InTheVerifiedTable()
     {
-        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = Array.FindIndex(lines, l => l.StartsWith("**Table 21", StringComparison.Ordinal));
         Assert.True(start >= 0, "Table 21 is gone from the transcription — this guard has gone blind");
 

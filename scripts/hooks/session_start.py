@@ -8,7 +8,7 @@ In a claude.ai cloud session (CLAUDE_CODE_REMOTE=true) it first does the per-CLO
 `tools/claude-skills` submodule (the fleet scripts and the brent-tools base skills — cloud sessions do not receive the
 project's plugin marketplace, so the overlays read the base SKILL.md files from it), then the private
 `specs-private` submodule (a fresh clone has no submodules; it holds the licensed PDF that `render-spec-page.py` and
-the figure audits read — `cite.py` and `specs/ISO_COBOL.md` live in the main repo and need no submodule — and it
+the figure audits read — `cite.py` and `specs/ISO_COBOL_2023.md` live in the main repo and need no submodule — and it
 clones only when BrentRector/COBOL-private is attached to the session) and the git-ignored GnuCOBOL corpus. The VM toolchain, and the user-level
 shim that makes this hook fire when the session starts in /home/user rather than the repo, come from
 scripts/cloud/setup-env.sh. Locally the hook stays read-only: a missing `tools/claude-skills` is reported with the

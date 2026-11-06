@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Repair sentences in specs/ISO_COBOL.md that a page-break block cut in half.
+"""Repair sentences in specs/ISO_COBOL_2023.md that a page-break block cut in half.
 
 The markdown is an OCR transcription of the printed standard. At every printed page boundary the
 transcription injects a block:
@@ -90,7 +90,7 @@ def repair(lines: list[str], splits) -> list[str]:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument('--path', default='specs/ISO_COBOL.md')
+    ap.add_argument('--path', default='specs/ISO_COBOL_2023.md')
     ap.add_argument('--apply', action='store_true')
     ap.add_argument('--show', type=int, default=6)
     a = ap.parse_args()

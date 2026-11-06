@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pre-publication check for the spec transcription: no per-copy licence data, and the acknowledgment present.
 
-WHY THIS EXISTS. `specs/ISO_COBOL.md` is published; the PDF it was transcribed from is NOT. Two things therefore
+WHY THIS EXISTS. `specs/ISO_COBOL_2023.md` is published; the PDF it was transcribed from is NOT. Two things therefore
 have to be true of the Markdown before it leaves the private submodule, and neither is guaranteed by any other
 gate:
 
@@ -16,6 +16,14 @@ gate:
      … for any other purpose" and asks that the acknowledgment paragraphs be reproduced "in their entirety as
      part of the preface to any such publication". That request is the condition the transcription is published
      under.
+
+THE WHOLE TRACKED TREE, TOO (owner 2026-11-05: redact the stamp everywhere, history included). The repository is
+public, and a reconciliation agent once quoted the stamp, purchaser's name and order number included, into its ledger.
+`check_tree` therefore reads EVERY tracked file, as the index holds it, for the personally identifying pieces of a stamp:
+an order number, a download date, and "Licensed to" followed by a name. It reads the index, not the working copy, so the
+per-machine `.claude/settings.local.json` is judged by what a commit would publish. The files no landing may carry
+(`coord.NEVER_WORK`, that settings file among them) are left out: a landing cannot change them, so no gate could ever turn
+a finding there GREEN; their published copies were redacted by the history rewrite of 2026-11-05.
 
 DELIBERATELY RUNS WITHOUT THE PDF. `verify_acknowledgment.py` checks the acknowledgment WORD FOR WORD against the
 printed page, and needs the PDF to do it. This check needs to run in the public repository, where the PDF is
@@ -36,7 +44,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
+SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
 
 # The reseller's per-copy stamp, in pieces, so a partial survival is caught as readily as the whole line.
 FORBIDDEN = [
@@ -47,6 +55,48 @@ FORBIDDEN = [
     (r"\bX_\d{6}\b", "reseller order number"),
     (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
 ]
+
+#: The personally identifying pieces of a stamp, searched in every tracked file (check_tree). Narrower than FORBIDDEN:
+#: a tool that strips the stamp names "Licensed to" itself, and only a purchaser's NAME after it is a leak.
+TREE_FORBIDDEN = [
+    (r"\bX_\d{6}\b", "reseller order number"),
+    (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
+    (r"Licensed to [A-Z][a-z]+ [A-Z][a-z]+", "per-copy licence stamp naming a purchaser"),
+]
+
+
+def check_tree(repo: pathlib.Path = REPO) -> list[str]:
+    """Every tracked file, as the index holds it, carries none of TREE_FORBIDDEN."""
+    import subprocess
+    print("\nper-copy licence data in ANY tracked file (the index) — must be ABSENT:")
+    listed = subprocess.run(["git", "-C", str(repo), "ls-files", "-s", "-z"], capture_output=True, check=True).stdout
+    entries = [e.split("\t", 1) for e in listed.decode("utf-8").split("\0") if e]
+    sys.path.insert(0, str(repo / "scripts" / "orchestrator"))
+    import coord  # noqa: E402  (the ONE list of the files no landing carries)
+    blobs = {meta.split()[1]: path for meta, path in entries if not meta.startswith("160000") and coord.is_work(path)}
+    batch = subprocess.run(["git", "-C", str(repo), "cat-file", "--batch"], input="\n".join(blobs).encode() + b"\n",
+                           capture_output=True, check=True).stdout
+    failures, at = [], 0
+    pats = [(re.compile(p), what) for p, what in TREE_FORBIDDEN]
+    while at < len(batch):
+        nl = batch.index(b"\n", at)
+        sha, _kind, size = batch[at:nl].decode().split()
+        body = batch[nl + 1: nl + 1 + int(size)]
+        at = nl + 1 + int(size) + 1
+        if b"\0" in body[:8000]:
+            continue
+        text = body.decode("utf-8", "replace")
+        for rx, what in pats:
+            if m := rx.search(text):
+                line = text.count("\n", 0, m.start()) + 1
+                failures.append(f"{what}: {blobs[sha]}:{line}")
+    if failures:
+        for f in failures[:20]:
+            print(f"  ✗ {f}")
+    else:
+        print(f"  ✓ {len(blobs):,} tracked files, none carries an order number, a download date or a purchaser's name")
+    return failures
+
 
 # Must be present. The acknowledgment's own opening words, and the preface framing that marks our editorial
 # matter as ours.
@@ -186,6 +236,7 @@ def main() -> int:
             print(f"  ✗ MISSING — {what}")
 
     failures.extend(check_corrections(text))
+    failures.extend(check_tree())
 
     # The acknowledgment has to be in the preface, i.e. before the body starts, not only in position at 0.2.
     # The body is delimited by the FIRST CLAUSE, not by a page anchor: pages were removed from the document

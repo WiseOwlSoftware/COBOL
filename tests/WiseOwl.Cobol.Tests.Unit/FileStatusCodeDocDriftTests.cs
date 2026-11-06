@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class FileStatusCodeDocDriftTests
 {
-    private static readonly string[] Spec = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+    private static readonly string[] Spec = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
     private static readonly string Source = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "FileStatus.cs"));
 
     /// <summary>Status, constant name and the statements §9.1.13's item for that status names.</summary>

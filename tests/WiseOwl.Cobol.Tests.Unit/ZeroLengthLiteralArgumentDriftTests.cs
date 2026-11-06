@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>The rule now rides the argument SCHEMA (<see cref="ArgRule.NoZeroLengthClause"/>), which is where the
 /// per-position class rules already live — so enforcement is one shared line rather than six copies. This test
 /// is the half that keeps it true: it DERIVES the list of functions carrying the rule from
-/// <c>specs/ISO_COBOL.md</c> and fails when one is neither declared nor explicitly adjudicated. A seventh clause
+/// <c>specs/ISO_COBOL_2023.md</c> and fails when one is neither declared nor explicitly adjudicated. A seventh clause
 /// then costs a table row instead of going unnoticed for as long as these five did.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
@@ -54,7 +54,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
     /// </remarks>
     public static IEnumerable<string> SpecFunctionsProhibitingZeroLengthArguments()
     {
-        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md"));
+        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md"));
         // Each `### 15.N NAME function` heading and the text up to the next one.
         var sections = Regex.Matches(spec, @"^### 15\.\d+ (?<name>[A-Z0-9-]+) function\s*$", RegexOptions.Multiline)
             .ToList();

@@ -12,11 +12,8 @@ this prints, never a guessed one.
 import sys, os, glob, tempfile, fitz
 from standard_streams import ensure_utf8
 
-# The licensed PDF lives in the PRIVATE submodule (the repo layout changed 2026-07-27; `specs/` is now the
-# public Markdown transcription). Globbed rather than named, so a re-download with a different order suffix
-# still resolves.
-PDF = next(iter(sorted(glob.glob(os.path.join(
-    os.path.dirname(__file__), '..', 'specs-private', '*COBOL*.pdf')))), None)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spec'))
+import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
 
 def main(argv):
     pages, dpi, out = [], 300, None
@@ -26,9 +23,7 @@ def main(argv):
         if a == '--dpi':   dpi = int(argv[i+1]); i += 2; continue
         if a == '--out':   out = argv[i+1];      i += 2; continue
         pages.append(int(a)); i += 1
-    if PDF is None or not os.path.exists(PDF):
-        sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in "
-                 "a PRIVATE submodule: git submodule update --init specs-private")
+    PDF = spec_pdf.require(2023)
     if out is None:
         out = tempfile.mkdtemp(prefix='spec-pages-')
     else:

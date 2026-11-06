@@ -34,7 +34,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// above it has invented them — the more dangerous direction, because inflation looks like thoroughness.</para>
 ///
 /// <para>⚠ This is a SPEC-side gate that deliberately does not run the Python extractor: it re-derives the
-/// printed count from <c>specs/ISO_COBOL.md</c> independently, so it can contradict the code that built the
+/// printed count from <c>specs/ISO_COBOL_2023.md</c> independently, so it can contradict the code that built the
 /// catalog. A critic that reuses the machinery it audits cannot see that machinery's bug.</para>
 ///
 /// <para>⚠ <see cref="TheseChecks_ActuallyFail_OnAFabricatedSpec"/> exists because a gate that has only ever
@@ -77,7 +77,7 @@ public sealed class CatalogCoverageDriftTests
     // ── the two artifacts ──────────────────────────────────────────────────────────────────────────────
 
     private static string[] SpecLines() =>
-        File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
 
     /// <summary>Catalog rows per clause, counting only the numbered-rule kinds. FMT (general-format diagrams)
     /// and DOC (Annex A.1 items) carry no ordinal in the clause body and are not part of this comparison.</summary>
@@ -258,7 +258,7 @@ public sealed class CatalogCoverageDriftTests
     {
         var interior = InteriorHeadings(SpecLines());
         Assert.True(interior.Count == 0,
-            "specs/ISO_COBOL.md renders a heading inside a numbered clause's text. The standard prints in-clause "
+            "specs/ISO_COBOL_2023.md renders a heading inside a numbered clause's text. The standard prints in-clause "
             + "group labels (SEQUENTIAL FILES, FORMAT 3, ALL FORMATS) in BODY type, not as headings — verified in "
             + "the PDF text layer on pp146, 463, 609, 680 and 820 — and the transcription's own convention is a "
             + "plain column-0 line (209 of 218 labels). Demote each of these to a plain line:\n  "

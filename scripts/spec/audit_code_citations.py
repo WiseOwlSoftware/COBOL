@@ -93,7 +93,7 @@ nothing. Both of PB388's user-visible defects lived there. An ordinal check need
 runs over every line of every file that carries citations, and the message strings come under the gate with the
 comments.
 
-⚠ THE ORDINAL CHECKS NEED `specs/ISO_COBOL.md` — the catalog knows which rules it HARVESTED, which is not the
+⚠ THE ORDINAL CHECKS NEED `specs/ISO_COBOL_2023.md` — the catalog knows which rules it HARVESTED, which is not the
 same question as which rules the standard prints (it carries a `parse_gaps` count for that very reason), so the
 standard's own text is what every ordinal is resolved against and what vetoes a finding. Without it `--check`
 REFUSES (exit 2), exactly as PHANTOM does — see the last note.
@@ -110,7 +110,7 @@ were correct citations whose construct was simply named two lines up (`// VALUE 
 (§13.18.63): WHEN SET TO FALSE …`) or in the rule name below (`valueClause`). Reading the block and the
 identifier takes the noise out without weakening the signal: all 28 real defects survive it.
 
-⚠ IT NEEDS `specs/ISO_COBOL.md` FOR PHANTOM AND THE ORDINAL FAMILY. The clause universe is the standard's own
+⚠ IT NEEDS `specs/ISO_COBOL_2023.md` FOR PHANTOM AND THE ORDINAL FAMILY. The clause universe is the standard's own
 headings; the catalog is derived and has a block only where a clause carries numbered rules, so it cannot answer
 "does this clause exist" without inventing phantoms of its own. The Markdown standard is TRACKED in this
 repository (only the licensed PDF is in the private submodule), so a checkout without it is broken, and `--check`
@@ -133,7 +133,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = citation_corpus.REPO
-SPEC = REPO / "specs" / "ISO_COBOL.md"
+SPEC = REPO / "specs" / "ISO_COBOL_2023.md"
 CATALOG = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
 
 #: A clause reference. Two dots minimum for SUBJECT/HEADER (`§13.16` is a real clause and is cited as one);
@@ -147,7 +147,7 @@ CITE = re.compile(r"§\s?(\d+(?:\.\d+)+)(?![a-z])")
 #: docs and comments also point at THEIR OWN sections ("DESIGN-locale-facility §4.4.3", "ADR §1.2.1 guardrail 1",
 #: "plan §0") and at OTHER EDITIONS of COBOL, whose clause numbering is a different document entirely
 #: ("COBOL-85 §4.3.3", "ISO 1989:1985 8.3.1.2"). Both are legitimate and neither is checkable against
-#: `specs/ISO_COBOL.md`. This is the one calibration in the file that is a list of words rather than a structure,
+#: `specs/ISO_COBOL_2023.md`. This is the one calibration in the file that is a list of words rather than a structure,
 #: and it is deliberately short: everything else is derived.
 NOT_THE_STANDARD = re.compile(
     r"(?:DESIGN|ADR|PLAN|PROMPT|DEVLOG|SURVEY|CRITIQUE|EVAL|README|CONFORMANCE\.md|REDEFINES_DESIGN"
@@ -731,7 +731,7 @@ _SPEC_LINES = None
 
 
 def _standard():
-    """`specs/ISO_COBOL.md` as `cite.py` reads it (its lines and clause regions), loaded once and only when a
+    """`specs/ISO_COBOL_2023.md` as `cite.py` reads it (its lines and clause regions), loaded once and only when a
     line carrying both a designator and a quotation asks for it."""
     global _SPEC_LINES
     if _SPEC_LINES is None:
@@ -1363,7 +1363,7 @@ def construct_self_test() -> bool:
 
 def ordinal_self_test(ordinals, tops) -> bool:
     if ordinals is None:
-        print("  ⚠ THE ORDINAL CHECKS could not be self-tested — specs/ISO_COBOL.md is absent")
+        print("  ⚠ THE ORDINAL CHECKS could not be self-tested — specs/ISO_COBOL_2023.md is absent")
         return True
     ok = True
     for want, defect, repaired in ORDINAL_SELF_TEST:
@@ -1401,7 +1401,7 @@ def self_test(subjects, own, universe, ordinals=None, tops=None, direct=None) ->
               + (f"  (got {sorted(got)})" if got else ""))
         ok &= not got
     if universe is None:
-        print("  ⚠ PHANTOM could not be self-tested — specs/ISO_COBOL.md is absent")
+        print("  ⚠ PHANTOM could not be self-tested — specs/ISO_COBOL_2023.md is absent")
     ok &= ordinal_self_test(ordinals, tops)
     ok &= diagnostic_self_test(direct)
     ok &= construct_self_test()
@@ -1486,10 +1486,10 @@ def main() -> int:
         return self_test(subjects, own, universe, ordinals, tops, direct)
 
     if universe is None:
-        # ⛔ REFUSE, NEVER SKIP (kb/Work PB1574). `specs/ISO_COBOL.md` is TRACKED in this repository (only the PDF
+        # ⛔ REFUSE, NEVER SKIP (kb/Work PB1574). `specs/ISO_COBOL_2023.md` is TRACKED in this repository (only the PDF
         # lives in the private submodule), so its absence means a broken checkout — and this audit now gates CI
         # (`audits` job), where a skip of PHANTOM and the ordinal family would print a green over half the checks.
-        print("⛔ specs/ISO_COBOL.md is absent — it is tracked in this repository, so this checkout is broken. "
+        print("⛔ specs/ISO_COBOL_2023.md is absent — it is tracked in this repository, so this checkout is broken. "
               "PHANTOM and the ordinal checks cannot run, and the audit refuses rather than report a partial green.")
         return 2
 

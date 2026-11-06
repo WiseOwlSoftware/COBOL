@@ -34,7 +34,7 @@ LSP DIAGNOSTICS (P13, owner 2026-10-01): act on every diagnostic the language se
 word is not evidence: do not re-derive what it measured, but DO re-run every probe. A note that no longer reproduces is re-verdicted and
 reported DISCHARGED with the evidence (find the landing that fixed it with `git log -S`) — a real outcome, not a failure.
 
-⛔ THE SPEC DECIDES: derive the expected behaviour from `specs/ISO_COBOL.md` before you read or write code. When a general-format DIAGRAM is
+⛔ THE SPEC DECIDES: derive the expected behaviour from `specs/ISO_COBOL_2023.md` before you read or write code. When a general-format DIAGRAM is
 load-bearing, render the PDF page (`scripts/render-spec-page.py <page>`). ⛔ CITATIONS: `python scripts/spec/cite.py --check <clause> "<text>"` for EVERY § you write into
 code, a golden or the report — including the ones the notes carry. A citation you did not --check is not a citation.
 

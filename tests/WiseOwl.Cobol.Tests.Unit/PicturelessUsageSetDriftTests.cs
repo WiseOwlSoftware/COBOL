@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ <see cref="UsageFamilies.IsPictureless"/> AGAINST ITS OWN SOURCE — ISO §13.16.3 SR8, re-read out of
-/// <c>specs/ISO_COBOL.md</c> on every run (kb/Work PB495).
+/// <c>specs/ISO_COBOL_2023.md</c> on every run (kb/Work PB495).
 ///
 /// <para><b>Why the spec and not the compiler.</b> The set drives BOTH arms of the rule — the written-clause
 /// screen in <c>DataBinder.BindEntry</c> and the §13.18.60.4 GR1 inherited screen in
@@ -30,9 +30,9 @@ public sealed class PicturelessUsageSetDriftTests
     /// usage is binary-char, …, or program-pointer."</summary>
     private static List<string> Sr8UsageNames()
     {
-        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = Array.FindIndex(lines, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.16\.3\b"));
-        Assert.True(start >= 0, "§13.16.3 is missing from specs/ISO_COBOL.md — this guard must follow the clause.");
+        Assert.True(start >= 0, "§13.16.3 is missing from specs/ISO_COBOL_2023.md — this guard must follow the clause.");
         int end = Array.FindIndex(lines, start + 1, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.16\.4\b"));
         Assert.True(end > start, "§13.16.4 not found after §13.16.3 — the heading shape changed.");
 

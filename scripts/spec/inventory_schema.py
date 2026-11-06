@@ -704,7 +704,7 @@ class Derivation:
     def undefined(self) -> dict[int, set[str]]:
         """`{A.2 item -> the rule-ids it covers}` — read ONCE, from the generated artifact.
 
-        ⛔ NOT a parse of `specs/ISO_COBOL.md` here. `EveryRowState_IsDerived_NotAsserted` recomputes the state
+        ⛔ NOT a parse of `specs/ISO_COBOL_2023.md` here. `EveryRowState_IsDerived_NotAsserted` recomputes the state
         of all 4,311 rows on every build, so a per-row spec read would put 1.3 MB of I/O on that path; and the
         C# twin would need a second markdown parser, which is the duplication this module exists to prevent.
         `extract_annex_a2.py --check` is what keeps the artifact equal to the standard.

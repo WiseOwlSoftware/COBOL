@@ -34,8 +34,9 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[2]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[3]
-SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
-PDF_DIR = REPO / "specs-private"
+SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/spec, for the one PDF locator
+import spec_pdf  # noqa: E402  (kb/Work PB3208)
 HEAD = re.compile(r"^#{2,}\s+8\.9\s+Reserved words\s*$")
 NEXT = re.compile(r'^<a id="section-8-10')
 WORD = re.compile(r"^[A-Za-z][A-Za-z0-9-]*$")
@@ -48,9 +49,7 @@ WRAP_TAILS = {"QUIET", "SIGNALING"}   # continuation fragments already rejoined 
 
 def printed_words():
     import fitz                                       # imported late: only the PDF-backed modes need it
-    pdf = next(PDF_DIR.glob("*.pdf"), None)
-    if pdf is None:
-        sys.exit("FATAL: the licensed PDF is absent — git submodule update --init specs-private")
+    pdf = spec_pdf.require(2023)
     doc = fitz.open(pdf)
     rows = []
     for pno in LIST_PAGES:

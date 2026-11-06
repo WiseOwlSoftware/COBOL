@@ -33,7 +33,7 @@ Companion docs (this doc defers to them and must be merged into them on landing)
 
 > **The standard has no term "external floating-point".** It calls this construct a **floating-point
 > numeric-edited item** (§13.18.40.4 GR13 b) and never uses "external floating-point" anywhere in the 2023 text
-> (`grep` over `specs/ISO_COBOL.md`: 0 occurrences). Every diagnostic, comment, doc line and `constructs.json`
+> (`grep` over `specs/ISO_COBOL_2023.md`: 0 occurrences). Every diagnostic, comment, doc line and `constructs.json`
 > field this wave touches adopts the standard's term; "external floating-point" survives only as a
 > parenthetical in the `PB66` note and in the legacy diagnostic string that §12 replaces.
 

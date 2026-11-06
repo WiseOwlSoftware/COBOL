@@ -4,7 +4,7 @@
 THE GAP THIS CLOSES. `audit_underlining.py` checks the notation (which words are required) and
 `figure_geometry.py` checks the delimiters (bracket, brace, choice indicator). Neither checks the thing
 underneath both: whether the transcription got the figure's WORDS right. That matters more here than anywhere
-else in the document, because `specs/ISO_COBOL.md` was produced by sending each page IMAGE to a vision model —
+else in the document, because `specs/ISO_COBOL_2023.md` was produced by sending each page IMAGE to a vision model —
 every word in it is a transcription of a picture, and a general format is exactly the kind of dense, low-context
 layout such a model is most likely to guess at.
 
@@ -38,8 +38,9 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
-PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
+SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
+import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
+PDF = spec_pdf.path(2023)
 
 TOKEN = re.compile(r"[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*")
 RUNNING_HEADER = re.compile(r"ISO/IEC\s*1989")
@@ -99,7 +100,7 @@ def hyphen_artifact(token: str, present: set[str]) -> bool:
 # what it needs to live on for the rest.
 def _require_page_anchors(figs):
     if not figs:
-        sys.exit("HALTED: no page anchors in specs/ISO_COBOL.md — pages were removed from the transcription, "
+        sys.exit("HALTED: no page anchors in specs/ISO_COBOL_2023.md — pages were removed from the transcription, "
                  "so this page-keyed audit can no longer bucket it. For figures use "
                  "`python scripts/spec/sweep_figures.py --check`, which regenerates and diffs exactly. "
                  "This audit needs re-keying onto the clause hierarchy.")
@@ -112,9 +113,7 @@ def main() -> int:
     ap.add_argument("--show", action="store_true", help="list the tokens for each flagged page")
     ap.add_argument("--json")
     args = ap.parse_args()
-    if PDF is None or not PDF.exists():
-        sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a PRIVATE submodule; the public repository carries only the Markdown transcription at specs/ISO_COBOL.md. This tool measures the printed page, so it needs the PDF: "
-             "git submodule update --init specs-private")
+    spec_pdf.require(2023)
     import fitz
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))

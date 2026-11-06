@@ -31,7 +31,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <para><b>⛔ The rule was verified against the PRINTED page before the screen was written.</b> SR14's reading
 /// is restrictive enough to be exactly the shape the falsely-restrictive-OCR hazard produces, so PDF page 535
 /// (printed folio 505) was rendered at 300dpi and read as an image: the printed SR14 is character-for-character
-/// the transcription at <c>specs/ISO_COBOL.md</c>. There is no OCR loss here and the rule really is this
+/// the transcription at <c>specs/ISO_COBOL_2023.md</c>. There is no OCR loss here and the rule really is this
 /// restrictive.</para>
 ///
 /// <para><b>⛔ SR14 OMITS INDEX; the neighbouring SR4 INCLUDES it.</b> Six usages there, five here — deliberate

@@ -150,7 +150,7 @@ RESOLVING, DEFECTIVE = verdict_classes()
 NL = chr(10)
 
 #: Display names for the clause buckets — the top-level clause titles of ISO/IEC 1989:2023 exactly as
-#: specs/ISO_COBOL.md prints them (`## N Title`). Presentation only — a clause missing from this map still renders,
+#: specs/ISO_COBOL_2023.md prints them (`## N Title`). Presentation only — a clause missing from this map still renders,
 #: with no subtitle. It is deliberately NOT a list of clauses to work. (A static map, not read from the spec at run
 #: time: the spec is a private submodule that CI does not check out, and `--check` must render identically there.)
 CLAUSE_TITLE = {

@@ -59,7 +59,7 @@ ISO-derived *spec* artifact) and the clean typed runtime substrates were carried
 `src/WiseOwl.Cobol.Frontend` / `src/WiseOwl.Cobol.Runtime` projects. Nothing from the legacy byte
 engine — `ProgramState`, `StorageHelpers`, `StorageLayoutComputer`, `PicRuntime`'s byte-window APIs, the byte
 `IrLocation`/emit spine — is used. The conformance corpora (`tests/nist/`, `conformance-suite/`) and
-`specs/ISO_COBOL.md` are the target + oracle.
+`specs/ISO_COBOL_2023.md` are the target + oracle.
 
 ## 3. Data model (COBOL → .NET types)
 

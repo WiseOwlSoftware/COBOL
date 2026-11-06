@@ -66,7 +66,7 @@ const results = await pipeline(
   batches,
   (batch, _o, i) => agent(
     [
-      'A defect was confirmed in the ISO spec TRANSCRIPTION (specs/ISO_COBOL.md) for each of these printed pages:',
+      'A defect was confirmed in the ISO spec TRANSCRIPTION (specs/ISO_COBOL_2023.md) for each of these printed pages:',
       '  ' + batch.join(', '),
       '',
       'Your question is NOT whether the transcription is wrong - that is already established and verified. Your',

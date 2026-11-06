@@ -1,7 +1,7 @@
 {
  "$comment": [
   "GENERATED — do not hand-edit. `python scripts/spec/extract_annex_a2.py` writes it;",
-  "`--check` re-derives it from specs/ISO_COBOL.md and exits 1 on any difference, and",
+  "`--check` re-derives it from specs/ISO_COBOL_2023.md and exits 1 on any difference, and",
   "AnnexA2UndefinedListDriftTests runs that check every build.",
   "",
   "Annex A.2 is the standard's own list of the language elements it declares explicitly undefined.",
@@ -13,7 +13,7 @@
   "An item with no citation of a numbered rule resolves to NO rule-ids. That is deliberate: an item that",
   "does not name a rule cannot be shown to cover one, and an arm naming such an item is refused."
  ],
- "source": "specs/ISO_COBOL.md#section-a-2",
+ "source": "specs/ISO_COBOL_2023.md#section-a-2",
  "generator": "scripts/spec/extract_annex_a2.py",
  "items": [
   {

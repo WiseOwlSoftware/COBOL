@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE ONE TABLE 16 AGREES WITH THE PRINTED ONE, CELL FOR CELL (kb/Work PB2076). ISO §14.9.25.3 SR10's Table 16 is
 /// written once, <see cref="MoveValidity.Table16Refusal"/>, in the runtime, because both the compiler's MOVE screens and
-/// the universal dispatch's §9.3.6 match rule 7 ask it. This test reads the table out of specs/ISO_COBOL.md and asks the
+/// the universal dispatch's §9.3.6 match rule 7 ask it. This test reads the table out of specs/ISO_COBOL_2023.md and asks the
 /// code every cell over the nine headings it models (the Type-name row and column are SR2's and GR4's, see
 /// <see cref="Table16Category"/>), so an arm edited without the table — or a table re-transcribed without the arms — is
 /// red here rather than a silent acceptance at run time. It also pins the compiler's ONE mapping of its operand axes to
@@ -51,10 +51,10 @@ public sealed class Table16PrintedTableDriftTests
 
     private static List<(Table16Category Row, string[] Cells)> PrintedRows()
     {
-        var lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        var lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int title = Array.FindIndex(lines, l => l.Contains("**Table 16 — Validity of types of MOVE statements**",
             StringComparison.Ordinal));
-        Assert.True(title >= 0, "Table 16's title is no longer in specs/ISO_COBOL.md");
+        Assert.True(title >= 0, "Table 16's title is no longer in specs/ISO_COBOL_2023.md");
         var rows = new List<(Table16Category, string[])>();
         foreach (string line in lines.Skip(title + 1).SkipWhile(l => !l.StartsWith('|')).TakeWhile(l => l.StartsWith('|')))
         {
