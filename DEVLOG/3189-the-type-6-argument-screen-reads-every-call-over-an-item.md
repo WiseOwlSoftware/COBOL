@@ -1,4 +1,4 @@
-## The type 6 argument screen reads every call over an item, signed ABS in both regions, and trusts only quotients the arithmetic keeps (PB4794, PB4795, PB4796; PB4805 retired)
+## Entry 3189 — 2026-11-05 20:13 PST — The type 6 argument screen reads every call over an item, signed ABS in both regions, and trusts only quotients the arithmetic keeps (PB4794, PB4795, PB4796; PB4805 retired)
 
 One file, `IntrinsicArgumentRules.cs`, three mechanisms of the ISO section 15.3 item 6 reading ("an arithmetic expression that will always result in an integer value"), and one note that no longer reproduces.
 
@@ -13,3 +13,4 @@ No inventory row moved: AR-15.3-6 already reads CONFORMS.
 Self-review (architecture, full code, performance, duplication): one mechanism per job (the spine walk reads calls in ReadCall only, the item witness in ItemWitness only); every cited rule run through cite.py --check; no hot-path allocation (compile-time, small arrays); the three regional walks share CollectAdditive. Gate: GREEN, run 000002-20261106T024047Z, Conformance 22,298/22,298, Unit 40,234/40,234, Characterization 37/37 (its first run, 000001, was RED on pb617-integer-expr-literal-sum, which pins the constant-witness wording; the wording is kept when no signed ABS or ABS of a sum was read).
 
 Review round 1 (finisher): R1-1 fixed - the power arm of QuotientsAreExact no longer applies the nested-quotient 14-digit bound (a power to an integer exponent is exact; a negative exponent is one reciprocal rounding at the 34-digit SDIDI): PowerIsKeptExactly, golden pb4794_abs_power_negative_exponent_legal (FACTORIAL (ABS (2 ** -20 * 1048576)) = 1). R1-2 fixed (MIDRANGE citation text). R1-3 fixed (a literal-only ABS argument keeps the plain constant-witness wording).
+
