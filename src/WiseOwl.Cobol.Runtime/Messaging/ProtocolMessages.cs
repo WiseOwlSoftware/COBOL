@@ -4,20 +4,6 @@ using WiseOwl.Cobol.Runtime.Mcs;
 
 namespace WiseOwl.Cobol.Runtime.Messaging;
 
-/// <summary>The EC-MCS exception-names the protocol raises and forwards (ISO §14.6.13.1 Table 13; docs/rearchitecture/DESIGN-message-control.md §2.4),
-/// spelled as <see cref="ExceptionCatalog"/> registers them.</summary>
-internal static class McsException
-{
-    internal const string NoServer = "EC-MCS-NO-SERVER";
-    internal const string NoRequester = "EC-MCS-NO-REQUESTER";
-    internal const string InvalidTag = "EC-MCS-INVALID-TAG";
-    internal const string MessageLength = "EC-MCS-MESSAGE-LENGTH";
-    internal const string RequestorFailed = "EC-MCS-REQUESTOR-FAILED";
-    internal const string AbnormalTermination = "EC-MCS-ABNORMAL-TERMINATION";
-    internal const string NormalTermination = "EC-MCS-NORMAL-TERMINATION";
-    internal const string Imp = "EC-MCS-IMP";
-}
-
 /// <summary>How a RECEIVE waits (ISO §14.9.31.4 GR2; §0 Q5).</summary>
 internal enum MessageWaitKind
 {

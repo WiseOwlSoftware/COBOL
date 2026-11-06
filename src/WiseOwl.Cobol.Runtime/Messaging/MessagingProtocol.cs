@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Runtime.Exceptions;
 using WiseOwl.Cobol.Runtime.Mcs;
 
 namespace WiseOwl.Cobol.Runtime.Messaging;
@@ -143,7 +144,7 @@ internal sealed class MessagingProtocol
         int? maxLength = _definitions(name)?.MaxLength;
         if (message.Image.Length == 0 || (maxLength is { } limit && message.Image.Length > limit))
         {
-            _actions.Add(new Complete(StatementResult.Failed(McsException.MessageLength)));   // GR1, §0 Q2: nothing has been published yet
+            _actions.Add(new Complete(StatementResult.Failed(ExceptionCatalog.McsMessageLength)));   // GR1, §0 Q2: nothing has been published yet
             return Flush();
         }
         var send = _send = new SendState(++_serial, name, McsServerName.Spell(name), message, ++_roundSequence);
@@ -159,10 +160,10 @@ internal sealed class MessagingProtocol
     {
         EnsureIdle();
         StatementResult? refused = null;
-        if (message.Image.Length == 0) refused = StatementResult.Failed(McsException.MessageLength);
-        else if (to.Party != MessageParty.Requestor) refused = StatementResult.Failed(McsException.NoRequester);
-        else if (!string.Equals(to.Mcs, _mcs, StringComparison.Ordinal)) refused = StatementResult.Failed(McsException.InvalidTag);
-        else if (!_active.Remove((to.Name!, to.Message), out _)) refused = StatementResult.Failed(McsException.NoRequester);
+        if (message.Image.Length == 0) refused = StatementResult.Failed(ExceptionCatalog.McsMessageLength);
+        else if (to.Party != MessageParty.Requestor) refused = StatementResult.Failed(ExceptionCatalog.McsNoRequester);
+        else if (!string.Equals(to.Mcs, _mcs, StringComparison.Ordinal)) refused = StatementResult.Failed(ExceptionCatalog.McsInvalidTag);
+        else if (!_active.Remove((to.Name!, to.Message), out _)) refused = StatementResult.Failed(ExceptionCatalog.McsNoRequester);
         if (refused is not null)
         {
             _actions.Add(new Complete(refused));
@@ -184,22 +185,22 @@ internal sealed class MessagingProtocol
         if (from.IsNull)
         {
             if (_served is null)
-                return Done(StatementResult.Failed(McsException.NoRequester));                 // §0 Q2: no requestor can address this run unit
+                return Done(StatementResult.Failed(ExceptionCatalog.McsNoRequester));                 // §0 Q2: no requestor can address this run unit
             receive = new ReceiveState(++_token, ReceiveKind.AnyRequestor, capacity);
         }
         else
         {
-            if (!string.Equals(from.Mcs, _mcs, StringComparison.Ordinal)) return Done(StatementResult.Failed(McsException.InvalidTag));
+            if (!string.Equals(from.Mcs, _mcs, StringComparison.Ordinal)) return Done(StatementResult.Failed(ExceptionCatalog.McsInvalidTag));
             if (from.Party == MessageParty.Requestor)
             {
                 // §14.9.31.4 GR1 b: a missing or ended link is EC-MCS-REQUESTOR-FAILED.
-                if (!_inByRequestor.ContainsKey(from.Name!)) return Done(StatementResult.Failed(McsException.RequestorFailed));
+                if (!_inByRequestor.ContainsKey(from.Name!)) return Done(StatementResult.Failed(ExceptionCatalog.McsRequestorFailed));
                 receive = new ReceiveState(++_token, ReceiveKind.FromRequestor, capacity) { RequestorRunId = from.Name };
             }
             else
             {
                 // A reply already taken, or a serial never sent, is EC-MCS-INVALID-TAG.
-                if (!_replies.ContainsKey(from.Message) && !_sent.ContainsKey(from.Message)) return Done(StatementResult.Failed(McsException.InvalidTag));
+                if (!_replies.ContainsKey(from.Message) && !_sent.ContainsKey(from.Message)) return Done(StatementResult.Failed(ExceptionCatalog.McsInvalidTag));
                 receive = new ReceiveState(++_token, ReceiveKind.FromServer, capacity) { Serial = from.Message };
             }
         }
@@ -217,7 +218,7 @@ internal sealed class MessagingProtocol
     {
         if (_ended) return [];
         _ended = true;
-        string exception = abnormal ? McsException.AbnormalTermination : McsException.NormalTermination;
+        string exception = abnormal ? ExceptionCatalog.McsAbnormalTermination : ExceptionCatalog.McsNormalTermination;
         foreach (var ((requestor, serial), capacity) in _active)
             if (_inByRequestor.TryGetValue(requestor, out var link))
                 _actions.Add(new Write(link.Id, new ReplyFrame(serial, MessageBody.Of(new string(' ', capacity)), exception)));
@@ -332,7 +333,7 @@ internal sealed class MessagingProtocol
     private void OnActivationEnded(ActivationEnded ended)
     {
         if (_send is not { Phase: SendPhase.Activating } send) return;
-        if (!ended.Succeeded) FinishSend(send, StatementResult.Failed(McsException.Imp, ended.Detail));
+        if (!ended.Succeeded) FinishSend(send, StatementResult.Failed(ExceptionCatalog.McsImp, ended.Detail));
         else
         {
             send.Phase = SendPhase.Scanning;
@@ -347,9 +348,9 @@ internal sealed class MessagingProtocol
         if (_send is { } send)
         {
             send.Outstanding--;
-            FinishSend(send, StatementResult.Failed(McsException.Imp, detail));
+            FinishSend(send, StatementResult.Failed(ExceptionCatalog.McsImp, detail));
         }
-        else if (_receive is not null) Done(StatementResult.Failed(McsException.Imp, detail), flush: false);
+        else if (_receive is not null) Done(StatementResult.Failed(ExceptionCatalog.McsImp, detail), flush: false);
     }
 
     /// <summary>The answers owed to a statement that has since ended arrive first, in the order their actions were issued; they are consumed, not applied.</summary>
@@ -397,7 +398,7 @@ internal sealed class MessagingProtocol
             _actions.Add(new Activate(send.Name));
             return;
         }
-        FinishSend(send, StatementResult.Failed(McsException.NoServer));      // §14.9.38.4 GR5
+        FinishSend(send, StatementResult.Failed(ExceptionCatalog.McsNoServer));      // §14.9.38.4 GR5
     }
 
     /// <summary>Step 9: no link remains while the SEND waits, so it repeats step 3 once; the scan's answer decides.</summary>
@@ -560,7 +561,7 @@ internal sealed class MessagingProtocol
         bool tooLong = message.Image.Length > receive.Capacity;
         var body = message.Truncated(receive.Capacity);
         CompleteReceive(receive, tooLong
-            ? new StatementResult(McsException.MessageLength, tag, body.Image, body.Extents, body.Slots, null)
+            ? new StatementResult(ExceptionCatalog.McsMessageLength, tag, body.Image, body.Extents, body.Slots, null)
             : new StatementResult(null, tag, body.Image, body.Extents, body.Slots, body.Image.Length));
     }
 
@@ -573,7 +574,7 @@ internal sealed class MessagingProtocol
         if (_receive is not { } receive || receive.Kind == ReceiveKind.FromServer) return;
         if (receive.Claim?.Link == link) receive.Claim = null;
         if (receive.Kind == ReceiveKind.FromRequestor && receive.RequestorRunId == link.RequestorRunId)
-            CompleteReceive(receive, StatementResult.Failed(McsException.RequestorFailed));
+            CompleteReceive(receive, StatementResult.Failed(ExceptionCatalog.McsRequestorFailed));
         else AdvanceReceive(receive);
     }
 
@@ -613,12 +614,12 @@ internal sealed class MessagingProtocol
     {
         if (reply.Body is null)
         {
-            CompleteReceive(receive, StatementResult.Failed(McsException.AbnormalTermination));
+            CompleteReceive(receive, StatementResult.Failed(ExceptionCatalog.McsAbnormalTermination));
             return;
         }
         bool tooLong = reply.Body.Image.Length > receive.Capacity;
         var body = reply.Body.Truncated(receive.Capacity);
-        string? exception = reply.Exception ?? (tooLong ? McsException.MessageLength : null);
+        string? exception = reply.Exception ?? (tooLong ? ExceptionCatalog.McsMessageLength : null);
         CompleteReceive(receive, new StatementResult(exception, default, body.Image, body.Extents, body.Slots, tooLong ? null : body.Image.Length));
     }
 

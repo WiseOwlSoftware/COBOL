@@ -197,8 +197,8 @@ public sealed class MessagingProtocolTests
     {
         foreach (string name in new[]
         {
-            McsException.NoServer, McsException.NoRequester, McsException.InvalidTag, McsException.MessageLength, McsException.RequestorFailed,
-            McsException.AbnormalTermination, McsException.NormalTermination, McsException.Imp,
+            ExceptionCatalog.McsNoServer, ExceptionCatalog.McsNoRequester, ExceptionCatalog.McsInvalidTag, ExceptionCatalog.McsMessageLength, ExceptionCatalog.McsRequestorFailed,
+            ExceptionCatalog.McsAbnormalTermination, ExceptionCatalog.McsNormalTermination, ExceptionCatalog.McsImp,
         })
             Assert.True(ExceptionCatalog.TryGet(name, out _), name);
     }
@@ -311,7 +311,7 @@ public sealed class MessagingProtocolTests
         network.BetweenListenAndRename = _ => windows++;
         requestor.Send("NOBODY", "x");
         Pump(requestor);
-        Assert.Equal(McsException.NoServer, requestor.Last.ExceptionName);
+        Assert.Equal(ExceptionCatalog.McsNoServer, requestor.Last.ExceptionName);
         Assert.Equal(1, windows);                                      // the bell was published, once
         Assert.Empty(network.RunIds(PeerEndpointKind.Bell, "NOBODY"));
         Assert.False(requestor.Protocol.Busy);
@@ -326,11 +326,11 @@ public sealed class MessagingProtocolTests
         var requestor = new Peer(network, "req1", definitions: n => n == "LIMITED" ? new ServerDefinition(4, false) : null);
         requestor.Send("SRV", string.Empty);
         requestor.Send("LIMITED", "12345");
-        Assert.Equal([McsException.MessageLength, McsException.MessageLength], requestor.Results.Select(r => r.ExceptionName));
+        Assert.Equal([ExceptionCatalog.McsMessageLength, ExceptionCatalog.McsMessageLength], requestor.Results.Select(r => r.ExceptionName));
         Assert.Equal(0, windows);
         requestor.Send("LIMITED", "1234");                              // exactly maxLength is allowed: it goes on to find no server
         Pump(requestor);
-        Assert.Equal(McsException.NoServer, requestor.Last.ExceptionName);
+        Assert.Equal(ExceptionCatalog.McsNoServer, requestor.Last.ExceptionName);
     }
 
     [Fact]
@@ -413,7 +413,7 @@ public sealed class MessagingProtocolTests
         a.Transport.Abort();
         int enumerations = requestor.Log.OfType<Enumerate>().Count();
         Pump(requestor);
-        Assert.Equal(McsException.NoServer, requestor.Last.ExceptionName);
+        Assert.Equal(ExceptionCatalog.McsNoServer, requestor.Last.ExceptionName);
         Assert.Equal(enumerations + 1, requestor.Log.OfType<Enumerate>().Count());
         Assert.False(network.Exists(a.ListenerEndpoint));               // the stale file was refused at and deleted
     }
@@ -515,12 +515,12 @@ public sealed class MessagingProtocolTests
         none.Send("OTHER", "x");
         Pump(none);
         Assert.Single(none.Activations);                                 // activated once; the server it started never appeared
-        Assert.Equal(McsException.NoServer, none.Last.ExceptionName);
+        Assert.Equal(ExceptionCatalog.McsNoServer, none.Last.ExceptionName);
 
         var failing = new Peer(network, "req3", definitions: n => new ServerDefinition(null, HasStart: true)) { OnActivate = _ => false };
         failing.Send("OTHER", "x");
         Pump(failing);
-        Assert.Equal(McsException.Imp, failing.Last.ExceptionName);
+        Assert.Equal(ExceptionCatalog.McsImp, failing.Last.ExceptionName);
         Assert.Empty(network.RunIds(PeerEndpointKind.Bell, "OTHER"));
     }
 
@@ -659,12 +659,12 @@ public sealed class MessagingProtocolTests
         server.SendResponse(foreign, "A");
         server.SendResponse(new MessageTag(Mcs, MessageParty.Requestor, "req1", 99), "A");     // never received
         Assert.Equal(
-            [McsException.MessageLength, McsException.NoRequester, McsException.NoRequester, McsException.InvalidTag, McsException.NoRequester],
+            [ExceptionCatalog.McsMessageLength, ExceptionCatalog.McsNoRequester, ExceptionCatalog.McsNoRequester, ExceptionCatalog.McsInvalidTag, ExceptionCatalog.McsNoRequester],
             server.Results.Skip(1).Select(r => r.ExceptionName));
         server.SendResponse(real, "A");
         Assert.True(server.Last.Successful);
         server.SendResponse(real, "A");                                  // answered: the message is no longer active
-        Assert.Equal(McsException.NoRequester, server.Last.ExceptionName);
+        Assert.Equal(ExceptionCatalog.McsNoRequester, server.Last.ExceptionName);
     }
 
     [Fact]
@@ -683,7 +683,7 @@ public sealed class MessagingProtocolTests
         Assert.True(server.Last.Successful);
         Assert.Equal(writes, server.Log.OfType<Write>().Count());        // nothing was written
         server.Receive(tag, wait: MessageWait.Poll);
-        Assert.Equal(McsException.RequestorFailed, server.Last.ExceptionName);
+        Assert.Equal(ExceptionCatalog.McsRequestorFailed, server.Last.ExceptionName);
     }
 
     [Fact]
@@ -695,7 +695,7 @@ public sealed class MessagingProtocolTests
         server.Receive(default, capacity: 3);
         Pump(requestor, server);
         var received = server.Last;
-        Assert.Equal(McsException.MessageLength, received.ExceptionName);
+        Assert.Equal(ExceptionCatalog.McsMessageLength, received.ExceptionName);
         Assert.Equal("TOO", received.Image);
         Assert.Null(received.Length);                                    // data-name-2 unchanged (Q7)
         Assert.True(requestor.Last.Successful);                          // the SEND itself completed: the message was taken
@@ -710,7 +710,7 @@ public sealed class MessagingProtocolTests
     {
         var requestor = new Peer(Network(), "req1");
         requestor.Receive(default);
-        Assert.Equal(McsException.NoRequester, requestor.Last.ExceptionName);
+        Assert.Equal(ExceptionCatalog.McsNoRequester, requestor.Last.ExceptionName);
     }
 
     [Fact]
@@ -720,7 +720,7 @@ public sealed class MessagingProtocolTests
         server.Receive(new MessageTag("ffffffffffffffff", MessageParty.Requestor, "req1", 1));
         server.Receive(new MessageTag(Mcs, MessageParty.Requestor, "nobody", 1));
         server.Receive(new MessageTag("ffffffffffffffff", MessageParty.Server, "SRV", 1));
-        Assert.Equal([McsException.InvalidTag, McsException.RequestorFailed, McsException.InvalidTag], server.Results.Select(r => r.ExceptionName));
+        Assert.Equal([ExceptionCatalog.McsInvalidTag, ExceptionCatalog.McsRequestorFailed, ExceptionCatalog.McsInvalidTag], server.Results.Select(r => r.ExceptionName));
     }
 
     [Fact]
@@ -738,7 +738,7 @@ public sealed class MessagingProtocolTests
         Assert.Equal("A1", requestor.Last.Image);
         requestor.Receive(tag);                                          // already taken
         requestor.Receive(new MessageTag(Mcs, MessageParty.Server, "SRV", 77));   // never sent
-        Assert.Equal([McsException.InvalidTag, McsException.InvalidTag], requestor.Results.Skip(2).Select(r => r.ExceptionName));
+        Assert.Equal([ExceptionCatalog.McsInvalidTag, ExceptionCatalog.McsInvalidTag], requestor.Results.Skip(2).Select(r => r.ExceptionName));
     }
 
     [Fact]
@@ -753,9 +753,9 @@ public sealed class MessagingProtocolTests
         requestor.Receive(tag);
         server.Transport.Abort();
         Pump(requestor);
-        Assert.Equal(McsException.AbnormalTermination, requestor.Last.ExceptionName);
+        Assert.Equal(ExceptionCatalog.McsAbnormalTermination, requestor.Last.ExceptionName);
         requestor.Receive(tag);
-        Assert.Equal(McsException.InvalidTag, requestor.Last.ExceptionName);   // the ended marker was taken
+        Assert.Equal(ExceptionCatalog.McsInvalidTag, requestor.Last.ExceptionName);   // the ended marker was taken
     }
 
     [Fact]
@@ -791,7 +791,7 @@ public sealed class MessagingProtocolTests
             Assert.False(network.Exists(server.ListenerEndpoint));
             Pump(requestor);
             requestor.Receive(tag, 10);
-            Assert.Equal(abnormal ? McsException.AbnormalTermination : McsException.NormalTermination, requestor.Last.ExceptionName);
+            Assert.Equal(abnormal ? ExceptionCatalog.McsAbnormalTermination : ExceptionCatalog.McsNormalTermination, requestor.Last.ExceptionName);
             Assert.Equal("      ", requestor.Last.Image);                  // the recorded size, as spaces
         }
     }
@@ -846,7 +846,7 @@ public sealed class MessagingProtocolTests
             }
         }
         Assert.True(answered);
-        Assert.Equal(McsException.NoServer, requestor.Last.ExceptionName);
+        Assert.Equal(ExceptionCatalog.McsNoServer, requestor.Last.ExceptionName);
         Assert.Single(requestor.Log.OfType<Connect>());
     }
 
@@ -890,7 +890,7 @@ public sealed class MessagingProtocolTests
         Assert.Equal(2, requestor.Log.OfType<Connect>().Count());
         requestor.DropAnswer();                                          // the first connect failed: its answer is ActionFailed
         requestor.Post(new ActionFailed("socket error"));
-        Assert.Equal(McsException.Imp, requestor.Last.ExceptionName);
+        Assert.Equal(ExceptionCatalog.McsImp, requestor.Last.ExceptionName);
         Assert.Equal("socket error", requestor.Last.Detail);
         Assert.Empty(network.RunIds(PeerEndpointKind.Bell, "SRV"));
         requestor.Send("SRV", "Y");                                      // the answer still owed belongs to the first statement
