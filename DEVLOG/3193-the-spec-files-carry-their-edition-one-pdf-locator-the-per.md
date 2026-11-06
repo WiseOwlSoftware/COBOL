@@ -1,4 +1,4 @@
-## The spec files carry their edition; one PDF locator; the per-copy stamp redacted from the tree
+## Entry 3193 — 2026-11-05 21:25 PST — The spec files carry their edition; one PDF locator; the per-copy stamp redacted from the tree
 
 The owner asked (2026-11-05) that every spec file name its edition, and that the reseller's per-copy stamp and any reference
 to the purchaser be removed from what the repository publishes, history included.
@@ -16,3 +16,4 @@ to the purchaser be removed from what the repository publishes, history included
   only). `verify_publishable.py` now also reads every tracked file in the index (`check_tree`) and refuses an order number, a
   download date or "Licensed to" followed by a name.
 - PB4759 (the cd-name debugging trigger) is open again: the 1985 Debug module is its source.
+
