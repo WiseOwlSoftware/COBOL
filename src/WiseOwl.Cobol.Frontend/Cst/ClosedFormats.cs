@@ -171,20 +171,42 @@ public static class ClosedFormats
         return null;
     }
 
-    /// <summary>⛔ THE DATA DESCRIPTION ENTRY WHOSE OWN NAME IS STILL DUE (kb/Work PB4604), or null where no entry waits
-    /// for one. ISO §13.16.3 SR4: "the entry-name clause shall immediately follow the level-number" and, when it is not
-    /// specified, the entry is a filler; so a data description entry whose context holds no data-name has two readings
-    /// of the first word after its level-number, the entry-name and the first clause, and only a word that is neither
-    /// is "not a clause". The other formats write a mandatory name before their clause list (FD, SD, SELECT) or hold
-    /// none (the report group entry's clause list is no closed format), so the slot is open only here. The caller
-    /// compares the entry's level-number with the token before the offending word: a name or a clause written already
-    /// closes the slot.</summary>
-    public static Core.DataDescriptionEntryContext? EntryAwaitingItsName(RuleContext? ctx)
+    /// <summary>⛔ THE ENTRY WHOSE OWN NAME IS STILL DUE (kb/Work PB4604, PB4788), or null where no entry waits for one.
+    /// ISO §13.16.3 SR4: "the entry-name clause shall immediately follow the level-number" and, when it is not specified,
+    /// the entry is a filler; so a data description entry whose context holds no data-name has two readings of the first
+    /// word after its level-number, the entry-name and the first clause, and only a word that is neither is "not a
+    /// clause". The other closed formats write a mandatory name before their clause list (FD, SD, SELECT). The entries
+    /// that share the optional name slot are the data description entry and the three that print the same
+    /// <c>level-number [data-name] …</c> head: the screen description entry (§13.9.2, screen-name), the report group
+    /// description entry (§13.8.2) and the constant entry (§13.10.2), so a dangling level-number before a header
+    /// (<c>SCREEN SECTION.</c> then <c>01 LINKAGE SECTION.</c>) is the missing period in all four. The caller compares
+    /// the entry's level-number with the token before the offending word: a name or a clause written already closes
+    /// the slot.</summary>
+    public static NamelessEntry? EntryAwaitingItsName(RuleContext? ctx)
     {
         for (RuleContext? p = ctx; p is not null; p = p.Parent)
-            if (p is Core.DataDescriptionEntryContext d) return d.dataName() is null ? d : null;
+            switch (p)
+            {
+                case Core.DataDescriptionEntryContext d: return d.dataName() is null ? new(d, d.levelNumber()?.Stop) : null;
+                case Core.ScreenDescriptionEntryContext s: return s.screenName() is null ? new(s, s.levelNumber()?.Stop) : null;
+                case Core.ReportGroupEntryContext r: return r.dataName() is null ? new(r, r.levelNumber()?.Stop) : null;
+                case Core.ConstantEntryContext c: return c.dataName() is null ? new(c, c.levelNumber()?.Stop) : null;
+            }
         return null;
     }
+
+    /// <summary>⛔ THE RULES OF THE ENTRIES THAT PRINT <c>level-number [name] …</c> (kb/Work PB4788): the rules
+    /// <see cref="EntryAwaitingItsName"/> reads off the parser's context, as names, for the walk that reads the open rules
+    /// where the context holds none (<c>SCREEN SECTION.</c> then <c>01 LINKAGE SECTION.</c>: the section's entry loop fails
+    /// its prediction at LINKAGE with the parser before the level-number, so no entry context exists yet). One list for both
+    /// readings; <c>ClosedFormatDriftTests</c> holds it to the grammar: every rule that begins with the level-number.</summary>
+    public static readonly FrozenSet<string> LevelNumberEntryRules = FrozenSet.ToFrozenSet(
+        new[] { Core.RULE_dataDescriptionEntry, Core.RULE_screenDescriptionEntry, Core.RULE_reportGroupEntry, Core.RULE_constantEntry }
+            .Select(r => Core.ruleNames[r]));
+
+    /// <summary>An entry that has written no name, and the last token of its level-number
+    /// (<see cref="EntryAwaitingItsName"/>).</summary>
+    public readonly record struct NamelessEntry(ParserRuleContext Entry, IToken? LevelNumber);
 
     /// <summary>⛔ THE WORDS THAT CAN ONLY BE A DATA DESCRIPTION ENTRY'S NAME (kb/Work PB4645): the tokens the data-name rule
     /// begins with that no clause of the entry begins with, read from the ATN. The error production

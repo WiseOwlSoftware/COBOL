@@ -388,6 +388,24 @@ public sealed class ClosedFormatDriftTests : WiseOwlCobolTestBase
         return seen;
     }
 
+    /// <summary>⛔ THE ENTRIES THAT BEGIN WITH A LEVEL-NUMBER ARE ONE LIST (kb/Work PB4788): the parser's context finds the entry
+    /// whose name is still due by type (<see cref="ClosedFormats.EntryAwaitingItsName"/>), the walk by rule name
+    /// (<see cref="ClosedFormats.LevelNumberEntryRules"/>), and both are the grammar's rules that call <c>levelNumber</c>
+    /// before consuming a token. A new entry format that begins that way is in the list or this fails.</summary>
+    [Fact]
+    public void TheEntriesThatBeginWithALevelNumber_AreTheClosedFormatsLevelNumberEntryList()
+    {
+        var atn = Core._ATN;
+        var levelNumber = atn.ruleToStartState[Core.RULE_levelNumber];
+        var beginning = Enumerable.Range(0, atn.ruleToStartState.Length)
+            .Where(r => EpsilonReach(atn.ruleToStartState[r]).Any(s => Enumerable.Range(0, s.NumberOfTransitions)
+                .Any(i => s.Transition(i) is RuleTransition call && call.target == levelNumber)))
+            .Select(r => Core.ruleNames[r])
+            .Order()
+            .ToArray();
+        Assert.Equal(beginning, ClosedFormats.LevelNumberEntryRules.Order().ToArray());
+    }
+
     /// <summary>The band is ERROR severity at every edition and every strictness. §4.2.2 makes a general format
     /// the definition of what may be written; there is no permissive reading of an unrecognized clause that is
     /// not "compile something the programmer did not write", so it never downgrades to a warning.</summary>
