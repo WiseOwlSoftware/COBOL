@@ -256,6 +256,31 @@ public static partial class CobolNum
         return image;
     }
 
+    /// <summary>The magnitude digits of a signed ZONED numeric image that is the de-signed source of an alphanumeric MOVE or compare (ISO §14.9.25.4
+    /// GR6a: "the operational sign is dropped"). A valid image is decoded and re-emitted (an over-punched digit becomes its plain digit); content
+    /// that is NOT a valid representation — a numeric item still holding the spaces it was initialized with, such as an unused DEBUG-SUB-n — is
+    /// copied as it stands, its separate sign character dropped, because the standard leaves the content of such a sender undefined and
+    /// GnuCOBOL's display-to-alphanumeric MOVE copies the characters; decoding it would fabricate the digits <c>0000</c> for spaces.</summary>
+    public static string DeSignImage(string image, in NumProfile item, int digits)
+    {
+        if (IsNumericImage(image, item)) return FormatUnsignedDisplay(ParseImage(image, item), digits);
+        return item.SignKind switch
+        {
+            NumericSign.LeadingSeparate when image.Length > 0 => image[1..],
+            NumericSign.TrailingSeparate when image.Length > 0 => image[..^1],
+            _ => image,
+        };
+    }
+
+    /// <summary><see cref="DeSignImage"/> as the checked sending read of §14.6.13.2 rule 2 (the twin of <see cref="SendingImage"/>): invalid content
+    /// raises EC-DATA-INCOMPATIBLE under checking, and the verbatim digits stand once it has been reported.</summary>
+    public static string DeSignImageSending(string image, in NumProfile item, int digits)
+    {
+        if (ExceptionState.DataIncompatibleChecking && !IsNumericImage(image, item))
+            ExceptionState.DataIncompatibleError(Rule2Detail);
+        return DeSignImage(image, item, digits);
+    }
+
     /// <summary>
     /// ⛔ THE ONE NUMERIC CLASS CONDITION over a numeric item's STORED IMAGE (ISO §8.8.4.4.4 GR3 n)1) — "the content
     /// of a data item … consists entirely of a valid representation for the usage". Two callers need this exact

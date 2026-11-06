@@ -24,6 +24,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// NOT-ON phrase bodies nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
+    /// <summary>The USE FOR DEBUGGING trigger emitter — property-wired by <see cref="UnitEmitters"/> (docs/CONTROL_FLOW_DESIGN.md D20).</summary>
+    internal DebugTriggerEmitter Debug { get; set; } = null!;
+
     /// <summary>The declarative hook after a verb's FILE STATUS store (GR6 — after the standard status routine,
     /// BEFORE the statement's phrase branches). A statement with ENABLED EC-I-O checking for this file (>>TURN,
     /// ISO §7.3.25) calls the EC-aware <c>__IoCheckEc</c> variant instead — same F1 behavior plus the §9.1.13.1
@@ -778,8 +781,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     public void EmitWrite(BoundWrite wr)
     {
         var w = ctx.Writer;
-        if (wr.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
+        if (wr.Unsupported is { } u) { w.Line(LoudStmt(u)); Debug.LandBeforeIo(); return; }
         if (wr.FromMove is { } fromMove) move.Emit(fromMove);   // §14.9.51.4 GR5 a) — the BOUND implicit MOVE
+        Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         string name = FileKeyExpr(wr.File);
         string image = SentRecordImage(wr.File, wr.Record);   // THE ONE record-area channel (kb/Work PB327; D-WRT1, PB1907)
         // ⛔ ONE CALL FOR EVERY WRITE SHAPE (kb/Work PB683). §9.1.16/§14.9.51 GR10-GR11 (P10 Step 8): the governed
@@ -990,7 +994,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // READ … INTO is READ then MOVE THE CURRENT RECORD to the target (ISO §14.9.30.4 GR4 b)) — the
             // move is BOUND (kb/Work PB348), its sender the record sliced to the §13.18.43.4 GR16 byte count
             // through the ONE builder the keyed READ and the sort RETURN also use (kb/Work PB339).
-            if (rd.IntoMove is { } intoMove) move.Emit(intoMove);
+            // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs (D20).
+            if (rd.IntoMove is { } intoMove) { move.Emit(intoMove); Debug.LandAfterAction(); }
             if (rd.NotAtEnd is { } not) EmitNotPhrase(hook, not);
             // §14.9.30.4 GR13c — on a successful READ "control is transferred to the end of the READ statement,
             // or, if the NOT AT END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2".
@@ -1018,8 +1023,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     public void EmitRewrite(BoundRewrite rw)
     {
         var w = ctx.Writer;
-        if (rw.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
+        if (rw.Unsupported is { } u) { w.Line(LoudStmt(u)); Debug.LandBeforeIo(); return; }
         if (rw.FromMove is { } fromMove) move.Emit(fromMove);   // §14.9.35.4 GR7 a) — the BOUND implicit MOVE
+        Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         string image = SentRecordImage(rw.File, rw.Record);   // THE ONE record-area channel (kb/Work PB327; D-WRT1, PB1907)
         // §9.1.16/§14.9.35 GR11-GR12 (P10 Step 8): EVERY sequential REWRITE routes through the governed runtime
         // entry — the pre-operation conflict check on the last-read record (51 leaves the record unrewritten)

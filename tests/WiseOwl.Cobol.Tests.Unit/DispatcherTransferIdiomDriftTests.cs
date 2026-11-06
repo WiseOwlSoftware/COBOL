@@ -329,7 +329,13 @@ public sealed class DispatcherTransferIdiomDriftTests
     public void GoToDependingLeavesThroughTheExplicitTransfer()
     {
         string cs = Emit(Src);
-        var dep = cs.Split('\n').Where(l => l.Contains("__dep", StringComparison.Ordinal) && l.Contains("goto __xfer;", StringComparison.Ordinal)).ToList();
+        // The in-range arm is a block (the sections an enclosing statement owes run in it before the jump), so the jump is the line after the
+        // `if (__depN >= 1 && …)` header and its brace.
+        var lines = cs.Split('\n');
+        var dep = Enumerable.Range(0, lines.Length)
+            .Where(i => lines[i].Contains("if (__dep", StringComparison.Ordinal) && lines[i].Contains(">= 1 &&", StringComparison.Ordinal))
+            .Select(i => string.Join("\n", lines.Skip(i).Take(4)))
+            .Where(block => block.Contains("goto __xfer;", StringComparison.Ordinal)).ToList();
         Assert.Single(dep);
         Assert.Contains("__atExit = false; goto __xfer;", dep[0], StringComparison.Ordinal);
         // The format-1 GO TOs beside it (the EVALUATE arm's `GO TO S2-B`, the SEARCH AT END's `GO TO S2-A`) are the

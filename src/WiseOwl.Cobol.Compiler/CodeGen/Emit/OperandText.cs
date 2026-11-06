@@ -646,7 +646,7 @@ internal static class OperandText
         if (p is RedefViewPlace { ReadsCharacterImage: true })
             return NonTextBytes(p, deSign, sending, deviceComma) is { } rvBytes ? rvBytes
                 : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } rvp
-                ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked()), rvp.Digits), rvp)
+                ? PExpand(RuntimeApi.NumDeSignImage(PlaceRenderer.Read(p), p.Item.ProfileName, rvp.Digits, sending.FixedPointChecked()), rvp)
                 // The zoned window goes through VERBATIM, checked on the way — see SendingVerbatim.
                 : ImageText(SendingVerbatim(p, sending), p, deviceComma);
         // A group operand's character image is the generated AsImage(): each string-stored leaf contributes its
@@ -701,7 +701,7 @@ internal static class OperandText
         if (p.Item.StoreAsImage)
             return NonTextBytes(p, deSign, sending, deviceComma) is { } siBytes ? siBytes
                 : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } sip
-                ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked()), sip.Digits), sip)
+                ? PExpand(RuntimeApi.NumDeSignImage(PlaceRenderer.Read(p), p.Item.ProfileName, sip.Digits, sending.FixedPointChecked()), sip)
                 // The StoreAsImage twin of the RedefViewPlace arm above — same rule, same one reader.
                 : ImageText(SendingVerbatim(p, sending), p, deviceComma);
         return p.Item.Pic switch

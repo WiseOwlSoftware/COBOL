@@ -13,6 +13,9 @@ internal sealed class EvaluateEmitter(EmitContext ctx, ConditionRenderer cond)
     /// arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
+    /// <summary>The USE FOR DEBUGGING trigger emitter — property-wired by <see cref="UnitEmitters"/> (docs/CONTROL_FLOW_DESIGN.md D20).</summary>
+    internal DebugTriggerEmitter Debug { get; set; } = null!;
+
     /// <summary>EVALUATE → a chained <c>if / else if / else</c> (ISO §14.9.13 GR1–3: the WHEN arms are tested in
     /// source order, the FIRST true arm's statements run, WHEN OTHER is the else tail; no arm matching = no
     /// statements). The matches were composed at bind time (DESIGN §5.3 — no dispatch tables, readable
@@ -21,9 +24,13 @@ internal sealed class EvaluateEmitter(EmitContext ctx, ConditionRenderer cond)
     {
         var w = ctx.Writer;
         bool first = true;
-        foreach (var arm in ev.Whens)
+        // A WHEN phrase is evaluated only when every earlier one was false: a debugging section that depends on an operand written in it runs only
+        // when the phrase was reached (X3.23-1985 USE FOR DEBUGGING general rules 5 and 6; DebugTriggerPlanner.PlanPhrases).
+        var phrases = Debug.TakePhraseFlags();
+        for (int k = 0; k < ev.Whens.Count; k++)
         {
-            string match = cond.Render(arm.Match);
+            var arm = ev.Whens[k];
+            string match = phrases.Mark(k, cond.Render(arm.Match));
             using (w.Block(first ? $"if ({match})" : $"else if ({match})"))
                 Statements.EmitStatementList(arm.Statements);
             first = false;

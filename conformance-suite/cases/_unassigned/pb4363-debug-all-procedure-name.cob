@@ -11,8 +11,8 @@
       *> resource"). WITH DEBUGGING MODE makes the declarative live; it is refused at 85 with COBOL5848
       *> naming the procedure, and from 2002 the whole facility is COBOL0902
       *> (pb4237-debug-all-identifier-removed-2002).
-      *> Why it can fail: a binder that never resolves the operand calls P1 the legal-but-unmodeled
-      *> data-item subject (COBOL1571), which says the program is right.
+      *> Why it can fail: a binder that never resolves the operand calls P1 a data-item subject and
+      *> accepts the program, which says the program is right.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4363DBGALLP.
        ENVIRONMENT DIVISION.

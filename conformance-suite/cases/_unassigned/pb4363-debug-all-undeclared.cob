@@ -9,8 +9,7 @@
       *> 8.4.2.1 requires "a statement shall contain a reference that uniquely identifies that resource",
       *> so the program is wrong, and it is refused at 85 with COBOL1639 (not defined). From 2002 the
       *> whole facility is COBOL0902 (pb4237-debug-all-identifier-removed-2002).
-      *> Why it can fail: a binder that never resolves the operand answers COBOL1571, "recognized but not
-      *> modeled", about a name that does not exist.
+      *> Why it can fail: a binder that never resolves the operand accepts a name that does not exist.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4363DBGALLU.
        ENVIRONMENT DIVISION.

@@ -10,7 +10,11 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// consecutive WHEN phrases OR-ed over a shared body (§14.9.13 GR — multiple WHEN phrases preceding one
 /// imperative). The first true arm's statements run; WHEN OTHER is the else tail.</summary>
 public sealed record BoundEvaluate(
-    IReadOnlyList<BoundEvaluateWhen> Whens, IReadOnlyList<BoundStatement>? Other) : BoundStatement;
+    IReadOnlyList<BoundEvaluateWhen> Whens, IReadOnlyList<BoundStatement>? Other) : BoundStatement, IBoundEvaluatedPhrases
+{
+    /// <summary>Each WHEN's match is evaluated only when every earlier arm's was false.</summary>
+    public IReadOnlyList<object> PhraseOperands => [.. Whens.Select(w => (object)w.Match)];
+}
 
 /// <summary>One selectable EVALUATE arm: its composed match condition and its statements.</summary>
 public sealed record BoundEvaluateWhen(BoundCondition Match, IReadOnlyList<BoundStatement> Statements);

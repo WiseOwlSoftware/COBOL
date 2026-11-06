@@ -22,7 +22,13 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// that record's FIXED run, and the runtime locates it in each record through the record type's layout. Null for
 /// every key whose window is the same in every record.</para></summary>
 public sealed record BoundSortMergeKey(
-    bool Descending, int Offset, int Length, CollatingClass Class, DataItem? Item, Place? LayoutRecord = null);
+    bool Descending, int Offset, int Length, CollatingClass Class, DataItem? Item, Place? LayoutRecord = null, Place? Written = null)
+    : IBoundImplicitOperands
+{
+    /// <summary>The key data-name as the ASCENDING / DESCENDING KEY phrase wrote it (<see cref="Written"/>) is the statement's explicit
+    /// reference (X3.23-1985 USE FOR DEBUGGING general rule 5 d); the record whose layout locates the key at run time is not one.</summary>
+    public IEnumerable<object> ImplicitOperands => LayoutRecord is null ? [] : [LayoutRecord];
+}
 
 /// <summary>The RECORD IS VARYING model of an SD/FD bound for the sort verbs (ISO §13.18.43): the resolved
 /// DEPENDING ON place — RELEASE takes each record's length from it (GR13a), RETURN restores each returned record's
@@ -31,6 +37,16 @@ public sealed record BoundSortMergeKey(
 /// <paramref name="Depending"/> is null for a variable-length SD/FD with no DEPENDING phrase (RECORD m TO n —
 /// GR13b/c: each record then releases/writes at its own size; there is no length register to restore).</summary>
 public sealed record SortVaryingInfo(Place? Depending, int Min, int Max);
+
+/// <summary>A sort verb that carries the RECORD VARYING model of its SD (SORT, MERGE, RELEASE): the DEPENDING ON item is the file description's,
+/// read or restored on the statement's behalf, so the program did not write it (X3.23-1985 USE FOR DEBUGGING general rule 5: "explicitly
+/// references"). RETURN states the same fact in its own larger list.</summary>
+public interface IBoundSortVarying : IBoundImplicitOperands
+{
+    SortVaryingInfo? Varying { get; }
+
+    IEnumerable<object> IBoundImplicitOperands.ImplicitOperands => Varying is null ? [] : [Varying];
+}
 
 /// <summary><c>SORT file-name-1 …</c> (ISO §14.9.40 Format 1): the three-phase file sort (GR9 — release, sequence,
 /// return). <paramref name="Using"/>/<paramref name="InputProcedure"/> is the release phase (GR11/GR12),
@@ -47,7 +63,7 @@ public sealed record BoundSort(
     IReadOnlyList<BoundSortMergeKey> Keys, bool DuplicatesInOrder, SortCollation Collating,
     IReadOnlyList<FileModel> Using, PcRange? InputProcedure,
     IReadOnlyList<FileModel> Giving, PcRange? OutputProcedure,
-    SortVaryingInfo? Varying) : BoundStatement;
+    SortVaryingInfo? Varying) : BoundStatement, IBoundSortVarying;
 
 /// <summary><c>SORT data-name-2 …</c> (ISO §14.9.40 Format 2, COBOL-2002+): the in-place table sort over the typed
 /// element array (DESIGN §8.2 — the one sanctioned divergence from the image store: Format 2 operates on
@@ -107,7 +123,7 @@ public sealed record BoundMerge(
     IReadOnlyList<BoundSortMergeKey> Keys, SortCollation Collating,
     IReadOnlyList<FileModel> Using,
     IReadOnlyList<FileModel> Giving, PcRange? OutputProcedure,
-    SortVaryingInfo? Varying) : BoundStatement;
+    SortVaryingInfo? Varying) : BoundStatement, IBoundSortVarying;
 
 /// <summary><c>RELEASE record-name-1 [FROM x]</c> (ISO §14.9.32): release the SD record's image to the initial
 /// phase of the active sort (GR2). FROM ≡ <c>MOVE x TO record-name-1</c> then the same RELEASE (GR4). A varying SD
@@ -116,7 +132,7 @@ public sealed record BoundMerge(
 /// image, kb/Work PB322 F). A short USING-file record is filled by §14.9.40.4 GR7, the USING transfer's own rule
 /// (kb/Work PB1140), and a short RETURNed record for a GIVING file by GR16.</summary>
 public sealed record BoundRelease(
-    FileModel File, Place Record, int RecordWidth, BoundMove? FromMove, SortVaryingInfo? Varying) : BoundStatement;
+    FileModel File, Place Record, int RecordWidth, BoundMove? FromMove, SortVaryingInfo? Varying) : BoundStatement, IBoundSortVarying;
 
 /// <summary><c>RETURN file-name-1 RECORD [INTO x] AT END … [NOT AT END …]</c> (ISO §14.9.34): make the next record
 /// (in key order) available in the SD record area (GR3); INTO ≡ RETURN then MOVE record-area → x (GR5, skipped at
@@ -125,4 +141,17 @@ public sealed record BoundRelease(
 public sealed record BoundReturn(
     FileModel File, Place RecordArea, BoundMove? IntoMove,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd,
-    SortVaryingInfo? Varying) : BoundStatement;
+    SortVaryingInfo? Varying) : BoundStatement, IBoundImplicitOperands, IBoundIntoPhrase
+{
+    /// <summary>RETURN names the file, never its record: the record area, the DEPENDING item a varying SD restores and the record the INTO move
+    /// sends are the verb's own operands (X3.23-1985 USE FOR DEBUGGING general rule 5: "explicitly references"); the INTO identifier is written.</summary>
+    public IEnumerable<object> ImplicitOperands
+    {
+        get
+        {
+            yield return RecordArea;
+            if (IntoMove is not null) yield return IntoMove.Source;
+            if (Varying is not null) yield return Varying;
+        }
+    }
+}

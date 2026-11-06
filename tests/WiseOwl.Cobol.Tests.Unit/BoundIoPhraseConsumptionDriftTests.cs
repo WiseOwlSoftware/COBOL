@@ -48,7 +48,12 @@ public sealed class BoundIoPhraseConsumptionDriftTests
 
     /// <summary>Properties whose consumption is deliberately elsewhere, each with the reason. An entry here is
     /// an adjudication, not a formality.</summary>
-    private static readonly Dictionary<string, string> Exempt = new(StringComparer.Ordinal);
+    private static readonly Dictionary<string, string> Exempt = new(StringComparer.Ordinal)
+    {
+        // A bind-time fact about the written source, read by BoundReferences (through ImplicitOperands) when the debug planner asks what the
+        // statement explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5); the emitter's code is the same either way.
+        ["BoundKeyedStart.OperandImplied"] = "a START without a KEY phrase compares the same key; only the debug reference walk reads whether the program wrote it",
+    };
 
     [Theory]
     [MemberData(nameof(Nodes))]
@@ -69,6 +74,9 @@ public sealed class BoundIoPhraseConsumptionDriftTests
             // The BoundStatement base's own members are not phrases of this statement: OperandEvaluation (kb/Work
             // PB1432) is read for EVERY node by StatementEmitter.EmitStatement, never by a verb's emitter.
             .Where(p => p.DeclaringType != typeof(BoundStatement))
+            // IBoundImplicitOperands answers the debug reference walk (BoundReferences) which operands the program did not write; it is
+            // no phrase of the statement.
+            .Where(p => p.Name != nameof(IBoundImplicitOperands.ImplicitOperands))
             .Select(p => p.Name)
             .Where(p => !Exempt.ContainsKey($"{nodeName}.{p}"))
             .Where(p => !receivers.Any(r => Regex.IsMatch(source, $@"\b{Regex.Escape(r)}\s*[.?]\s*{Regex.Escape(p)}\b")))
