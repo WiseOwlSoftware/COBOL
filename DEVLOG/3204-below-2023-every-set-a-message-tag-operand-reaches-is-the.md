@@ -1,4 +1,4 @@
-## Below 2023 every SET a message-tag operand reaches is the COBOL0900 gate alone, and an imported operand is told from a same-file one by its origin
+## Entry 3204 — 2026-11-06 11:17 PST — Below 2023 every SET a message-tag operand reaches is the COBOL0900 gate alone, and an imported operand is told from a same-file one by its origin
 
 PB4836 and PB4837, one root: the below-2023 no-op that PB4771 gave `SetBinder.BindMessageTagSet` was Format 17's alone, and its
 "is the gate already refusing this?" test (`HasDeclaredMessageTagOperand`) read the SHAPE of the operand (a compiler temporary or an
@@ -32,3 +32,4 @@ same question asked once in `StatementBinder.BindStatementCore` over a statement
 sender hook.
 
 **Rows.** None claimed or closed.
+
