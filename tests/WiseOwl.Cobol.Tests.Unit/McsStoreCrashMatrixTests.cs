@@ -193,4 +193,92 @@ public sealed class McsStoreCrashMatrixTests : IDisposable
         }
         Assert.True(refused, "the matrix refused no write");
     }
+
+    /// <summary>The statements a brand-new store's first run unit runs: its creation and seeding on the first, a transmission to a device on the second.</summary>
+    private static void FirstRunUnit(string directory)
+    {
+        using var s = new Session(directory);
+        InputStatus(s.Control.AcceptMessageCount(InputArea("Q")));
+        Sent(s.Control, "DEV", "FIRST");
+        Sent(s.Control, "DQ", "QUEUED");
+    }
+
+    /// <summary>A fresh directory with a definition file and no store.</summary>
+    private string Fresh()
+    {
+        string directory = System.IO.Path.Combine(_base, "f" + _next++);
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(System.IO.Path.Combine(directory, "mcs.json"), Definitions);
+        return directory;
+    }
+
+    /// <summary>What a recovering run unit must find after any cut of a first run unit: the store opens, answers, keeps true counts, and takes a transmission whose device holds
+    /// exactly the delivered lines, none torn and none twice.</summary>
+    private static void AssertRecovers(string directory)
+    {
+        Probe(directory);
+        McsInspector.AssertCountsEqualARecount(directory);
+        using (var s = new Session(directory))
+            Assert.Equal("00", Sent(s.Control, "DEV", "AFTER"));
+        McsInspector.AssertCountsEqualARecount(directory);
+        string device = System.IO.Path.Combine(directory, "DEV.out");
+        string text = File.ReadAllText(device);
+        string line = Environment.NewLine;
+        Assert.True(text == "AFTER" + line || text == "FIRST" + line + "AFTER" + line, $"the device holds '{text}'");
+    }
+
+    /// <summary>The creation of the store and its first seeding, killed after every page write (§6 "Seeding", §7).</summary>
+    [Fact]
+    public void FirstRunUnitKilledAfterEveryWrite_LeavesAStoreTheNextRunUnitUses()
+    {
+        for (int dieAfter = 0; ; dieAfter++)
+        {
+            string directory = Fresh();
+            DyingPageMedium? dying = null;
+            var previous = PageMediumObserver.Value;
+            PageMediumObserver.Value = medium => dying = new DyingPageMedium(medium) { DieAfter = dieAfter };
+            try
+            {
+                FirstRunUnit(directory);
+            }
+            finally
+            {
+                PageMediumObserver.Value = previous;
+            }
+            AssertRecovers(directory);
+            if (!dying!.Dead) break;
+            Assert.True(dieAfter < 200, "the first run unit never completed");
+        }
+    }
+
+    /// <summary>A host that refuses the flush alone, from the nth sync on (the creation, the fence of the writable open every run unit's first statement runs, a checkpoint, the
+    /// close): each statement answers 00, 92 or 93, never anything else, and the next run unit finds a usable store with true counts.</summary>
+    [Fact]
+    public void HostRefusingEverySyncFromTheNth_LeavesAStoreTheNextRunUnitUses()
+    {
+        bool refused = false;
+        using var fault = new MediumFault();
+        for (int from = 0; ; from++)
+        {
+            string directory = Fresh();
+            var statuses = new List<string>();
+            fault.RefuseSyncsFrom = from;
+            using (var s = new Session(directory))
+            {
+                statuses.Add(InputStatus(s.Control.AcceptMessageCount(InputArea("Q"))));
+                statuses.Add(Sent(s.Control, "DEV", "FIRST"));
+                statuses.Add(Sent(s.Control, "DQ", "QUEUED"));
+            }
+            fault.RefuseSyncsFrom = null;
+            Assert.All(statuses, status => Assert.Contains(status, new[] { "00", "92", "93" }));
+            if (new FileInfo(System.IO.Path.Combine(directory, "mcs.store")) is { Exists: true, Length: > 0 }) McsInspector.AssertCountsEqualARecount(directory);
+            using (var s = new Session(directory))
+                Assert.Equal("00", InputStatus(s.Control.AcceptMessageCount(InputArea("Q"))));
+            McsInspector.AssertCountsEqualARecount(directory);
+            if (statuses.All(status => status == "00")) break;
+            refused = true;
+            Assert.True(from < 200, "the statements never completed");
+        }
+        Assert.True(refused, "the matrix refused no sync");
+    }
 }

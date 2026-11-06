@@ -16,10 +16,11 @@ internal sealed class MediumFault : IDisposable
 {
     private readonly Func<IPageMedium, IPageMedium>? _previous = PageMediumObserver.Value;
     private int _writes;
+    private int _syncs;
     private bool _writeRefused;
 
     internal MediumFault() => PageMediumObserver.Value = medium =>
-        new RefusingPageMedium(medium, write: _ => WriteRefusal(), sync: Refusal, read: _ =>
+        new RefusingPageMedium(medium, write: _ => WriteRefusal(), sync: SyncRefusal, read: _ =>
         {
             OnRead?.Invoke();
             return Refusal() ?? (ReadsFailAfterARefusedWrite && _writeRefused ? new IOException("refused by the host") : null);
@@ -52,6 +53,20 @@ internal sealed class MediumFault : IDisposable
             _writes = 0;
         }
     }
+
+    /// <summary>When set, the sync with this ordinal (counted from the call that set it) and every later one is refused, while every read and write answers: a host whose flush
+    /// fails alone.</summary>
+    internal int? RefuseSyncsFrom
+    {
+        get;
+        set
+        {
+            field = value;
+            _syncs = 0;
+        }
+    }
+
+    private IOException? SyncRefusal() => Refusing || RefuseSyncsFrom is { } from && _syncs++ >= from ? new IOException("refused by the host") : null;
 
     private IOException? Refusal() => Refusing ? new IOException("refused by the host") : null;
 

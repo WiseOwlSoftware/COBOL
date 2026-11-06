@@ -32,7 +32,7 @@ internal interface IStatementAddition
 
 /// <summary>⛔ ONE EDIT IS ONE STATEMENT OF THE PAGE LAYER, HOWEVER MANY TREES IT CHANGES, FOR EVERY CLIENT OF THE ENGINE
 /// (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.6 and 2.2.1.19; DESIGN-communication-facility.md §8). The keyed store
-/// (<c>KeyedStore.Change</c>) and the message control system's store (<c>McsStore</c>, DESIGN-communication-facility.md §9 item 3, not yet built) each enter the statement and edit their
+/// (<c>KeyedStore.Change</c>) and the message control system's store (<c>McsStore</c>, DESIGN-communication-facility.md §9 item 3) each enter the statement and edit their
 /// trees in memory, then land them through <see cref="Complete"/>: the transaction-free core, so there is one sequence of
 /// sizing, beginning, flushing, rooting and completing, and one place the pending edits are discarded on a refusal.</summary>
 internal static class StatementLanding

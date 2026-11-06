@@ -53,8 +53,6 @@ internal sealed class DestinationEndpoint(DestinationDefinition definition, McsT
     : MessageEndpoint(EndpointKind.Destination, [definition.Name], definition.Key, definition.Enabled,
         enabled => new EndpointRow(enabled, definition.Key, definition.Capacity, definition.DeliverTo, definition.Source), tables)
 {
-    internal DestinationDefinition Definition => definition;
-
     /// <summary>Table A.2 error key 6, "Output queue capacity exceeded": the capacity bounds the messages waiting in the output queue.</summary>
     internal bool TryEnqueue(StoredMessage message)
     {

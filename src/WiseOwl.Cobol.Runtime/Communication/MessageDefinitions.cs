@@ -69,9 +69,6 @@ internal sealed class MessageDefinitions
     /// <summary>The definitions of an MCS nobody defined: every symbolic name is unknown.</summary>
     internal static MessageDefinitions None { get; } = new();
 
-    /// <summary>The root queues in the alphabetical order E.5.5.4 illustrates.</summary>
-    internal IEnumerable<QueueDefinition> RootQueues => _queues.Values;
-
     /// <summary>Every queue, each level before its sub-queues.</summary>
     internal IEnumerable<QueueDefinition> AllQueues => _queues.Values.SelectMany(q => q.SelfAndDescendants());
 
@@ -114,7 +111,9 @@ internal sealed class MessageDefinitions
         {
             var o = MessageJson.Object(node);
             string name = NameOf(o);
-            var destination = new DestinationDefinition(name, KeyOf(o), EnabledOf(o), o["capacity"]?.GetValue<int>(),
+            int? capacity = o["capacity"]?.GetValue<int>();
+            if (capacity < 0) throw new FormatException($"destination '{name}' has capacity {capacity}, which bounds no count of waiting messages");
+            var destination = new DestinationDefinition(name, KeyOf(o), EnabledOf(o), capacity,
                 o["deliverTo"]?.GetValue<string>(), o["source"]?.GetValue<string>());
             if (!result._destinations.TryAdd(name, destination)) throw new FormatException($"destination '{name}' is defined twice");
             result._destinationOrder.Add(destination);
@@ -134,7 +133,7 @@ internal sealed class MessageDefinitions
     private static void RefuseSharedDeviceFiles(MessageDefinitions definitions)
     {
         var devices = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);   // not a COBOL word: a host file name
-        foreach (var name in definitions._terminals.Keys.Concat(definitions._destinationOrder.Where(d => d.DeliverTo is null).Select(d => d.Name)))
+        foreach (var name in definitions.Devices)
             if (!devices.TryAdd(name, name))
                 throw new FormatException($"'{devices[name]}' and '{name}' name one device file, which a host that ignores case cannot tell apart");
     }

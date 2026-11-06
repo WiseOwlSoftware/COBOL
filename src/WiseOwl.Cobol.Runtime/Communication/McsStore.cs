@@ -75,7 +75,12 @@ internal sealed class McsStore : IDisposable
         try
         {
             var tables = new McsTables(new BTree(file, KeyOrders.Ordinal, before));
-            if (!_prepared) Prepare(tables, definitions);
+            if (!_prepared)
+            {
+                tables = Prepare(file, tables, definitions);
+                claimed = file.LastClaim;
+                before = file.Meta.PrimeRoot;
+            }
             var state = new MessageStoreState(definitions.Parsed, tables);
             status = action(state);
             tables.FlushMeta();
@@ -113,28 +118,58 @@ internal sealed class McsStore : IDisposable
             return false;
         }
         var medium = Medium();
-        var status = RandomAccess.GetLength(_handle) == 0
+        bool creating = RandomAccess.GetLength(_handle) == 0;
+        var status = creating
             ? PagedFile.Create(medium, StoreKind.Message, coherent: true, KeyOrders.Ordinal, out var opened, out _)
             : PagedFile.Open(medium, writable: true, coherent: true, KeyOrders.Ordinal, out opened, messageStore: true);
         _file = status == StoreStatus.Ok ? opened : null;
+        if (_file is null && creating) EmptyUncreatedStore();
         return _file is not null;
     }
 
-    /// <summary>The run unit's first statement, before its action (§6 "Seeding", "Devices"): seed a new store or one whose definitions changed, and cut every device longer than
-    /// its committed end, so a reader of a device file sees a dead statement's tail only until then.</summary>
-    private void Prepare(McsTables tables, DefinitionFile definitions)
+    /// <summary>A creation the host refused part-way (a write or the sync that makes it durable) has written pages that name no committed meta, which the engine refuses to adopt, so
+    /// left there it would refuse every later statement of every run unit. The creation ran under the store mutex, so no other run unit has seen those bytes, and the file goes back
+    /// to the no-bytes state the next statement creates from. Best effort: a host that refuses this too is the same as a death during the creation, which the file system itself decides.</summary>
+    private void EmptyUncreatedStore()
+    {
+        try { RandomAccess.SetLength(_handle, 0); }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+    }
+
+    /// <summary>The run unit's first statement, before its action (§6 "Seeding", "Devices"). A store that is new or whose definitions changed is seeded and the seeding LANDS
+    /// ON ITS OWN, before the action runs and before any device is written: every device the definitions name without a <c>DeviceEnds</c> row takes the length its file has
+    /// as its committed end (it is output already delivered, which a new store or a new definition must not destroy, and a dead statement's tail can then never be taken for
+    /// it, because the row is durable before the statement writes). Then every device the store has transmitted to that is longer than its committed end is cut, so a reader of
+    /// a device file sees a dead statement's tail only until then. A file at or below its committed end is never opened for write. The cut is best effort like <see cref="CutBack"/>:
+    /// the positional protocol of <see cref="Transmit"/> does not depend on it, so a device the host refuses to cut never refuses a statement that does not transmit to it.
+    /// Returns the tables on the tree as seeding left it.</summary>
+    private McsTables Prepare(PagedFile file, McsTables tables, DefinitionFile definitions)
     {
         if (tables.Meta is not { } meta || !meta.DefinitionsHash.AsSpan().SequenceEqual(definitions.Hash))
-            McsSeeding.Seed(tables, definitions, RunUnit.Current.Clock.Now());
-        var committed = tables.DeviceEnds().ToDictionary(d => d.Device, d => d.End, StringComparer.Ordinal);
-        foreach (var device in definitions.Parsed.Devices) committed.TryAdd(device, 0);   // a device never transmitted to is committed at 0
-        foreach (var (device, end) in committed)
         {
-            string file = DeviceFile(device);
-            if (!File.Exists(file)) continue;
-            using var handle = File.OpenHandle(file, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
-            if (RandomAccess.GetLength(handle) > end) RandomAccess.SetLength(handle, end);
+            McsSeeding.Seed(tables, definitions, RunUnit.Current.Clock.Now());
+            var known = tables.DeviceEnds().Select(d => d.Device).ToHashSet(StringComparer.Ordinal);
+            foreach (var device in definitions.Parsed.Devices.Where(d => !known.Contains(d)))
+                tables.SetDeviceEnd(device, File.Exists(DeviceFile(device)) ? new FileInfo(DeviceFile(device)).Length : 0);
+            tables.FlushMeta();
+            if (StatementLanding.Complete(file, [new TreeChange(tables.Tree, TreeChange.PrimeRoot)]) != StoreStatus.Ok)
+                throw new McsRefusalException("the store did not land the seeding");
+            tables = new McsTables(new BTree(file, KeyOrders.Ordinal, file.Meta.PrimeRoot));
         }
+        foreach (var (device, end) in tables.DeviceEnds())
+        {
+            string path = DeviceFile(device);
+            try
+            {
+                if (!File.Exists(path) || new FileInfo(path).Length <= end) continue;
+                using var handle = File.OpenHandle(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
+                RandomAccess.SetLength(handle, end);
+            }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
+        return tables;
     }
 
     private string DeviceFile(string device) => Path.Combine(_root, device + ".out");

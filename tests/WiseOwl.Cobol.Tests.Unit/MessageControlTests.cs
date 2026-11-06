@@ -148,6 +148,7 @@ public sealed class MessageControlTests : IDisposable
     [InlineData("""{ "terminals": [ { "name": "T1" }, { "name": "t1" } ] }""")]
     [InlineData("""{ "terminals": [ { "name": "X" } ], "destinations": [ { "name": "x" } ] }""")]
     [InlineData("""{ "terminals": [ { "name": "X" } ], "destinations": [ { "name": "X" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "D", "capacity": -1 } ] }""")]
     public void UnusableDefinitionFile_IsStatus91_OnEveryStatement(string definitions)
     {
         var session = Session(definitions);
@@ -323,6 +324,49 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, two, "AB", SendIndicator.EndOfMessage)));
         Assert.Equal("0" + Environment.NewLine + "AB" + Environment.NewLine, File.ReadAllText(good));
         Assert.Equal("AB" + Environment.NewLine, File.ReadAllText(bad));
+    }
+
+    /// <summary>Device files are output already delivered (DESIGN-communication-facility.md §6 "Devices"): a new store, as after its deletion, adopts the length of the file a device
+    /// has, so a statement that never transmits to it leaves it whole and the first transmission appends after it.</summary>
+    [Fact]
+    public void NewStoreOverAnExistingDeviceFile_KeepsTheDeliveredOutput()
+    {
+        var session = Session("""{ "queues": [ { "name": "Q" } ], "destinations": [ { "name": "D1" } ] }""");
+        string device = Path.Combine(_root, "D1.out");
+        File.WriteAllText(device, "DELIVERED" + Environment.NewLine);
+        Assert.Equal("00", InputStatus(session.AcceptMessageCount(InputArea("Q"))));
+        Assert.Equal("DELIVERED" + Environment.NewLine, File.ReadAllText(device));
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(3, "D1"), "NEW", SendIndicator.EndOfMessage)));
+        Assert.Equal("DELIVERED" + Environment.NewLine + "NEW" + Environment.NewLine, File.ReadAllText(device));
+    }
+
+    /// <summary>A device the host will not open for write refuses no statement that does not transmit to it: a file at its committed end is never opened for write, and the cut of a
+    /// longer one is best effort (the tail stays until the next transmission overwrites it).</summary>
+    [Fact]
+    public void DeviceTheHostWillNotOpenForWrite_RefusesNoStatementThatDoesNotTransmitToIt()
+    {
+        var session = Session("""{ "queues": [ { "name": "Q" } ], "destinations": [ { "name": "D1" } ] }""");
+        string device = Path.Combine(_root, "D1.out");
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(3, "D1"), "ONE", SendIndicator.EndOfMessage)));
+        string delivered = File.ReadAllText(device);
+        session.Dispose();
+        File.SetAttributes(device, FileAttributes.ReadOnly);
+        try
+        {
+            var atItsEnd = Open();
+            Assert.Equal("00", InputStatus(atItsEnd.AcceptMessageCount(InputArea("Q"))));
+            Assert.Equal(delivered, File.ReadAllText(device));
+            atItsEnd.Dispose();
+            File.SetAttributes(device, FileAttributes.Normal);
+            File.AppendAllText(device, "DEAD TAIL");
+            File.SetAttributes(device, FileAttributes.ReadOnly);
+            var pastItsEnd = Open();
+            Assert.Equal("00", InputStatus(pastItsEnd.AcceptMessageCount(InputArea("Q"))));
+        }
+        finally
+        {
+            File.SetAttributes(device, FileAttributes.Normal);
+        }
     }
 
     /// <summary>RECEIVE with a store that refuses: the receiver and the area stay as they were but for the status key, and the message stays the store's, whole.</summary>
