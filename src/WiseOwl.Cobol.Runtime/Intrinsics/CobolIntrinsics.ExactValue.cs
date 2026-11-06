@@ -144,14 +144,14 @@ public static partial class CobolIntrinsics
     /// rounded once and never the SDIDI body's (kb/Work PB4750).</summary>
     private static CobolDec VarianceBig(CobolExact[] xs, CobolRounding mode)
     {
-        CobolExact sum = CobolExact.From(0, 0), squares = sum;
+        CobolExact sum = CobolExact.From(0, 0).Working(), squares = sum, first = xs[0].Working();
         foreach (CobolExact x in xs)
         {
-            CobolExact d = CobolExact.Sub(x, xs[0]);
+            CobolExact d = CobolExact.Sub(x.Working(), first);
             sum = CobolExact.Add(sum, d);
             squares = CobolExact.Add(squares, CobolExact.Mul(d, d));
         }
-        CobolExact n = CobolExact.From(xs.Length, 0);
+        CobolExact n = CobolExact.From(xs.Length, 0).Working();
         CobolExact numerator = CobolExact.Sub(CobolExact.Mul(n, squares), CobolExact.Mul(sum, sum));
         return CobolExact.Quotient(numerator, CobolExact.Mul(n, n), mode, jam: false);
     }
@@ -205,8 +205,9 @@ public static partial class CobolIntrinsics
     /// kb/Work PB4592) and divided once (kb/Work PB4750).</summary>
     private static CobolDec PresentValueBig(CobolExact discount, CobolExact[] amounts, CobolRounding mode)
     {
-        CobolExact numerator = CobolExact.From(0, 0);
-        foreach (CobolExact amount in amounts) numerator = CobolExact.Add(CobolExact.Mul(numerator, discount), amount);
+        discount = discount.Working();
+        CobolExact numerator = CobolExact.From(0, 0).Working();
+        foreach (CobolExact amount in amounts) numerator = CobolExact.Add(CobolExact.Mul(numerator, discount), amount.Working());
         return CobolExact.Quotient(numerator, CobolExact.Pow(discount, amounts.Length), mode, jam: false);
     }
 
