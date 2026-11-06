@@ -11,8 +11,17 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// information, never part of the record (§12.4.5.11.4 GR1).
 /// <para><paramref name="Ordinals"/> is an INDEXED record's release-ordinal vector (the prime key's slot first, then
 /// one per alternate key, as the prime tree of <c>IndexedStore</c> holds it): the §14.9.30.4 GR26 order of its duplicates
-/// under every key, carried with the record (kb/Work PB2693, PB3334). Null for every other frame.</para></summary>
-internal readonly record struct StoredFrame(string Image, RecordExtents? Extents, long[]? Ordinals = null);
+/// under every key, carried with the record (kb/Work PB2693, PB3334). Null for every other frame.</para>
+/// <para><paramref name="Carried"/> is a SORT/MERGE record's TICKET for its managed slots (a message tag, an object
+/// reference or a pointer in a strongly-typed record has no byte form — the managed slots of D-SLOT, DOC-A.1-210; kb/Work PB4772): the
+/// index into <c>SortWork</c>'s carried list, which holds the slot values for the statement's life while the frame —
+/// which may spill to a run file — holds only the integer. <see cref="NotCarried"/> for every other frame.</para></summary>
+internal readonly record struct StoredFrame(string Image, RecordExtents? Extents, long[]? Ordinals = null,
+    int Carried = StoredFrame.NotCarried)
+{
+    /// <summary><see cref="Carried"/> of a record that holds no managed slot.</summary>
+    public const int NotCarried = -1;
+}
 
 /// <summary>A decoded frame head: the payload's length in bytes, the EXTENT TABLE the frame carried (null when it
 /// carried none) and an indexed store frame's release ordinals (null for every other frame) — see
