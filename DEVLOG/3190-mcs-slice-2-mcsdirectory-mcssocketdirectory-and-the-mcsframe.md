@@ -1,4 +1,4 @@
-## MCS slice 2: McsDirectory, McsSocketDirectory and the McsFrame codec (PB4735)
+## Entry 3190 — 2026-11-05 20:15 PST — MCS slice 2: McsDirectory, McsSocketDirectory and the McsFrame codec (PB4735)
 
 DESIGN-communication-facility.md §9 item 2 / DESIGN-message-control.md §6. New `src/WiseOwl.Cobol.Runtime/Mcs/` holds the three types both
 messaging facilities share. Re-probe: PB4739 (the prerequisite) had landed; nothing of the slice existed, and `MessageStore.Open` read
@@ -19,3 +19,4 @@ messaging facilities share. Re-probe: PB4739 (the prerequisite) had landed; noth
   would allocate), so S2a must read large payloads incrementally.
 
 Review round 1: R1-1 (blocking) fixed by splitting McsDirectory.Resolve into the env-reading entry and a pure three-input overload, with TheEnvironmentVariableIsTheSecondChoiceAndTheCurrentDirectoryTheThird witnessing the precedence. R1-2 fixed: McsSocketDirectory.Create is internal and AnExistingUserLevelOpenToGroupOrOthersIsRefusedWhateverTheIdentityLevelIs covers the user level (Linux leg). R1-3 left as a design lead for the slices that consume the identity.
+
