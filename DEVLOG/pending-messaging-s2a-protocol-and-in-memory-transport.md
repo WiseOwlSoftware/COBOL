@@ -1,0 +1,19 @@
+## Messaging slice S2a: MessagingProtocol, IPeerTransport and InMemoryTransport (PB4741)
+
+Slice S2a of `docs/rearchitecture/DESIGN-message-control.md` §9: the 2023 message control protocol as a pure state machine, the transport interface it runs on, and an in-process transport, with no socket and no `RunUnit` change.
+
+**Re-probe.** PB4741 is a slice note, not a defect: nothing to reproduce. Its prerequisites PB4739 (platform witnesses) and PB4735 (`McsFrame`, the directories) were landed, so the slice started from `McsFrameKind.Ring` alone.
+
+**What was built** (all in `src/WiseOwl.Cobol.Runtime/Messaging/` unless noted):
+- `McsFrameKind` (`Mcs/McsFrame.cs`) gained `Hello`, `Offer`, `Claim`, `Grant`, `Withdraw`, `Ack`, `Reply`; `PeerFrame` and `PeerFrameCodec` encode their payloads (UTF-16 image, extent table, slots as four-field message tags).
+- `McsServerName`: `Normalize` (trailing spaces off, upper-cased) and `Spell` (kept as itself or `_` + 13 base32 characters of the SHA-256), §5.1 and Q3; the hashed spellings are pinned against an independent Python computation.
+- `MessagingProtocol`: statements `BeginSend`, `BeginSendResponse`, `BeginReceive`, `Serve`, `End`, and the events of `ProtocolMessages.cs`; it returns `ProtocolAction`s and calls nothing. SEND Format 1 follows §5.4.1 steps 1 to 9 (offer rounds, first CLAIM granted, the rest withdrawn, a granted link ending before ACK starting a new round, step 9's one extra enumeration, activation once, the bell deleted on every completion); RECEIVE and SEND Format 2 follow §5.4.2 to §5.4.4 (GR order of the tag tests, Q7 truncation, Q6 forwarded names, the deadline decided by the holder of the message); `End` follows §5.6.
+- `IPeerTransport`, `InMemoryNetwork` and `InMemoryTransport`: the medium. `Abort` is the kill (links end for their peers, files stay and are deleted by the first refused connect), `BetweenListenAndRename` is the §5.4.1 publishing window.
+
+**Design corrections made while building** (same change set, §5.3 and §5.4 of the design): a requestor's HELLO carries no served name, so the served-name check is the requestor's; a CLAIM that crosses a WITHDRAW is ignored rather than closing the link; a link the protocol itself closes after a bad HELLO is burned for the current SEND, because the refusal rule alone cannot stop a rescan from reconnecting to it forever; the full action and event vocabularies and the answer-ordering contract the S2b peer must honor (`ActionFailed` replaces one answer; answers owed to an ended statement are consumed first) are written down.
+
+**Tests.** `unit:MessagingProtocolTests` (44 cases over the scripted scheduler): two servers racing a CLAIM, a WITHDRAW crossing a CLAIM, the granted server dying before ACK, every offered link ending (NO-SERVER after one more enumeration, and a new server found by it), a server starting while a SEND waits, lost and repeated rings, a ring between the published bell and the enumeration, activation once, polls and deadlines (a CLAIM in flight waits; a reply that arrived is delivered before the deadline), SEND Format 2's tag tests in order, an oversize message, run-unit end with an active message, a killed requestor, a HELLO naming another server, a frame before HELLO, and a failed action leaving stale answers. The transport's publishing window, kill and refusal rule are tested directly.
+
+**Rows.** None closed: §9 names no inventory row for S2a (S3 and S4 close the SEND and RECEIVE rows).
+
+**Self-review.** Architecture: one state machine per job, no I/O in it, the codec at the transport boundary. Code: the cited rules are implemented (§14.9.38.4 GR1, GR4, GR5, §14.9.31.4 GR1 b, GR2, GR3, §14.6.11 item 7), sibling arms agree (the server and requestor paths both tolerate a late frame). Performance: one action array per call, no allocation on the idle path. Duplication: the exception names are constants checked against `ExceptionCatalog`.
