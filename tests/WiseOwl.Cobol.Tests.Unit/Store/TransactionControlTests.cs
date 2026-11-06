@@ -88,10 +88,10 @@ public sealed class TransactionControlTests
         public void OpenIO(string name)
         {
             var log = Log[name];
-            KeyedStore.MediumObserver.Value = m => new RefusingPageMedium(m,
+            PageMediumObserver.Value = m => new RefusingPageMedium(m,
                 write: p => Seam(name, log, $"W{p}"), sync: () => Seam(name, log, "S"), read: p => Seam(name, log, $"R{p}"));
             try { FileHarness.Open(Reg, name, FileOpenMode.IO); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Reg.Status(name));
         }
 

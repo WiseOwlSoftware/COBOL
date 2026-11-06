@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE RELATIVE ORGANIZATION ON THE KEYED STORE ENGINE, THROUGH ITS CONNECTOR (docs/rearchitecture/DESIGN-runtime-library.md
 /// section 2.2.1; kb/Work PB3333). The page layer's and the tree's own cases (PB3331, PB3332) run over an in-memory medium; these
 /// run the SAME rows through <see cref="RelativeConnector"/> and <see cref="FileRegistry"/> over a real file, with the
-/// fault injected under the connector's own handle (<see cref="KeyedStore.MediumObserver"/>):
+/// fault injected under the connector's own handle (<see cref="PageMediumObserver"/>):
 /// <list type="bullet">
 ///   <item>2.2.1.16, "A changing statement (coherent)" and "(NO OTHER)", and "A promotion (CLOSE)": a process death after
 ///   EVERY write of a WRITE, a REWRITE, a DELETE and a CLOSE. The bar: the next OPEN reads the file as the last COMPLETED
@@ -84,14 +84,14 @@ public sealed class RelativeEngineTests
         {
             FileHarness.Seed(host, FileOrg.Relative, Seeded);
             DyingPageMedium? medium = null;
-            KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+            PageMediumObserver.Value = inner => medium = new DyingPageMedium(inner);
             var a = new FileRegistry();
             try
             {
                 FileHarness.Register(a, "A", host, FileOrg.Relative, sharing);
                 a.OpenStatic("A", FileOpenMode.IO);
             }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             int before = medium!.Writes;
             Assert.Equal("00", Run(a, change));
             int statement = medium.Writes - before;
@@ -122,7 +122,7 @@ public sealed class RelativeEngineTests
             {
                 FileHarness.Seed(host, FileOrg.Relative, Seeded);
                 DyingPageMedium? medium = null;
-                KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+                PageMediumObserver.Value = inner => medium = new DyingPageMedium(inner);
                 var a = new FileRegistry();
                 try
                 {
@@ -130,7 +130,7 @@ public sealed class RelativeEngineTests
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
-                finally { KeyedStore.MediumObserver.Value = null; }
+                finally { PageMediumObserver.Value = null; }
                 FileRegistry? b = null;
                 if (sharing != FileSharing.NoOther)
                 {
@@ -163,7 +163,7 @@ public sealed class RelativeEngineTests
             }
             finally
             {
-                KeyedStore.MediumObserver.Value = null;
+                PageMediumObserver.Value = null;
                 FileHarness.TryDelete(host);
             }
         }
@@ -188,7 +188,7 @@ public sealed class RelativeEngineTests
             try
             {
                 FileHarness.Seed(host, FileOrg.Relative, Seeded);
-                KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+                PageMediumObserver.Value = inner => new RefusingPageMedium(inner,
                     write: _ => seen++ == refuseAt ? new IOException("refused by the host") : null);
                 var a = new FileRegistry();
                 try
@@ -197,7 +197,7 @@ public sealed class RelativeEngineTests
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
-                finally { KeyedStore.MediumObserver.Value = null; }
+                finally { PageMediumObserver.Value = null; }
                 refuseAt = seen + i;
                 Assert.Equal("30", Run(a, change));
                 Assert.Equal("30", FileHarness.Write(a, "A", FileOrg.Relative, 7, "GGGG"));                   // replayed, nothing touched
@@ -220,7 +220,7 @@ public sealed class RelativeEngineTests
             }
             finally
             {
-                KeyedStore.MediumObserver.Value = null;
+                PageMediumObserver.Value = null;
                 FileHarness.TryDelete(host);
             }
         }
@@ -532,7 +532,7 @@ public sealed class RelativeEngineTests
             try
             {
                 FileHarness.Seed(host, FileOrg.Relative, Seeded);
-                RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
+                PageMediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 var a = new FileRegistry();
                 try
                 {
@@ -540,7 +540,7 @@ public sealed class RelativeEngineTests
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
-                finally { RelativeStore.MediumObserver.Value = null; }
+                finally { PageMediumObserver.Value = null; }
                 FileRegistry? b = null;
                 if (sharing == FileSharing.AllOther)
                 {
@@ -572,7 +572,7 @@ public sealed class RelativeEngineTests
             }
             finally
             {
-                RelativeStore.MediumObserver.Value = null;
+                PageMediumObserver.Value = null;
                 FileHarness.TryDelete(host);
             }
         }
@@ -586,14 +586,14 @@ public sealed class RelativeEngineTests
         {
             FileHarness.Seed(host, FileOrg.Relative, Seeded);
             int seen = 0;
-            RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
+            PageMediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
             var a = new FileRegistry();
             try
             {
                 FileHarness.Register(a, "A", host, FileOrg.Relative, sharing);
                 a.OpenStatic("A", FileOpenMode.IO);
             }
-            finally { RelativeStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", FileHarness.Write(a, "A", FileOrg.Relative, 3, "CCCC"));
             int before = seen;
             a.Close("A");
@@ -612,7 +612,7 @@ public sealed class RelativeEngineTests
         {
             FileHarness.Seed(host, FileOrg.Relative, Seeded);
             int seen = 0;
-            RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
+            PageMediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
             var a = new FileRegistry();
             try
             {
@@ -620,7 +620,7 @@ public sealed class RelativeEngineTests
                 FileHarness.Open(a, "A", mode);
                 Assert.Equal("00", a.Status("A"));
             }
-            finally { RelativeStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             int opened = seen;
             a.Close("A");
             return opened;
@@ -666,14 +666,14 @@ public sealed class RelativeEngineTests
             {
                 FileHarness.Seed(host, FileOrg.Relative, Seeded);
                 var a = new FileRegistry();
-                RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
+                PageMediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 try
                 {
                     FileHarness.Register(a, "A", host, FileOrg.Relative, sharing, access: FileHarness.AccessFor(mode));   // §14.9.27.3 SR2 (kb/Work PB3479)
                     FileHarness.Open(a, "A", mode);
                     Assert.Equal("30", a.Status("A"));
                 }
-                finally { RelativeStore.MediumObserver.Value = null; }
+                finally { PageMediumObserver.Value = null; }
                 // The creation is §14.9.27.4 GR25's unsuccessful OPEN, "the file is not affected": a refusal at any of its
                 // writes or syncs gives the file its previous bytes back (PagedFile.Create's undo), so the seeded records
                 // survive; only a refused FINAL sync, after the truncation, leaves the created empty store (2.2.1.16's
@@ -698,7 +698,7 @@ public sealed class RelativeEngineTests
             }
             finally
             {
-                RelativeStore.MediumObserver.Value = null;
+                PageMediumObserver.Value = null;
                 FileHarness.TryDelete(host);
             }
         }
@@ -723,20 +723,20 @@ public sealed class RelativeEngineTests
                 FileHarness.Seed(host, FileOrg.Relative, Seeded);
                 var a = new FileRegistry();
                 int dieAfter = i;
-                RelativeStore.MediumObserver.Value = inner => new DyingPageMedium(inner) { DieAfter = dieAfter };
+                PageMediumObserver.Value = inner => new DyingPageMedium(inner) { DieAfter = dieAfter };
                 try
                 {
                     FileHarness.Register(a, "A", host, FileOrg.Relative, sharing, access: FileHarness.AccessFor(mode));   // §14.9.27.3 SR2 (kb/Work PB3479)
                     FileHarness.Open(a, "A", mode);   // what the dying run unit is told is not asked
                 }
-                finally { RelativeStore.MediumObserver.Value = null; }
+                finally { PageMediumObserver.Value = null; }
                 a.CloseIfOpen("A");           // its handle goes with it; none of its writes after the death land
                 // A creation that died at write 0 never handed over its commit write; from write 1 on it had.
                 Assert.Equal(AfterAnUnfinishedOpen(mode, committed: i > 0), Records(host));
             }
             finally
             {
-                RelativeStore.MediumObserver.Value = null;
+                PageMediumObserver.Value = null;
                 FileHarness.TryDelete(host);
             }
         }
@@ -759,7 +759,7 @@ public sealed class RelativeEngineTests
             FileHarness.Seed(host, FileOrg.Relative, Seeded);
             int xWrites = 0;
             var x = new FileRegistry();
-            RelativeStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => { xWrites++; return null; });
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => { xWrites++; return null; });
             try
             {
                 FileHarness.Register(x, "XI", host, FileOrg.Relative, FileSharing.AllOther, access: KeyedAccess.Random);
@@ -769,18 +769,18 @@ public sealed class RelativeEngineTests
                 x.OpenStatic("XO", FileOpenMode.IO);
                 Assert.Equal("00", x.Status("XO"));
             }
-            finally { RelativeStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
 
             int refuseAt = int.MaxValue, seen = 0;
             var y = new FileRegistry();
-            RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
+            PageMediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
             try
             {
                 FileHarness.Register(y, "Y", host, FileOrg.Relative, FileSharing.AllOther);
                 y.OpenStatic("Y", FileOpenMode.IO);
                 Assert.Equal("00", y.Status("Y"));
             }
-            finally { RelativeStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", FileHarness.Write(y, "Y", FileOrg.Relative, 3, "CCCC"));
             // The CLOSE's promotion: its claim (page 2 with PROMOTING), sync 1, then the slot write — refused.
             refuseAt = seen + 2;
@@ -805,7 +805,7 @@ public sealed class RelativeEngineTests
         }
         finally
         {
-            RelativeStore.MediumObserver.Value = null;
+            PageMediumObserver.Value = null;
             FileHarness.TryDelete(host);
         }
     }

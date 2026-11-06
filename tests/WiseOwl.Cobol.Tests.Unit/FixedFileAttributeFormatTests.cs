@@ -243,6 +243,30 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
         CobolFile.Close("RD");
     }
 
+    [Theory]
+    [InlineData(true)]    // OPEN EXTEND
+    [InlineData(false)]   // OPEN I-O
+    public void AMessageStoreOpenedThroughASequentialDescriptionForWriting_IsAConflict(bool extend)
+    {
+        // The message control system's paged store (meta organization byte M, kb/Work PB4734) is no file of 9.1.6's
+        // organizations but IS a paged store: a sequential I-O or EXTEND would overwrite or follow its pages exactly as it
+        // would a keyed file's, so it answers the same '39' (DESIGN-communication-facility.md 8).
+        string host = Host($"ffa-mcs-as-seq-{extend}.dat");
+        var medium = new WiseOwl.Cobol.Tests.Unit.Store.MemoryPageMedium();
+        Assert.Equal(WiseOwl.Cobol.Runtime.IO.Store.StoreStatus.Ok, WiseOwl.Cobol.Runtime.IO.Store.PagedFile.Create(
+            medium.Open("A"), WiseOwl.Cobol.Runtime.IO.Store.StoreKind.Message, coherent: true,
+            WiseOwl.Cobol.Runtime.IO.Store.HoldingsKeyOrder.RecordNumbers, out _, out _));
+        File.WriteAllBytes(host, medium.Contents());
+        long length = new FileInfo(host).Length;
+
+        CobolFile.Init();
+        CobolFile.Register("RD", host, 20, lineSequential: false, optional: false);
+        if (extend) CobolFile.OpenExtend("RD", host, assignDynamic: false, page: null);
+        else CobolFile.OpenIO("RD", host, assignDynamic: false, page: null);
+        Assert.Equal(FileStatusCode.FixedAttributeConflict, CobolFile.Status("RD"));
+        Assert.Equal(length, new FileInfo(host).Length);
+    }
+
     [Fact]
     public void ARelativeStoresRecordSizeIsValidated()
     {

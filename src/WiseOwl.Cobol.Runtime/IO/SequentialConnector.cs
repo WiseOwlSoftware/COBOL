@@ -1100,12 +1100,12 @@ public sealed partial class SequentialConnector : FileConnector
         (IsVarying && !_lineSequential && !RecordFraming.StreamFramingParses(HostPath))
         || (Mode is FileOpenMode.IO or FileOpenMode.Extend && IsKeyedStore(HostPath));
 
-    /// <summary>Whether <paramref name="path"/> holds a RELATIVE or INDEXED store: the paged store of the keyed store
-    /// engine, whose meta pages say what the file is, damaged or not (<see cref="Store.MetaPage.Describes"/>). A file of
+    /// <summary>Whether <paramref name="path"/> holds a paged store of the engine (a RELATIVE or INDEXED file, or the message
+    /// control system's store): the paged store of the keyed store engine, whose meta pages say what the file is, damaged or not (<see cref="Store.MetaPage.Describes"/>). A file of
     /// the deleted whole-store format is not a store this build can interpret (kb/Work PB3335; no reader of it is kept),
     /// so it is bytes like any other file.</summary>
     private static bool IsKeyedStore(string path) =>
-        Store.MetaPage.Describes(path, out _) is Store.StoreFormat.Described or Store.StoreFormat.Damaged;
+        Store.MetaPage.Describes(path, out _) is Store.StoreFormat.Described or Store.StoreFormat.Damaged or Store.StoreFormat.Message;
 
     /// <summary>§14.9.6.4 GR2 a) — <i>"A file whose input or output medium is such that the concepts of rewind
     /// and units have no meaning."</i> A sequential connector holds one <see cref="FileConnector.HostPath"/> on

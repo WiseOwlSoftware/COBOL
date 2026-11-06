@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime.IO;
+using WiseOwl.Cobol.Runtime.IO.Store;
 using WiseOwl.Cobol.Tests.Shared;
 using WiseOwl.Cobol.Tests.Unit.Store;
 using Xunit;
@@ -26,7 +27,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (<c>StoreCoherenceTests.The_keyed_store_asks_about_any_run_unit_and_the_sequential_release_about_any_other_connector</c>)
 /// was the only one that noticed.</para>
 ///
-/// <para><b>The witness.</b> A medium (<see cref="RefusingPageMedium"/> through <c>KeyedStore.MediumObserver</c>) sees
+/// <para><b>The witness.</b> A medium (<see cref="RefusingPageMedium"/> through <c>PageMediumObserver</c>) sees
 /// every page write and sync of the writer's statement BEFORE it is made, and asks the host there what a reader of
 /// another run unit would meet: a second handle on the file, opened as that reader's would be (read access), asks the
 /// region host whether the store mutex byte is held by another handle. It is, at every write of every statement kind
@@ -76,10 +77,10 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
     /// observed by <paramref name="watch"/>.</summary>
     private static void OpenWatched(FileRegistry reg, string name, FileOpenMode mode, Watch watch)
     {
-        KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+        PageMediumObserver.Value = inner => new RefusingPageMedium(inner,
             write: page => watch.At("write", page), sync: () => watch.At("sync", 0));
         try { reg.OpenStatic(name, mode); }
-        finally { KeyedStore.MediumObserver.Value = null; }
+        finally { PageMediumObserver.Value = null; }
     }
 
     public static TheoryData<FileOrg, FileSharing, RegionHostKind> Shapes()

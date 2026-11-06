@@ -59,7 +59,7 @@ internal static class StoreKit
     {
         var medium = new MemoryPageMedium();
         var handle = medium.Open(unit);
-        Assert.Equal(StoreStatus.Ok, PagedFile.Create(handle, Relative, coherent, HoldingsKeyOrder.RecordNumbers, out var store, out _));
+        Assert.Equal(StoreStatus.Ok, PagedFile.Create(handle, StoreKind.Of(Relative), coherent, HoldingsKeyOrder.RecordNumbers, out var store, out _));
         return (medium, handle, store!);
     }
 

@@ -207,7 +207,7 @@ public sealed class PagedFileCrashMatrixTests
         const string Previous = "1=old;2=older;";
         var probe = StoreKit.ClosedStore("1=old", "2=older");
         var ph = probe.Open("A");
-        Assert.Equal(StoreStatus.Ok, PagedFile.Create(ph, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _, out bool landed));
+        Assert.Equal(StoreStatus.Ok, PagedFile.Create(ph, StoreKind.Of(StoreKit.Relative), true, HoldingsKeyOrder.RecordNumbers, out _, out bool landed));
         Assert.True(landed, "a creation that landed replaced the file");
         var ops = ph.Operations.ToList();
         Assert.Equal(6, ops.Count);
@@ -223,7 +223,7 @@ public sealed class PagedFileCrashMatrixTests
                     var h = medium.Open("A");
                     h.FaultAtOperation(n, fault);
                     bool died = false, replaced = false;
-                    try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _, out replaced) == StoreStatus.PermanentError, where); }
+                    try { Assert.True(PagedFile.Create(h, StoreKind.Of(StoreKit.Relative), true, HoldingsKeyOrder.RecordNumbers, out _, out replaced) == StoreStatus.PermanentError, where); }
                     catch (SimulatedDeath) { died = true; }
                     Assert.Equal(fault != Fault.Refuse, died);
                     // A refusal undone reports the file not replaced; the last sync's follows the truncation and reports it replaced.
@@ -242,7 +242,7 @@ public sealed class PagedFileCrashMatrixTests
                     Assert.True(expected == StoreKit.Show(c!), $"{where}: {StoreKit.Show(c!)}");
                     StoreKit.AssertSlotsAndWorkAgree(medium);
                     var again = medium.Open("D");
-                    Assert.Equal(StoreStatus.Ok, PagedFile.Create(again, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out var fresh, out _));
+                    Assert.Equal(StoreStatus.Ok, PagedFile.Create(again, StoreKind.Of(StoreKit.Relative), true, HoldingsKeyOrder.RecordNumbers, out var fresh, out _));
                     Assert.Equal("", StoreKit.Show(fresh!));
                     Assert.Equal(StoreStatus.Ok, StoreKit.Put(fresh!, 7, "new", blobPages: 3));
                     StoreKit.AssertNoStampReused(medium);
@@ -276,7 +276,7 @@ public sealed class PagedFileCrashMatrixTests
         int op = 0;
         IOException? Next() => refused.Contains(++op) ? new IOException("refused by the host") : null;
         var h = new RefusingPageMedium(medium.Open("A"), write: _ => Next(), sync: Next, truncate: Next);
-        Assert.Equal(StoreStatus.PermanentError, PagedFile.Create(h, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out var store, out bool replaced));
+        Assert.Equal(StoreStatus.PermanentError, PagedFile.Create(h, StoreKind.Of(StoreKit.Relative), true, HoldingsKeyOrder.RecordNumbers, out var store, out bool replaced));
         Assert.Null(store);
         Assert.Equal(expectReplaced, replaced);
         if (!expectReplaced) Assert.True(previousBytes.AsSpan().SequenceEqual(medium.Contents()), "the file was affected");
@@ -313,7 +313,7 @@ public sealed class PagedFileCrashMatrixTests
                 var h = medium.Open("A");
                 h.FaultAtOperation(n, fault);
                 bool died = false, replaced = false;
-                try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _, out replaced) == StoreStatus.PermanentError, where); }
+                try { Assert.True(PagedFile.Create(h, StoreKind.Of(StoreKit.Relative), true, HoldingsKeyOrder.RecordNumbers, out _, out replaced) == StoreStatus.PermanentError, where); }
                 catch (SimulatedDeath) { died = true; }
                 Assert.Equal(fault != Fault.Refuse, died);
                 if (fault == Fault.Refuse) Assert.True((n == ops) == replaced, $"{where}: replaced {replaced}");
