@@ -300,8 +300,8 @@ public sealed record RedefViewPlace(AccessPath Backing, Position Offset, int Wid
                 ? window with { Coding = new SlotWindow(cell) }
                 : throw new System.InvalidOperationException(
                     $"'{item.CobolName ?? item.ClrName}' is of a pointer class and its storage class has no "
-                    + "backing StorageCell — a managed slot has nowhere to live (ISO §14.9.3.4 GR9; kb/Work "
-                    + "PB231). Such a class must be Rejected at classification, never given a byte window.");
+                    + "backing StorageCell — a managed slot has nowhere to live (the implementor-defined D-SLOT "
+                    + "representation, DOC-A.1-210 and DOC-A.1-216; kb/Work PB231). Such a class must be Rejected at classification, never given a byte window.");
         // ⛔ A DYNAMIC-LENGTH MEMBER'S CONTENT IS NOT IN THE BYTES EITHER (kb/Work PB1026): it rides the cell's
         // dynamic slot (§8.5.1.10.3's "located elsewhere"), and a group over such members reads and writes as its
         // contiguous image (§8.5.1.11.2). The same backstop as the pointer arm: only a cell has slots, and the
