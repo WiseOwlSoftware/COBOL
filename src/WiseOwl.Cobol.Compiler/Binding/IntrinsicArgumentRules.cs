@@ -1719,8 +1719,10 @@ internal static class IntrinsicArgumentRules
         // ⛔ The claim is "never" only when every term was read for EVERY valuation: a FUNCTION ABS of a sum is read as the sum on the
         // valuations where the items are not negative (spine.AbsOfSum), and the message then says so (kb/Work PB4796 review R2-2).
         if (spine.RestIntegral && !spine.Constant.IsInteger)
-            return $"is an arithmetic expression whose literal terms sum to {spine.Constant} and whose other terms always sum to "
-                + (spine.AbsOfSum ? "an integer wherever the items are not negative, so its value is not an integer there" : "an integer, so its value is never an integer")
+            return $"is an arithmetic expression whose literal terms sum to {spine.Constant} and whose "
+                + (spine.AbsOfSum ? "other terms always sum to an integer wherever the items are not negative, so its value is not an integer there"
+                    : spine.SawSignedAbs ? "other terms always sum to an integer, so its value is never an integer"
+                    : "every other term is an integer, so its value is never an integer")
                 + " — ISO §15.3 type 6 admits an arithmetic expression only when it ALWAYS results in an integer value";
         return null;
     }
