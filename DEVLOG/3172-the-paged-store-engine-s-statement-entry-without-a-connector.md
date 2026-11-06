@@ -1,4 +1,4 @@
-## The paged store engine's statement entry without a connector (PB4734, message control system slice 1)
+## Entry 3172 — 2026-11-05 17:16 PST — The paged store engine's statement entry without a connector (PB4734, message control system slice 1)
 
 Slice 1 of DESIGN-communication-facility.md §9: the keyed store engine gets its second client's entry, with no change to keyed files.
 
@@ -13,3 +13,4 @@ Slice 1 of DESIGN-communication-facility.md §9: the keyed store engine gets its
 **Self-review.** Architecture: one core, one seam, one kind type, no connector text in the core. Full code: the `Change` rewrite keeps its give-back on every refusal arm (drawn id on Begin and flush failures). Performance: the core adds no allocation beyond what `Change` made. Duplication: the key-count rule is `StoreKind.AlternateKeysOf`, used by `KeyBytes` and the kind.
 
 **Review round 1.** R1-1: a committed `M` slot now answers the new `StoreFormat.Message` (not `Foreign`), so a sequential OPEN I-O or EXTEND of a message store gets 39 like an `R` or `I` store (`FixedFileAttributeFormatTests`). R1-2: the in-hold reopen that decides landing is read-only; both design docs say so and `StoreKindTests` pins that a writable reopen never equals the stamp. Leads fixed in the same change: `StoreKind.Attributes` became `RequireAttributes()` so the record ToString of an `M` meta no longer throws, the stale `KeyedStore.TreeChange` cref, design section 8 row 2 (`Open` takes `messageStore`), and the present-tense McsStore comments.
+
