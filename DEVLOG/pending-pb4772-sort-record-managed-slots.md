@@ -39,3 +39,5 @@ second on two drift tests (the ABI pin and the documented-facts file, both fixed
 `=== BUILD-LOCAL GATE: GREEN — Conformance 22,193/22,193 · Unit 40,209/40,209 · Characterization 37/37` (run
 000003-20261106T005059Z); both new goldens ran in its Conformance.trx. `semgrep/verify.py` reports DiagnosticCatalog.cs
 unreadable, a file this change does not touch.
+
+**Review round 1.** R1-1 (blocking): `SortBinder.SortRecordCarriesSlots` did not exclude a variable-length SD (`RECORD IS VARYING`, `FileModel.RecordSizeVaries`), so such a SORT compiled with no COBOL1756 and the leaf-vector path ignored the released size (ISO 13.18.43.4 GR13 a). It now carries `!file.RecordSizeVaries`, so the record stays the COBOL1756 deferral; the doc comment is corrected. `SortSlotRecordAdmissionTests` pins the admitted shape and the four deferrals (varying SD, SORT USING, SORT GIVING, MERGE), which also answers lead R1-3.

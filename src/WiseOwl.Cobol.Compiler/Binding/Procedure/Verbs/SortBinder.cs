@@ -585,10 +585,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// positions the keys are windows over — beside its LEAF VECTOR (<see cref="ActivationCrossing.LeafCarried"/>), the
     /// carrier the managed slots of D-SLOT (DOC-A.1-210) ride in everywhere else. Two record descriptions would share one area by the
     /// synthesized REDEFINES a strong group may not take part in (§13.18.44.3 SR14), a SAME RECORD AREA peer would need the
-    /// released record stored into it as characters, and a variable-length one has no fixed window for the keys, so none
+    /// released record stored into it as characters, and a variable-length FILE (<see cref="FileModel.RecordSizeVaries"/>: RECORD VARYING or the implied variable format) releases a size the leaf-vector path ignores, so none
     /// of the three is admitted.</summary>
     private static bool SortRecordCarriesSlots(FileModel file) =>
-        file.Records.Count == 1 && !file.SameRecordAreaPeers.Any()
+        file.Records.Count == 1 && !file.SameRecordAreaPeers.Any() && !file.RecordSizeVaries
         && ActivationCrossing.LeafCarried(file.Records[0]) && file.Records[0].TransferImageCapable;
 
     /// <summary>The deferral of a SORT/MERGE over a slot-holding SD record with a USING or GIVING file: a FILE record is a
