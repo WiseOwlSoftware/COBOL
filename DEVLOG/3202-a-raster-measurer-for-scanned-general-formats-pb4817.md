@@ -1,4 +1,4 @@
-## A raster measurer for scanned general formats (PB4817)
+## Entry 3202 — 2026-11-06 11:05 PST — A raster measurer for scanned general formats (PB4817)
 
 The 1985 PDF is a scan: a general-format page has no vector drawing, so `figure_geometry.py` and `figure_extract.py`
 found nothing and the 2023 pipeline could not run on it. `scripts/spec/figure_raster.py` measures the same things from
@@ -24,3 +24,4 @@ vector page), so `render_figure` drew a measured brace as an optional bracket. T
 `RasterPage.braces` and `extract` returns each as the three glyph pieces (top hook, point, bottom hook) that
 `render_figure.GLYPH_PIECES` decodes; the self-test renders `{ ALFA / BETA }` through `render_figure.build`. An
 underlined word whose components do not pair with its letters is now a reported disagreement.
+
