@@ -190,7 +190,7 @@ def main() -> int:
     args = ap.parse_args()
     spec_pdf.require_vector(args.edition, "audit_figure_structure.py")
     pdf = spec_pdf.require(args.edition)
-    import fitz
+    import pymupdf
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
     from figure_geometry import page_classifier
@@ -224,7 +224,7 @@ def main() -> int:
     def in_band(y0, y1, bands):
         return any(not (y1 < b0 or y0 > b1) for b0, b1 in bands)
 
-    doc = fitz.open(pdf)
+    doc = pymupdf.open(pdf)
     figs = _require_page_anchors(md_figures(spec_pdf.markdown(args.edition).read_text(encoding="utf-8").splitlines()))
     lo, hi = args.pages if args.pages else (1, doc.page_count)
 

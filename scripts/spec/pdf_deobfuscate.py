@@ -247,9 +247,9 @@ def main() -> int:
     ap.add_argument("--verify", action="store_true", help="prove the decode against facts about the standard")
     args = ap.parse_args()
     spec_pdf.require(2023)
-    import fitz
+    import pymupdf
 
-    doc = fitz.open(PDF)
+    doc = pymupdf.open(PDF)
     fonts = collect_fonts(doc)
     print(f"{len(fonts)} Identity-H subset font(s) with no /ToUnicode\n")
 
@@ -278,13 +278,13 @@ def main() -> int:
     out = pathlib.Path(args.write)
     out.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(PDF, out)
-    work = fitz.open(str(out))
+    work = pymupdf.open(str(out))
     for xref, mapping in maps.items():
         tu = work.get_new_xref()
         work.update_object(tu, "<<>>")
         work.update_stream(tu, _cmap_stream(mapping))
         work.xref_set_key(xref, "ToUnicode", f"{tu} 0 R")
-    work.save(str(out), incremental=True, encryption=fitz.PDF_ENCRYPT_KEEP)
+    work.save(str(out), incremental=True, encryption=pymupdf.PDF_ENCRYPT_KEEP)
     work.close()
     print(f"\nwrote {out}  ({out.stat().st_size / 1e6:.1f} MB)")
 
@@ -294,7 +294,7 @@ def main() -> int:
     # The decode is only believable if this check is capable of failing. Glyph coverage is NOT proof: a mapping
     # can be fully covered and still uniformly wrong. These strings are properties of the printed standard.
     print("\n=== verification against the printed standard ===")
-    chk = fitz.open(str(out))
+    chk = pymupdf.open(str(out))
     failures = []
     for pno, expected in GROUND_TRUTH:
         # Collapse whitespace: the cover sets "INTERNATIONAL STANDARD" across two lines, and figures are laid

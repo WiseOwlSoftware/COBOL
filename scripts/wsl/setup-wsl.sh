@@ -55,7 +55,7 @@ uv python install "$PYTHON_VERSION" --default > "$WORK/uv-python.log" 2>&1 \
 PYTHON_EXE="$(uv python find --managed-python "$PYTHON_VERSION" 2>/dev/null)"
 
 # Python packages the scripts import, kept at parity with the Windows dev box (latest versions):
-# pymupdf (fitz: scripts/render-spec-page.py and the spec tools), scipy + numpy (statistics for process evaluations),
+# pymupdf (scripts/render-spec-page.py and the spec tools), scipy + numpy (statistics for process evaluations),
 # pyyaml (scripts/hooks/tooling_check.py proves every agent role and skill frontmatter parses, kb/Work PB3097).
 # The uv-managed interpreter is marked externally managed (PEP 668); it is user-space and ours, so install into it.
 PY_PACKAGES="pymupdf scipy numpy pyyaml"
@@ -67,7 +67,7 @@ uv pip install --upgrade --system --break-system-packages --python "$PYTHON_EXE"
 uv tool install --force "semgrep==$SEMGREP_VERSION" --python "$SEMGREP_PYTHON_VERSION" --managed-python \
   > "$WORK/semgrep.log" 2>&1 && log "semgrep $SEMGREP_VERSION ok" || { log "semgrep FAILED"; tail -5 "$WORK/semgrep.log"; }
 
-log "pypkgs: $("$PYTHON_EXE" -c 'import fitz, scipy, numpy, yaml; print("pymupdf", fitz.VersionBind, "scipy", scipy.__version__, "numpy", numpy.__version__, "pyyaml", yaml.__version__)' 2>&1 | tail -1)"
+log "pypkgs: $("$PYTHON_EXE" -c 'import pymupdf, scipy, numpy, yaml; print("pymupdf", pymupdf.VersionBind, "scipy", scipy.__version__, "numpy", numpy.__version__, "pyyaml", yaml.__version__)' 2>&1 | tail -1)"
 # git comes from the git-core PPA, which installs only its newest release: the check below says whether it is the
 # manifest's (a host check reads what each tool reports, never whether its source exists; kb/Work PB4007).
 "$PYTHON_EXE" "$SCRIPTS/toolchain.py" check --scope host

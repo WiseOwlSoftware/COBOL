@@ -112,12 +112,12 @@ def main() -> int:
     spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
     pdf = spec_pdf.require(args.edition)
-    import fitz
+    import pymupdf
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
     from figure_extract import extract
 
-    doc = fitz.open(pdf)
+    doc = pymupdf.open(pdf)
     md = spec_pdf.markdown(args.edition).read_text(encoding="utf-8").splitlines()
     slices = page_slices(md)
     lo, hi = args.pages if args.pages else (1, doc.page_count)

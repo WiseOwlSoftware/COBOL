@@ -49,10 +49,10 @@ PAGE_MARKER = re.compile(r"^#{1,6}\s+Page\s+\d+\s*$", re.I)
 
 
 def authoritative_levels() -> dict[str, int]:
-    import fitz  # PyMuPDF
+    import pymupdf  # PyMuPDF
 
     out: dict[str, int] = {}
-    for lvl, title, _ in fitz.open(str(spec_pdf.require(2023))).get_toc():
+    for lvl, title, _ in pymupdf.open(str(spec_pdf.require(2023))).get_toc():
         m = re.match(r"^([A-Z]?\d+(?:\.\d+)*)\s", title)
         if m:
             # First occurrence wins: a section number is unique in the outline, and a later duplicate would be

@@ -1008,14 +1008,14 @@ def main() -> int:
     spec_pdf.require_vector(args.edition, "audit_grammar_optional_words.py")
     pdf = spec_pdf.require(args.edition)
     spec_md = spec_pdf.markdown(args.edition)
-    import fitz
+    import pymupdf
 
     sys.path.insert(0, str(HERE))
     import clause_page
     from figure_geometry import page_classifier
 
     classify_page = page_classifier(args.edition)
-    doc = fitz.open(pdf)
+    doc = pymupdf.open(pdf)
 
     # ---- the grammar side --------------------------------------------------------------------------------
     grammar = parser_rules()                      # ⛔ grammar_source.read refuses an empty population

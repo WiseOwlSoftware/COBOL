@@ -187,9 +187,9 @@ def main() -> int:
     args = ap.parse_args()
     spec_pdf.require_vector(args.edition, "figure_extract.py")
     pdf = spec_pdf.require(args.edition)
-    import fitz
+    import pymupdf
 
-    doc = fitz.open(pdf)
+    doc = pymupdf.open(pdf)
     page = doc[args.page - 1]
     words = extract(page, tuple(args.band) if args.band else None)
     if not words:

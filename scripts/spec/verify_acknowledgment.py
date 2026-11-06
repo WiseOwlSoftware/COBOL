@@ -81,7 +81,7 @@ def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
     ack = spec_pdf.edition_data(ACKNOWLEDGMENT, edition, "acknowledgment text (verify_acknowledgment.ACKNOWLEDGMENT)")
     first, last = ack.first, ack.last
     pdf = spec_pdf.require(edition)
-    import fitz
+    import pymupdf
 
     md = spec_pdf.markdown(edition).read_text(encoding="utf-8")
     if not md.lstrip().startswith("# Preface"):
@@ -104,7 +104,7 @@ def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
     inplace = slice_between(md[intro:cut], first, last, "the Introduction")
 
     # 3 — the printed text.
-    doc = fitz.open(pdf)
+    doc = pymupdf.open(pdf)
     printed_raw = re.sub(ack.stamp, " ", doc[ack.pdf_page - 1].get_text(), flags=re.S)
     printed = slice_between(printed_raw, first, last, "the PDF")
 

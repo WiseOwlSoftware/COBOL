@@ -171,6 +171,35 @@ def _tracked_sources(repo: pathlib.Path, suffixes: tuple[str, ...]) -> dict[str,
             if p.endswith(suffixes) and p != here and (repo / p).is_file()}
 
 
+#: The PyMuPDF module's deprecated alias (kb/Work PB3244): PyMuPDF warns on every `import fitz` and is dropping the name.
+_FITZ = re.compile(r"\bfitz\b")
+
+#: An import of PyMuPDF at a module's top level. CI's runners do not install PyMuPDF, so a tool that imports it there
+#: fails its `--help` and usage-error probes (standard_streams.py rule 3) before argparse runs; every tool imports it
+#: inside the function that opens the PDF (kb/Work PB4815's bounce of pull request #1237).
+_TOP_LEVEL_PYMUPDF = re.compile(r"^(?:import|from)\s+pymupdf\b")
+
+
+def pymupdf_imports_in(files: dict[str, str]) -> list[str]:
+    """`path:line: why` of every line in `files` (path -> text) that names `fitz`, or imports PyMuPDF at the top level
+    of a Python file."""
+    found = []
+    for path, text in sorted(files.items()):
+        for n, line in enumerate(text.splitlines(), 1):
+            if line.lstrip().startswith("#"):
+                continue
+            if _FITZ.search(line):
+                found.append(f"{path}:{n}: fitz (the deprecated alias; say pymupdf)")
+            elif path.endswith(".py") and _TOP_LEVEL_PYMUPDF.match(line):
+                found.append(f"{path}:{n}: a top-level PyMuPDF import (import it inside the function that opens the PDF)")
+    return found
+
+
+def pymupdf_imports(repo: pathlib.Path = REPO) -> list[str]:
+    """The PyMuPDF import sweep over every tracked Python, PowerShell and shell file under scripts/ and .claude/."""
+    return pymupdf_imports_in(_tracked_sources(repo, (".py", ".ps1", ".sh")))
+
+
 def locator_copies(repo: pathlib.Path = REPO) -> list[str]:
     """The drift sweep (kb/Work PB3208, CLAUDE.md rule 5): every tracked script under scripts/ but this one."""
     files = {p: t for p, t in _tracked_sources(repo, (".py", ".ps1", ".sh")).items() if p.startswith("scripts/")}
@@ -278,6 +307,19 @@ def self_test() -> int:
           "Python and PowerShell, and passes prose, a comment and the README",
           planted_md == ["scripts/a.py:1", "scripts/b.py:1", "scripts/e.py:1", "scripts/f.py:1", "scripts/g.py:1",
                          "scripts/h.ps1:1"])
+    imports = pymupdf_imports()
+    check("this tree: no script names fitz or imports PyMuPDF at its top level"
+          + (f" -- found {imports[:5]}" if imports else ""), not imports)
+    planted_imports = pymupdf_imports_in({
+        "scripts/a.py": "import fitz\n",
+        "scripts/b.py": "def main():\n    import fitz\n    doc = fitz.open(p)\n",
+        "scripts/c.py": "import os\nimport pymupdf\n",
+        "scripts/d.py": "def main():\n    import pymupdf  # late\n    doc = pymupdf.open(p)\n# import pymupdf\n",
+        "scripts/e.sh": "python -c 'import fitz; print(fitz.VersionBind)'\nimport pymupdf\n"})
+    check("the import sweep finds fitz anywhere and a top-level PyMuPDF import in Python, and passes a late import, "
+          "a comment and a shell line",
+          [f.split(": ")[0] for f in planted_imports]
+          == ["scripts/a.py:1", "scripts/b.py:2", "scripts/b.py:3", "scripts/c.py:2", "scripts/e.sh:1"])
     print(f"=== SPEC PDF LOCATOR SELF-TEST: {'FAIL - ' + str(len(failures)) if failures else 'PASS'} ===")
     return 1 if failures else 0
 

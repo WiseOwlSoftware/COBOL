@@ -997,7 +997,8 @@ def clause_title(doc, pno, folio_offset, back=6):
 def printed_crop(page, lo, hi, dpi=170):
     """The printed figure as a data: URI, so the sheet can be compared against the page it came from."""
     import base64
-    clip = fitz.Rect(50, max(lo - 10, 0), 565, hi + 12)
+    import pymupdf
+    clip = pymupdf.Rect(50, max(lo - 10, 0), 565, hi + 12)
     png = page.get_pixmap(dpi=dpi, clip=clip).tobytes("png")
     return "data:image/png;base64," + base64.b64encode(png).decode("ascii")
 
@@ -1043,15 +1044,14 @@ def main() -> int:
     args = ap.parse_args()
     spec_pdf.require_vector(args.edition, "render_figure.py")
     pdf = spec_pdf.require(args.edition)
-    import fitz
-    globals()["fitz"] = fitz
+    import pymupdf
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
     from figure_extract import extract
     from figure_geometry import page_classifier
 
     classify_page = page_classifier(args.edition)
-    doc = fitz.open(pdf)
+    doc = pymupdf.open(pdf)
     page = doc[args.page - 1]
 
     if args.sheet:

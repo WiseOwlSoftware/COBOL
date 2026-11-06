@@ -368,7 +368,7 @@ def main() -> int:
     spec_md = spec_pdf.markdown(args.edition)
     furniture = page_furniture(args.edition)
     folio_offset = spec_pdf.folio_offset(args.edition)
-    import fitz
+    import pymupdf
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
     import render_figure as R
@@ -376,7 +376,7 @@ def main() -> int:
     from figure_geometry import page_classifier
 
     classify_page = page_classifier(args.edition)
-    doc = fitz.open(pdf)
+    doc = pymupdf.open(pdf)
     lines = spec_md.read_text(encoding="utf-8").splitlines()
     index = md_index(lines)
     clause_span = clause_spans(lines)

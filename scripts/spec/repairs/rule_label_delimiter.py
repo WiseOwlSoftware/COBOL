@@ -124,8 +124,8 @@ def main() -> int:
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
     import clause_page
-    import fitz
-    doc = fitz.open(clause_page.find_pdf())
+    import pymupdf
+    doc = pymupdf.open(clause_page.find_pdf())
 
     lines = SPEC_MD.read_text(encoding="utf-8").split("\n")
     verdicts = classify(lines, doc)

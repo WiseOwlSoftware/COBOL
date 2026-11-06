@@ -14,7 +14,6 @@ import os
 import sys
 import tempfile
 
-import fitz
 from standard_streams import ensure_utf8
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spec'))
@@ -33,7 +32,8 @@ def main(argv):
         out = tempfile.mkdtemp(prefix='spec-pages-')
     else:
         os.makedirs(out, exist_ok=True)
-    doc = fitz.open(PDF)
+    import pymupdf                                   # imported late: --help and a usage error run without PyMuPDF
+    doc = pymupdf.open(PDF)
     for p in args.pages:
         if not (1 <= p <= doc.page_count):
             print(f'!! page {p} out of range (1..{doc.page_count})'); continue

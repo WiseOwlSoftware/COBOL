@@ -87,9 +87,9 @@ def main() -> int:
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
     spec_pdf.require(2023)
-    import fitz
+    import pymupdf
 
-    doc = fitz.open(PDF)
+    doc = pymupdf.open(PDF)
     start, mapping = folio_to_clause(doc)
     print(f"clause 1 begins at PDF page {start + 1}; folios mapped: {len(mapping)}")
     for folio in (3, 5, 6, 16, 25, 29):

@@ -172,10 +172,10 @@ def main() -> int:
     args = ap.parse_args()
 
     pdf = spec_pdf.require(args.edition)
-    import fitz
+    import pymupdf
 
     classify = page_classifier(args.edition)
-    doc = fitz.open(pdf)
+    doc = pymupdf.open(pdf)
 
     if args.page:
         stems = classify(doc[args.page - 1])

@@ -48,9 +48,9 @@ WRAP_TAILS = {"QUIET", "SIGNALING"}   # continuation fragments already rejoined 
 
 
 def printed_words():
-    import fitz                                       # imported late: only the PDF-backed modes need it
+    import pymupdf                                       # imported late: only the PDF-backed modes need it
     pdf = spec_pdf.require(2023)
-    doc = fitz.open(pdf)
+    doc = pymupdf.open(pdf)
     rows = []
     for pno in LIST_PAGES:
         for b in doc[pno].get_text("dict")["blocks"]:
