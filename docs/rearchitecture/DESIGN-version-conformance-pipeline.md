@@ -325,7 +325,7 @@ format depends on it — so that stage carries the gate, keyed on `Constructs.So
 operand check with it. Same row, same producers, one stage earlier; it recognizes the directive by its WORD, so a
 malformed operand is diagnosed and the line still consumed (the reference format in effect carries on unchanged,
 because the directive selected none). `CompilerDirectiveCatalogDriftTests` re-derives the roster from the
-`#### 7.3.N <WORD> directive` headings of `specs/ISO_COBOL.md`, checks each row cites its own clause, asserts
+`#### 7.3.N <WORD> directive` headings of `specs/ISO_COBOL_2023.md`, checks each row cites its own clause, asserts
 `Frontend.LeftDirectives` is a subset of the catalog, and drives the real stage to prove every recognized word is
 rejected at 85 — so "one site, complete roster" stays true rather than being remembered.
 

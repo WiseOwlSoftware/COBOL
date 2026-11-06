@@ -30,7 +30,7 @@
 > `docs/MULTIVERSION_ROADMAP.md` was deleted with the pre-PIVOT docs, DEVLOG 523–524).
 >
 > **Provenance.** Built 2026-06-05 from a 15-area parallel spec-conformance audit (workflow
-> `iso2023-conformance-audit`, 15 agents vs `specs/ISO_COBOL.md` + the actual compiler) plus the session's own
+> `iso2023-conformance-audit`, 15 agents vs `specs/ISO_COBOL_2023.md` + the actual compiler) plus the session's own
 > surveys. Audit-confirmed findings are tagged **[A]**.
 
 ## 0. How to use this document
@@ -349,7 +349,7 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
 |---|---|---|
 | **M2** | COBOL-2002 | custom corpus `tests/conformance/2002/` (+ the existing SpecFixTests) |
 | **M3** | COBOL-2014 | custom corpus `tests/conformance/2014/` |
-| **M4** | COBOL-2023 | custom corpus `tests/conformance/2023/` (vs in-repo `specs/ISO_COBOL.md`) |
+| **M4** | COBOL-2023 | custom corpus `tests/conformance/2023/` (vs in-repo `specs/ISO_COBOL_2023.md`) |
 
 Order: finish M2, then M3, then M4. Within a milestone, do correctness defects (🐛) and high-value/small items
 first; large subsystems (pointers, exceptions, OO) last.
@@ -654,7 +654,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   (kb/Work PB4612 deleted the unwired row `usage-pointer-to-type-2014`).
   Diagnostic band 15xx = 1529–1533, 1535, 1555–1558.
 - ⛔ **M3-3 — JSON & XML** `JSON GENERATE/PARSE`, `XML GENERATE/PARSE` + special registers (XML-CODE/JSON-CODE/…).
-  **NON-ISO — OUT OF THE ISO-CONFORMANCE SCOPE.** `specs/ISO_COBOL.md` (the ISO/IEC 1989:2023 text) has ZERO `JSON`/
+  **NON-ISO — OUT OF THE ISO-CONFORMANCE SCOPE.** `specs/ISO_COBOL_2023.md` (the ISO/IEC 1989:2023 text) has ZERO `JSON`/
   `XML` occurrences — these are IBM Enterprise-COBOL vendor extensions, NOT part of the standard (confirmed 2026-07-07,
   DEVLOG 664; consistent with the pre-P2.5 constructs.json scrub that moved JSON/XML to vendor-dialect post-G8). Do
   NOT implement under the "100% ISO" mission; it belongs to a later vendor-dialect track. *Large* if/when done. The
@@ -685,7 +685,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   Residue: the 2023 optional file-connector-argument form (base + twin) renders loud — VCR rows 68/69,
   PHASE-13 Step 9.
 - ☐ **M4-3 — Other 2023 intrinsic/bit/boolean additions + dynamic-table finalization + clarifications.** Audit
-  `specs/ISO_COBOL.md` 2023-marked changes when M4 begins (many intrinsics already in `IntrinsicFunctions.cs` —
+  `specs/ISO_COBOL_2023.md` 2023-marked changes when M4 begins (many intrinsics already in `IntrinsicFunctions.cs` —
   verify completeness + **version gating**, i.e. a 2023 fn used under `--std 85` / `2002` / `2014` MUST emit the
   per-edition diagnostic — per `docs/VERSION_CHANGE_REFERENCE.md` + the version test matrix).
 

@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (Annex B.3's three position classes) and the case fold of a COBOL word (Annex C.2) are transcribed by
 /// <c>scripts/spec/gen_annex_bc.py</c> into <c>CobolCharacterRepertoire.Table.cs</c> and <c>CobolNames.Table.cs</c>,
 /// together with the Annex E lists that reverse them for COBOL 2002/2014 (E.2 items 4 and 14, E.3.3 items 4, 5 and 6).
-/// This test re-reads every one of those ten lists from <c>specs/ISO_COBOL.md</c> and requires the tables to equal
+/// This test re-reads every one of those ten lists from <c>specs/ISO_COBOL_2023.md</c> and requires the tables to equal
 /// them, so a transcription repair in the spec reaches the compiler or fails here; the three pair lists equal the
 /// standard's LESS the pairs that cross between a basic and an extended letter, which the generator moves to
 /// <c>CobolNames.NotApplied</c> (§8.1.3.2 4) b), kb/Work PB4420), and no extended letter folds to a basic one at any
@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class AnnexBCDriftTests
 {
-    private static readonly string[] Spec = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+    private static readonly string[] Spec = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
 
     private static readonly Regex Range = new(@"(?<![0-9A-Za-z])([0-9A-F]{4,5})(?:-([0-9A-F]{4,5}))?(?![0-9A-Za-z])");
     private static readonly Regex Pair = new(@"\(([0-9A-F]{4,5}),([0-9A-F]{4,5})\)");

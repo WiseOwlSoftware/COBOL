@@ -4,7 +4,7 @@
 >
 > **Purpose.** This document is the **version-gating checklist** for the WiseOwl COBOL compiler (`cobol.exe`, the greenfield `src/WiseOwl.Cobol.*` — the legacy `Legacy.*` oracle is reference-only). It
 > catalogues every edition-to-edition change of standard COBOL documented in the ISO/IEC 1989:2023 spec
-> (`specs/ISO_COBOL.md`) so that the compiler can drive **correct version-gating**:
+> (`specs/ISO_COBOL_2023.md`) so that the compiler can drive **correct version-gating**:
 > - every **behavior** that changed across editions must be gated by the targeted standard via
 >   `DialectLevel` / `--std` (cite [[feedback_four_editions_one_compiler]]);
 > - **new features** are enabled only at `>=` their introducing edition;
@@ -438,7 +438,7 @@ names), or if a spec LINE number reappears anywhere in this file — so the ledg
 ## Appendix — spec citations (for jump-to-spec)
 
 Each catalogued change carries the CLAUSE that documents it plus a VERBATIM FRAGMENT of the sentence the row was
-written from, so a reader jumps straight to `specs/ISO_COBOL.md` and lands on the sentence, not merely on the
+written from, so a reader jumps straight to `specs/ISO_COBOL_2023.md` and lands on the sentence, not merely on the
 clause. Listed by row #.
 
 ⛔ **A LINE NUMBER IS NOT A CITATION.** This table used to carry `specLines` into the transcription. Every one of

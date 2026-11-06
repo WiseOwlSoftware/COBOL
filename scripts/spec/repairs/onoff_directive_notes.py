@@ -39,7 +39,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[2]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[3]
-SPEC = REPO / "specs" / "ISO_COBOL.md"
+SPEC = REPO / "specs" / "ISO_COBOL_2023.md"
 
 OPTIONAL_ON = (
     "`ON` is printed **without** an underline, so per 5.2.3 it is an OPTIONAL word: the ON alternative may be "

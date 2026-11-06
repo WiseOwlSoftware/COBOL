@@ -23,9 +23,9 @@ public sealed class QualifiedNameClassDriftTests
     /// <summary>The §8.4.2.2.2 formats as the standard prints them.</summary>
     private static List<string> SpecFormats()
     {
-        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = Array.FindIndex(lines, l => l.StartsWith("###### 8.4.2.2.2 General format", StringComparison.Ordinal));
-        Assert.True(start >= 0, "specs/ISO_COBOL.md has no §8.4.2.2.2 heading — the scan measured nothing");
+        Assert.True(start >= 0, "specs/ISO_COBOL_2023.md has no §8.4.2.2.2 heading — the scan measured nothing");
         var formats = new List<string>();
         for (int i = start + 1; i < lines.Length && !lines[i].StartsWith("###### ", StringComparison.Ordinal); i++)
             if (FormatHeading.Match(lines[i]) is { Success: true } m) formats.Add(m.Groups[1].Value);

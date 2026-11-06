@@ -72,7 +72,7 @@ internal static class TestRepo
     /// <summary><c>scripts/</c> — the generators and gates.</summary>
     public static string Scripts(params string[] segments) => At(["scripts", .. segments]);
 
-    /// <summary><c>specs/</c> — the public ISO transcription (<c>ISO_COBOL.md</c>).</summary>
+    /// <summary><c>specs/</c> — the public ISO transcription (<c>ISO_COBOL_2023.md</c>).</summary>
     public static string Specs(params string[] segments) => At(["specs", .. segments]);
 
     /// <summary><c>tests/version-matrix/</c> — constructs, reserved words, the traceability inventory.</summary>

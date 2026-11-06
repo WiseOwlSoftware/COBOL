@@ -18,7 +18,7 @@ text of any upstream issue (kb/Work PB3838, standing requirement 2).
 `<<REPO>>/.claude/skills/workstream/templates/MANDATORY-PRACTICES.md` governs (the read-only rows: P1, P3, P5, P7, P8,
 P10, P14). Public skills for your role (P10): `<<REPO>>/tools/claude-skills/skills/spec-compliance-audit/SKILL.md` and
 `<<REPO>>/tools/claude-skills/skills/spec-oracle/SKILL.md` (the project's `spec-lookup` skill,
-`<<REPO>>/.claude/skills/spec-lookup/SKILL.md`, wins on conflict). The authority is `<<REPO>>/specs/ISO_COBOL.md`
+`<<REPO>>/.claude/skills/spec-lookup/SKILL.md`, wins on conflict). The authority is `<<REPO>>/specs/ISO_COBOL_2023.md`
 (CLAUDE.md rule 1); GnuCOBOL is a regression net, never authority.
 
 ## Materials

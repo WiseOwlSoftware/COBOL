@@ -48,7 +48,7 @@ Step-0 four-edition traceability inventory at zero-GAP.** Optional modules may r
 [[kb/Context/Goals]] and [[kb/Modernization/Tasks]].
 
 ## Where is the authoritative behavior defined?
-The ISO/IEC 1989:2023 spec ([[specs/ISO_COBOL]], a private submodule) — cite the `§` for any behavior question. The
+The ISO/IEC 1989:2023 spec ([[specs/ISO_COBOL_2023]], a private submodule) — cite the `§` for any behavior question. The
 NIST goldens and the GnuCOBOL differential are regression *nets*, not authority. See [[kb/Spec/Overview]].
 
 ## What is the CONFORMANCE-FIX-QUEUE?

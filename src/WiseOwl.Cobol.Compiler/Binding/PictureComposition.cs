@@ -81,7 +81,7 @@ internal enum PicRole
 /// MEMBERSHIP only, never reached (kb/Work PB528).
 /// <para>⛔ THE SHAPE IS DELIBERATE (kb/Work PB528; data-model design D24). Table 10 is DATA — the 24×24 matrix
 /// transcribed cell-for-cell in the standard's own printed order, drift-tested against
-/// <c>specs/ISO_COBOL.md</c> — and the composition rules are a fixed, cited sequence of declarative checks.
+/// <c>specs/ISO_COBOL_2023.md</c> — and the composition rules are a fixed, cited sequence of declarative checks.
 /// Symbol ORDER is decided by ASSIGNING each occurrence its Table-10 role and asking the matrix about every
 /// ordered pair, never by hand-written positional <c>if</c>s: that is why SR25 ('+'/'−' leftmost or rightmost)
 /// and SR26 (the currency symbol's placement) need no code of their own — the leading-sign ROW is empty, so
@@ -111,7 +111,7 @@ internal static class PictureComposition
     // the printed BLANK, which is therefore a PROHIBITION.
     //
     // Transcribed from the canonical PDF (printed folios 459-460) by GEOMETRY — every 'x' glyph bucketed into a
-    // cell by the page's own ruling lines — and verified identical to the specs/ISO_COBOL.md transcription, all
+    // cell by the page's own ruling lines — and verified identical to the specs/ISO_COBOL_2023.md transcription, all
     // 576 cells. `PictureTable10DriftTests` re-derives it from the markdown on every run, so this array can
     // never silently drift from the standard.
     //

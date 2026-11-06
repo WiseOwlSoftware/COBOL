@@ -39,7 +39,7 @@ REPO = HERE.parents[2]
 sys.path.insert(0, str(HERE.parent))
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[2]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
-SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
+SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
 
 HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(?:\s+(.*?))?\s*$")
 DOT_LABEL = re.compile(r"^(\d+)\.(\s+)(.*)$")

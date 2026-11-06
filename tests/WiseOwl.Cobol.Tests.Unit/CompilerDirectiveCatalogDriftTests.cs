@@ -29,7 +29,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
     /// <summary>Every clause under ISO §7.3 whose heading names a directive — the spec's own roster.</summary>
     private static Dictionary<string, string> SpecDirectives()
     {
-        string path = TestRepo.Specs("ISO_COBOL.md");
+        string path = TestRepo.Specs("ISO_COBOL_2023.md");
         Assert.True(File.Exists(path),
             $"the ISO transcription is missing: {path} — run `git submodule update --init --recursive`");
         var found = new Dictionary<string, string>(StringComparer.Ordinal);

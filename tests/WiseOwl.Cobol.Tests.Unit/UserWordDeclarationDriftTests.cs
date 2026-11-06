@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// funnels, so an alphabet-name, a class-name, a symbolic-character, a program-name or a function-prototype-name
 /// spelling one compiled clean. Every declaration now announces its word through <c>DataBinder.DeclareUserWord</c> with
 /// its <see cref="UserWordKind"/>, and this test keeps that total: the enum carries exactly the types §8.3.2.2 lists
-/// (parsed from <c>specs/ISO_COBOL.md</c>, never copied by hand), and every type is declared at some call site or
+/// (parsed from <c>specs/ISO_COBOL_2023.md</c>, never copied by hand), and every type is declared at some call site or
 /// carried below as a type this compiler never declares in a bound source element, with the reason.</para>
 /// <para>The same funnel asks §8.3.2.2's other two rules about a word AS DECLARED (kb/Work PB990, PB1403): one TYPE per
 /// word within a source element, except as the standard's three exceptions say, and a letter in every word but a
@@ -37,22 +37,22 @@ public sealed class UserWordDeclarationDriftTests
 
     private static string[] SpecListedTypes()
     {
-        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL.md"));
+        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL_2023.md"));
         int start = spec.IndexOf("The types of user-defined words are:", StringComparison.Ordinal);
-        Assert.True(start >= 0, "§8.3.2.2's list header moved in specs/ISO_COBOL.md — re-derive this guard");
+        Assert.True(start >= 0, "§8.3.2.2's list header moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         int end = spec.IndexOf("Within a source element, a given user-defined word", start, StringComparison.Ordinal);
-        Assert.True(end > start, "§8.3.2.2's list end moved in specs/ISO_COBOL.md — re-derive this guard");
+        Assert.True(end > start, "§8.3.2.2's list end moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         return [.. Regex.Matches(spec[start..end], @"^— ([a-z-]+)\s*$", RegexOptions.Multiline).Select(m => m.Groups[1].Value)];
     }
 
     /// <summary>§8.3.2.2's text after the type list, up to the sentence that ends the exceptions.</summary>
     private static string ExceptionsText()
     {
-        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL.md"));
+        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL_2023.md"));
         int start = spec.IndexOf("Within a source element, a given user-defined word", StringComparison.Ordinal);
-        Assert.True(start >= 0, "§8.3.2.2's exceptions moved in specs/ISO_COBOL.md — re-derive this guard");
+        Assert.True(start >= 0, "§8.3.2.2's exceptions moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         int end = spec.IndexOf("Further rules for uniqueness", start, StringComparison.Ordinal);
-        Assert.True(end > start, "§8.3.2.2's exceptions end moved in specs/ISO_COBOL.md — re-derive this guard");
+        Assert.True(end > start, "§8.3.2.2's exceptions end moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         return spec[start..end];
     }
 
@@ -61,7 +61,7 @@ public sealed class UserWordDeclarationDriftTests
 
     /// <summary>⛔ THE ONE-TYPE-PER-WORD CENSUS IS THE STANDARD'S, NOT OURS (kb/Work PB990): which types may share a
     /// word is written ONCE (<see cref="UserWordKinds.MayBeOneWord"/>) and this test rebuilds the whole 31 x 31 relation
-    /// from §8.3.2.2's own exceptions, parsed from <c>specs/ISO_COBOL.md</c>, and fails on the first pair the two
+    /// from §8.3.2.2's own exceptions, parsed from <c>specs/ISO_COBOL_2023.md</c>, and fails on the first pair the two
     /// disagree about — so an edit to the sets, or to the standard's text, cannot drift silently.</summary>
     [Fact]
     public void TheSharingRelation_IsRebuiltFromTheStandardsExceptions()
@@ -98,9 +98,9 @@ public sealed class UserWordDeclarationDriftTests
     [Fact]
     public void TheLetterlessTypes_AreTheStandardsExceptionList()
     {
-        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL.md"));
+        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL_2023.md"));
         var m = Regex.Match(spec, @"With the exception of ([a-z-]+), ([a-z-]+), and ([a-z-]+), each user-defined word shall contain at least one basic letter");
-        Assert.True(m.Success, "§8.3.2.2's letter rule moved in specs/ISO_COBOL.md — re-derive this guard");
+        Assert.True(m.Success, "§8.3.2.2's letter rule moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         Assert.Equal(
             new[] { m.Groups[1].Value, m.Groups[2].Value, m.Groups[3].Value }.Select(s => s.TrimEnd('s')).Order(),
             UserWordKinds.MayBeLetterless.Select(k => k.Spelling()).Order());
@@ -152,17 +152,17 @@ public sealed class UserWordDeclarationDriftTests
     /// in any source element contained within that source element</i>": a contained program and a method resolve names
     /// no declaration of their own announced, so each type's registry is a <c>ConfigurationNames</c> table built with
     /// the recorder (or, for the mnemonic-name, the <c>MnemonicRegistry</c>, whose <c>TryUse</c> records), and the
-    /// referring element's §8.3.2.2 census sees the use. The list is parsed from <c>specs/ISO_COBOL.md</c>; a type it
+    /// referring element's §8.3.2.2 census sees the use. The list is parsed from <c>specs/ISO_COBOL_2023.md</c>; a type it
     /// gains, or a table that stops recording, is red here.</summary>
     [Fact]
     public void EveryConfigurationSectionNameType_ResolvesThroughARecordingTable()
     {
-        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL.md"));
+        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL_2023.md"));
         int start = spec.IndexOf("when they are declared within a configuration section, may be referenced only by",
             StringComparison.Ordinal);
-        Assert.True(start >= 0, "§8.4.6.1's configuration-section list moved in specs/ISO_COBOL.md — re-derive this guard");
+        Assert.True(start >= 0, "§8.4.6.1's configuration-section list moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         int end = spec.IndexOf("Specific conventions for declarations and references", start, StringComparison.Ordinal);
-        Assert.True(end > start, "§8.4.6.1's list end moved in specs/ISO_COBOL.md — re-derive this guard");
+        Assert.True(end > start, "§8.4.6.1's list end moved in specs/ISO_COBOL_2023.md — re-derive this guard");
         var listed = Regex.Matches(spec[start..end], @"^— ([a-z-]+)", RegexOptions.Multiline)
             .Select(m => KindOfSpelling(m.Groups[1].Value)).Distinct().Order().ToArray();
         Assert.Equal(8, listed.Length);

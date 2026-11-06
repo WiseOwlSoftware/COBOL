@@ -59,8 +59,9 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
-PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
+SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
+import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
+PDF = spec_pdf.path(2023)
 
 # A COBOL reserved word as printed in a general format: uppercase, digits and hyphens.
 RESERVED = re.compile(r"^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*$")
@@ -91,7 +92,7 @@ def page_slices(md_lines):
 # what it needs to live on for the rest.
 def _require_page_anchors(figs):
     if not figs:
-        sys.exit("HALTED: no page anchors in specs/ISO_COBOL.md — pages were removed from the transcription, "
+        sys.exit("HALTED: no page anchors in specs/ISO_COBOL_2023.md — pages were removed from the transcription, "
                  "so this page-keyed audit can no longer bucket it. For figures use "
                  "`python scripts/spec/sweep_figures.py --check`, which regenerates and diffs exactly. "
                  "This audit needs re-keying onto the clause hierarchy.")
@@ -104,9 +105,7 @@ def main() -> int:
     ap.add_argument("--json")
     ap.add_argument("--quiet", action="store_true", help="totals only")
     args = ap.parse_args()
-    if PDF is None or not PDF.exists():
-        sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a PRIVATE submodule; the public repository carries only the Markdown transcription at specs/ISO_COBOL.md. This tool measures the printed page, so it needs the PDF: "
-             "git submodule update --init specs-private")
+    spec_pdf.require(2023)
     import fitz
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))

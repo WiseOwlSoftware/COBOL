@@ -140,7 +140,7 @@ src/
   WiseOwl.Cobol.Editions/            the construct registry and per-edition gating
   WiseOwl.Cobol.Runtime/             the library every compiled program runs on
 tests/                               the populations above
-specs/ISO_COBOL.md                   the standard, transcribed to Markdown and searchable
+specs/ISO_COBOL_2023.md                   the standard, transcribed to Markdown and searchable
 docs/DESIGN.md                       the design, with one deep-dive document per subsystem beside it
 docs/CONFORMANCE.md                  every implementor-defined choice, with its reasons
 kb/Work/                             the work register: one note per defect, analysis, decision or upstream record
@@ -165,7 +165,7 @@ COBOL source
 
 ## How work is done here
 
-- **The standard decides.** Settle every question of syntax, semantics or output from `specs/ISO_COBOL.md`, cite
+- **The standard decides.** Settle every question of syntax, semantics or output from `specs/ISO_COBOL_2023.md`, cite
   the clause and rule, and check the citation: `python scripts/spec/cite.py --check 14.9.25.3 "<quoted text>"`.
   Other compilers and test suites are evidence, never authority.
 - **Work lives in `kb/Work/`.** `python scripts/spec/work.py next` ranks what to fix next by what a defect does to a

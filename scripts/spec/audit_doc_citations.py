@@ -130,7 +130,7 @@ _WORDS = None
 
 
 def _spec() -> tuple[list[str], list]:
-    """`specs/ISO_COBOL.md` as `cite.py` reads it — its lines and clause regions — loaded ONCE per process.
+    """`specs/ISO_COBOL_2023.md` as `cite.py` reads it — its lines and clause regions — loaded ONCE per process.
 
     ⛔ ONE CHECKER, CALLED IN-PROCESS (kb/Work PB2525). Every pairing used to be checked by spawning `cite.py
     --check` (and `--find`) as a fresh Python process that reloaded the standard: 843 processes, 75 of the audit's

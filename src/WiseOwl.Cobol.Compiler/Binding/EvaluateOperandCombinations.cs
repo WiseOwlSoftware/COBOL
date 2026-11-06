@@ -36,7 +36,7 @@ public enum EvaluateObjectOperand
 /// <para><b>THIS IS A TABLE BECAUSE THE STANDARD PRINTS A TABLE</b> (fix-queue PB47, and CLAUDE.md rule 5: prefer
 /// the shape that makes the NEXT case automatic). A chain of <c>if</c>s over 54 cells is a hand-maintained list
 /// where a structure belongs, and it cannot be checked against the source it came from. This one can:
-/// <c>EvaluateOperandCombinationsDriftTests</c> re-parses Table 15 out of <c>specs/ISO_COBOL.md</c> and asserts
+/// <c>EvaluateOperandCombinationsDriftTests</c> re-parses Table 15 out of <c>specs/ISO_COBOL_2023.md</c> and asserts
 /// this matrix equals it cell for cell, so a transcription fix upstream fails the battery here rather than
 /// silently diverging.</para>
 ///

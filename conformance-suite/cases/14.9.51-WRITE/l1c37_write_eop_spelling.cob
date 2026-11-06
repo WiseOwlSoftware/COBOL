@@ -10,7 +10,7 @@
       *>   cite.py --check 14.9.51.3 "The words END-OF-PAGE and EOP
       *>   are equivalent" -> OK  §14.9.51.3 20)  (Syntax rules)
       *> Supporting rules (cite.py mislabels list items, PB1554; the
-      *> numbers below were re-read from specs/ISO_COBOL.md):
+      *> numbers below were re-read from specs/ISO_COBOL_2023.md):
       *>   cite.py --check 14.9.51.4 "If the END-OF-PAGE phrase is
       *>   specified, control is transferred to imperative-statement-1"
       *>   -> OK  §14.9.51.4 27) b)

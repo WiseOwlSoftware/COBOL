@@ -107,7 +107,7 @@ bugs of ours**, tracked here only until they move to the fix queue; they are not
 ## Maintenance
 
 Add a row whenever the differential surfaces a construct we refuse that is not ISO. Move a row out of the
-NEEDS VERIFICATION state only after adjudicating it against `specs/ISO_COBOL.md` with a cited §. If adjudication
+NEEDS VERIFICATION state only after adjudicating it against `specs/ISO_COBOL_2023.md` with a cited §. If adjudication
 shows the construct IS ISO, move it to the "our bugs" table and open a fix item — that is the outcome this
 register exists to make visible. Related: `docs/CONFORMANCE.md` (what we claim), plan §11 A4 (the campaign),
 `docs/DOC_INDEX.md`.

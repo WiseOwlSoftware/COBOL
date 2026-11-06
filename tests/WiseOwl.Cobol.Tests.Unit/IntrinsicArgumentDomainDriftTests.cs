@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// answered π/2 under armed checking).
 /// </summary>
 /// <remarks>
-/// <para>The drift half re-reads every Float row's §15.x.3 argument rules from <c>specs/ISO_COBOL.md</c>: a row
+/// <para>The drift half re-reads every Float row's §15.x.3 argument rules from <c>specs/ISO_COBOL_2023.md</c>: a row
 /// whose rules say "The value of argument-1 shall be …" MUST carry the domain that phrase names and cite that
 /// rule's number, and a row with no such rule must carry none — so a new binary64 row with a value rule cannot be
 /// added without the screen, and a screen cannot outlive its rule.</para>
@@ -44,7 +44,7 @@ public sealed class IntrinsicArgumentDomainDriftTests
     [Fact]
     public void EveryBinary64RowsArgumentDomain_IsExactlyItsSection15ValueRule()
     {
-        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md"));
+        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md"));
         var sections = SpecClauseText.FunctionSections(spec)
             .ToDictionary(f => f.Name, f => f.Section, StringComparer.OrdinalIgnoreCase);
         string src = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "IntrinsicCatalog.cs"));

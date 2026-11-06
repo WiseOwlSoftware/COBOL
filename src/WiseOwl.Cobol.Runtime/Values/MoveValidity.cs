@@ -73,7 +73,7 @@ public static class MoveValidity
     /// types of MOVE statements, specifies the validity of the move" — as the reason the table refuses the
     /// <paramref name="sender"/> → <paramref name="receiver"/> pair, or null when it admits it. A
     /// <see cref="Table16Category.None"/> side is admitted (a group, §14.9.25.4 GR4; a class SR1 governs).
-    /// <para>The arms are the table read AS PRINTED (specs/ISO_COBOL.md, Table 16); with them every cell over the
+    /// <para>The arms are the table read AS PRINTED (specs/ISO_COBOL_2023.md, Table 16); with them every cell over the
     /// nine headings is decided here (<c>Table16PrintedTableDriftTests</c> compares all 81). The classic '85 rows carry
     /// the same "No" cells, so the table is version-invariant.</para></summary>
     public static string? Table16Refusal(Table16Category sender, Table16Category receiver)

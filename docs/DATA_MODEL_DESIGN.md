@@ -341,7 +341,7 @@ elementary item acquires from its group (§13.18.60.4 GR1), with the cited rule 
 then it lacked USAGE INDEX, which SR9 does not name and SR10 does (kb/Work PB515: `77 I USAGE INDEX VALUE 7.`
 compiled at every edition and seeded the index item). §13.18.63.4 GR4 initializes the object and pointer classes
 to null with no clause written, so the prohibition costs nothing. `WiseOwl.Cobol.Tests.Unit.ValueClauseUsageSetDriftTests`
-re-derives the set from SR10 and Table 2 (and SR9's usages) out of `specs/ISO_COBOL.md` on every run, because a
+re-derives the set from SR10 and Table 2 (and SR9's usages) out of `specs/ISO_COBOL_2023.md` on every run, because a
 behavioural probe cannot contradict a wrong set.
 
 **⛔ THE VALUE CLAUSE'S PLACEMENT RULES ARE ONE SCREEN** (`DataBinder.ValuePlacement`, kb/Work PB550 + PB551,
@@ -2229,7 +2229,7 @@ against a build carrying the walk — SR25's `9+9` / `99-9`, SR26's `99$9` / `9$
 invalid example) / `ZZZ$$$` are COBOL1935 at all four editions, while SR26 NOTE 4's six valid strings, SR27
 NOTE 5's valid `+$$$` and the extended-sign spellings `L$999` / `999$L` all bind AND edit correctly.
 `PictureTable10DriftTests` re-parses the table out of
-`specs/ISO_COBOL.md` on every build and compares all 576 cells plus the 163-mark glyph count, so "the table is
+`specs/ISO_COBOL_2023.md` on every build and compares all 576 cells plus the 163-mark glyph count, so "the table is
 the standard's" stays a measured fact; the markdown transcription was itself verified cell-for-cell against the
 canonical PDF (printed folios 459-460) by geometry.
 

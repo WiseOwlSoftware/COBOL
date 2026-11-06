@@ -20,7 +20,7 @@ as files. No tracked file belongs to a note-taking application (kb/Work PB3799);
 ## The four layers (single source of truth)
 | Layer | Where | Authority | Maintained by |
 |---|---|---|---|
-| **Spec** | [[specs/ISO_COBOL]] | ISO | private submodule — indexed locally, never copied/committed |
+| **Spec** | [[specs/ISO_COBOL_2023]] | ISO | private submodule — indexed locally, never copied/committed |
 | **Docs** | `docs/*` | the docs | humans + `gen-*.ps1` (some are generated) → [[docs/DOC_INDEX]] |
 | **Code reference** | `kb/Reference/*` | the **source code** | a build generator (drift-proof) |
 | **Synthesis** | `kb/*` (these notes) | the notes | humans — **link/embed down, don't restate** |

@@ -64,7 +64,7 @@ every draft file already in it; APPEND one result object (the schema's results i
 draft in hand, append it, then RETURN. Drafts you did not validate go in the optional "deferred" array of your
 return, BY NAME — never a count, and never silence; the merge/registrar step reads it and dispatches a fresh agent
 for exactly those. Stopping at the cap with an honest deferred list is the CORRECT outcome, never a failure.
-CLASSIFY every mismatch: re-read the rule text in specs/ISO_COBOL.md yourself; if the draft's expectation follows
+CLASSIFY every mismatch: re-read the rule text in specs/ISO_COBOL_2023.md yourself; if the draft's expectation follows
 from the rule, classification = suspected-compiler-defect with a repro_note (minimal program, rule text quoted,
 cite.py --check line, expected vs observed); if you can show the draft misread the rule, classification =
 draft-error and say exactly what the rule requires (you still do not edit the draft). Environment problems (missing

@@ -694,7 +694,7 @@ usage — its own clause, else the nearest enclosing one (a `GROUP-USAGE` clause
 **What the shape buys.** A `Usage` member added to the enum inherits, sheds and is screened without anyone
 touching this pass. The one hand-written table left is `UsageFamilies.IsPictureless`, and because it drives BOTH
 arms a wrong entry in it is invisible to any behavioural test — so it is checked against §13.16.3 SR8's own
-sentence, re-read out of `specs/ISO_COBOL.md`, by `PicturelessUsageSetDriftTests` (Unit).
+sentence, re-read out of `specs/ISO_COBOL_2023.md`, by `PicturelessUsageSetDriftTests` (Unit).
 `UsageInheritanceUsageDriftTests` asserts the equivalence over the usage WORD × picture matrix **and `UsageInheritancePhraseDriftTests` over the
 clause's keyword-only PHRASES** (`UsageClausePhrases`, read off the §13.18.60.2 figure; phrases carrying an
 operand are excluded by predicate, since the two arms would not be the same program). The phrase axis is what
@@ -802,7 +802,7 @@ a second time and independently by `boolean-data-2002` / `national-data-2002`, t
 2002 additions.
 
 **Drift.** `ImpliedPictureTests.Sr9_ImpliedPictureText_MatchesTheStandardsThreeArms` re-reads SR9 a/b/c out of
-`specs/ISO_COBOL.md` on every run and asserts the class→symbol table, for the same reason
+`specs/ISO_COBOL_2023.md` on every run and asserts the class→symbol table, for the same reason
 `PicturelessUsageSetDriftTests` exists: a wrong symbol moves the synthesis and every behavioural expectation
 together, so the standard's own sentence is the only independent oracle.
 - `NumProfile` (runtime) stays the runtime projection of `PicInfo`. Today `PicInfo` re-materializes it as an

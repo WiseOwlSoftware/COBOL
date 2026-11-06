@@ -31,7 +31,7 @@ consumes).
 
 1. **Typed-native only** — the frontend produces a *syntactic* parse tree; it never touches storage form. No
    change here can regress the byte invariant. (Unaffected but stated for completeness.)
-2. **Spec-first** — every gate, token, and severity cites ISO/IEC 1989:2023 (`specs/ISO_COBOL.md`). The
+2. **Spec-first** — every gate, token, and severity cites ISO/IEC 1989:2023 (`specs/ISO_COBOL_2023.md`). The
    canonical construct/edition metadata is `tests/version-matrix/constructs.json` +
    `tests/version-matrix/reserved-words.json`; the frontend must consume that single source, never a copy.
 3. **Battery green throughout** — the FULL battery (greenfield conformance + unit + characterization + the
@@ -576,7 +576,7 @@ requires it (§7.3.10.4 GR3), and `gen-cobol-words.ps1` step 5c refuses a `keywo
 every edition. `CobolWordsDriftTests` holds all of it: the
 generated rules are exactly the rows, of the one shape, on gated words; no hand-written rule spells a row's bare token;
 and the determinations are RE-DERIVED from the standard where the standard is in the repository: every gated word
-2023 §8.9 leaves free that a 2023 general format underlines (`<u>WORD</u>` in `specs/ISO_COBOL.md`), and every gated
+2023 §8.9 leaves free that a 2023 general format underlines (`<u>WORD</u>` in `specs/ISO_COBOL_2023.md`), and every gated
 §8.10 word, must carry one, so the next such word fails a test instead of a user's program. A word dropped by 2023
 §8.9 that no 2023 format spells (CLOCK-UNITS, EVERY, POSITION, PROCEDURES, PROCEED, REFERENCES: their constructs are
 1985-only) needs no rule; the earlier editions' texts are not in the repository, so a determination for them would
@@ -2506,7 +2506,7 @@ lowercase with Annex C. Three pieces, each in one place:
   makes it COBOL2773 at every target, COBOL-85 included, worded by what the character is (kb/Work PB4130). The gate is decided per CHARACTER (`CobolCharacterRepertoire.HasExtendedLetter`: any character some edition's Annex B holds), so a word holding both an extended letter and such a character draws the gate (COBOL0900) and COBOL2773 at COBOL-85 (kb/Work PB4156). The tables are COBOL 2023's, transcribed list for list
   from the standard by `scripts/spec/gen_annex_bc.py`; COBOL 2002/2014 are derived by reversing Annex E (E.2 item 4,
   E.3.3 items 4 and 5 — the standard records no 2002→2014 change, so 2002 uses 2014's). `AnnexBCDriftTests` re-reads
-  every list from `specs/ISO_COBOL.md`. A word's length is counted in characters (code points), so a combining
+  every list from `specs/ISO_COBOL_2023.md`. A word's length is counted in characters (code points), so a combining
   character counts separately (GR4 c).
 - **Where the legality is asked (kb/Work PB3845).** `WordCharacterScreen` (Frontend/Parsing), over the words of the
   compilation: every `IDENTIFIER` token that holds an underscore or a character outside the basic repertoire gets the

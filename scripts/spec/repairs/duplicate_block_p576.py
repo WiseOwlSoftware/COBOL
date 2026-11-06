@@ -33,7 +33,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[2]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[3]
-SPEC = REPO / "specs" / "ISO_COBOL.md"
+SPEC = REPO / "specs" / "ISO_COBOL_2023.md"
 
 # The four section anchors the stray copy re-emits. After the repair each must appear exactly once.
 DUPED_ANCHORS = [

@@ -11,7 +11,7 @@ tags:
 
 # 🗺 Spec — Map of Content
 
-The ISO/IEC 1989:2023 specification and how WiseOwl COBOL targets it. The spec ([[specs/ISO_COBOL]]) is the **single
+The ISO/IEC 1989:2023 specification and how WiseOwl COBOL targets it. The spec ([[specs/ISO_COBOL_2023]]) is the **single
 authority** for all syntax, semantics, and behavior.
 
 ## Notes in this domain

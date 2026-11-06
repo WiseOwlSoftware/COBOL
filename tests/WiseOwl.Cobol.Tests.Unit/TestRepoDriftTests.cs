@@ -79,8 +79,8 @@ public sealed class TestRepoDriftTests
         Assert.True(Directory.Exists(TestRepo.Src("WiseOwl.Cobol.Compiler")), "src/WiseOwl.Cobol.Compiler is missing");
         Assert.True(File.Exists(TestRepo.VersionMatrix("constructs.json")), "constructs.json is missing");
         Assert.True(File.Exists(TestRepo.Nist("corpus.tsv")), "tests/nist/corpus.tsv is missing");
-        Assert.True(File.Exists(TestRepo.Specs("ISO_COBOL.md")),
-            "specs/ISO_COBOL.md is missing — git submodule update --init --recursive");
+        Assert.True(File.Exists(TestRepo.Specs("ISO_COBOL_2023.md")),
+            "specs/ISO_COBOL_2023.md is missing — git submodule update --init --recursive");
         Assert.True(Directory.Exists(TestRepo.Scripts("spec")), "scripts/spec is missing");
     }
 }

@@ -12,7 +12,7 @@
 
 # FACTORY slice — decision-complete implementation brief (OO port, roadmap Phase 3)
 
-> Scope: ISO 11.4 FACTORY paragraph (specs/ISO_COBOL.md:13069), factory data + factory methods, `INVOKE class-name "M"` (non-NEW), SELF/SUPER inside factory methods (§14.9.23.3 SR4f/g/h/i, :28407+), and the NEW interplay (§16.2.1, :39170). Deep-dive: docs/OO_DESIGN.md ("Never landed" list — FACTORY is net-new, no legacy port). Everything below is spec-derived and cites §/line anchors; tests VERIFY, never scope.
+> Scope: ISO 11.4 FACTORY paragraph (specs/ISO_COBOL_2023.md:13069), factory data + factory methods, `INVOKE class-name "M"` (non-NEW), SELF/SUPER inside factory methods (§14.9.23.3 SR4f/g/h/i, :28407+), and the NEW interplay (§16.2.1, :39170). Deep-dive: docs/OO_DESIGN.md ("Never landed" list — FACTORY is net-new, no legacy port). Everything below is spec-derived and cites §/line anchors; tests VERIFY, never scope.
 
 ## ⛔ D11 (the one load-bearing decision) — a factory is a REAL sibling C# class + one singleton instance, NOT static members. This SUPERSEDES the deep-dive's "FACTORY data → static fields" sketch (Summary :37, D7 :115, edge case :232); update the deep-dive in the SAME change set with this correction (process rule feedback_follow_the_deep_dive).
 
@@ -30,7 +30,7 @@ public class __FACTORY_FOO : __FACTORY_ANIMAL /* or CobolObject when no INHERITS
 `INVOKE FOO "M" …` → `__FACTORY_FOO.__Instance.M(…)` (virtual, no null guard — the singleton is never null).
 
 **Why statics are a silent miscompile (three independent spec facts):**
-1. **Per-class copies of INHERITED factory data** — §8.6.4 (specs/ISO_COBOL.md:8765-8769): "In the factory object of a given class, there is one copy of each static item that is *described in or inherited by* the factory definition of that class." DOG (INHERITS ANIMAL, no factory paragraph of its own) has its OWN factory object with its OWN copy of ANIMAL's factory data. C# statics on the class would share ONE copy between ANIMAL and DOG — the factory-level analog of adversarial trap #1 (two-object independence). Instance fields of two singleton instances give two copies for free.
+1. **Per-class copies of INHERITED factory data** — §8.6.4 (specs/ISO_COBOL_2023.md:8765-8769): "In the factory object of a given class, there is one copy of each static item that is *described in or inherited by* the factory definition of that class." DOG (INHERITS ANIMAL, no factory paragraph of its own) has its OWN factory object with its OWN copy of ANIMAL's factory data. C# statics on the class would share ONE copy between ANIMAL and DOG — the factory-level analog of adversarial trap #1 (two-object independence). Instance fields of two singleton instances give two copies for free.
 2. **SELF in a factory method is polymorphic** — §14.9.23.3 SR4f (:28407-ish, "SELF … factory method → factory interface of the class containing the INVOKE") combined with §8.4.3.8 GR2 (:7331+, SELF resolution is on the RUNTIME class). An ANIMAL factory method doing `INVOKE SELF "F"` must dispatch to DOG's factory override when reached via `INVOKE DOG "M"`. Statics cannot dispatch virtually; a real factory class hierarchy makes it C# `this.F()` — correct by construction.
 3. **Factory method resolution walks the inheritance chain** — §9.3.6 (:12105+): "If an invocation specifies the object using a class name, the factory object of the specified class is used … resolve to a factory method", resolution rules 1-2 walk INHERITS upward. The factory C# hierarchy mirrors the class hierarchy, so lookup + override are Roslyn-checked renders of binder facts (D1 discipline).
 
@@ -259,7 +259,7 @@ Lands AFTER slice 3b (SELF/SUPER instance dispatch — the roster-switch code ex
 > against the live tree (OoClassTable already marks `OverrideOf` by
 > name; the emitter already renders `override` vs `virtual`).
 
-## 0. Spec basis (ISO/IEC 1989:2023, `specs/ISO_COBOL.md` line anchors — re-verified this brief)
+## 0. Spec basis (ISO/IEC 1989:2023, `specs/ISO_COBOL_2023.md` line anchors — re-verified this brief)
 
 - **§10.6 method-definition** :12798–12821 — the ONLY method attributes are `[ OVERRIDE ] [ IS FINAL ]`,
   placed after the `{method-name-1 [AS literal-1] | {GET|SET} PROPERTY property-name-1}` brace (:12805, :12812).
@@ -506,14 +506,14 @@ regression trap). Compiled strict `--std 2002`, run, byte-compared by CorpusRunn
 
 # Implementation brief — UNIVERSAL object-reference dispatch (OO deep-dive D10 wave)
 
-> Slice: the "universal reference" wave of the Phase-3 OO port (banner order: FACTORY → PROPERTY → INTERFACE-ID → **universal reference** → EC-OO; `docs/OO_DESIGN.md`). Everything below is derived from `specs/ISO_COBOL.md` (ISO/IEC 1989:2023) with line anchors, and from the seams in the live tree. Style = the deep-dive's Decisions format: chosen design + rejected alternatives + citations + exact files/seams + diagnostics + tests.
+> Slice: the "universal reference" wave of the Phase-3 OO port (banner order: FACTORY → PROPERTY → INTERFACE-ID → **universal reference** → EC-OO; `docs/OO_DESIGN.md`). Everything below is derived from `specs/ISO_COBOL_2023.md` (ISO/IEC 1989:2023) with line anchors, and from the seams in the live tree. Style = the deep-dive's Decisions format: chosen design + rejected alternatives + citations + exact files/seams + diagnostics + tests.
 
 ## 0. Scope
 
 IN: (a) per-class `__CobolInvoke` switch override emission (roster incl. inherited via base chaining); (b) INVOKE through a universal receiver, incl. identifier-2 dynamic method names; (c) the arg boxing/unboxing model vs the typed strict-conformance model — §14.9.23.4 GR7c runtime conformance → EC-OO-UNIVERSAL; (d) SET Format 5 object-reference-assignment (headline: SET universal TO typed); (e) object relation conditions (`U = NULL`, `U = G`) and the disposition of the non-ISO "IS class" test.
 OUT (staged loud, owning wave named): FACTORY objects/`SET x TO ClassName` (FACTORY slice); object views + EC-OO-CONFORMANCE (§8.4.3.5, spec :6760; EC-OO wave); interface-name'd references and ACTIVE-CLASS (`INTERFACE-ID` slice; the USAGE grammar carries neither yet — `Core/CobolOO.g4:95-98` has only `OBJECT REFERENCE [className]`); EXCEPTION-OBJECT (implicitly universal, :7249 — EC-OO slice); OMITTED args.
 
-## 1. Spec ground truth (all anchors = specs/ISO_COBOL.md line numbers)
+## 1. Spec ground truth (all anchors = specs/ISO_COBOL_2023.md line numbers)
 
 - **Universal defined**: §13.18.60.2 GF — `OBJECT REFERENCE [interface-name-1 | [FACTORY OF] ACTIVE-CLASS | [FACTORY OF] object-class-name-1 [ONLY]]` (:22664-22668). §13.18.60.4 GR 22 (:22905): GR 22b (:22912) — no optional phrase ⇒ **universal object reference; "Its content may be a reference to any object."** Glossary :2352; Annex D rationale :46226. NULL is NOT universal (:7283); SELF/SUPER are NOT (:7331); EXCEPTION-OBJECT IS (:7249).
 - **INVOKE**: format §14.9.23.2 :28376-28390 (no exception phrase — deep-dive Spec correction #3). SR4 (:28401): a NON-universal identifier-1 **shall** use literal-1. SR5 (:28427): for a non-universal receiver the BY-phrase pairing rules and **§14.8.2/§14.8.3 conformance apply (compile time)** — SR5c :28433. **SR6 (:28435): universal receiver ⇒ neither BY CONTENT nor BY VALUE shall be specified; BY REFERENCE is assumed implicitly.** **SR7 (:28437): identifier-2 (method name in a data item) only when identifier-1 is universal.** SR8 (:28439): identifier-2 alphanumeric or national. SR9/SR10 (:28441/:28443): argument storage-section rules; object (factory/instance) data may not be an argument crossing by reference. GR2a (:28494): the content of identifier-2 IS the method name per §8.3.2.2 (case-insensitive user-defined word). GR5 (:28506) EC-OO-NULL. GR7b (:28528) EC-OO-METHOD. **GR7c (:28530): universal receiver ⇒ no ANY LENGTH formal/returning, and §14.8.2/§14.8.3 conformance applies AT RUNTIME; violation ⇒ EC-OO-UNIVERSAL** ("if checking … enabled in both the activated method and the activating runtime element"), invocation unsuccessful. GR8 RETURNING delivery.
@@ -656,7 +656,7 @@ Pre-commit: full battery + corpus sweep + legacy guard per the standing rules.
 > conversion. Fold this brief into `docs/OO_DESIGN.md` (slice-6 AS-BUILT) and
 > `docs/CONDITIONS_EXCEPTIONS_DESIGN` in the SAME change set (feedback_follow_the_deep_dive).
 
-## 1. Spec model (all anchors = specs/ISO_COBOL.md line numbers, verified this session)
+## 1. Spec model (all anchors = specs/ISO_COBOL_2023.md line numbers, verified this session)
 
 - **Two kinds of exception**: "An exception condition is either a condition associated with a specific
   exception status indicator or an exception object. An exception object is any object raised by a RAISE

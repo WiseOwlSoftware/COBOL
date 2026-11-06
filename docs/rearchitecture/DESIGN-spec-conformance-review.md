@@ -93,7 +93,7 @@ rule = `(rule-id, §-anchor, subject, kind, edition-applicability, text)`. The c
 ## 3. The three phases
 
 ### Phase A — build the spec-rule catalog (the denominator)
-Extract EVERY normative rule from `specs/ISO_COBOL.md` into a structured, machine-checkable catalog. The spec's SR/GR
+Extract EVERY normative rule from `specs/ISO_COBOL_2023.md` into a structured, machine-checkable catalog. The spec's SR/GR
 are numbered under "Syntax rules" / "General rules" headings per section, so extraction is tractable (parse by
 §-section). **Output:** `docs/rearchitecture/spec-rule-catalog.json` — one entry per rule:
 `{ id, section, subject, kind: SR|GR|format|concept|intrinsic|doc-behavior, editions, text }`.
@@ -603,7 +603,7 @@ row, cross-checked against a register PARSED by one reader per language.
 
 - **The A.2 list is a GENERATED ARTIFACT, not a parse at check time, and that is the shape that makes the next
   A.2 row automatic.** The extraction lives in exactly one place — a Python script that reads
-  `specs/ISO_COBOL.md` and resolves each item's citation against `spec-rule-catalog.json` — and both engines then
+  `specs/ISO_COBOL_2023.md` and resolves each item's citation against `spec-rule-catalog.json` — and both engines then
   read the resolved `rule-ids` as data. Parsing the spec markdown in C# as well would be the second parser this
   design spends its whole length avoiding, and re-parsing 66 items per row would put a 1.3 MB read on the path
   `EveryRowState_IsDerived_NotAsserted` walks 4,311 times. `extract_annex_a2.py --check` regenerates and diffs, so

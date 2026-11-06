@@ -3,7 +3,7 @@
 Status: SURVEY (rearchitecture review; backfill of the missing IO/Control/Exceptions/Intrinsics survey).
 Scope: the runtime facades WiseOwl COBOL-generated C# calls — file I/O (`IO/`), inter-program + run-unit control
 (`Control/`), the EC exception engine (`Exceptions/`), and the intrinsic-function catalog (`Intrinsics/`). Assesses
-against the HARD INVARIANTS: typed-native data only; spec-first (`specs/ISO_COBOL.md`); one canonical mechanism per
+against the HARD INVARIANTS: typed-native data only; spec-first (`specs/ISO_COBOL_2023.md`); one canonical mechanism per
 job; no god classes.
 
 Method: every assigned file was read in full. Citations are `file:line`. LOC counts are whole-file line counts.

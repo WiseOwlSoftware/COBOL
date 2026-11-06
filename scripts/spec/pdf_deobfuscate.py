@@ -37,7 +37,7 @@ statement names that must appear on their own clauses' pages. A high glyph-cover
 evidence on its own: a mapping can be 99% covered and still wrong if it is offset.
 
     python scripts/spec/pdf_deobfuscate.py --report
-    python scripts/spec/pdf_deobfuscate.py --write specs/ISO_COBOL.decoded.pdf --verify
+    python scripts/spec/pdf_deobfuscate.py --write specs/ISO_COBOL_2023.decoded.pdf --verify
 """
 from __future__ import annotations
 
@@ -50,7 +50,8 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
+import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
+PDF = spec_pdf.path(2023)
 WINFONTS = pathlib.Path("C:/Windows/Fonts")
 
 # basefont stem (after the subset tag) -> (reference file, face index within a .ttc)
@@ -245,9 +246,7 @@ def main() -> int:
     ap.add_argument("--write", metavar="OUT", help="write a decoded copy of the PDF")
     ap.add_argument("--verify", action="store_true", help="prove the decode against facts about the standard")
     args = ap.parse_args()
-    if PDF is None or not PDF.exists():
-        sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a PRIVATE submodule; the public repository carries only the Markdown transcription at specs/ISO_COBOL.md. This tool measures the printed page, so it needs the PDF: "
-             "git submodule update --init specs-private")
+    spec_pdf.require(2023)
     import fitz
 
     doc = fitz.open(PDF)

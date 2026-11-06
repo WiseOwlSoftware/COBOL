@@ -38,7 +38,7 @@ public enum DebugCause
 /// <para>Layout (the X3.23-1985 implicit description — DEBUG-SUB-n is S9(4) SIGN LEADING SEPARATE, five
 /// characters). The CCVS DB201A witness (<c>MOVE DEBUG-SUB-1 TO SUB-1-1</c>, <c>SUB-1-1 PIC X(5)</c>, then
 /// <c>IF SUB-1-1 = "0004"</c>) is SIGN-AGNOSTIC, not a disproof of the signed form: per ISO MOVE GR6a
-/// (§14.9.25.4, specs/ISO_COBOL.md:28921) a signed numeric's SEPARATE sign character is NOT moved to an
+/// (§14.9.25.4, specs/ISO_COBOL_2023.md:28921) a signed numeric's SEPARATE sign character is NOT moved to an
 /// alphanumeric receiver, so S9(4) SIGN LEADING SEPARATE holding +4 → X(5) yields <c>"0004 "</c> — identical to
 /// the unsigned image the witness tests. WiseOwl COBOL pins the authoritative signed 5-char width; DEBUG-SUB is
 /// SPACES when the triggering reference is not subscripted.</para>

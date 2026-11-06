@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
-/// ⛔ THE ONE READER of <c>specs/ISO_COBOL.md</c> FOR A DRIFT GUARD: a clause's own region, the numbered rules
+/// ⛔ THE ONE READER of <c>specs/ISO_COBOL_2023.md</c> FOR A DRIFT GUARD: a clause's own region, the numbered rules
 /// inside it, and the normalization that decides what "contains" means.
 /// <para>CLAUDE.md rule 1 names the failure mode every rule table in this repository is exposed to — a clause
 /// number is INHERITED rather than re-derived, and <c>cite.py --check</c> on the number alone passes because the
@@ -55,7 +55,7 @@ internal static class SpecClauseText
 
     /// <summary>The transcription, line by line. Read on every call: a drift guard that cached it could not be
     /// used to prove a repair landed.</summary>
-    public static string[] Lines() => File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+    public static string[] Lines() => File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
 
     /// <summary>Compare on WORDS only — punctuation, quoting and line wrapping are typography, not content. The
     /// same normalization <c>scripts/spec/cite.py</c> uses, so the two agree about what "contains" means.</summary>
@@ -73,7 +73,7 @@ internal static class SpecClauseText
             l => Heading.Match(l) is { Success: true } m && m.Groups[1].Value == clause);
         if (start < 0)
             throw new InvalidOperationException(
-                $"§{clause} is missing from specs/ISO_COBOL.md — a table row cites a clause the transcription does not have.");
+                $"§{clause} is missing from specs/ISO_COBOL_2023.md — a table row cites a clause the transcription does not have.");
         int end = Array.FindIndex(lines, start + 1, l => Heading.IsMatch(l));
         return lines[start..(end < 0 ? lines.Length : end)];
     }

@@ -70,7 +70,7 @@ run so that sentence keeps its evidence. `--anchors` lists them.
 
 ⚠ IT NEEDS NO SUBMODULE, and that is measured rather than hoped. Its two siblings must announce a loud SKIP
 when `specs/` is absent because they read the standard; this one reads only the tree it checks against. The 46
-`specs/ISO_COBOL.md:<line>` citations in the corpus point at a file TRACKED IN THIS REPOSITORY — the private
+`specs/ISO_COBOL_2023.md:<line>` citations in the corpus point at a file TRACKED IN THIS REPOSITORY — the private
 submodule is `specs-private/`, which no evidence file cites and whose prefix this pattern does not even match —
 so `--check` behaves identically in a checkout with `submodules: false`.
 

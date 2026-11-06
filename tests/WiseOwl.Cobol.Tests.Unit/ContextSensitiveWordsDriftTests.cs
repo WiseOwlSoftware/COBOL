@@ -50,7 +50,7 @@ public sealed class ContextSensitiveWordsDriftTests
     }
 
     /// <summary>The generated table equals the SPEC section it claims to transcribe — the check that makes the
-    /// table evidence rather than a hand list. Re-derives §8.10 from <c>specs/ISO_COBOL.md</c> the way the
+    /// table evidence rather than a hand list. Re-derives §8.10 from <c>specs/ISO_COBOL_2023.md</c> the way the
     /// generator does, so a spec transcription repair that adds or corrects a row fails here until regenerated.</summary>
     [Fact]
     public void Table_Matches_TheSpecSection()
@@ -136,7 +136,7 @@ public sealed class ContextSensitiveWordsDriftTests
     /// <summary>The words of Annex E.3.3 item 13 in the spec (the bulleted list under "13\) **Context-sensitive words.**").</summary>
     private static HashSet<string> SpecItem13Words()
     {
-        string path = TestRepo.Specs("ISO_COBOL.md");
+        string path = TestRepo.Specs("ISO_COBOL_2023.md");
         Assert.True(File.Exists(path), $"spec missing: {path} — git submodule update --init --recursive");
         var set = new HashSet<string>(StringComparer.Ordinal);
         bool inItem = false;
@@ -151,7 +151,7 @@ public sealed class ContextSensitiveWordsDriftTests
 
     private static HashSet<string> SpecContextWords()
     {
-        string path = TestRepo.Specs("ISO_COBOL.md");
+        string path = TestRepo.Specs("ISO_COBOL_2023.md");
         Assert.True(File.Exists(path), $"spec missing: {path} — git submodule update --init --recursive");
         var lines = File.ReadAllLines(path);
         int start = -1, end = -1;

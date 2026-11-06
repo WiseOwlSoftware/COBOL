@@ -7,7 +7,7 @@ related_files:
   - PROMPT.md
   - CLAUDE.md
   - CONSTRAINTS.md
-  - specs/ISO_COBOL.md
+  - specs/ISO_COBOL_2023.md
   - docs/DESIGN.md
   - docs/VERSION_TEST_MATRIX_DESIGN.md
 tags:
@@ -30,7 +30,7 @@ milestones (D14): **v1.0 = P15 exit**; **v2 = P16 CIL backend**. See [[kb/Spec/O
 ## The four NON-NEGOTIABLE process rules (PROMPT.md / CLAUDE.md)
 Owner-emphasized, repeatedly corrected:
 
-1. **The ISO spec is authority for EVERY case** — read [[specs/ISO_COBOL]] and cite the § (in code + DEVLOG) for any
+1. **The ISO spec is authority for EVERY case** — read [[specs/ISO_COBOL_2023]] and cite the § (in code + DEVLOG) for any
    semantics/syntax/output question. Never guess; never infer behavior from the NIST goldens or the GnuCOBOL differential (regression nets with
    known holes, NOT authority).
 2. **Implement each feature FROM its subsystem deep-dive design doc** ([[docs/DESIGN]] §0.5 indexes them) +

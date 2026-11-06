@@ -261,7 +261,7 @@ OK  §14.9.9.4 1)  (General rules)
 
 # Rendered from the PDF (scripts/render-spec-page.py --dpi 110 --out E:/COBOL-coord/scratch/pb4700/pages):
 #   p732 RECEIVE general format; p756 SEND formats 1 and 2; p762 SET format 17; p218 relation format 3; p533 USAGE.
-#   p732, p756 and p762 viewed: they match specs/ISO_COBOL.md (RETURNING and END-SEND unbracketed; FROM, AFTER, SECONDS optional).
+#   p732, p756 and p762 viewed: they match specs/ISO_COBOL_2023.md (RETURNING and END-SEND unbracketed; FROM, AFTER, SECONDS optional).
 # Not cite.py-checkable (outside the tracked text): the 202x CD 1.3 (cd/COBOL_ISO_IEC_1989_202x-CD_1.3.pdf.txt lines 36290-36346).
 
 # Fix pass (check.md F1-F15), 2026-11-04

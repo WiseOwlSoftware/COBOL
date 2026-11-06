@@ -35,7 +35,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// equivalence still holds. Measured while this file was written — dropping BINARY-SHORT from the set left every
 /// test below green while `05 A PIC 9(4) USAGE BINARY-SHORT.` became legal on both arms. The independent oracle
 /// is the standard's own sentence, and it lives in <c>PicturelessUsageSetDriftTests</c> (Unit), which re-reads
-/// §13.16.3 SR8 out of <c>specs/ISO_COBOL.md</c>. Neither file is sufficient alone.</para>
+/// §13.16.3 SR8 out of <c>specs/ISO_COBOL_2023.md</c>. Neither file is sufficient alone.</para>
 /// </summary>
 public sealed class UsageInheritanceDriftTests
 {

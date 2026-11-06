@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (ISO/IEC 1989:2023 §12.4.5.1 · §12.4.5.2 SR10 · §12.4.5.6.3 · §12.4.5.12.3 · §12.4.5.13.3). CLAUDE.md rule 1
 /// names the failure mode it is exposed to: a clause number is INHERITED rather than re-derived, and
 /// <c>cite.py --check</c> on the number alone passes because the quoted sentence really is somewhere in the
-/// standard. This guard re-derives EVERY row from <c>specs/ISO_COBOL.md</c> on every run — the clause region, and
+/// standard. This guard re-derives EVERY row from <c>specs/ISO_COBOL_2023.md</c> on every run — the clause region, and
 /// where the row names a printed ordinal, that ordinal's own sentence — so the row cannot carry a number the
 /// standard does not agree with, and a transcription repair flows through instead of going stale.</para>
 /// <para>It also closes the loop rule 5 asks for: adding the next key syntax rule must be adding a ROW, not

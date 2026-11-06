@@ -11,7 +11,7 @@
       *>   prints "OK  §8.7.5.2 8)": cite.py's text match cannot tell
       *>   SR11 from SR8 ("NOT = is an abbreviation for NOT EQUAL."),
       *>   whose words are identical; the SR11 line was read directly
-      *>   in specs/ISO_COBOL.md §8.7.5.2 as "11\) <> is an abbreviation
+      *>   in specs/ISO_COBOL_2023.md §8.7.5.2 as "11\) <> is an abbreviation
       *>   for NOT EQUAL."
       *>   OK  §8.8.4.12.4 1)  (General rule)  abbreviated combined
       *>       relation: "the last stated relational operator were

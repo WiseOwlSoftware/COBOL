@@ -1063,7 +1063,7 @@ embeddedBlockStatement
 // RECEIVE and gives it RECEIVE's own semantics (a wait completed by a message, an exception or the CONTINUE
 // parameters), not by reference to the CONTINUE statement, and §8.3.2.4.3 decides optional words within EACH
 // format. Page 634 is also the page with the demonstrable defect (its own statement name unruled, corrected in
-// specs/ISO_COBOL.md as C2), so it cannot overrule page 732's internally consistent rules. Nor is `CONTINUE 5`
+// specs/ISO_COBOL_2023.md as C2), so it cannot overrule page 732's internally consistent rules. Nor is `CONTINUE 5`
 // meaningless here: the brace selects `arithmetic-expression-1 [SECONDS]` or `MESSAGE RECEIVED`, and the two stay
 // apart without the plain words. The CONTINUE statement keeps its own AFTER and SECONDS
 // (CobolControlFlow.g4 `continueStatement`, page 634 as printed).
@@ -1601,7 +1601,7 @@ setLocaleSource
 // comment used to say the opposite (kb/Work PB549). It called the shape "ISO §14.9.39 Format 9 with the
 // §8.4.3.13 program-address-identifier as the sender", and it is neither: Format 9 prints
 // `SET { identifier-7 } … TO identifier-8` and §8.4.3.13.2 prints `ADDRESS OF PROGRAM { … }` — the words
-// `TO ENTRY` occur nowhere in ISO/IEC 1989:2023 (a grep of specs/ISO_COBOL.md for "TO ENTRY" returns
+// `TO ENTRY` occur nowhere in ISO/IEC 1989:2023 (a grep of specs/ISO_COBOL_2023.md for "TO ENTRY" returns
 // nothing). It is the Micro Focus / IBM spelling, and it is kept because the SEMANTICS behind it are the
 // standard's and programs in the field are written to it. The STANDARD spelling is
 // setProgramAddressStatement below, which is what §14.9.39 Format 9 + §8.4.3.13 actually admit.

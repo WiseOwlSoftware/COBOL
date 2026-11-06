@@ -43,7 +43,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[2]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[3]
-SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
+SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
 
 HEAD = re.compile(r"^#{2,}\s+8\.9\s+Reserved words\s*$")
 NEXT = re.compile(r'^<a id="section-8-10')

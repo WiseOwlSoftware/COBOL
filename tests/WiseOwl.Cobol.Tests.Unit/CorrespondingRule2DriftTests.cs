@@ -67,7 +67,7 @@ public sealed class CorrespondingRule2DriftTests
         new(cat, usage, len, digits, scale, Signed: false) { IsAlphabetic = alphabetic, EditMask = edit };
 
     /// <summary>Every Table-16 position this data model can describe, named the way the printed table names its
-    /// rows and columns (<c>specs/ISO_COBOL.md</c>, §14.9.25.3 Table 16). The numeric row's Integer/Noninteger
+    /// rows and columns (<c>specs/ISO_COBOL_2023.md</c>, §14.9.25.3 Table 16). The numeric row's Integer/Noninteger
     /// split and the alphabetic / edited riders are separate entries because <see cref="Table16Operand"/> keys on
     /// them and <see cref="PicCategory"/> deliberately cannot.</summary>
     /// <para>The last two are NOT Table-16 positions: a <c>BINARY-LONG</c> item sits in the table's Numeric row

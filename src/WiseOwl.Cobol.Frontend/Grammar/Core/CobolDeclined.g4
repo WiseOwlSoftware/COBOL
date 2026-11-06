@@ -121,7 +121,7 @@ validationClause
 // does not fall into "permissive inside": it falls to cobolWord, and cobolWord refuses a reserved word. The
 // same mechanism hit FORMAT in validateStatusStage (kb/Work PB693) and the class condition's BOOLEAN (kb/Work
 // PB857). DeclinedFacilityDriftTests.EveryPrintedKeyword_IsAnArmOfItsRule derives each declined rule's keywords
-// from its cited general format in specs/ISO_COBOL.md on every run, so the next omission fails there.
+// from its cited general format in specs/ISO_COBOL_2023.md on every run, so the next omission fails there.
 // ⚠ THIS IS NOT THE CLASS CONDITION'S LIST. §13.18.11.2's brace group and §8.8.4.4.2's are different formats
 // of different constructs that happen to share four keywords — `className` (Core/CobolExpressions.g4) is the
 // condition's ONE list, and ClassConditionTableDriftTests exempts this rule BY NAME with that reason.

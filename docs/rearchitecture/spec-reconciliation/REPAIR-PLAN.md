@@ -99,7 +99,7 @@ class and it is not — a negative result that redirects effort away from a swee
    inconsistency merely relocates. Where a finding names a sibling, fix the sibling in the same change.
 3. **After each batch, verify — three checks, all of which can fail:**
    - `python scripts/spec/extract_rule_catalog.py --check` → exit 0 (no parse gaps, no duplicate ids, no meta-text)
-   - page anchors still **1261** (`grep -c '^<a id="page-' specs/ISO_COBOL.md`) — load-bearing for
+   - page anchors still **1261** (`grep -c '^<a id="page-' specs/ISO_COBOL_2023.md`) — load-bearing for
      `render-spec-page.py` and the figure audit, until Batch 5 replaces them with the sidecar index; from then on
      the equivalent check is that the sidecar still resolves a sampled rule to the page its text is printed on
    - no section anchor and no page anchor appears more than once. Added after the duplicated-block batch: the

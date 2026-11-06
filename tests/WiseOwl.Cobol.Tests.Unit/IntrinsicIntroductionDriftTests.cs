@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <c>specs/ISO_COBOL.md</c> is the 2023 text: its section 8.11 lists the intrinsic NAMES with no edition data and its
+/// <c>specs/ISO_COBOL_2023.md</c> is the 2023 text: its section 8.11 lists the intrinsic NAMES with no edition data and its
 /// Annex E covers only 2014 to 2023, so a window below 2023 can be checked against nothing the repository tracks. That
 /// is how <c>FUNCTION ABS</c> sat at <c>IntroducedIn 2014</c> although ISO/IEC 1989:2002 Annex F.2 item 78 heads its
 /// new-function list with it, and why the wrong year then spread to three traceability rows
@@ -44,7 +44,7 @@ public sealed class IntrinsicIntroductionDriftTests
 
     /// <summary>Every name the clause 15 headings define, from the specification (the population the catalog must cover).</summary>
     private static List<string> SpecFunctions() =>
-        [.. SpecClauseText.FunctionSections(File.ReadAllText(TestRepo.Specs("ISO_COBOL.md"))).Select(f => f.Name)];
+        [.. SpecClauseText.FunctionSections(File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md"))).Select(f => f.Name)];
 
     [Fact]
     public void EveryFunction_IsIntroducedInExactlyTheEditionTheCommittedListsName()
@@ -70,7 +70,7 @@ public sealed class IntrinsicIntroductionDriftTests
 
         var specNames = SpecFunctions();
         Assert.True(specNames.Count >= 90,
-            $"only {specNames.Count} clause 15 function headings found in specs/ISO_COBOL.md - the heading shape changed; fix SpecClauseText.FunctionSections, do not lower the floor.");
+            $"only {specNames.Count} clause 15 function headings found in specs/ISO_COBOL_2023.md - the heading shape changed; fix SpecClauseText.FunctionSections, do not lower the floor.");
 
         foreach (string name in specNames)
         {
@@ -85,7 +85,7 @@ public sealed class IntrinsicIntroductionDriftTests
                 problems.Add($"{name}: IntrinsicCatalog says IntroducedIn {sig.IntroducedIn}, the committed list of the standard says {at[0]}");
         }
         foreach (string name in introducedBy.Keys.Except(specNames, StringComparer.Ordinal).Order(StringComparer.Ordinal))
-            problems.Add($"{name} is in the committed introduction lists but clause 15 of specs/ISO_COBOL.md defines no such function");
+            problems.Add($"{name} is in the committed introduction lists but clause 15 of specs/ISO_COBOL_2023.md defines no such function");
 
         Assert.True(problems.Count == 0,
             $"IntrinsicCatalog's IntroducedIn disagrees with tests/version-matrix/intrinsic-introductions.json over {specNames.Count} functions:\n  "
@@ -101,7 +101,7 @@ public sealed class IntrinsicIntroductionDriftTests
     {
         string[] lines = SpecClauseText.Lines();
         int at = Array.FindIndex(lines, l => l.Contains("FUNCTION ALL INTRINSIC and new intrinsic functions", StringComparison.Ordinal));
-        Assert.True(at >= 0, "Annex E.2 item 13 ('FUNCTION ALL INTRINSIC and new intrinsic functions') is not in specs/ISO_COBOL.md - the heading changed; fix this guard, do not delete it.");
+        Assert.True(at >= 0, "Annex E.2 item 13 ('FUNCTION ALL INTRINSIC and new intrinsic functions') is not in specs/ISO_COBOL_2023.md - the heading changed; fix this guard, do not delete it.");
         var bullet = new Regex(@"^\s*[—-]\s*([A-Z][A-Z0-9-]*)\s*$", RegexOptions.CultureInvariant);
         var fromSpec = new List<string>();
         for (int i = at + 1; i < lines.Length && fromSpec.Count < 64; i++)

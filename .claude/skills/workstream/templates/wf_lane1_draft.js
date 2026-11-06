@@ -74,7 +74,7 @@ THE TREE IS FROZEN: a comprehensive battery is running. You may READ anything in
 (scripts/spec/cite.py). You MUST NOT run dotnet, cobol.exe, git, or write ANY file inside E:\\COBOL. Every
 file you produce goes under ${SCRATCH}/out/<slug>/ using the repo-relative destination path as a subpath
 (e.g. ${SCRATCH}/out/<slug>/conformance-suite/cases/14.9.8-COMPUTE/<id>.cob). A director copies validated drafts into the tree.
-THE SPEC IS THE ONLY ORACLE: specs/ISO_COBOL.md (ISO/IEC 1989:2023). Derive every expected output value from the
+THE SPEC IS THE ONLY ORACLE: specs/ISO_COBOL_2023.md (ISO/IEC 1989:2023). Derive every expected output value from the
 rule text BEFORE thinking about what the compiler does; NIST goldens and GnuCOBOL are regression
 nets, never authority; a *_MatchesLegacy test or a nist: ref cannot close a row. VALIDATE EVERY CITATION:
 python scripts/spec/cite.py --check <clause> "<quoted text>"  — a citation you did not run --check on is not a
@@ -97,7 +97,7 @@ notes (context only — derive from the RULE TEXT, not from the notes), code-loc
 goldens that mention the subject.
 
 YOUR JOB, per row, in this order:
-1. Read the rule text; open specs/ISO_COBOL.md at the section for the surrounding context (general format,
+1. Read the rule text; open specs/ISO_COBOL_2023.md at the section for the surrounding context (general format,
    argument rules, returned-value rules). cite.py --check the rule.
 2. Look at the listed existing goldens. If one already exercises EXACTLY this rule's branch with a spec-derived
    expected value, disposition = existing-golden and test_ref names it (quote the lines that exercise the rule).
@@ -134,7 +134,7 @@ one-line derivation pointer. Strings only.`,
 You are the INDEPENDENT REFUTER for the golden drafts of file ${slug}. The writer's report is:
 ${JSON.stringify(w).slice(0, 60000)}
 Its draft files are under ${SCRATCH}/out/${slug}/ ; its input rows are ${SCRATCH}/in/in-${slug}.json.
-For EVERY row: (a) re-derive each expected output line yourself from the rule text in specs/ISO_COBOL.md — do not
+For EVERY row: (a) re-derive each expected output line yourself from the rule text in specs/ISO_COBOL_2023.md — do not
 read the writer's derivation first; compare after; (b) run each citation through cite.py --check yourself; (c)
 check the program exercises THE RULE'S BRANCH, not just the function (a TRIM call does not pin r3); (d) check the
 editions and the edition directory against the row's editions; (e) check the expectation is not copied from an

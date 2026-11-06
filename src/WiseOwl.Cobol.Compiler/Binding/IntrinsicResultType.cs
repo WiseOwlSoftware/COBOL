@@ -40,7 +40,7 @@ namespace WiseOwl.Cobol.Binding;
 /// ⭐ <b>THE MEMBERS ARE SPEC SHAPES, NOT FUNCTION NAMES.</b> Twenty functions carry a result-type table and they
 /// use SEVEN distinct shapes — ten of them share <see cref="FollowsArgument1"/> alone. A member is added only when
 /// the standard genuinely states a new shape, and <c>IntrinsicResultTypeDriftTests</c> re-derives the population
-/// from <c>specs/ISO_COBOL.md</c> itself, so a function whose §15.x.1 grows a table and whose row still says
+/// from <c>specs/ISO_COBOL_2023.md</c> itself, so a function whose §15.x.1 grows a table and whose row still says
 /// <see cref="Fixed"/> fails the build. That is the half of CLAUDE.md rule 5 that makes a restructuring stick.
 /// </para>
 /// </remarks>

@@ -360,7 +360,7 @@ jobs:
   # merged tree and the only one a landing waits for (kb/Work PB4330): the pull request's run is `changes` and `ci-gate`
   # (the required check), and main's push run adds only the cache jobs. A dispatch run, and a push no merge group
   # verified (its matrix runs), are full runs and audit too.
-  # They need no build and no submodule — `specs/ISO_COBOL.md` is tracked in this repository (the private
+  # They need no build and no submodule — `specs/ISO_COBOL_2023.md` is tracked in this repository (the private
   # submodule holds only the PDF) — and only the standard library of toolchain.env's Python, which also runs their
   # `--self-test`s through scripts/self_tests.py (and scripts/self_test_arms.py holds their arms, kb/Work PB4395),
   # proving each check can still fail.

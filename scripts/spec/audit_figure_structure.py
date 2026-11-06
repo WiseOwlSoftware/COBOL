@@ -64,8 +64,9 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
-PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
+SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
+import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
+PDF = spec_pdf.path(2023)
 
 # Symbol-face extensible brace pieces, as they decode once the text layer is readable.
 BRACE_LEFT_TOP, BRACE_RIGHT_TOP = "ì", "ü"
@@ -176,7 +177,7 @@ def repeated_bracket_rows(lines) -> int:
 # what it needs to live on for the rest.
 def _require_page_anchors(figs):
     if not figs:
-        sys.exit("HALTED: no page anchors in specs/ISO_COBOL.md — pages were removed from the transcription, "
+        sys.exit("HALTED: no page anchors in specs/ISO_COBOL_2023.md — pages were removed from the transcription, "
                  "so this page-keyed audit can no longer bucket it. For figures use "
                  "`python scripts/spec/sweep_figures.py --check`, which regenerates and diffs exactly. "
                  "This audit needs re-keying onto the clause hierarchy.")
@@ -189,10 +190,7 @@ def main() -> int:
     ap.add_argument("--show", action="store_true", help="list every compared page, not only mismatches")
     ap.add_argument("--json")
     args = ap.parse_args()
-    if PDF is None or not PDF.exists():
-        sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a "
-                 "PRIVATE submodule; the public repository carries only the Markdown transcription. This tool "
-                 "measures the printed page: git submodule update --init specs-private")
+    spec_pdf.require(2023)
     import fitz
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))

@@ -50,7 +50,7 @@ So there is no formula to apply. The mapping has to be **recovered per font, emp
 
 ## How the mapping is recovered
 
-Critically, **without consulting our own transcription**. `specs/ISO_COBOL.md` is the artifact under repair; it
+Critically, **without consulting our own transcription**. `specs/ISO_COBOL_2023.md` is the artifact under repair; it
 cannot serve as its own reference. The recovery is pure geometry:
 
 1. The subset fonts are Cambria, Arial, Times New Roman, Courier New, Calibri and Symbol — all stock fonts,

@@ -23,7 +23,7 @@ Security vulnerabilities are **not** filed as issues; see [SECURITY.md](SECURITY
 ## The standard is the authority
 
 Every question of syntax, semantics or output is settled by the text of **ISO/IEC 1989:2023**. The Markdown
-transcription lives at `specs/ISO_COBOL.md`. When you report a defect or change behavior, cite the exact clause,
+transcription lives at `specs/ISO_COBOL_2023.md`. When you report a defect or change behavior, cite the exact clause,
 syntax rule (SR) or general rule (GR) — for example `§14.9.25.3 SR1` — and check the citation mechanically:
 
 ```bash

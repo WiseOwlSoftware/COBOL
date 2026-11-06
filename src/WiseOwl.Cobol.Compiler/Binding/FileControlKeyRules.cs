@@ -194,7 +194,7 @@ internal readonly record struct RequiredClause(
 /// <param name="Clause">The clause number, exactly as <c>scripts/spec/cite.py --check</c> takes it.</param>
 /// <param name="Citation">The citation as it appears in the shipped diagnostic — clause plus printed ordinal.</param>
 /// <param name="RuleText">A verbatim span of the PRINTED rule, long enough to identify it. The drift test asserts
-/// this span is inside <paramref name="Clause"/>'s own region of <c>specs/ISO_COBOL.md</c>, so an inherited or
+/// this span is inside <paramref name="Clause"/>'s own region of <c>specs/ISO_COBOL_2023.md</c>, so an inherited or
 /// drifted clause number turns a test red instead of shipping (CLAUDE.md rule 1).</param>
 /// <param name="ScreenedOn">The SET of file kinds this rule is in force over. For a rule stated inside a format
 /// it is exactly that format's own kind (a RECORD KEY rule screens indexed files); for §12.4.5.2 SR8/SR9 it is
@@ -253,7 +253,7 @@ internal sealed record FileControlKeyRule(
 /// key — and the shape where one member of such a set is written down is exactly the shape in which the missing
 /// members hide (kb/Work PB354 found two that way, PB699 a third). One row per rule, one loop, one report site:
 /// adding the next key rule is a row, and <c>FileControlKeyRuleDriftTests</c> re-derives every row's RULE TEXT
-/// from <c>specs/ISO_COBOL.md</c> so a row can neither carry an inherited clause number nor go stale.</para>
+/// from <c>specs/ISO_COBOL_2023.md</c> so a row can neither carry an inherited clause number nor go stale.</para>
 /// <para>EDITIONS. Every rule here is present in all four supported editions (85 · 2002 · 2014 · 2023) — the
 /// RECORD KEY, ALTERNATE RECORD KEY and RELATIVE KEY clauses and their syntax rules all predate COBOL-85 — so
 /// the table needs no edition column and the negatives reject at every edition. A rule that arrived with a later

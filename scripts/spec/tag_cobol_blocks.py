@@ -30,7 +30,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
+SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
 
 DIVISION = re.compile(r"^\s*(IDENTIFICATION|ENVIRONMENT|DATA|PROCEDURE)\s+DIVISION\b", re.I)
 TERMINATOR = re.compile(r"^\s*END\s+(PROGRAM|FUNCTION|CLASS|INTERFACE|METHOD|FACTORY|OBJECT)\b", re.I)

@@ -74,7 +74,7 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 CONSTRUCTS_PATH = REPO / "tests" / "version-matrix" / "constructs.json"
 RESERVED_WORDS_PATH = REPO / "tests" / "version-matrix" / "reserved-words.json"
-SPEC_PATH = REPO / "specs" / "ISO_COBOL.md"
+SPEC_PATH = REPO / "specs" / "ISO_COBOL_2023.md"
 IMPLEMENTOR_DEFINED_PATH = SUITE / "implementor-defined.json"
 #: WiseOwl's refusals and compile options, ONE FILE PER TEST (§4): a landing that adds a refusal adds a file no other
 #: landing touches, so no two branches edit one shared registry and no merge driver is needed (kb/Work PB4147).
@@ -1153,7 +1153,7 @@ def standard_keywords(spec_text: str) -> frozenset[str]:
     for number, shape in _KEYWORD_SECTIONS:
         section = re.search(rf"(?ms)^### {re.escape(number)} .*?(?=^### )", spec_text)
         if section is None:
-            raise ValueError(f"specs/ISO_COBOL.md has no section {number}")
+            raise ValueError(f"specs/ISO_COBOL_2023.md has no section {number}")
         for line in section.group(0).splitlines()[1:]:
             if shape == "line":
                 cells = [line.strip()]

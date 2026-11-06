@@ -1,6 +1,6 @@
 export const meta = {
   name: 'spec-reconcile',
-  description: 'Compare the canonical ISO PDF against specs/ISO_COBOL.md page by page and ledger every discrepancy',
+  description: 'Compare the canonical ISO PDF against specs/ISO_COBOL_2023.md page by page and ledger every discrepancy',
   whenToUse: 'Reconciling the OCR transcription against its canonical source. Pass a page-number array as args.',
   phases: [
     { title: 'Compare', detail: 'one agent per page batch: read the rendered PDF page, diff against the markdown slice' },
@@ -87,7 +87,7 @@ const results = await pipeline(
   (batch, _orig, i) => agent(
     [
       'You are reconciling the canonical ISO/IEC 1989:2023 PDF against its markdown transcription at',
-      'E:/COBOL/specs/ISO_COBOL.md. Pages in YOUR batch: ' + batch.join(', ') + '. Work ONLY these pages.',
+      'E:/COBOL/specs/ISO_COBOL_2023.md. Pages in YOUR batch: ' + batch.join(', ') + '. Work ONLY these pages.',
       '',
       'These pages were selected because they contain FIGURES (general formats / syntax skeletons). Diagram',
       'fidelity is the priority for this run.',

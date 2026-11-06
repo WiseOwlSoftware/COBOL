@@ -41,7 +41,7 @@
       *>     access a record that does not exist in the physical file"
       *>     -> OK §9.1.13.5 3) a)  (status '23')
       *> NOTE: cite.py ignores operator symbols (PB1554); every clause
-      *>   number above was re-read in specs/ISO_COBOL.md.
+      *>   number above was re-read in specs/ISO_COBOL_2023.md.
       *> AU has no DUPLICATES; AD is WITH DUPLICATES. ACCESS DYNAMIC,
       *> so writes are in non-ascending prime order (rule 39)).
       *> DERIVATION of every .out line:

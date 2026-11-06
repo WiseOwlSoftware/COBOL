@@ -12,7 +12,7 @@ tags:
 > ⚠️ **Role: derived navigational layer — NOT authoritative.** This vault is a paraphrased "second brain" over
 > `docs/*` and the source. The canonical SSOTs are the repo docs (design → [[docs/DESIGN]]; plan →
 > [[docs/REARCHITECTURE_PLAN]] §0; map → [[docs/DOC_INDEX]]). **When a note and a doc disagree, the doc
-> wins.** No verbatim ISO/IEC 1989:2023 text lives here (it stays in the private [[specs/ISO_COBOL]] submodule).
+> wins.** No verbatim ISO/IEC 1989:2023 text lives here (it stays in the private [[specs/ISO_COBOL_2023]] submodule).
 > Notes are best-effort with a `last_updated` stamp — refresh, don't diverge. Tracking & docs-integration setup:
 > [[kb/Context/Vault & Docs Integration]].
 

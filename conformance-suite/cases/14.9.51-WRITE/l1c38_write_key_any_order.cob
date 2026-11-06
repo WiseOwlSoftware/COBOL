@@ -38,7 +38,7 @@
       *>     -> OK §9.1.13.5 3) a)   (I-O status 23)
       *> NOTE: cite.py ignores operator symbols and can mislabel list
       *>   items (PB1554); every clause number above was re-read in
-      *>   specs/ISO_COBOL.md.
+      *>   specs/ISO_COBOL_2023.md.
       *> DERIVATION of every .out line:
       *>   FILE-R (RANDOM), keys written K30,K10,K20 - descending then
       *>   ascending; rule 39) permits any order -> R1 00, R2 00, R3 00

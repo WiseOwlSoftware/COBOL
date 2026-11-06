@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """test_fuzz_triage.py — the self-test of scripts/fuzz_triage.py (kb/Work PB3972; docs/rearchitecture/DESIGN-differential-fuzz.md).
 
-    python scripts/test_fuzz_triage.py          # no build, no git, no network; needs specs/ISO_COBOL.md
+    python scripts/test_fuzz_triage.py          # no build, no git, no network; needs specs/ISO_COBOL_2023.md
 
 It drives the tool on a FABRICATED run directory (a results.jsonl, a report.md and a run.json in the shapes
 scripts/differential_fuzz.py writes) and proves, arm by arm:

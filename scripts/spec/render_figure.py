@@ -38,7 +38,8 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
+import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
+PDF = spec_pdf.path(2023)
 
 # THE HOUSE STYLE — see FIGURE-STYLE.md for the measurements behind each choice.
 # BOX DRAWING ONLY (U+2500–U+257F). The Miscellaneous Technical extension glyphs (⎡⎧⎪, U+23A1–U+23AD) look right
@@ -1040,9 +1041,7 @@ def main() -> int:
     ap.add_argument("--sheet", metavar="OUT.html", help="render PAGE plus --also into one HTML sheet")
     ap.add_argument("--also", nargs="*", type=int, default=[], help="further pages for --sheet")
     args = ap.parse_args()
-    if PDF is None or not PDF.exists():
-        sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a "
-                 "PRIVATE submodule: git submodule update --init specs-private")
+    spec_pdf.require(2023)
     import fitz
     globals()["fitz"] = fitz
 

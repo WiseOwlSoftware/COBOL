@@ -14,7 +14,7 @@ automates the search.
 
 HOW. For every general format PRINTED IN THE STANDARD — all of them, not the statements alone:
 
-  * the transcription declares the population: every `N.N…  General format[s]` heading in `specs/ISO_COBOL.md`;
+  * the transcription declares the population: every `N.N…  General format[s]` heading in `specs/ISO_COBOL_2023.md`;
   * the PAGE and the EXTENT come from `clause_page.index()`, the one clause→page locator — the format runs from
     its own heading to the NEXT clause heading, across a page break when it takes one;
   * the words in that band are measured — underlined or not — from the PDF's vector rectangles;
@@ -88,8 +88,9 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
-PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
+SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
+import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
+PDF = spec_pdf.path(2023)
 
 #: The printed body band, borrowed from `render_figure` so the running header and the folio/licence footer can
 #: never enter a format's measured band when the format spills across a page break.
@@ -993,9 +994,7 @@ def main() -> int:
     args = ap.parse_args()
     if args.self_test:
         return self_test()
-    if PDF is None or not PDF.exists():
-        sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a PRIVATE submodule; the public repository carries only the Markdown transcription at specs/ISO_COBOL.md. This tool measures the printed page, so it needs the PDF: "
-                 "git submodule update --init specs-private")
+    spec_pdf.require(2023)
     import fitz
 
     sys.path.insert(0, str(HERE))

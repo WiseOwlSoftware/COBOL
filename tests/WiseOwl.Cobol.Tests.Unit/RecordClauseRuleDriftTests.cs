@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (ISO/IEC 1989:2023 §13.18.43.3).
 /// <para>The table is the compiler's whole statement of what a RECORD clause's integers require, and it carries
 /// two things a comment cannot be trusted with: a clause number per row, and a GENERAL FORMAT per row. Both are
-/// re-derived here from <c>specs/ISO_COBOL.md</c> on every run — the format column from the standard's own bare
+/// re-derived here from <c>specs/ISO_COBOL_2023.md</c> on every run — the format column from the standard's own bare
 /// <c>FORMAT 1</c> / <c>FORMAT 2</c> / <c>FORMAT 3</c> division lines, which is what makes a row screened on the
 /// wrong format red instead of shipping. CLAUDE.md rule 1's failure mode is the INHERITED clause number, and
 /// <c>cite.py --check</c> on a number alone cannot catch it.</para>

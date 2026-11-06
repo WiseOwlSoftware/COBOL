@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// answering a different question. <c>cite.py --check</c> on the clause NUMBER alone passes either way, which
 /// is exactly why a number-only check is not enough and this test reads the RULE TEXT.</para>
 /// <para>⭐ IT CARRIES NO LIST OF ITS OWN. The expected rule text is re-derived from
-/// <c>specs/ISO_COBOL.md</c> on every run, so a transcription repair flows through instead of going stale.</para>
+/// <c>specs/ISO_COBOL_2023.md</c> on every run, so a transcription repair flows through instead of going stale.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class ControlClauseCitationDriftTests
@@ -24,9 +24,9 @@ public sealed class ControlClauseCitationDriftTests
     /// <summary>The lettered syntax rules of §13.18.16.3, keyed by their printed number, read out of the spec.</summary>
     private static Dictionary<int, string> ControlSyntaxRules()
     {
-        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = Array.FindIndex(lines, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.18\.16\.3\b"));
-        Assert.True(start >= 0, "§13.18.16.3 is missing from specs/ISO_COBOL.md — this guard must follow the clause.");
+        Assert.True(start >= 0, "§13.18.16.3 is missing from specs/ISO_COBOL_2023.md — this guard must follow the clause.");
         int end = Array.FindIndex(lines, start + 1, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.18\.16\.4\b"));
         Assert.True(end > start, "§13.18.16.4 not found after §13.18.16.3 — the heading shape changed.");
 
@@ -75,9 +75,9 @@ public sealed class ControlClauseCitationDriftTests
         // item exactly such an explicit reference — so the INDEX operand is illegal source that was reaching a
         // RUNTIME loud. It is now COBOL1700 at bind, and the false sentence is gone. Re-derived from the
         // spec, like everything else here, rather than quoted from memory.
-        string[] specLines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        string[] specLines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         string sr10 = Array.Find(specLines, l => l.Contains("An index data item may be referenced explicitly only"))
-            ?? throw new Xunit.Sdk.XunitException("§13.18.60.3 SR10's sentence is missing from specs/ISO_COBOL.md.");
+            ?? throw new Xunit.Sdk.XunitException("§13.18.60.3 SR10's sentence is missing from specs/ISO_COBOL_2023.md.");
         Assert.Contains("SEARCH or SET statement", sr10);
         Assert.DoesNotContain("violates no CONTROL syntax rule at all", emitter);
         Assert.Contains("§13.18.60.3 SR10", binder);

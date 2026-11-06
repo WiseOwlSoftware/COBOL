@@ -45,11 +45,9 @@ FRONT_MATTER = 30
 
 
 def find_pdf() -> pathlib.Path:
-    private = REPO / "specs-private"
-    pdfs = sorted(private.glob("*.pdf")) if private.is_dir() else []
-    if not pdfs:
-        sys.exit("!! the licensed PDF is absent — run: git submodule update --init specs-private")
-    return pdfs[0]
+    """The 2023 standard's licensed PDF, through the one locator (kb/Work PB3208)."""
+    import spec_pdf
+    return spec_pdf.require(2023)
 
 
 def clause_key(c: str) -> tuple:

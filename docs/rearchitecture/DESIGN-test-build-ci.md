@@ -1772,7 +1772,7 @@ very tests that read them (kb/Work PB3603).
 inert lane when its changed paths (`git diff --name-only --no-renames`, so a code file renamed into an inert directory shows
 its old name too) are non-empty and all inert. The INERT entries are `DEVLOG/`, `kb/` (the knowledge base, THE work register
 `kb/Work/` among it), `docs/` and **every `*.md`** (`MARKDOWN_ENTRY`, a pattern over a file name at any depth: a note, a design,
-a brief, a skill, a README), and the READ entries under them are the ISO text (`specs/ISO_COBOL.md`) and the data files a compiler
+a brief, a skill, a README), and the READ entries under them are the ISO text (`specs/ISO_COBOL_2023.md`) and the data files a compiler
 test reads under `docs/` (the rule catalog, the architecture edges, the census records). NOT inert: the `tools/claude-skills`
 pin, which the self-tests initialize, and any file under `src/`, `tests/` or `conformance-suite/` that is not Markdown.
 

@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <para>⛔ THE LIST IS THE SPEC'S, NOT OURS (kb/Work PB1083). The screen used to be called from six hand-picked
 /// declaration funnels, so an alphabet-name, a class-name, a symbolic-character or a contained program's name
 /// spelling a REPOSITORY intrinsic compiled clean. <c>UserWordDeclarationDriftTests</c> parses §8.3.2.2's list from
-/// <c>specs/ISO_COBOL.md</c> and fails when a type has no member here, and when a member is neither declared at some
+/// <c>specs/ISO_COBOL_2023.md</c> and fails when a type has no member here, and when a member is neither declared at some
 /// call site nor carried on its <c>NotDeclaredInASourceElement</c> exemption list with the reason.</para>
 /// </summary>
 public enum UserWordKind

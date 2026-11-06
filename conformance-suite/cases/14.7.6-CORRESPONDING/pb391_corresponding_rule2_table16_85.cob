@@ -10,7 +10,7 @@
       *> statement." The MOVE rules' category half is 14.9.25.3 SR10, table 16, and a pair whose move is
       *> INVALID simply DOES NOT CORRESPOND - a silent non-selection, never a diagnostic - so the receiving
       *> item keeps the content it had before the statement.
-      *> Every cell below is read from table 16 AS PRINTED (specs/ISO_COBOL.md, 14.9.25.3):
+      *> Every cell below is read from table 16 AS PRINTED (specs/ISO_COBOL_2023.md, 14.9.25.3):
       *>   Numeric/Integer      -> Alphabetic                        = No   NI2 keeps ZZZZZ
       *>   Alphabetic           -> Numeric                           = No   AL2 keeps 77777
       *>   Numeric/Noninteger   -> Alphanumeric                      = No   NN2 keeps PPPPP

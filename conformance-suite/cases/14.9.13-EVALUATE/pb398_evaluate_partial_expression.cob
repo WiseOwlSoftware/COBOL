@@ -55,7 +55,7 @@
       *>      identifier-2 in the grammar and still binds as identifier-2 - reported as its own mechanism.)
       *>
       *> EDITION: filed at 2002 because the traceability inventory records these rows 2002+, an edition edge
-      *> INFERRED from the feature history and not from any edition text this repo holds (specs/ISO_COBOL.md
+      *> INFERRED from the feature history and not from any edition text this repo holds (specs/ISO_COBOL_2023.md
       *> carries only 2023, whose Annex E records no EVALUATE change). No introduction gate is fired, so the
       *> construct also parses at 85: gating on an unproven edge would REJECT LEGAL SOURCE if the inference is
       *> wrong, while not gating under-rejects at worst. Overturnable in one line (kb/Work PB398).

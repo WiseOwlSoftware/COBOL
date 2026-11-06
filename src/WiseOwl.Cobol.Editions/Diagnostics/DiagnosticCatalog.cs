@@ -343,7 +343,7 @@ public static class DiagnosticCatalog
     // grammar, on purpose: the grammar already builds a tree the binder can read, and a bind-time
     // diagnostic NAMES the rule and the omitted phrase where a parse error can only say "extraneous input".
     // MEASURED SWEEP (2026-09-05, scripts/spec sweep over every `General format` <pre> block in
-    // specs/ISO_COBOL.md): §14.9.34.2's `AT END imperative-statement-1` is the ONLY unbracketed conditional
+    // specs/ISO_COBOL_2023.md): §14.9.34.2's `AT END imperative-statement-1` is the ONLY unbracketed conditional
     // phrase line in any §14.9 statement format. SEARCH's two `WHEN` groups are the only other mandatory
     // phrases and the grammar already writes them `+`. RequiredFormatPhraseDriftTests re-derives that.
     public static readonly DiagnosticDescriptor FormatRequiredPhraseOmitted = new(

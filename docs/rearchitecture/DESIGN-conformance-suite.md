@@ -784,7 +784,7 @@ with the excluded units listed. Only then does §6 step 5 retire `tests/nist/` f
   LICENSE) from a tag. Nothing is published until the owner chooses the license (PB3159); until then the folder is
   under the repository's Business Source License.
 - The README carries the ISO standard's acknowledgment paragraphs verbatim: its Introduction permits reproducing the
-  specifications wholly or partly on that condition (`specs/ISO_COBOL.md:1146`, an unnumbered clause that `cite.py`
+  specifications wholly or partly on that condition (`specs/ISO_COBOL_2023.md:1146`, an unnumbered clause that `cite.py`
   cannot check).
 - The suite has its own version (`2026.1`); each archive names its edition, suite version and the WiseOwl commit it was
   verified on.
@@ -825,7 +825,7 @@ gate's and CI's audits before the build, so a refused test is red in seconds. Be
 - Every SR row has a decided `restricts`, every SR and FMT row an `identified-as` equal to its heading, every DOC row a
   decided `enumerates`; every row and edition outside documented non-support and derivations yields an obligation.
 - Every normative sentence of clauses 6-16 and the A.1 references is held by a row or recorded as covered by one,
-  read from `specs/ISO_COBOL.md`; it starts red (about 129 sentences) and S19 brings it to zero.
+  read from `specs/ISO_COBOL_2023.md`; it starts red (about 129 sentences) and S19 brings it to zero.
 - Every row starting after 85 names a resolvable facility, its band lies within the window, and a later start records
   its own edge.
 - Every edge below 2023 has a class that can prove it; `iso-2023` locators pass `cite.py --check`, draft locators the

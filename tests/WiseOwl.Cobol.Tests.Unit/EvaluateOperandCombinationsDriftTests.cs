@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// hand-maintained list (CLAUDE.md rule 5) — and, worse, a table nothing re-derives has never been contradicted
 /// (<c>feedback_a_dead_lookup_is_also_unverified</c>: PB1's <c>ArgKinds</c> column was not merely unread but
 /// UNVERIFIED, and enforcing it as written rejected 12 legal corpus programs). So this parses the markdown table
-/// out of <c>specs/ISO_COBOL.md</c> and compares cell for cell.</para>
+/// out of <c>specs/ISO_COBOL_2023.md</c> and compares cell for cell.</para>
 ///
 /// <para>⚠ It asserts the SHAPE it found before comparing, so a transcription reformat that breaks the scrape
 /// fails loudly instead of silently comparing nothing (the vacuous-pass trap).</para>
@@ -37,9 +37,9 @@ public sealed class EvaluateOperandCombinationsDriftTests
     /// <summary>The rows of Table 15, as label → the six cells, scraped from the spec.</summary>
     private static (List<string> Header, Dictionary<string, bool[]> Rows) ScrapeTable15()
     {
-        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL.md"));
+        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL_2023.md"));
         int anchor = spec.IndexOf("<a id=\"table-15\">", StringComparison.Ordinal);
-        Assert.True(anchor >= 0, "the `table-15` anchor is gone from specs/ISO_COBOL.md — this guard must follow it");
+        Assert.True(anchor >= 0, "the `table-15` anchor is gone from specs/ISO_COBOL_2023.md — this guard must follow it");
 
         // The table runs from the anchor to the first blank line after the last '|' row.
         var lines = spec[anchor..].Split('\n').Select(l => l.TrimEnd('\r')).ToList();

@@ -628,7 +628,7 @@ def summary(c: Collected) -> list[str]:
 # ── citations ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 class Spec:
-    """specs/ISO_COBOL.md loaded once, for cite.py's own clause check."""
+    """specs/ISO_COBOL_2023.md loaded once, for cite.py's own clause check."""
 
     def __init__(self) -> None:
         sys.path.insert(0, str(HERE / "spec"))

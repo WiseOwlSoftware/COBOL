@@ -69,7 +69,7 @@ internal readonly record struct ImpliedPicture(LiteralClass Class, int Length)
 /// non-null <c>Pic</c> is skipped).</para>
 ///
 /// <para><b>THE STANDARD STATES THIS RULE THREE TIMES, once per entry kind, and the sweep is complete</b>
-/// (<c>grep -n "PICTURE clause may be omitted" specs/ISO_COBOL.md</c> returns exactly three hits). §13.16.3 SR9
+/// (<c>grep -n "PICTURE clause may be omitted" specs/ISO_COBOL_2023.md</c> returns exactly three hits). §13.16.3 SR9
 /// is the DATA description entry — this pass. §13.15.3 SR14 is the REPORT GROUP description entry, word for word
 /// the same rule, and it is <see cref="ImpliedReportPicture"/>, sharing this classifier and this edition gate;
 /// before that it was the <c>feedback_two_arm_dispatch</c> shape at its purest — the report binder REJECTED

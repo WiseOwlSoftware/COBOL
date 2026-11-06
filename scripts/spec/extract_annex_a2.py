@@ -49,7 +49,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC = REPO / "specs" / "ISO_COBOL.md"
+SPEC = REPO / "specs" / "ISO_COBOL_2023.md"
 CATALOG = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
 ARTIFACT = REPO / "tests" / "version-matrix" / "annex-a2-undefined.json"
 ARTIFACT_REL = "tests/version-matrix/annex-a2-undefined.json"
@@ -133,7 +133,7 @@ def resolve(items: list[dict], rules: list[dict]) -> list[dict]:
 
 COMMENT = [
     "GENERATED — do not hand-edit. `python scripts/spec/extract_annex_a2.py` writes it;",
-    "`--check` re-derives it from specs/ISO_COBOL.md and exits 1 on any difference, and",
+    "`--check` re-derives it from specs/ISO_COBOL_2023.md and exits 1 on any difference, and",
     "AnnexA2UndefinedListDriftTests runs that check every build.",
     "",
     "Annex A.2 is the standard's own list of the language elements it declares explicitly undefined.",
@@ -158,7 +158,7 @@ def build() -> dict:
     rules = json.loads(CATALOG.read_text(encoding="utf-8"))["rules"]
     return {
         "$comment": COMMENT,
-        "source": "specs/ISO_COBOL.md#section-a-2",
+        "source": "specs/ISO_COBOL_2023.md#section-a-2",
         "generator": "scripts/spec/extract_annex_a2.py",
         "items": resolve(items, rules),
     }
@@ -273,7 +273,7 @@ def main() -> int:
             print(f"\n{ARTIFACT_REL} agrees with the spec.")
             return 0
         print(summary)
-        print(f"\n⛔ {ARTIFACT_REL} does NOT agree with specs/ISO_COBOL.md.")
+        print(f"\n⛔ {ARTIFACT_REL} does NOT agree with specs/ISO_COBOL_2023.md.")
         old = {it["item"]: it for it in (json.loads(have)["items"] if have else [])}
         new = {it["item"]: it for it in doc["items"]}
         for n in sorted(set(old) | set(new)):

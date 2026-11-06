@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// Table 10 belongs in the compiler as DATA rather than as hand-written positional <c>if</c>s — that is what makes
 /// SR25 and SR26 need no code of their own and what makes the NEXT precedence question automatic. A 24×24 table
 /// nobody re-derives is a snapshot of what someone read once, so this re-parses the table out of
-/// <c>specs/ISO_COBOL.md</c> on every build and compares all 576 cells. The markdown transcription was itself
+/// <c>specs/ISO_COBOL_2023.md</c> on every build and compares all 576 cells. The markdown transcription was itself
 /// verified cell-for-cell against the canonical PDF (printed folios 459-460) by geometry, so the chain from the
 /// printed standard to the array is closed.
 /// </para>
@@ -27,9 +27,9 @@ public sealed class PictureTable10DriftTests
     /// cells are all empty or a lone <c>x</c> (the header rows carry the group labels and symbol names).</summary>
     private static List<string[]> ParseTable10()
     {
-        string[] src = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        string[] src = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = Array.FindIndex(src, l => l.StartsWith("**Table 10 ", StringComparison.Ordinal));
-        Assert.True(start >= 0, "specs/ISO_COBOL.md no longer carries a '**Table 10 …**' caption");
+        Assert.True(start >= 0, "specs/ISO_COBOL_2023.md no longer carries a '**Table 10 …**' caption");
         var rows = new List<string[]>();
         for (int i = start; i < src.Length && i < start + 60; i++)
         {
@@ -56,7 +56,7 @@ public sealed class PictureTable10DriftTests
             var code = PictureComposition.Table10Rows[r].Split(' ', StringSplitOptions.RemoveEmptyEntries);
             Assert.True(code.Length == 24, $"PictureComposition.Table10Rows[{r}] has {code.Length} cells, expected 24");
             Assert.True(spec[r].SequenceEqual(code),
-                $"ISO §13.18.40.6 Table 10 row {r} ({(PicRole)r}) no longer matches specs/ISO_COBOL.md:\n"
+                $"ISO §13.18.40.6 Table 10 row {r} ({(PicRole)r}) no longer matches specs/ISO_COBOL_2023.md:\n"
                 + $"  spec: {string.Join(' ', spec[r])}\n  code: {string.Join(' ', code)}");
         }
     }

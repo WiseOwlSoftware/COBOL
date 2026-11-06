@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// on the parse rule because the spelled-token axis is wrong in a way no token can repair (kb/Work R04:
 /// <c>GO PARA.</c> is a GO TO statement whose tokens never contain TO). A resolver nothing re-derives is a
 /// hand-maintained list (CLAUDE.md rule 5) and a table nothing re-derives has never been contradicted
-/// (feedback_a_dead_lookup_is_also_unverified) — so this scrapes Table 12 out of <c>specs/ISO_COBOL.md</c> and
+/// (feedback_a_dead_lookup_is_also_unverified) — so this scrapes Table 12 out of <c>specs/ISO_COBOL_2023.md</c> and
 /// the <c>statement</c> alternatives out of the grammar, feeds every alternative through the SAME
 /// <see cref="Table12StatementNames.NameOfRule"/> path the compiler uses, and asserts containment forward
 /// (every alternative resolves into the table or the adjudicated non-Table-12 set) and coverage backward
@@ -55,9 +55,9 @@ public sealed class Table12StatementNameDriftTests
     /// <summary>Table 12's 'Statement name' column, scraped from the transcription at its anchor.</summary>
     private static List<string> ScrapeTable12()
     {
-        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL.md"));
+        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL_2023.md"));
         int anchor = spec.IndexOf("<a id=\"table-12\">", StringComparison.Ordinal);
-        Assert.True(anchor >= 0, "the `table-12` anchor is gone from specs/ISO_COBOL.md — this guard must follow it");
+        Assert.True(anchor >= 0, "the `table-12` anchor is gone from specs/ISO_COBOL_2023.md — this guard must follow it");
 
         var rowLines = spec[anchor..].Split('\n').Select(l => l.TrimEnd('\r'))
             .SkipWhile(l => !l.StartsWith('|')).TakeWhile(l => l.StartsWith('|')).ToList();
@@ -132,9 +132,9 @@ public sealed class Table12StatementNameDriftTests
     /// reads the conditional-phrase column through the SAME scrape (kb/Work PB3830).</summary>
     internal static List<(string Name, string Phrase, string Terminator)> ScrapeTable12Rows()
     {
-        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL.md"));
+        string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL_2023.md"));
         int anchor = spec.IndexOf("<a id=\"table-12\">", StringComparison.Ordinal);
-        Assert.True(anchor >= 0, "the `table-12` anchor is gone from specs/ISO_COBOL.md");
+        Assert.True(anchor >= 0, "the `table-12` anchor is gone from specs/ISO_COBOL_2023.md");
         var rows = spec[anchor..].Split('\n').Select(l => l.TrimEnd('\r'))
             .SkipWhile(l => !l.StartsWith('|')).TakeWhile(l => l.StartsWith('|')).Skip(2)
             .Select(l => l.Split('|'))

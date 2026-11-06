@@ -211,7 +211,7 @@ public sealed class DeclinedFacilityDriftTests
         }
         if (figures == 0)
             throw new Xunit.Sdk.XunitException($"§{clause}{(format is null ? "" : $" Format {format}")} has no figure in "
-                + "specs/ISO_COBOL.md — the rule's citation is wrong or the figure reader is broken");
+                + "specs/ISO_COBOL_2023.md — the rule's citation is wrong or the figure reader is broken");
         return words;
     }
 
@@ -258,7 +258,7 @@ public sealed class DeclinedFacilityDriftTests
     /// where the declined-facility refusal COBOL1708 belongs. Three keywords did it, one at a time: the class
     /// condition's BOOLEAN (kb/Work PB857), VALIDATE-STATUS's FORMAT (kb/Work PB693) and the CLASS clause's
     /// BOOLEAN (kb/Work PB3831). The keyword list is DERIVED here from each rule's cited general format in
-    /// <c>specs/ISO_COBOL.md</c>, and the arm list from the grammar, so the next one fails here.</summary>
+    /// <c>specs/ISO_COBOL_2023.md</c>, and the arm list from the grammar, so the next one fails here.</summary>
     [Fact]
     public void EveryPrintedKeyword_IsAnArmOfItsRule()
     {

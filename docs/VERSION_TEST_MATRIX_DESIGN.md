@@ -286,7 +286,7 @@ GO TO), 0882 (CALL ON OVERFLOW).
   editions where §8.9 reserves them — the grammar's "legal user word at every edition" posture stays (permissive
   superset), the validator enforces per edition.
 - **Tables:** per-word 4-edition flags `(r85, r2002, r2014, r2023)` + confidence + provenance. Generation is
-  scripted (`scripts/gen-reserved-words.ps1`): parse the in-repo spec §8.9 (`specs/ISO_COBOL.md` lines
+  scripted (`scripts/gen-reserved-words.ps1`): parse the in-repo spec §8.9 (`specs/ISO_COBOL_2023.md` lines
   10306–10788; strip the 15 symbol entries; OCR fixes: EMD-START→END-START, `i-O`→I-O, I-OICONTROL→I-O-CONTROL,
   en-dash minus; METHOD is NOT added: the printed 2023 list does not contain it, kb/Work PB2623) ⊕ a small authored delta file
   (`tests/version-matrix/reserved-word-deltas.json`: the authoritative 16-word 2023 additions = VCR row 32; the

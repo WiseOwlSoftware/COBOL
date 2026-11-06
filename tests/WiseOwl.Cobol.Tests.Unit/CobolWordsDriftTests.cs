@@ -252,7 +252,7 @@ public sealed class CobolWordsDriftTests
     }
 
     /// <summary>⛔ THE DETERMINATIONS ARE RE-DERIVED FROM THE STANDARD WHERE THE STANDARD IS IN THE REPOSITORY. A gated
-    /// word that COBOL-2023 does not reserve (§8.9) yet underlines in a general format of <c>specs/ISO_COBOL.md</c>, and a
+    /// word that COBOL-2023 does not reserve (§8.9) yet underlines in a general format of <c>specs/ISO_COBOL_2023.md</c>, and a
     /// gated word §8.10 lists as context-sensitive ("If a context-sensitive word is used where the context-sensitive word
     /// is permitted in the general format, the word is treated as a keyword; otherwise it is treated as a user-defined
     /// word"), is a word a program may declare AND write in its format, so its row must carry
@@ -263,7 +263,7 @@ public sealed class CobolWordsDriftTests
     {
         var gated = DerivedGateSet();
         var reserved = LoadReservedIntervals();
-        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md"));
+        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md"));
         var underlinedFree = gated.Where(t => !reserved[ToWord(t)][3]
                 && spec.Contains($"<u>{ToWord(t)}</u>", StringComparison.Ordinal)).ToHashSet(StringComparer.Ordinal);
         var contextSensitive = gated.Where(t => LoadContextSensitive().Contains(ToWord(t))).ToHashSet(StringComparer.Ordinal);

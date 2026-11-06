@@ -31,7 +31,7 @@ test program that used four constructs the standard does not have; here such a p
 (BOTH_REJECT), counted against the model and dropped. A program only GnuCOBOL refuses is KEPT (THEY_REJECT): WiseOwl is the
 compiler built to the standard, so its acceptance is a reading GnuCOBOL's refusal cannot override (kb/Work PB3488). The
 model's commonest invention is an intrinsic function the standard does not have (TRANSLATE, NATIONAL, SUBSTRING), so the
-prompt carries the standard's own function list, read from specs/ISO_COBOL.md (15.6 and the 15.n function clauses).
+prompt carries the standard's own function list, read from specs/ISO_COBOL_2023.md (15.6 and the 15.n function clauses).
 
 A REFUSED PROGRAM COSTS FOUR GENERATIONS, SO THE PROMPT AIMS AT THE FIRST ONE (kb/Work PB3523). The second night's model
 wrote a program both compilers refused 47 % of the time, and about 65 % of its generations went to programs that never
@@ -156,7 +156,7 @@ from fuzz_ollama import (ABORTED, DEGENERATE, DEGENERATE_FORMS, DEGENERATE_LINES
 from fuzz_undefined import CITATIONS as UNDEFINED_CITATIONS, undefined_results  # noqa: E402  — the programs whose result is undefined (kb/Work PB3862)
 from standard_streams import ensure_utf8  # noqa: E402
 
-SPEC = REPO / "specs" / "ISO_COBOL.md"
+SPEC = REPO / "specs" / "ISO_COBOL_2023.md"
 EDITION = "2014"            # the latest edition GnuCOBOL 3.2 has a dialect for; pinned on both compilers
 SOURCE_FORMAT = "free"
 HANG_GUARD = 90.0           # seconds per process: a generous limit, never a time expectation
@@ -749,7 +749,7 @@ def seed_text(number: str, title: str, body: str, budget: int = CLAUSE_BUDGET) -
     the spec's order; a cut part ends with CUT_MARK and an omitted one is named at the end.
 
     The general formats it sends ARE the printed page's: `scripts/spec/sweep_figures.py` generates the general formats in
-    specs/ISO_COBOL.md from the PDF (`render_figure.py`); the ones it leaves are §12.3.6.2's, which carries the Addendum's
+    specs/ISO_COBOL_2023.md from the PDF (`render_figure.py`); the ones it leaves are §12.3.6.2's, which carries the Addendum's
     correction C3, and §13.18.35.2 Format 1, re-drawn by hand from the rendered page (kb/Work PB1221). So the OCR's lossy
     diagrams never reach the model, and no PDF is read here (review R1-3)."""
     head = f"Clause {number} {title}\n\n"

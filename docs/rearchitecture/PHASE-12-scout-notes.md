@@ -4,7 +4,7 @@
 > persisted output of the P12 anchor re-scout (6 parallel read-only scouts + an adversarial verify pass,
 > 2026-07-17), run per the standing P10/P11 lesson (`feedback_persist_anchor_rescout`: *every multi-wave phase
 > re-scouts its anchors spec-first, persists the result, and trusts it over the drift-prone phase plan*). Each
-> section is one scout's verified findings: exact ISO/IEC 1989:2023 §/GR/SR anchors as `specs/ISO_COBOL.md`
+> section is one scout's verified findings: exact ISO/IEC 1989:2023 §/GR/SR anchors as `specs/ISO_COBOL_2023.md`
 > numbers them (with line numbers), and the code seams (file:line) each feature touches in the CURRENT tree.
 >
 > **Why this doc exists / how to trust it.** The `PHASE-12-m3-2014-deltas.md` plan was authored 2026-07-07,

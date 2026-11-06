@@ -35,7 +35,7 @@ public sealed class AnnexA2UndefinedListDriftTests
     {
         var r = Run("--check");
         Assert.True(r.ExitCode == 0,
-            "tests/version-matrix/annex-a2-undefined.json no longer agrees with specs/ISO_COBOL.md — "
+            "tests/version-matrix/annex-a2-undefined.json no longer agrees with specs/ISO_COBOL_2023.md — "
             + $"run python scripts/spec/extract_annex_a2.py\n{r.Stdout}{r.Stderr}");
     }
 

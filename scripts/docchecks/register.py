@@ -167,7 +167,7 @@ def a3_covers_every_item(rows: list[dict[str, str]]) -> list[str]:
 
 def a3_cites_resolved_clauses(rows: list[dict[str, str]]) -> list[str]:
     return [f"{common.CONFORMANCE} §2 item {r['items']} ({r['element']}) cites '{r['section']}', an unresolved clause "
-            "placeholder: derive the clause from specs/ISO_COBOL.md and validate it with `python scripts/spec/cite.py "
+            "placeholder: derive the clause from specs/ISO_COBOL_2023.md and validate it with `python scripts/spec/cite.py "
             "--check`" for r in rows if PLACEHOLDER.search(r["section"])]
 
 

@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// binder therefore has to sit inside a NAMED capture helper that says which rules it screens — the guard below
 /// is the containment check, and its adjudication table is where the one remaining bare arm is visible.</para>
 /// <para>⭐ IT CARRIES NO COPY OF THE RULES. The SR5 / SR7 sentences are re-read from
-/// <c>specs/ISO_COBOL.md</c> on every run (the <c>ControlClauseCitationDriftTests</c> pattern), so a
+/// <c>specs/ISO_COBOL_2023.md</c> on every run (the <c>ControlClauseCitationDriftTests</c> pattern), so a
 /// transcription repair flows through instead of going stale.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
@@ -164,9 +164,9 @@ public sealed class ReportSumOperandCaptureDriftTests
     /// <summary>The numbered syntax rules of §13.18.54.3, read out of the spec transcription.</summary>
     private static Dictionary<int, string> SumSyntaxRules()
     {
-        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = Array.FindIndex(lines, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.18\.54\.3\b"));
-        Assert.True(start >= 0, "§13.18.54.3 is missing from specs/ISO_COBOL.md — this guard must follow the clause.");
+        Assert.True(start >= 0, "§13.18.54.3 is missing from specs/ISO_COBOL_2023.md — this guard must follow the clause.");
         int end = Array.FindIndex(lines, start + 1, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.18\.54\.4\b"));
         Assert.True(end > start, "§13.18.54.4 not found after §13.18.54.3 — the heading shape changed.");
 

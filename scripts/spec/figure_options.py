@@ -19,7 +19,7 @@ written once, however often the portion after it is.
 WHERE THE DELIMITERS COME FROM. Three ways, all measured, none drawn by hand:
   * a delimiter that spans SEVERAL printed lines is a vector stem (a bracket, or a choice-indicator bar —
     `figure_geometry.classify_page`) or a Symbol-face glyph stack (a brace, or COBOL's full-height parentheses);
-    `render_figure.enclosures` pairs them, the one pairing the rendered figures in specs/ISO_COBOL.md are drawn from;
+    `render_figure.enclosures` pairs them, the one pairing the rendered figures in specs/ISO_COBOL_2023.md are drawn from;
   * a delimiter ON ONE printed line is set as TEXT — `[ MULTIPLE ]`, `{ identifier-1 }`, `|` — and is paired here,
     on its line, left to right, the way a reader matches parentheses;
   * a word set hard against its delimiter (`[MULTIPLE`, `}...`) is split at the delimiter first.
