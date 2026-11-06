@@ -55,6 +55,10 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// EXCEPTION phrase bodies nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
+    /// <summary>The USE FOR DEBUGGING trigger emitter — property-wired by <see cref="UnitEmitters"/>; EXIT PROGRAM lands the after-statement
+    /// sections of the statements enclosing it on its return arm (docs/CONTROL_FLOW_DESIGN.md D20).</summary>
+    internal DebugTriggerEmitter Debug { get; set; } = null!;
+
     internal static string CallBool(bool b) => b ? "true" : "false";
 
     // ── Statement emitters: CALL / CANCEL / GOBACK ──────────────────────────────────────────────────────────
@@ -1684,11 +1688,16 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         var w = ctx.Writer;
         if (ep.Raising is null)
         {
-            w.Line("if (__asCalled) throw new ProgramReturn();   // ISO §14.9.14.4 GR2: CONTINUE in a non-called program; GR3: return in a called one");
+            using (w.Block("if (__asCalled)   // ISO §14.9.14.4 GR2: CONTINUE in a non-called program; GR3: return in a called one"))
+            {
+                Debug.LandBeforeTransfer();   // the return is the transfer: the enclosing statements' after-statement debugging sections run first
+                w.Line("throw new ProgramReturn();");
+            }
             return;
         }
         using (w.Block("if (__asCalled)   // GR2 — a non-called program raises nothing, even with RAISING"))
         {
+            Debug.LandBeforeTransfer();
             EmitRaisingStage(ep.Raising, "EXIT PROGRAM");
             w.Line("throw new ProgramReturn();   // return to the activator (ISO §14.9.14.4 GR3)");
         }

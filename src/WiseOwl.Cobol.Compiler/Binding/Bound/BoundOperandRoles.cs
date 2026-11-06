@@ -22,8 +22,20 @@ public interface IBoundImplicitOperands
 /// EXIT PERFORM, NEXT SENTENCE, STOP RUN, GOBACK, EXIT METHOD): the emitter's <c>Visit</c> for it returns <c>true</c>. A debugging section a
 /// statement enclosing it owes AFTER that statement (X3.23-1985 USE FOR DEBUGGING general rules 5 d and 6 c) runs before the transfer
 /// (<c>DebugTriggerEmitter.LandBeforeTransfer</c>), because no code after the transfer is reached.
+/// <para>A transfer that depends on a run-time fact (GO TO DEPENDING ON, EXIT PROGRAM) is no such leaf: its emitter lands the same sections on the
+/// arm that jumps, so the arm that falls through reaches the ordinary after-statement fires.</para>
 /// </summary>
 public interface IBoundTransfersControl;
+
+/// <summary>A statement whose conditional phrases (EVALUATE's WHEN matches, SEARCH's WHEN conditions) are each evaluated only when control
+/// reaches them. An operand written in a phrase that was not evaluated does not make the statement reference it (X3.23-1985 USE FOR
+/// DEBUGGING general rules 5 and 6: "If identifier-1 is specified in a phrase that is not executed or evaluated, the associated debugging
+/// section is not executed"), so the planner treats each phrase as a moment of its own and the emitter records which were evaluated.</summary>
+public interface IBoundEvaluatedPhrases
+{
+    /// <summary>The operand node of each phrase (a condition), by phrase index, in the order the statement evaluates them.</summary>
+    IReadOnlyList<object> PhraseOperands { get; }
+}
 
 /// <summary>A READ or RETURN statement, which delivers a record and then, only when it did, moves it to the INTO receiver. The INTO phrase
 /// is conditionally executed (X3.23-1985 USE FOR DEBUGGING general rules 5 and 6: "If identifier-1 is specified in a phrase that is not

@@ -111,8 +111,11 @@ public enum DebugWhen
 
 /// <summary>One run of a debugging section that a statement causes: <paramref name="Target"/> is the USE target,
 /// <paramref name="Referenced"/> the place through which the statement references it (DEBUG-CONTENTS reads it, DEBUG-SUB-n are its
-/// occurrence numbers), <paramref name="When"/> the moment, and <paramref name="Level"/> the PERFORM level a loop-phase fire belongs to.</summary>
-public sealed record DebugFire(BoundDebugTarget Target, Place Referenced, DebugWhen When, int Level = 0);
+/// occurrence numbers), <paramref name="When"/> the moment, and <paramref name="Level"/> the PERFORM level a loop-phase fire belongs to.
+/// <paramref name="Phrases"/> are the indices (<see cref="IBoundEvaluatedPhrases"/>) of the conditional phrases the referenced operand is written in, or null when
+/// the statement evaluates the operand outright: the section runs only when one of those phrases was evaluated (rules 5 and 6: "If identifier-1 is
+/// specified in a phrase that is not executed or evaluated, the associated debugging section is not executed").</summary>
+public sealed record DebugFire(BoundDebugTarget Target, Place Referenced, DebugWhen When, int Level = 0, IReadOnlyList<int>? Phrases = null);
 
 /// <summary>⛔ A STATEMENT THAT CAUSES DEBUGGING SECTIONS TO RUN (X3.23-1985 USE FOR DEBUGGING general rules 5-8; docs/CONTROL_FLOW_DESIGN.md
 /// D20). Made by <c>StatementBinder.BindStatement</c>, the one funnel every statement passes through, exactly when a data-name,
@@ -1969,7 +1972,11 @@ public sealed record BoundSearch(
     string IndexField, long Count, BoundSetTarget? AlsoVaried,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens,
     bool IsAll = false, Place? DependItem = null, AccessPath? DynTable = null,
-    bool CheckSearchIndex = false, bool CheckSearchNoMatch = false) : BoundStatement;
+    bool CheckSearchIndex = false, bool CheckSearchNoMatch = false) : BoundStatement, IBoundEvaluatedPhrases
+{
+    /// <summary>Each WHEN condition is evaluated only when the scan reaches it and every earlier one was false.</summary>
+    public IReadOnlyList<object> PhraseOperands => [.. Whens.Select(w => (object)w.Condition)];
+}
 
 // ── File I/O (ISO §14.9; DESIGN §8) ───────────────────────────────────────────────────────────────────
 

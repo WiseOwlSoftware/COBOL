@@ -284,6 +284,57 @@ public sealed class DebugFacilityTests
         Assert.Equal("T", stdout.Replace("\r", "").TrimEnd('\n'));
     }
 
+    /// <summary>The RECORD VARYING DEPENDING ON item of a sort description is read and restored by SORT, RELEASE and RETURN on the statement's behalf, so the
+    /// program did not write it: <c>ALL REFERENCES OF DL</c> runs after the explicit <c>MOVE 3 TO DL</c> and after no verb of the sort
+    /// (X3.23-1985 USE FOR DEBUGGING general rule 5, "explicitly references"; review round 2, R2-3).</summary>
+    [Fact]
+    public void DependingItemOfASortDescription_At85_IsReferencedOnlyByTheProgramsOwnStatements()
+    {
+        const string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DBGVARY.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT S ASSIGN TO "dbgvary.srt".
+            DATA DIVISION.
+            FILE SECTION.
+            SD  S RECORD IS VARYING IN SIZE FROM 2 TO 4 DEPENDING ON DL.
+            01  SR.
+                02  SK   PIC 99.
+                02  SD1  PIC XX.
+            WORKING-STORAGE SECTION.
+            01 DL PIC 9 VALUE 4.
+            01 V PIC X(4).
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            DBL SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF DL.
+            DBL-B.
+                DISPLAY "DBL".
+            END DECLARATIVES.
+            MAIN SECTION.
+            M1.
+                MOVE 3 TO DL.
+                SORT S ON ASCENDING KEY SK
+                   INPUT PROCEDURE IP OUTPUT PROCEDURE OP.
+                DISPLAY "END".
+                STOP RUN.
+            IP SECTION.
+            IP1.
+                MOVE "0102" TO SR.
+                RELEASE SR.
+            OP SECTION.
+            OP1.
+                RETURN S INTO V AT END DISPLAY "AT END".
+            """;
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 85);
+        Assert.True(ok, detail);
+        Assert.Equal("DBL\nEND", stdout.Replace("\r", "").TrimEnd('\n'));
+    }
+
     /// <summary>In <c>[ALL REFERENCES OF] identifier-1</c> only ALL is a keyword — REFERENCES and OF are optional
     /// words (GnuCOBOL <c>-std=cobol85</c> accepts all four spellings; CCVS DB201A writes <c>ALL ID-2</c>; kb/Work
     /// PB4237). Every spelling is the ONE data-item operand and runs the section after the statement that references it, DEBUG-NAME

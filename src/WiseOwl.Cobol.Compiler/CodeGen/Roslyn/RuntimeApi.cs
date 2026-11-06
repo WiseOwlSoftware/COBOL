@@ -229,6 +229,13 @@ internal static class RuntimeApi
     public static string NumFormatImage(string value, string profile) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.FormatImage)}({value}, {profile})";
 
+    /// <summary>The magnitude digits of a signed ZONED image that is the de-signed source of an alphanumeric MOVE or compare
+    /// (<c>CobolNum.DeSignImage</c>, ISO §14.9.25.4 GR6a): decoded and re-emitted when the image is valid, copied as it stands when it
+    /// is not (a numeric item still holding spaces). <paramref name="sending"/> selects the §14.6.13.2 rule 2 checked lane, as for
+    /// <see cref="NumParseImage"/>.</summary>
+    public static string NumDeSignImage(string image, string profile, int digits, bool sending) =>
+        $"{nameof(CobolNum)}.{(sending ? nameof(CobolNum.DeSignImageSending) : nameof(CobolNum.DeSignImage))}({image}, {profile}, {digits})";
+
     /// <summary>Decode an item's record-image bytes back to its unscaled value — <c>CobolNum.ParseImage</c>, the
     /// inverse of <see cref="NumFormatImage"/>.
     /// <para>⛔ <paramref name="sending"/> HAS NO DEFAULT, deliberately (the "caller names the landing" shape

@@ -49,3 +49,16 @@ view was a determination where the text decides; D-DEBUG-SUB is rewritten. An un
 DEBUG-CONTENTS is the storage image of the whole referenced item (rules 24 c, 11, syntax rule 12): a reference-modified statement no longer gives the window, and a binary or packed item
 arrives as its bytes. Goldens `pb4810-debug-nested-transfer`, `pb4810-debug-explicit-references`, `pb4810-debug-contents-and-sub-values` (all accepted at 85). The first re-gate was RED on
 a CRLF my own edit script wrote (`line_endings.py --fix`), the second on the two spaces-as-number pins above.
+
+**Branch review round 2 (five blocking findings, all answered).** (R2-1) Two conditional transfers were not marker leaves: GO TO DEPENDING ON and EXIT PROGRAM now land the
+sections the enclosing statements owe on their own jump arm (`ControlFlowEmitter.EmitGoToDepending`, `CallEmitter.EmitExitProgram`), and the arm that falls through reaches the ordinary
+fire. (R2-2) An implied place (a condition-name's conditional variable) no longer hides the positions the program wrote inside it: `YC (I)` references I (`BoundReferences.Visit`).
+(R2-3) INITIALIZE holds the written identifier-1 (`BoundInitialize.Written`) and marks the elementary stores it expands into as implied, so `INITIALIZE G` references G and not X
+(rule 9), and the bare data-name store taxonomy counts the written operand; SORT, MERGE and RELEASE mark the RECORD VARYING DEPENDING ON item implied through one shared
+interface (`IBoundSortVarying`) as RETURN already did. (R2-4) The WHEN phrases of EVALUATE and SEARCH are evaluated only when reached: `IBoundEvaluatedPhrases` names them, the
+planner emits one fire carrying the phrase indices, and the emitter sets one flag per phrase inside the phrase's own condition expression, so the section runs only when a named phrase
+was evaluated (`DebugTriggerEmitter.PhraseFlags`); an operand short-circuited inside one condition stays unclaimed, the condition being one evaluation. (R2-5) A MOVE to an
+alphanumeric item or a compare of a signed image-carried numeric now copies the characters of an invalid image as they stand (`CobolNum.DeSignImage`), so an unused DEBUG-SUB-n is
+spaces as in GnuCOBOL; the decode of a valid image is unchanged; docs/CONFORMANCE.md D-DEBUG-SUB records the latitude. Golden `pb4810-debug-reach-and-implicit` (accepted at 85) and a
+unit test for the sort DEPENDING item. Left: INITIALIZE of a whole OCCURS DYNAMIC table has no written place (its element stores stay references), RAISE and RESUME unwind past an
+enclosing statement's after-statement section.

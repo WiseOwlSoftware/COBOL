@@ -103,6 +103,8 @@ internal sealed class UnitEmitters
         KeyedIo.Debug = Debug;
         SeqIo.Debug = Debug;
         ControlFlow.Debug = Debug;
+        Call.Debug = Debug;
+        Evaluate.Debug = Debug;
         TableHold.Statements = Statements;
         ControlFlow.Statements = Statements;
         ControlFlow.Ec = Ec;   // CA36: SEARCH with EC-RANGE checking + no AT END dispatches via EcEmitter.EcDispatchExpr

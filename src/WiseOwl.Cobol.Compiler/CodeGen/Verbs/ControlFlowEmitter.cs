@@ -54,7 +54,13 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         // In range ⇒ transfer. The jump is the dispatcher-transfer idiom, not a `break`: the statement's own
         // selector switch is itself a C# breakable, so a `break` here left the SELECTOR (or, inside an inline
         // PERFORM, that loop) and the transfer was silently discarded (kb/Work PB405).
-        w.Line($"if (__dep{id} >= 1 && __dep{id} <= {d.Targets.Count}) {{ {dispatch.ExplicitTransferJump()} }}   // in range → explicit transfer (ISO §14.9.17.4 GR2; §14.9.28.4 GR5)");
+        // The in-range arm is the transfer: the after-statement debugging sections of the statements enclosing this one run here, on that arm
+        // only (the fall-through arm reaches their ordinary fires; X3.23-1985 general rules 5 d and 6 c; DebugTriggerEmitter.LandBeforeTransfer).
+        using (w.Block($"if (__dep{id} >= 1 && __dep{id} <= {d.Targets.Count})   // in range → explicit transfer (ISO §14.9.17.4 GR2; §14.9.28.4 GR5)"))
+        {
+            Debug.LandBeforeTransfer();
+            w.Line(dispatch.ExplicitTransferJump());
+        }
     }
 
     // DISPLAY lives on AcceptDisplayEmitter since Step 9c (the ACCEPT/DISPLAY collaborator).
@@ -752,11 +758,16 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     private void EmitSearchWhens(BoundSearch s, int id)
     {
         var w = ctx.Writer;
-        foreach (var when in s.Whens)
-            using (w.Block($"if ({cond.Render(when.Condition)})"))
+        // The conditions are evaluated at each probe; the phrase flag is set the first time one is (DebugTriggerPlanner.PlanPhrases).
+        var phrases = Debug.TakePhraseFlags();
+        for (int k = 0; k < s.Whens.Count; k++)
+        {
+            var when = s.Whens[k];
+            using (w.Block($"if ({phrases.Mark(k, cond.Render(when.Condition))})"))
             {
                 if (!Statements.EmitStatementList(when.Statements)) w.Line($"goto __searchEnd{id};");
             }
+        }
     }
 
 }

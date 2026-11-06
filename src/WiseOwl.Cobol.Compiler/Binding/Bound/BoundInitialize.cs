@@ -14,8 +14,39 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// over a table dimension (GR5b2 — every occurrence of a table element is a possible receiving operand). Multiple
 /// identifier-1 expand in source order as separate statements (GR3); elementary receivers within a group appear in
 /// definition order (GR8).</summary>
-public sealed record BoundInitialize(IReadOnlyList<InitializeAction> Actions) : BoundStatement
+public sealed record BoundInitialize(IReadOnlyList<InitializeAction> Actions) : BoundStatement, IBoundImplicitOperands
 {
+    /// <summary>identifier-1 as the statement WROTE it, or null for the whole-dynamic-table form and the compiler's own ALLOCATE lowering. The
+    /// one operand INITIALIZE explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5: "explicitly references"; rule 9: a group
+    /// reference does not reference its subordinates); the elementary stores of <see cref="Actions"/> are what the statement MEANS.</summary>
+    public Place? Written { get; init; }
+
+    /// <summary>True for the INITIALIZE that <c>ALLOCATE … INITIALIZED</c> performs (ISO §14.9.3.4 GR7), which the program never wrote.</summary>
+    public bool AllocateImplicit { get; init; }
+
+    /// <summary>The receiving places of the expansion that the program did not write: a group's members and a table's occurrences below
+    /// <see cref="Written"/>, or every receiver of the ALLOCATE lowering. With no <see cref="Written"/> place the whole-table form's
+    /// element places ARE its identifier-1 and stay references.</summary>
+    public IEnumerable<object> ImplicitOperands =>
+        Written is null && !AllocateImplicit ? [] : ReceivingPlaces(Actions).Where(p => !ReferenceEquals(p, Written));
+
+    private static IEnumerable<Place> ReceivingPlaces(IReadOnlyList<InitializeAction> actions)
+    {
+        foreach (var action in actions)
+            switch (action)
+            {
+                case InitializeStore st: foreach (var t in st.Move.Targets) yield return t; break;
+                case InitializeStoreValue sv: yield return sv.Target; break;
+                case InitializeSetNull sn: yield return sn.Target; break;
+                case InitializeSetFrom sf: yield return sf.Target; break;
+                case InitializeLoop lp: foreach (var p in ReceivingPlaces(lp.Body)) yield return p; break;
+                case InitializeOccurrenceSelect sel:
+                    foreach (var arm in sel.Arms) foreach (var p in ReceivingPlaces([arm.Do])) yield return p;
+                    if (sel.Otherwise is { } otherwise) foreach (var p in ReceivingPlaces([otherwise])) yield return p;
+                    break;
+            }
+    }
+
     /// <summary>The REPLACING phrase as WRITTEN — each category-name (a §5.2.6.4 SET) with its identifier-2 /
     /// literal-1 — for the rule that is asked of the PHRASE rather than of any receiver: §14.9.20.3 SR4, "a MOVE
     /// statement with identifier-2 or literal-1 as the sending item and an item of the specified category as the

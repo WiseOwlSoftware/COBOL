@@ -30,19 +30,20 @@ namespace WiseOwl.Cobol.Binding.Bound;
 internal static class BoundReferences
 {
     /// <summary>The places <paramref name="statement"/> WRITES a reference to itself, in source order (an operand a node names in
-    /// <see cref="IBoundImplicitOperands"/> is one the program did not write, and is left out); <paramref name="except"/> (a node the statement
-    /// holds, compared by reference) is left out too — the planner takes READ INTO's move apart itself.</summary>
-    public static IReadOnlyList<Place> Of(BoundStatement statement, object? except = null) => Collect(statement, except);
+    /// <see cref="IBoundImplicitOperands"/> is one the program did not write, and is left out); <paramref name="except"/> (nodes the statement
+    /// holds, compared by reference) are left out too — the planner takes READ INTO's move and each conditional phrase apart itself.</summary>
+    public static IReadOnlyList<Place> Of(BoundStatement statement, IEnumerable<object?>? except = null) => Collect(statement, except ?? []);
 
     /// <summary>The places an operand tree <paramref name="node"/> (a condition, an expression, a set target, a bound operand)
     /// references, in source order.</summary>
-    public static IReadOnlyList<Place> OfOperand(object node) => Collect(node, null);
+    public static IReadOnlyList<Place> OfOperand(object node) => Collect(node, []);
 
-    private static List<Place> Collect(object root, object? except)
+    private static List<Place> Collect(object root, IEnumerable<object?> except)
     {
         var found = new List<Place>();
         var skip = new HashSet<object>(ReferenceEqualityComparer.Instance);
-        if (except is not null) skip.Add(except);   // a part of the statement the caller plans on its own (READ INTO's move)
+        foreach (var part in except)
+            if (part is not null) skip.Add(part);   // a part of the statement the caller plans on its own (READ INTO's move, a conditional phrase)
         Visit(root, found, skip, yieldPlace: true, statementsAreDirect: true);
         return found;
     }
@@ -61,7 +62,14 @@ internal static class BoundReferences
 
     private static void Visit(object? node, List<Place> found, HashSet<object> skip, bool yieldPlace, bool statementsAreDirect)
     {
-        if (node is null || skip.Contains(node)) return;
+        if (node is null) return;
+        if (skip.Contains(node))
+        {
+            // An implied PLACE is no reference of its own, but the positions the program wrote inside it still are: a condition-name
+            // `YC (I)` holds its conditional variable as `T (I)`, and the statement explicitly references I (rule 5 d: T (I) references I).
+            if (node is Place skippedPlace) VisitFields(skippedPlace, found, skip, yieldPlace: false, statementsAreDirect: false);
+            return;
+        }
         var type = node.GetType();
         if (type.IsPrimitive || type.IsEnum || node is string) return;
         if (node is ITuple tuple)   // a tuple list's elements are operands too (CANCEL's (name, operand) pairs)

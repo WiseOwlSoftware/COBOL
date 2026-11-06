@@ -252,7 +252,9 @@ public static class BoundStores
         public StoreKind Visit(BoundCorresponding n) => StoreOrKids(n.Pairs.Any(p => Hit(p.Target)) | Hit(n.ReceivingGroup),
             n.Verb == CorrVerb.Move ? StoreKind.Write : StoreKind.ReadWrite,
             n.SizeError?.OnError, n.SizeError?.NotOnError);
-        public StoreKind Visit(BoundInitialize n) => InitStores(n.Actions) ? StoreKind.Write : StoreKind.None;
+        // identifier-1 as written is a store of its own (INITIALIZE G changes G, which no elementary store below names); the direct query
+        // (the debug triggers) stops there: a group reference does not reference or change its subordinates (X3.23-1985 USE FOR DEBUGGING rule 9).
+        public StoreKind Visit(BoundInitialize n) => Hit(n.Written) || (!direct && InitStores(n.Actions)) ? StoreKind.Write : StoreKind.None;
 
         // ── SET family ──────────────────────────────────────────────────────────────────────────────────
         public StoreKind Visit(BoundSetConditions n) => n.Sets.Any(x => Hit(x.Parent)) ? StoreKind.Write : StoreKind.None;

@@ -82,7 +82,11 @@ internal static class DebugTriggerPlanner
         // planned as its own moment, after the verb's action, and the rest of the statement is planned without it.
         var into = (leaf as IBoundIntoPhrase)?.IntoMove;
         if (into is not null) PlanInto(into, target, fires);
-        var referenced = FirstReferenceTo(BoundReferences.Of(leaf, except: into), item);
+        // The conditional phrases of EVALUATE and SEARCH are moments of their own too: an operand written in a phrase the statement never evaluated
+        // is not referenced by this execution (rules 5 and 6, the closing sentence), so each phrase is planned apart and guarded by its own flag.
+        var phrases = (leaf as IBoundEvaluatedPhrases)?.PhraseOperands ?? [];
+        if (phrases.Count > 0) PlanPhrases(phrases, target, fires);
+        var referenced = FirstReferenceTo(BoundReferences.Of(leaf, [into, .. phrases]), item);
         if (referenced is null) return;   // a statement that does not reference the item runs nothing (a qualifier is no reference, rule 9)
         switch (leaf)
         {
@@ -100,6 +104,23 @@ internal static class DebugTriggerPlanner
         // Rule 6 c: the item alone runs the section after a statement that CHANGES it.
         if (BoundStores.DirectStoreOf(leaf, item) is { } stored && !(into?.Targets.Any(t => ReferenceEquals(t, stored)) ?? false))
             fires.Add(new DebugFire(target, stored, DebugWhen.After));
+    }
+
+    /// <summary>The conditional phrases of an EVALUATE or SEARCH that reference an ALL REFERENCES target: ONE after-statement fire naming every phrase
+    /// the operand is written in, which runs when the statement evaluated any of them (rule 7: once per operand per statement). A phrase holds
+    /// conditions only, so the item alone (rule 6) has no store to run for.</summary>
+    private static void PlanPhrases(IReadOnlyList<object> phrases, BoundDebugTarget target, List<DebugFire> fires)
+    {
+        if (target.Kind is not DebugTargetKind.AllReferences) return;
+        Place? first = null;
+        var indices = new List<int>();
+        for (int k = 0; k < phrases.Count; k++)
+            if (FirstReferenceTo(BoundReferences.OfOperand(phrases[k]), target.Item!) is { } place)
+            {
+                first ??= place;
+                indices.Add(k);
+            }
+        if (first is not null) fires.Add(new DebugFire(target, first, DebugWhen.After, Phrases: indices));
     }
 
     /// <summary>The INTO phrase of a READ or RETURN (its implicit move of the record area into the receiver): the receiver is a written
@@ -183,8 +204,14 @@ internal static class DebugTriggerPlanner
         {
             bool loop = fire.When is DebugWhen.LoopInit or DebugWhen.LoopAugment or DebugWhen.LoopTest;
             int held = loop ? -1 : kept.FindIndex(k => ReferenceEquals(k.Target, fire.Target) && k.When is not (DebugWhen.LoopInit or DebugWhen.LoopAugment or DebugWhen.LoopTest));
-            if (held < 0) kept.Add(fire);
-            else if (kept[held].When is DebugWhen.After && fire.When is not DebugWhen.After) kept[held] = fire;
+            if (held < 0) { kept.Add(fire); continue; }
+            var existing = kept[held];
+            // Two phrase-guarded fires of one operand are one fire that runs when either phrase was evaluated; an unguarded fire (the statement
+            // evaluates the operand outright) subsumes a guarded one.
+            if (existing is { When: DebugWhen.After, Phrases: { } held1 } && fire is { When: DebugWhen.After, Phrases: { } held2 })
+                kept[held] = existing with { Phrases = [.. held1.Union(held2)] };
+            else if (existing.When is DebugWhen.After && ((existing.Phrases is not null && fire.Phrases is null) || fire.When is not DebugWhen.After))
+                kept[held] = fire;
         }
         return kept;
     }

@@ -829,6 +829,8 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.Variance(WiseOwl.Cobol.Runtime.Cobo
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.VarianceExact(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolExact[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolNames.HasEditionSpelling(int dialectLevel) -> bool
 static WiseOwl.Cobol.Runtime.CobolNum.AddChecked(System.Int128 a, System.Int128 b, WiseOwl.Cobol.Runtime.SizeChecks taken) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolNum.DeSignImage(string! image, in WiseOwl.Cobol.Runtime.NumProfile item, int digits) -> string!
+static WiseOwl.Cobol.Runtime.CobolNum.DeSignImageSending(string! image, in WiseOwl.Cobol.Runtime.NumProfile item, int digits) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.DeviceFunctionText(System.Int128 unscaled, int scale, bool commaMode) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.DeviceFunctionText(WiseOwl.Cobol.Runtime.CobolDec value, bool commaMode) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.DeviceFunctionText(WiseOwl.Cobol.Runtime.CobolWide value, int scale, bool commaMode) -> string!

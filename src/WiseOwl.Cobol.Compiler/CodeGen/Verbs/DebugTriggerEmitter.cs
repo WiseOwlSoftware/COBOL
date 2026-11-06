@@ -29,9 +29,29 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx)
     private IReadOnlyList<DebugFire> _beforeIo = [];
     private IReadOnlyList<DebugFire> _afterAction = [];
     private LoopFires? _loop;
+    private PhraseFlags? _phrases;
     private int _line;
     /// <summary>The after-statement fires of the statements now being emitted, innermost first: what a nested transfer of control must run first.</summary>
-    private readonly Stack<(IReadOnlyList<DebugFire> Fires, int Line)> _owedAfter = new();
+    private readonly Stack<(IReadOnlyList<DebugFire> Fires, int Line, PhraseFlags Flags)> _owedAfter = new();
+
+    /// <summary>The "this phrase was evaluated" flags of one EVALUATE or SEARCH statement's fires (<see cref="DebugFire.Phrases"/>): a local per phrase
+    /// index, declared before the statement, set by the verb's emitter where the phrase's condition begins to be evaluated
+    /// (<see cref="Mark"/>) and read by the fires that name the phrase.</summary>
+    internal sealed class PhraseFlags(IReadOnlyDictionary<int, string> names)
+    {
+        /// <summary>No phrase is flagged: the statement has no fire that depends on one.</summary>
+        public static readonly PhraseFlags None = new(new Dictionary<int, string>());
+
+        /// <summary><paramref name="condition"/> with the assignment that records phrase <paramref name="index"/> as evaluated in front of it
+        /// (unchanged when no fire depends on the phrase). The assignment is part of the condition's own expression, so it runs exactly when
+        /// the condition does.</summary>
+        public string Mark(int index, string condition) =>
+            names.TryGetValue(index, out var flag) ? $"({flag} = true) && ({condition})" : condition;
+
+        /// <summary>The C# condition under which <paramref name="fire"/> runs: "any phrase it names was evaluated", or null for an unguarded fire.</summary>
+        public string? Guard(DebugFire fire) =>
+            fire.Phrases is null ? null : string.Join(" || ", fire.Phrases.Select(k => names[k]));
+    }
 
     /// <summary>The loop-phase fires a PERFORM emitter takes, with the PERFORM statement's source line (DEBUG-LINE).</summary>
     internal sealed record LoopFires(IReadOnlyList<DebugFire> Fires, int Line);
@@ -40,32 +60,42 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx)
     /// transfers control out of the paragraph case), the fires after it. Returns what <paramref name="emitInner"/> returned.</summary>
     public bool Emit(BoundDebugTriggered n, Func<BoundStatement, bool> emitInner)
     {
-        var (savedIo, savedAction, savedLoop, savedLine) = (_beforeIo, _afterAction, _loop, _line);
+        var (savedIo, savedAction, savedLoop, savedPhrases, savedLine) = (_beforeIo, _afterAction, _loop, _phrases, _line);
         _line = n.SourceLine;
+        var phraseIndices = n.Fires.Where(f => f.Phrases is not null).SelectMany(f => f.Phrases!).Distinct().Order().ToList();
+        var flags = PhraseFlags.None;
+        if (phraseIndices.Count > 0)
+        {
+            int id = ctx.Names.NextDebugPhrases();
+            flags = new PhraseFlags(phraseIndices.ToDictionary(k => k, k => $"__dbgPhrase{id}_{k}"));
+            foreach (var k in phraseIndices) ctx.Writer.Line($"bool __dbgPhrase{id}_{k} = false;");
+        }
+        _phrases = phraseIndices.Count > 0 ? flags : null;
         _beforeIo = Of(n, DebugWhen.BeforeIo);
         _afterAction = Of(n, DebugWhen.AfterAction);
         var loop = n.Fires.Where(f => f.When is DebugWhen.LoopInit or DebugWhen.LoopAugment or DebugWhen.LoopTest).ToList();
         _loop = loop.Count > 0 ? new LoopFires(loop, n.SourceLine) : null;
         var after = Of(n, DebugWhen.After);
         bool owes = after.Count > 0;
-        if (owes) _owedAfter.Push((after, n.SourceLine));
+        if (owes) _owedAfter.Push((after, n.SourceLine, flags));
         try
         {
-            foreach (var fire in Of(n, DebugWhen.Before)) EmitFire(fire, n.SourceLine);
+            foreach (var fire in Of(n, DebugWhen.Before)) EmitFire(fire, n.SourceLine, flags);
             bool terminated = emitInner(n.Inner);
-            if (_beforeIo.Count > 0 || _afterAction.Count > 0 || _loop is not null)
+            if (_beforeIo.Count > 0 || _afterAction.Count > 0 || _loop is not null || _phrases is not null)
                 throw new InvalidOperationException(
                     $"the debug fires of a statement at line {n.SourceLine} were never landed by its verb's emitter "
-                    + $"(BeforeIo {_beforeIo.Count}, AfterAction {_afterAction.Count}, loop phases {_loop?.Fires.Count ?? 0}); "
+                    + $"(BeforeIo {_beforeIo.Count}, AfterAction {_afterAction.Count}, loop phases {_loop?.Fires.Count ?? 0}, "
+                    + $"phrase flags {_phrases is not null}); "
                     + $"{n.Inner.GetType().Name} has no emission point for them (docs/CONTROL_FLOW_DESIGN.md D20)");
             if (!terminated)
-                foreach (var fire in after) EmitFire(fire, n.SourceLine);
+                foreach (var fire in after) EmitFire(fire, n.SourceLine, flags);
             return terminated;
         }
         finally
         {
             if (owes) _owedAfter.Pop();
-            (_beforeIo, _afterAction, _loop, _line) = (savedIo, savedAction, savedLoop, savedLine);
+            (_beforeIo, _afterAction, _loop, _phrases, _line) = (savedIo, savedAction, savedLoop, savedPhrases, savedLine);
         }
     }
 
@@ -77,8 +107,8 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx)
     /// transfer reaches the statement's ordinary after-statement fires, so each path runs each section once.</summary>
     public void LandBeforeTransfer()
     {
-        foreach (var (fires, line) in _owedAfter)
-            foreach (var fire in fires) EmitFire(fire, line);
+        foreach (var (fires, line, flags) in _owedAfter)
+            foreach (var fire in fires) EmitFire(fire, line, flags);
     }
 
     private static List<DebugFire> Of(BoundDebugTriggered n, DebugWhen when) => n.Fires.Where(f => f.When == when).ToList();
@@ -89,7 +119,16 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx)
     {
         var fires = _beforeIo;
         _beforeIo = [];
-        foreach (var fire in fires) EmitFire(fire, _line);
+        foreach (var fire in fires) EmitFire(fire, _line, PhraseFlags.None);
+    }
+
+    /// <summary>An EVALUATE or SEARCH emitter takes the phrase flags of the statement it emits, once, before it emits anything nested (a nested
+    /// statement is another statement, with its own fires), and wraps each phrase's condition in <see cref="PhraseFlags.Mark"/>.</summary>
+    public PhraseFlags TakePhraseFlags()
+    {
+        var flags = _phrases ?? PhraseFlags.None;
+        _phrases = null;
+        return flags;
     }
 
     /// <summary>A RECEIVE emitter calls this where the verb's own action is done and the data arrived, before the phrases' imperative
@@ -98,7 +137,7 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx)
     {
         var fires = _afterAction;
         _afterAction = [];
-        foreach (var fire in fires) EmitFire(fire, _line);
+        foreach (var fire in fires) EmitFire(fire, _line, PhraseFlags.None);
     }
 
     /// <summary>A PERFORM emitter takes the loop-phase fires of the statement it emits, once, before it emits anything nested (a nested
@@ -115,20 +154,21 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx)
     {
         if (loop is null) return;
         foreach (var fire in loop.Fires)
-            if (fire.When == when && fire.Level == level) EmitFire(fire, loop.Line);
+            if (fire.When == when && fire.Level == level) EmitFire(fire, loop.Line, PhraseFlags.None);
     }
 
     /// <summary>Whether <paramref name="loop"/> has a fire for <paramref name="when"/> at <paramref name="level"/>.</summary>
     public static bool HasLoopPhase(LoopFires? loop, DebugWhen when, int level) =>
         loop is not null && loop.Fires.Any(f => f.When == when && f.Level == level);
 
-    private void EmitFire(DebugFire fire, int line)
+    private void EmitFire(DebugFire fire, int line, PhraseFlags flags)
     {
         string contents = fire.Target.Kind is DebugTargetKind.CdName
             ? OperandText.RecordAreaImage(fire.Referenced)
             : DataItemImage(fire.Referenced);
         string occurrences = string.Concat(OccurrenceNumbers(fire.Referenced).Select(o => ", " + o));
-        ctx.Writer.Line($"if (__DebugReady) __RunDebugRef({line}, {CsLiteral(fire.Target.Name)}, {contents}, "
+        string guard = flags.Guard(fire) is { } phrases ? $"__DebugReady && ({phrases})" : "__DebugReady";
+        ctx.Writer.Line($"if ({guard}) __RunDebugRef({line}, {CsLiteral(fire.Target.Name)}, {contents}, "
             + $"{fire.Target.SectionStartPc}, {fire.Target.SectionEndPc}{occurrences});");
     }
 
