@@ -201,7 +201,15 @@ internal sealed partial class ControlFlowBinder
 
         // As written (kb/Work PB3961): GetText() would spell a ZERO the rewriter made arithmetic as its token text "0".
         string text = WrittenSource.Of(op);
-        var (kind, literal) = Classify(e);
+        // ⛔ A SOLE FUNCTION-IDENTIFIER IS AN IDENTIFIER WHATEVER TREE THE BINDER LOWERED IT TO (kb/Work PB4831): FUNCTION LENGTH
+        // of a variable-length group binds to a BoundBinary sum, which the tree-shape Classify below can only read as an
+        // arithmetic expression. §8.4.3.1.2 Format 1 makes a function-identifier an identifier (§15.4: it references a temporary
+        // data item), so the WRITTEN shape decides, through the one sole-primary reader every sender position asks
+        // (ConditionBinder.SoleFunctionCall, SetSenders.Classify); a PARENTHESIZED function stays an arithmetic expression
+        // (§8.8.1.1) and keeps the Classify verdict.
+        bool functionIdentifier = e is not BoundExprError && op.arithmeticExpression() is { } written
+            && ConditionBinder.SoleFunctionCall(written) is not null;
+        var (kind, literal) = functionIdentifier ? (VaryingOperandKind.Identifier, null) : Classify(e);
         if (kind is VaryingOperandKind.Invalid && e is not BoundExprError)
             ctx.Edition.Error(DiagnosticCatalog.PerformVaryingOperandShape,
                 $"'{text}' is not one of the operands ISO §14.9.28.2's varying-phrase prints in this slot — "
@@ -209,7 +217,12 @@ internal sealed partial class ControlFlowBinder
                     ? "the BY phrase's brace group is { identifier-4 | literal-2 }"
                     : "the FROM phrase's brace group is { identifier-3 | index-name-2 | literal-1 }")
                 + ". An arithmetic expression is not admitted here; compute it into a data item first");
-        return new VaryingOperand(kind, e, literal, IntrinsicResultType.IsIntegerOperand(e), text);
+        // The §5.5 2) integer test reads the function value through its OPERAND twin, so the LENGTH sum is the integer function
+        // value it is (IntrinsicBinder.OperandOf marks it FunctionValue) and not the unmarked BoundBinary of an expression.
+        bool isInteger = functionIdentifier
+            ? IntrinsicResultType.IsIntegerOperand(IntrinsicBinder.OperandOf(e, functionValue: true))
+            : IntrinsicResultType.IsIntegerOperand(e);
+        return new VaryingOperand(kind, e, literal, isInteger, text);
     }
 
     /// <summary>The bound operand → its §14.9.28.2 brace-group kind, plus a literal's value.
