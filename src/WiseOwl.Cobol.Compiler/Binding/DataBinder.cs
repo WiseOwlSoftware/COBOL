@@ -456,10 +456,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             if (re.PROPERTY() is not null && re.propertyName() is { } pn)
             {
                 specifierWords.Add((re, pn.GetText(), UserWordKind.PropertyName));
-                State.Configuration.OoRepositoryProperties[pn.GetText()] =
-                    BindSpecifierExternalizedName(re, "PROPERTY", pn.GetText(), "literal-4") ?? pn.GetText();
+                string? propertyExternalized = BindSpecifierExternalizedName(re, "PROPERTY", pn.GetText(), "literal-4");
+                State.Configuration.OoRepositoryProperties[pn.GetText()] = propertyExternalized ?? pn.GetText();   // the word stays declared (§8.4.3.9.3 SR1) even when literal-4 was refused
                 // §12.3.8.3 SR16: checked once every class's roster is complete (OoClassTable.CheckPropertySpecifiers, run by BinderDriver).
-                OoClasses?.DeferPropertySpecifier(re, pn.GetText(), re.externalizedNamePhrase() is null ? null : State.Configuration.OoRepositoryProperties[pn.GetText()]);
+                // A refused literal-4 (reported by SR2) leaves nothing to search for: the word is not the name the source gave,
+                // so a REPO-1 sentence over it would say what the source never said (kb/Work PB4773).
+                if (propertyExternalized is not null)
+                    OoClasses?.DeferPropertySpecifier(re, pn.GetText(), re.externalizedNamePhrase() is null ? null : propertyExternalized);
             }
             // §12.3.8.2's program-specifier (kb/Work PB237): `PROGRAM program-prototype-name-1 [AS literal-3]`.
             else if (re.PROGRAM() is not null && re.programPrototypeName() is { } ppn)
@@ -471,10 +474,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             {
                 specifierWords.Add((re, cn.GetText(), UserWordKind.ObjectClassName));
                 string? classExternalized = BindSpecifierExternalizedName(re, "CLASS", cn.GetText(), "literal-1");
+                bool classLiteralRefused = classExternalized is null;   // SR2 reported it; nothing remains to search for (kb/Work PB4773)
                 if (re.externalizedNamePhrase() is null) classExternalized = null;   // the declared word is the identity (§12.3.8.4 GR2)
                 // §12.3.8.3 SR6: without EXPANDS, "there shall be information in the external repository for the class" — REPO-1
                 // at the specifier when the group defines no such class and the repository publishes none (kb/Work PB2104).
-                if (re.expandsPhrase() is null && OoClasses?.UnansweredClassSpecifier(re, cn.GetText(), classExternalized) is { } searched)
+                if (!classLiteralRefused && re.expandsPhrase() is null && OoClasses?.UnansweredClassSpecifier(re, cn.GetText(), classExternalized) is { } searched)
                     using (Edition.At(re))
                         Edition.Error(DiagnosticCatalog.RepositorySpecifierUnanswered,
                             $"REPOSITORY CLASS {cn.GetText()}{(classExternalized is null ? "" : $" AS \"{classExternalized}\"")} names no class: no class "
@@ -485,9 +489,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             {
                 specifierWords.Add((re, inm.GetText(), UserWordKind.InterfaceName));
                 string? interfaceExternalized = BindSpecifierExternalizedName(re, "INTERFACE", inm.GetText(), "literal-2");
+                bool interfaceLiteralRefused = interfaceExternalized is null;   // SR2 reported it (kb/Work PB4773)
                 if (re.externalizedNamePhrase() is null) interfaceExternalized = null;   // the declared word is the identity (§12.3.8.4 GR2)
                 // §12.3.8.3 SR9: the interface twin of SR6 — REPO-1 at the specifier when nothing answers (kb/Work PB2104).
-                if (re.expandsPhrase() is null && OoClasses?.UnansweredInterfaceSpecifier(re, inm.GetText(), interfaceExternalized) is { } searched)
+                if (!interfaceLiteralRefused && re.expandsPhrase() is null && OoClasses?.UnansweredInterfaceSpecifier(re, inm.GetText(), interfaceExternalized) is { } searched)
                     using (Edition.At(re))
                         Edition.Error(DiagnosticCatalog.RepositorySpecifierUnanswered,
                             $"REPOSITORY INTERFACE {inm.GetText()}{(interfaceExternalized is null ? "" : $" AS \"{interfaceExternalized}\"")} names no interface: no "
@@ -499,8 +504,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             {
                 specifierWords.Add((re, fn.GetText(), UserWordKind.FunctionPrototypeName));
                 State.Configuration.UserFunctionNames.Add(fn.GetText());
-                State.Configuration.FunctionSpecifiers[fn.GetText()] = new FunctionSpecifier(fn.GetText(),
-                    BindSpecifierExternalizedName(re, "FUNCTION", fn.GetText(), "literal-5") ?? fn.GetText(), re);
+                // A refused literal-5 registers NO specifier (the program specifier's posture, kb/Work PB237/PB4708): the word is
+                // declared, but resolving it by the word would answer REPO-1 about a name the source never gave (kb/Work PB4773).
+                if (BindSpecifierExternalizedName(re, "FUNCTION", fn.GetText(), "literal-5") is { } functionExternalized)
+                    State.Configuration.FunctionSpecifiers[fn.GetText()] = new FunctionSpecifier(fn.GetText(), functionExternalized, re);
             }
             // FUNCTION … INTRINSIC (§12.3.8): `ALL` (GR14) or a LIST of intrinsic-function-names (§12.3.8.2's
             // `{ intrinsic-function-name-1 } …`, kb/Work PB974) — the §8.4.3.2 SR2 keyword-omission enabler
