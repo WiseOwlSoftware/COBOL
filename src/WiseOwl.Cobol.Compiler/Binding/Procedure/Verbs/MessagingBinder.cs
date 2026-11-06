@@ -120,7 +120,9 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
             if (s.literal() is { } literal)
             {
                 serverLiteral = host.Expr.LiteralOperand(literal);
-                if (IntrinsicArgumentRules.ClassOf(serverLiteral) is not (null or CobolClass.Alphanumeric or CobolClass.National))
+                // The literal's own category is the question (a literal is no data item, so no lattice class is asked): a plain or N"" literal passes, a numeric
+                // or B"" literal does not.
+                if (serverLiteral is not BoundStringLiteral { Category: PicCategory.Alphanumeric or PicCategory.National })
                 {
                     using var at = ctx.Edition.At(literal);
                     ctx.Edition.Error(DiagnosticCatalog.MessagingOperandClass,
