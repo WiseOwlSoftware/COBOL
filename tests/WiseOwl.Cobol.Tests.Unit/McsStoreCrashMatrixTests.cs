@@ -252,7 +252,8 @@ public sealed class McsStoreCrashMatrixTests : IDisposable
     }
 
     /// <summary>A host that refuses the flush alone, from the nth sync on (the creation, the fence of the writable open every run unit's first statement runs, a checkpoint, the
-    /// close): each statement answers 00, 92 or 93, never anything else, and the next run unit finds a usable store with true counts.</summary>
+    /// close): each statement answers 00, 92 or 93, never anything else, and the next run unit finds a usable store with true counts. Only the NEW store's syncs are refused here: the fence of an existing
+    /// store and its later syncs are the next test's.</summary>
     [Fact]
     public void HostRefusingEverySyncFromTheNth_LeavesAStoreTheNextRunUnitUses()
     {
@@ -281,4 +282,43 @@ public sealed class McsStoreCrashMatrixTests : IDisposable
         }
         Assert.True(refused, "the matrix refused no sync");
     }
+
+    /// <summary>A host that refuses the flush alone, from the nth sync on, under a run unit that meets an EXISTING store holding messages (§7): the fence of the writable open its first
+    /// statement runs, every promotion and the close are each the refused sync at some n. Each statement answers 00, 92 or 93; the messages the store held are whole after it, none lost
+    /// or duplicated, the counts true; and the next run unit uses the store.</summary>
+    [Fact]
+    public void HostRefusingEverySyncFromTheNth_OverAStoreHoldingMessages_KeepsThemWhole()
+    {
+        bool refused = false;
+        using var fault = new MediumFault();
+        for (int from = 0; ; from++)
+        {
+            string directory = Prepared();
+            var before = Messages(directory);
+            var statuses = new List<string>();
+            fault.RefuseSyncsFrom = from;
+            using (var s = new Session(directory))
+            {
+                statuses.Add(InputStatus(s.Control.AcceptMessageCount(InputArea("Q"))));
+                for (int i = 0; i < 40; i++) statuses.Add(Sent(s.Control, i % 2 == 0 ? "DQ" : "DEV", "N" + i));
+            }
+            fault.RefuseSyncsFrom = null;
+            Assert.All(statuses, status => Assert.Contains(status, new[] { "00", "92", "93" }));
+            McsInspector.AssertCountsEqualARecount(directory);
+            var held = Messages(directory);
+            foreach (var (line, count) in before) Assert.True(held.GetValueOrDefault(line) >= count, $"sync refusal from {from} lost or tore '{line}'");
+            Probe(directory);
+            using (var s = new Session(directory))
+                Assert.Equal("00", Sent(s.Control, "DEV", "AFTER"));
+            McsInspector.AssertCountsEqualARecount(directory);
+            if (statuses.All(status => status == "00")) break;
+            refused = true;
+            Assert.True(from < 200, "the statements never completed");
+        }
+        Assert.True(refused, "the matrix refused no sync");
+    }
+
+    /// <summary>The queue, terminal and outbound messages of a store by their stored text, with how many of each (a serial is no content).</summary>
+    private static Dictionary<string, int> Messages(string directory) =>
+        McsInspector.Content(directory).Where(l => l[0] is 'M' or 'I' or 'O').GroupBy(l => l).ToDictionary(g => g.Key, g => g.Count());
 }
