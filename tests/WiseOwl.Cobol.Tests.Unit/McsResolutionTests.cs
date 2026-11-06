@@ -31,11 +31,22 @@ public sealed class McsResolutionTests : IDisposable
     // ---- McsDirectory ----
 
     [Fact]
-    public void AConfiguredDirectoryIsMadeAbsoluteAndWinsOverTheEnvironment()
+    public void AConfiguredDirectoryIsMadeAbsolute()
     {
         var resolved = McsDirectory.Resolve(Path.Combine("relative", "mcs"));
         Assert.Equal(Path.GetFullPath(Path.Combine("relative", "mcs")), resolved.Path);
         Assert.True(Path.IsPathRooted(resolved.Path));
+    }
+
+    [Fact]
+    public void TheEnvironmentVariableIsTheSecondChoiceAndTheCurrentDirectoryTheThird()
+    {
+        string configured = Make("configured"), fromEnvironment = Make("fromEnvironment"), current = Make("current");
+        Assert.Equal(Path.GetFullPath(configured), McsDirectory.Resolve(configured, fromEnvironment, current).Path);
+        Assert.Equal(Path.GetFullPath(fromEnvironment), McsDirectory.Resolve(null, fromEnvironment, current).Path);
+        Assert.Equal(Path.GetFullPath(fromEnvironment), McsDirectory.Resolve("", fromEnvironment, current).Path);
+        Assert.Equal(Path.GetFullPath(current), McsDirectory.Resolve(null, null, current).Path);
+        Assert.Equal(Path.GetFullPath(current), McsDirectory.Resolve(null, "", current).Path);
     }
 
     [Fact]
@@ -201,6 +212,23 @@ public sealed class McsResolutionTests : IDisposable
             File.SetUnixFileMode(resolved.Path, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
             Directory.Delete(resolved.Path);
         }
+    }
+
+    [Fact]
+    public void AnExistingUserLevelOpenToGroupOrOthersIsRefusedWhateverTheIdentityLevelIs()
+    {
+        if (OperatingSystem.IsWindows()) return;                     // Windows has no mode to refuse; the Linux leg of CI runs this witness
+        const UnixFileMode Private = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute;
+        string userLevel = Path.Combine(_work, "wiseowl-mcs-1000");
+        string directory = userLevel + "/0123456789abcdef/";
+        Assert.Equal(directory, McsSocketDirectory.Create(directory));
+        foreach (UnixFileMode open in new[] { UnixFileMode.GroupRead, UnixFileMode.GroupExecute, UnixFileMode.OtherRead, UnixFileMode.OtherWrite })
+        {
+            File.SetUnixFileMode(userLevel, Private | open);
+            Assert.Throws<McsSocketDirectoryRefusedException>(() => McsSocketDirectory.Create(directory));
+        }
+        File.SetUnixFileMode(userLevel, Private);
+        Assert.Equal(directory, McsSocketDirectory.Create(directory));
     }
 
     // ---- McsFrame ----

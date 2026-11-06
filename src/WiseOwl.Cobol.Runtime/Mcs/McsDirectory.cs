@@ -44,11 +44,16 @@ internal sealed class McsDirectory
 
     /// <summary>The MCS directory: <paramref name="configured"/>, else <c>WISEOWL_COBOL_MCS</c>, else the current directory. An empty
     /// string names nothing, as an unset variable does.</summary>
-    internal static McsDirectory Resolve(string? configured)
+    internal static McsDirectory Resolve(string? configured) =>
+        Resolve(configured, Environment.GetEnvironmentVariable(Variable), Directory.GetCurrentDirectory());
+
+    /// <summary>The precedence itself, over its three inputs (an empty one names nothing): <paramref name="configured"/>, else
+    /// <paramref name="fromEnvironment"/>, else <paramref name="currentDirectory"/>.</summary>
+    internal static McsDirectory Resolve(string? configured, string? fromEnvironment, string currentDirectory)
     {
         string named = configured is { Length: > 0 } ? configured
-            : Environment.GetEnvironmentVariable(Variable) is { Length: > 0 } fromEnvironment ? fromEnvironment
-            : Directory.GetCurrentDirectory();
+            : fromEnvironment is { Length: > 0 } ? fromEnvironment
+            : currentDirectory;
         return new McsDirectory(System.IO.Path.GetFullPath(named));
     }
 

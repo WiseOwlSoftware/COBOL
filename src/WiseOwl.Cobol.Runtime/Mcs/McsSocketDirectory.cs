@@ -80,7 +80,7 @@ internal sealed class McsSocketDirectory
     private static bool FitsUnder(string directory, int tailBytes) => Encoding.UTF8.GetByteCount(directory) + tailBytes <= MaxPathBytes;
 
     /// <summary>Creates the two levels below the base (each 0700 on Unix) and checks the mode of each, whether this call or another made it.</summary>
-    private static string Create(string directory)
+    internal static string Create(string directory)
     {
         try
         {

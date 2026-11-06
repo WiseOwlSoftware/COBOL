@@ -17,3 +17,5 @@ messaging facilities share. Re-probe: PB4739 (the prerequisite) had landed; noth
   cases, mode 0700 and refusal on Unix, frame encode/read/refusals). No COBOL-visible behaviour changed, so no conformance golden applies.
 - Self-review: the frame's payload read allocates `length` bytes up front; unreachable until S2a adds kinds that carry payloads (a corrupt 2 GiB header
   would allocate), so S2a must read large payloads incrementally.
+
+Review round 1: R1-1 (blocking) fixed by splitting McsDirectory.Resolve into the env-reading entry and a pure three-input overload, with TheEnvironmentVariableIsTheSecondChoiceAndTheCurrentDirectoryTheThird witnessing the precedence. R1-2 fixed: McsSocketDirectory.Create is internal and AnExistingUserLevelOpenToGroupOrOthersIsRefusedWhateverTheIdentityLevelIs covers the user level (Linux leg). R1-3 left as a design lead for the slices that consume the identity.
