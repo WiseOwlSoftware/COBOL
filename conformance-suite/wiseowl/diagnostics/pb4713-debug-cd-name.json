@@ -1,1 +1,0 @@
-{"refuse-at": ["85"], "expect": "COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON 'CM-IN' names a file-name, cd-name"}

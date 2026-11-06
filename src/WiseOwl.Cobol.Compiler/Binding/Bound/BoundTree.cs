@@ -50,8 +50,9 @@ public sealed record BoundProgram(
 /// transfer cause), then runs the debugging declarative body over the bounded pc range
 /// [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>]. A subject is always a NONdeclarative
 /// procedure (pc ≥ EntryPc): a debugging declarative is never debugged, matching ALL PROCEDURES's exclusion of
-/// the debugging sections themselves (DB101A "USE PROCEDURE NOT EXECUTED"). The data-name / file-name / cd-name
-/// subject kinds and the SORT/MERGE-procedure cause taxonomy are staged (rejected COBOL1571 at bind).</summary>
+/// the debugging sections themselves (DB101A "USE PROCEDURE NOT EXECUTED"). The data-name, ALL REFERENCES OF and cd-name
+/// targets are <see cref="BoundDebugTarget"/>s (docs/CONTROL_FLOW_DESIGN.md D20); the file-name subject kind and the
+/// SORT/MERGE-procedure cause taxonomy are staged (rejected COBOL1571 at bind).</summary>
 public sealed record BoundDebugSubject(
     int SubjectPc,
     string SubjectName,

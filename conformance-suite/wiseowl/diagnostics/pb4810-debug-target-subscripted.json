@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL6334: declarative section 'DBG': USE FOR DEBUGGING ON 'ELEM' is subscripted"}

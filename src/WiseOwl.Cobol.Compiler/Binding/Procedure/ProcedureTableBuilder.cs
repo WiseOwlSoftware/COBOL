@@ -219,8 +219,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
         // X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17): resolve the debug SUBJECTS now that every
         // nondeclarative procedure is in the pc space — the ALL PROCEDURES / procedure-name legs bind to real
-        // trigger points; the data-name / file-name / cd-name subject kinds and the SORT/MERGE cause taxonomy
-        // are staged loud (COBOL1571). No-op unless WITH DEBUGGING MODE collected a debug declarative.
+        // trigger points; the data-name, ALL REFERENCES OF and cd-name targets are collected for the statement
+        // binder's funnel to plan against (CONTROL_FLOW_DESIGN D20); the file-name subject kind and the SORT/MERGE
+        // cause taxonomy are staged loud (COBOL1571). No-op unless WITH DEBUGGING MODE collected a debug declarative.
         FinalizeDebug(pd);
     }
 
@@ -566,9 +567,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <summary>Resolve the collected debug declaratives to trigger SUBJECTS now that the whole pc space exists
     /// (X3.23-1985 debug module, VCR Table 7 row 7.17). <c>ALL PROCEDURES</c> and a bare procedure-name bind to
     /// real trigger points at NONdeclarative procedures (a debugging declarative is never debugged — the '85
-    /// ALL PROCEDURES exclusion, DB101A "USE PROCEDURE NOT EXECUTED"). The data-name (incl. ALL REFERENCES OF),
-    /// file-name, and cd-name subject kinds are STAGED — rejected loud COBOL1571 (their after-statement /
-    /// after-I-O trigger insertion and the DEBUG-SUB subscript rendering are not modeled). A SORT/MERGE INPUT/
+    /// ALL PROCEDURES exclusion, DB101A "USE PROCEDURE NOT EXECUTED"). The data-name (incl. ALL REFERENCES OF) and
+    /// cd-name operands become <see cref="DebugTargets"/> (<see cref="AddDebugDataTarget"/>, <see cref="AddDebugCdTarget"/>;
+    /// the triggers are planned per statement, CONTROL_FLOW_DESIGN D20). The file-name subject kind is STAGED — rejected
+    /// loud COBOL1571 (its after-I-O trigger insertion is kb/Work PB4811's). A SORT/MERGE INPUT/
     /// OUTPUT procedure that is also a debug subject is likewise staged (the SORT INPUT/OUTPUT/MERGE OUTPUT
     /// DEBUG-CONTENTS cause is not modeled — rejecting avoids a silent wrong cause).</summary>
     private void FinalizeDebug(Core.ProcedureDivisionContext pd)
@@ -586,7 +588,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     for (int pc = _entryPc; pc < _paras.Count; pc++)
                         AddDebugSubject(pc, section);
                 }
-                else if (t.ALL() is not null)            // ALL [REFERENCES] [OF] identifier-1 → data-name subject (staged)
+                else if (t.ALL() is not null)            // ALL [REFERENCES] [OF] identifier-1 → an all-references data-name target
                 {
                     // ALL, not REFERENCES, marks the arm: REFERENCES and OF are the '85 format's optional words,
                     // so `ALL W-A` is this operand too and never a procedure-name subject (kb/Work PB4237). The
@@ -694,7 +696,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// lookup alone, asked silently (<see cref="ReferenceResolver.ProbeDeclaration"/>), so the answer is about the
     /// DECLARATION. The reference SHAPE screens that <see cref="ReferenceResolver.Probe"/> applies are left out on
     /// purpose: the debug identifier of a table element is written without its subscripts (the DEBUG-SUB-n items
-    /// report them, X3.23-1985), so that operand is the data item the staged COBOL1571 describes, not one the
+    /// report them, X3.23-1985), so that operand is the data item the trigger watches, not one the
     /// COBOL2270 "shall be subscripted" rule (ISO §8.4.2.3.3 SR5) judges (kb/Work PB4363, review round 1).</summary>
     private bool NamesDataItem(Core.DataReferenceContext operand) =>
         new DataReferenceCst(operand).Register != SpecialRegister.None || ctx.Refs.ProbeDeclaration(operand) is not null;
