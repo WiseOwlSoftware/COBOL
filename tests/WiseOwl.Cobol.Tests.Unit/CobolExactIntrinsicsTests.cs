@@ -90,14 +90,14 @@ public sealed class CobolExactIntrinsicsTests
     public void TheStatistics_CancelExactly_AndRoundOnce()
     {
         CobolExact negQ = Sdidi("-998999999999999998002", 18);
-        Assert.Equal(D("999"), CobolIntrinsics.SumExact(Away, Wide(P), negQ));
-        Assert.Equal(D("2000"), CobolIntrinsics.RangeExact(Away, Wide(P), Wide(P - 2000), Sdidi("998999999999999998002", 18)));
+        Assert.Equal(0, CobolDec.Compare(D("999"), CobolIntrinsics.SumExact(Wide(P), negQ).Image));
+        Assert.Equal(0, CobolDec.Compare(D("2000"), CobolIntrinsics.RangeExact(Wide(P), Wide(P - 2000), Sdidi("998999999999999998002", 18)).Image));
         Assert.Equal(D("499.5"), CobolIntrinsics.MeanExact(Away, Wide(P), negQ));
-        Assert.Equal(D("499.5"), CobolIntrinsics.MidrangeExact(Away, Wide(P), negQ));
-        Assert.Equal(D("499.5"), CobolIntrinsics.MedianExact(Away, Wide(P), negQ).Image);
+        Assert.Equal(0, CobolDec.Compare(D("499.5"), CobolIntrinsics.MidrangeExact(Wide(P), negQ).Image));
+        Assert.Equal(0, CobolDec.Compare(D("499.5"), CobolIntrinsics.MedianExact(Wide(P), negQ).Image));
         // An odd count's MEDIAN is the middle argument's content: here the SDIDI P − 999 itself.
         Assert.Equal(new CobolDec(Int128.Parse("998999999999999998002", CultureInfo.InvariantCulture), 18),
-            CobolIntrinsics.MedianExact(Away, Wide(P), Wide(P - 2000), Sdidi("998999999999999998002", 18)).Image);
+            CobolIntrinsics.MedianExact(Wide(P), Wide(P - 2000), Sdidi("998999999999999998002", 18)).Image);
         // MEAN of the 39-digit sum (P + 1) / 2: one rounding of 499499999999999999001000000000000000500 at 34 digits.
         Assert.Equal(D("4994999999999999990010000000000000") with { Exp = 5 }, CobolIntrinsics.MeanExact(Away, Wide(P), Fixed(1)));
     }
@@ -122,9 +122,9 @@ public sealed class CobolExactIntrinsicsTests
     {
         BigInteger e40 = BigInteger.Pow(10, 40);
         CobolExact plus40 = Sdidi("10", 39), minus40 = Sdidi("-10", 39);              // 1.0E40 and -1.0E40, as the literals carry them
-        Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.SumExact(Away, plus40, Sdidi("10", 4), minus40)));
+        Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.SumExact(plus40, Sdidi("10", 4), minus40).Image));
         Assert.Equal(0, CobolDec.Compare(D("100000"), CobolIntrinsics.MeanExact(Away, plus40, Sdidi("30", 4), minus40)));
-        Assert.Equal(0, CobolDec.Compare(D("150000"), CobolIntrinsics.MedianExact(Away, plus40, Sdidi("10", 4), Sdidi("20", 4), minus40).Image));
+        Assert.Equal(0, CobolDec.Compare(D("150000"), CobolIntrinsics.MedianExact(plus40, Sdidi("10", 4), Sdidi("20", 4), minus40).Image));
         // §15.64.4 1) floored, §15.77.4 1) truncated: 10^40 mod 300000.
         int mod = (int)BigInteger.Remainder(e40, 300000);
         Assert.Equal(100000, mod);
@@ -177,7 +177,7 @@ public sealed class CobolExactIntrinsicsTests
         CobolExact tiny = Sdidi("1", -6000), huge = Sdidi("1", 100);
         CobolExact[] list = [Fixed(1), tiny, Fixed(3)];
         CobolDec[] images = [D("1"), new CobolDec(1, -6000), D("3")];
-        Assert.Equal(CobolIntrinsics.SumDec(Away, images), CobolIntrinsics.SumExact(Away, list));
+        Assert.Equal(CobolIntrinsics.SumDec(Away, images), CobolIntrinsics.SumExact(list).ToDecRounded(Away));
         Assert.Equal(CobolIntrinsics.MeanDec(Away, images), CobolIntrinsics.MeanExact(Away, list));
         Assert.Equal(CobolIntrinsics.VarianceDec(Away, images), CobolIntrinsics.VarianceExact(Away, list));
         Assert.Equal(CobolIntrinsics.ModDec(Away, D("5"), new CobolDec(1, 100)), CobolIntrinsics.ModExact(Away, Fixed(5), huge));

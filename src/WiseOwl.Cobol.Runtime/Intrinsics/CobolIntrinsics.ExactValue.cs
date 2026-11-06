@@ -17,7 +17,9 @@ namespace WiseOwl.Cobol.Runtime;
 /// is 2, <c>MOD (P, 2 ** 10)</c> is 999). The SDIDI bodies of <c>CobolIntrinsics.Dec.cs</c> took each argument as its 34-digit image
 /// and rounded each step — a 34-digit mean is no approximation of a variance at all, since a mean off by δ adds exactly δ² — and
 /// stay the STANDARD-DECIMAL bodies, where §15.4.1 1) makes the 34-digit SDIDI evaluation the value.</para>
-/// <para>WHAT IS ROUNDED, ONCE. A computed value (a sum, a difference, a remainder, a quotient) is rounded to the SDIDI's 34 digits in
+/// <para>WHAT IS ROUNDED, ONCE. A value the exact form holds whole (SUM, RANGE, MIDRANGE and MEDIAN: a sum, a difference, a halved sum) is
+/// returned EXACT, a <see cref="CobolExact"/> for the receiver to round once (kb/Work PB4792, review R1-1: its 34-digit image rounded
+/// 10000.9999999999999999999999999999999 up to 10001); a remainder or a quotient (MEAN, MOD, REM) is rounded to the SDIDI's 34 digits in
 /// the native intermediate rounding mode; a selection returns the content of the selected argument itself, every digit of it
 /// (§15.59.4 1), §15.63.4 1), §15.61.1: a float item's 41-digit expansion included, kb/Work PB4730); an ordinal is exact. The SUM,
 /// RANGE, MEAN, MIDRANGE, MEDIAN, MOD and REM bodies are exact at any size the arbitrary-precision form holds (|value| &lt; 10^6145);
@@ -54,23 +56,25 @@ public static partial class CobolIntrinsics
     public static CobolExact MinExact(params CobolExact[] xs) => xs[SelectExact(xs, greatest: false, "MIN")];
 
     /// <summary>MEDIAN (§15.61.4): the middle value in sorted order for an odd count, the mean of the two middle values for an even
-    /// one.</summary>
-    public static CobolExact MedianExact(CobolRounding mode, params CobolExact[] xs)
+    /// one, EXACTLY (<see cref="HalfSum"/>: no rounding, so a value the exact lane held is never cut to the SDIDI's 34 digits).</summary>
+    public static CobolExact MedianExact(params CobolExact[] xs)
     {
         RequireArguments(xs.Length, "MEDIAN");
         var sorted = (CobolExact[])xs.Clone();
         Array.Sort(sorted, CobolExact.Compare);
         int mid = sorted.Length / 2;
-        return sorted.Length % 2 != 0 ? sorted[mid] : CobolExact.FromDec(HalfSum(sorted[mid - 1], sorted[mid], mode));
+        return sorted.Length % 2 != 0 ? sorted[mid] : HalfSum(sorted[mid - 1], sorted[mid]);
     }
 
-    /// <summary>MIDRANGE (§15.62.4): <c>(FUNCTION MAX + FUNCTION MIN) / 2</c>.</summary>
-    public static CobolDec MidrangeExact(CobolRounding mode, params CobolExact[] xs) =>
-        HalfSum(xs[SelectExact(xs, greatest: true, "MIDRANGE")], xs[SelectExact(xs, greatest: false, "MIDRANGE")], mode);
+    /// <summary>MIDRANGE (§15.62.4): <c>(FUNCTION MAX + FUNCTION MIN) / 2</c>, exactly.</summary>
+    public static CobolExact MidrangeExact(params CobolExact[] xs) =>
+        HalfSum(xs[SelectExact(xs, greatest: true, "MIDRANGE")], xs[SelectExact(xs, greatest: false, "MIDRANGE")]);
 
-    /// <summary>(<paramref name="a"/> + <paramref name="b"/>) / 2 at the two values' common scale, rounded once.</summary>
-    private static CobolDec HalfSum(CobolExact a, CobolExact b, CobolRounding mode) =>
-        CobolExact.Quotient(CobolExact.Add(a, b), CobolExact.From(2, 0), mode, jam: false);
+    /// <summary>(<paramref name="a"/> + <paramref name="b"/>) / 2, exactly: the sum times 5 at one more fraction digit (halving is
+    /// exact in decimal), so the value is the one the receiver rounds ONCE (§14.7.4.3) and not an SDIDI image of it (kb/Work PB4792,
+    /// review R1-1).</summary>
+    private static CobolExact HalfSum(CobolExact a, CobolExact b) =>
+        CobolExact.Mul(CobolExact.Add(a, b), CobolExact.From(5, 1));
 
     /// <summary>The exact sum of the values at their common scale, on the wide form and, past it, the arbitrary-precision one.</summary>
     private static CobolExact Total(CobolExact[] xs)
@@ -80,18 +84,20 @@ public static partial class CobolIntrinsics
         return sum;
     }
 
-    /// <summary>SUM (§15.88.4): the exact sum of the arguments at their common scale, rounded once.</summary>
-    public static CobolDec SumExact(CobolRounding mode, params CobolExact[] xs)
+    /// <summary>SUM (§15.88.4): the exact sum of the arguments at their common scale. It stays EXACT (kb/Work PB4792, review R1-1): the
+    /// receiver rounds it once, so a sum whose digits pass the SDIDI's 34 is not rounded to them first (10000.9999999999999999999999999999999
+    /// stored at five places is 10000.99999, not the 10001.00000 of its 34-digit image).</summary>
+    public static CobolExact SumExact(params CobolExact[] xs)
     {
         RequireArguments(xs.Length, "SUM");
-        return Total(xs).ToDecRounded(mode);
+        return Total(xs);
     }
 
-    /// <summary>RANGE (§15.76.4): <c>FUNCTION MAX − FUNCTION MIN</c>, at the two values' common scale, rounded once.</summary>
-    public static CobolDec RangeExact(CobolRounding mode, params CobolExact[] xs)
+    /// <summary>RANGE (§15.76.4): <c>FUNCTION MAX − FUNCTION MIN</c>, exactly, at the two values' common scale.</summary>
+    public static CobolExact RangeExact(params CobolExact[] xs)
     {
         CobolExact max = xs[SelectExact(xs, greatest: true, "RANGE")], min = xs[SelectExact(xs, greatest: false, "RANGE")];
-        return CobolExact.Sub(max, min).ToDecRounded(mode);
+        return CobolExact.Sub(max, min);
     }
 
     /// <summary>MEAN (§15.60.4 1): <c>(argument-11 + … + argument-1n) / n</c>, the exact sum divided ONCE — the SDIDI quotient every

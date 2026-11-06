@@ -1347,11 +1347,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // receiver, where the SDIDI's 34 stored 00000 for 73792.
             "MaxScaled" when !num.StandardDecimal => Exact("MaxExact", ExactValueArgList(ic), null),
             "MinScaled" when !num.StandardDecimal => Exact("MinExact", ExactValueArgList(ic), null),
-            "SumScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SumExact", $"{mode}, {ExactValueArgList(ic)}")),
-            "RangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RangeExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "SumScaled" when !num.StandardDecimal => Exact("SumExact", ExactValueArgList(ic), null),
+            "RangeScaled" when !num.StandardDecimal => Exact("RangeExact", ExactValueArgList(ic), null),
             "MeanScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MeanExact", $"{mode}, {ExactValueArgList(ic)}")),
-            "MedianScaled" when !num.StandardDecimal => Exact("MedianExact", $"{mode}, {ExactValueArgList(ic)}", null),
-            "MidrangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MidrangeExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "MedianScaled" when !num.StandardDecimal => Exact("MedianExact", ExactValueArgList(ic), null),
+            "MidrangeScaled" when !num.StandardDecimal => Exact("MidrangeExact", ExactValueArgList(ic), null),
             "Variance" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("VarianceExact", $"{mode}, {ExactValueArgList(ic)}")),
             "StandardDeviation" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("StdDevExact", $"{mode}, {ExactValueArgList(ic)}")),
             "PresentValue" when !num.StandardDecimal =>
