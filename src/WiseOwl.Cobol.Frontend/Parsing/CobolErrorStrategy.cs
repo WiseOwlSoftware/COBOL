@@ -2027,9 +2027,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var atn = recognizer.Atn;
         var token = at.Token;
         bool refusedWord = predictionFailedAt && token.Type == CobolLexer.IDENTIFIER;
-        // ⛔ A SECTION OR DIVISION HEADER WRITTEN WHERE A CLAUSE LIST STANDS IS A STRUCTURE FAULT, WHATEVER ITS FIRST WORD
-        // (kb/Work PB4706): "'SECTION' is not a clause ... for 'MAIN'" reads the header's two words as a name and a clause.
-        if (!(refusedWord || IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type) || at.WritesAHeader)
+        if (!(refusedWord || IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type))
             return null;
         // ⛔ A RESERVED WORD WHERE THE ENTRY'S NAME IS DUE IS THE NAME THE SOURCE WROTE, NOT A CLAUSE IT DOES NOT PRINT
         // (kb/Work PB4604): `01 MOVE PIC X.` writes MOVE where §13.16.3 SR4 puts the entry-name, so the fault is §8.3.2.1
@@ -2049,6 +2047,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // parse error never reaches) would name it. The missing period is then the report's second reading, the recovery's.
         if (at.ResidueRun is { } run && ClosedFormats.Of(run.Parent?.GetType()) is { } runFormat)
             return new Residue(runFormat, run.RuleIndex);
+        // ⛔ A SECTION OR DIVISION HEADER WRITTEN WHERE A CLAUSE LIST STANDS IS A STRUCTURE FAULT, WHATEVER ITS FIRST WORD
+        // (kb/Work PB4706): "'SECTION' is not a clause ... for 'MAIN'" reads the header's two words as a name and a clause.
+        // Asked AFTER the foreign run above (kb/Work PB4770): a run that a header's word ends is still a foreign run, named.
+        if (at.WritesAHeader) return null;
         int k = at.Lookahead;
         var probe = walk.Probe();
         // A token that may begin what follows the period is the missing period's, unless it HEADS a longer literal: the
