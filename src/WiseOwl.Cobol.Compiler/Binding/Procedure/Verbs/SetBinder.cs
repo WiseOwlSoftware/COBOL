@@ -552,13 +552,17 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// operand's entry already draws the COBOL0900 introduction gate, which fails the compile.
     /// DESIGN-message-control.md §7.1: each refusal also runs at 2014, "where COBOL0900 is the expected diagnosis and no
     /// second one may appear", so the statement binds to a no-op there and the SR35 class refusals below speak only
-    /// where the usage exists. A sender that is a function's or method's RETURNED TEMPORARY has no declaration in this
-    /// compilation (an imported one carries its usage from the repository), so no gate fires on it and the statement is
-    /// bound and checked at every edition: SR35 refuses it as at 2023 rather than the SET vanishing unrefused.</para></summary>
+    /// where the usage exists. ⛔ THE NO-OP IS EARNED BY A DECLARATION, NOT BY THE EDITION: it applies only when some
+    /// message-tag operand is a data item a DATA DIVISION entry of THIS compilation declares
+    /// (<see cref="HasDeclaredMessageTagOperand"/>), because only that entry's gate refuses the compile. An operand that
+    /// is a compiler temporary (a function's or method's RETURNED value, an OBJECT PROPERTY of an imported class,
+    /// §8.4.3.9.2) carries its usage from the repository and has no entry here, so no gate fires on it: the statement is
+    /// bound and checked at every edition, and SR35 refuses it as at 2023 rather than the SET vanishing unrefused.</para></summary>
     private BoundStatement BindMessageTagSet(
         IReadOnlyList<Core.DataReferenceContext> receivers, SetSender? sender, bool toNull, string senderText)
     {
-        if (sender?.TemporaryItem is null && !ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.UsageMessageTag2023))
+        if (!ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.UsageMessageTag2023)
+            && HasDeclaredMessageTagOperand(receivers, sender))
             return new BoundNop();   // no-op: a DECLARED operand's usage-message-tag-2023 gate (COBOL0900) refuses this compile (kb/Work PB916, PB4771)
         string written = SetFormatSelection.Written(receivers);
         if (receivers.Count != 1)
@@ -588,6 +592,18 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             source = sp;
         }
         return new BoundSetMessageTag(target, source, toNull);
+    }
+
+    /// <summary>Whether a message-tag operand of this Format-17 statement is a data item some DATA DIVISION entry of
+    /// this compilation declares, i.e. one whose <c>usage-message-tag-2023</c> gate (COBOL0900) refuses the compile below
+    /// 2023. A compiler temporary (<c>ProbeResult.NonSectionKind</c>: an object property, a function's or method's
+    /// returned value) is not one. Pure: the probe reports nothing.</summary>
+    private bool HasDeclaredMessageTagOperand(IReadOnlyList<Core.DataReferenceContext> receivers, SetSender? sender)
+    {
+        bool Declared(Core.DataReferenceContext dref) =>
+            !ctx.Refs.ObjectProperties.IsObjectPropertyReference(dref)
+            && ctx.Refs.Probe(dref) is { NonSectionKind: null } p && ItemCategory.IsMessageTag(p.Item);
+        return receivers.Any(Declared) || sender?.Ref is { } senderRef && Declared(senderRef);
     }
 
     /// <summary>SET program-pointer assignment (ISO §14.9.39 Format 9; SR21 — every target AND the sender

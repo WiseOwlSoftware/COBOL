@@ -183,6 +183,61 @@ public sealed class MessageTagIntroductionGateTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
+    /// <summary>kb/Work PB4771 review R2-1: an OBJECT PROPERTY of an imported class that is a message-tag item is a
+    /// compiler temporary with no data description entry here, so no COBOL0900 gate fires on it. The SET naming it is
+    /// bound at every edition: SR35 refuses a non-tag partner (COBOL0869), and <c>SET prop TO NULL</c> compiles as at 2023
+    /// instead of being dropped as a no-op.</summary>
+    [Theory]
+    [InlineData("SET N TO TAGP OF O", 2002, false)]
+    [InlineData("SET N TO TAGP OF O", 2014, false)]
+    [InlineData("SET N TO TAGP OF O", 2023, false)]
+    [InlineData("SET TAGP OF O TO N", 2002, false)]
+    [InlineData("SET TAGP OF O TO N", 2014, false)]
+    [InlineData("SET TAGP OF O TO N", 2023, false)]
+    [InlineData("SET TAGP OF O TO NULL", 2002, true)]
+    [InlineData("SET TAGP OF O TO NULL", 2014, true)]
+    [InlineData("SET TAGP OF O TO NULL", 2023, true)]
+    public void SetFormat17_ImportedPropertyOperand_IsBoundAtEveryEdition(string statement, int edition, bool succeeds)
+    {
+        string dir = ScratchDirectory.Create("MtProp");
+        try
+        {
+            string lib = CompiledProgramCache.StageSource(Path.Combine(dir, "MTP.cob"), """
+                IDENTIFICATION DIVISION.
+                CLASS-ID. MTP.
+                OBJECT.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 TAGP USAGE MESSAGE-TAG PROPERTY.
+                END OBJECT.
+                END CLASS MTP.
+                """);
+            Assert.True(CompiledProgramCache.Compile(new CompilerDriver.Options(lib, Path.Combine(dir, "MTP.dll"),
+                DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Free)).Success);
+            string caller = CompiledProgramCache.StageSource(Path.Combine(dir, "MTPCALL.cob"), $"""
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. MTPCALL.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    CLASS MTP PROPERTY TAGP.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 O USAGE OBJECT REFERENCE MTP.
+                01 N PIC 9(4) VALUE 7.
+                PROCEDURE DIVISION.
+                MAIN-P.
+                    {statement}.
+                    STOP RUN.
+                """);
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(caller, Path.Combine(dir, "MTPCALL.dll"),
+                DialectLevel: edition, SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [dir]));
+            Assert.Equal(succeeds, r.Success);
+            if (!succeeds) EditionHarness.AssertHasDiagnostic(r.Errors, "COBOL0869");
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
     /// <summary>The note's arm 2 from the other side: a group's message-tag usage handed to a leaf that wrote a
     /// PICTURE is refused as a MESSAGE-TAG usage at every edition, and never as a floating-point one.</summary>
     [Theory]
