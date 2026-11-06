@@ -2258,7 +2258,7 @@ of an unsupported facility.
   RELEASE and RETURN run the ALL REFERENCES OF section (rule 5 d: "any other COBOL statement"); a cd-name section runs (rule 8; GnuCOBOL
   never fires it). A special register and a REPORT SECTION sum counter are staged (COBOL1571: they have no data item of their own for
   the trigger to watch; syntax rule 9 admits the sum counter). Witnesses: `conformance:cases/_unassigned/pb4810-debug-data-name-triggers`,
-  `conformance:cases/_unassigned/pb4810-debug-write-go-to-perform`, `conformance:cases/_unassigned/pb4810-debug-sub-and-name`,
+  `conformance:cases/_unassigned/pb4810-debug-write-go-to-perform`, `conformance:cases/_unassigned/pb4810-debug-rewrite-and-failed-write`, `conformance:cases/_unassigned/pb4810-debug-sub-and-name`,
   `conformance:wiseowl/cases/_unassigned/pb4759_debug_cd_name_triggers`, `conformance:cases/_unassigned/pb4810-debug-target-subscripted`
   (COBOL6334), `conformance:cases/_unassigned/pb4810-debug-target-repeated` (COBOL6335),
   `conformance-test:DebugFacilityTests.StatementInADebuggingSection_At85_CausesNoSection`; CCVS DB201A runs with no failing test.

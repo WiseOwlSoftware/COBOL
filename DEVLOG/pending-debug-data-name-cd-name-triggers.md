@@ -25,8 +25,8 @@ the MOVE image of the implicit S9(4) SIGN LEADING SEPARATE item). New diagnostic
 syntax rules 10 and 12) and COBOL6335 (a target named twice, syntax rule 6). COBOL6336 is returned unused.
 
 **Evidence.** CCVS DB201A now runs with no failing test (4 deleted by the program's own logic, 8 for inspection); before, it did not compile. Goldens
-`pb4810-debug-data-name-triggers`, `pb4810-debug-write-go-to-perform`, `pb4810-debug-sub-and-name`, `wiseowl/pb4759_debug_cd_name_triggers`
+`pb4810-debug-data-name-triggers`, `pb4810-debug-write-go-to-perform`, `pb4810-debug-rewrite-and-failed-write` (the I-O exception paths: duplicate key, unopened file), `pb4810-debug-sub-and-name`, `wiseowl/pb4759_debug_cd_name_triggers`
 (accepted at 85) and `pb4810-debug-target-subscripted`, `pb4810-debug-target-repeated` (refused), each expected value derived from the rules above;
 `pb4713-debug-cd-name` is now accepted. DebugFacilityTests' staged-COBOL1571 expectations became behavior tests (46 pass).
-DB205A compiles and runs but does not finish: its RECEIVE without a NO DATA phrase waits on a queue nothing seeds (a communication-facility
+DB205A compiles and runs but does not finish; the cause was not diagnosed (a communication-facility
 matter, listed as a lead). The file-name trigger (PB4811) and the DEBUG-CONTENTS reference-modification gap stay open.
