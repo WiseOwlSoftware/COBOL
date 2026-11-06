@@ -5,11 +5,33 @@ using System.Buffers.Binary;
 namespace WiseOwl.Cobol.Runtime.Mcs;
 
 /// <summary>The kinds of <see cref="McsFrame"/>: one enumeration for both messaging facilities (docs/rearchitecture/DESIGN-message-control.md §6).
-/// <see cref="Ring"/> is the only kind a bell receives; the 2023 facility's kinds (§5.3) join it in the slice that builds that transport.</summary>
+/// <see cref="Ring"/> is the only kind a bell receives; the rest are the 2023 facility's (§5.3), whose payloads
+/// <c>PeerFrameCodec</c> (Runtime/Messaging) encodes.</summary>
 internal enum McsFrameKind : byte
 {
     /// <summary>A bell's wake-up: no payload. Both facilities send it.</summary>
     Ring = 1,
+
+    /// <summary>A link's opening, both ways: protocol version, MCS identity, run id, process id, served name.</summary>
+    Hello = 2,
+
+    /// <summary>A requestor offers its message (serial, offer round) to a server; the message stays with the requestor.</summary>
+    Offer = 3,
+
+    /// <summary>A server claims an offered message.</summary>
+    Claim = 4,
+
+    /// <summary>The requestor grants the message to the first claimant, and carries it.</summary>
+    Grant = 5,
+
+    /// <summary>The requestor withdraws an offer from a server that was not granted it.</summary>
+    Withdraw = 6,
+
+    /// <summary>The server has the message; written before its RECEIVE returns.</summary>
+    Ack = 7,
+
+    /// <summary>The server's answer: a message and the exception-name it raises, if any.</summary>
+    Reply = 8,
 }
 
 /// <summary>
