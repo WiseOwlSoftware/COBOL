@@ -31,8 +31,10 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// (<see cref="IntrinsicCarrierRules.ReturnsSdidiQuotient"/>, kb/Work PB3860); and a nested
 /// cross-aligning call (SUM, RANGE, MEDIAN, MIDRANGE) is SDIDI-carried when <see cref="IntrinsicCarrierRules.AlignmentMayLeaveCarrier"/>
 /// says its aligned arguments may leave the <c>Int128</c> carrier (the digit bounds of the field and literal arguments
-/// are read here as the renderer reads them; an argument whose bound only the renderer's arithmetic knows is unproven,
-/// as it is there). What it cannot see is a run-time fact (a wide exact intermediate that overflows to the SDIDI, a
+/// are read here as the renderer reads them; an argument whose bound only the renderer's arithmetic knows is unproven
+/// here, where the renderer states it as unbounded (kb/Work PB4792) and may move the call off the <c>Int128</c> carrier:
+/// that difference moves a value between the two NON-binary64 carriers, which this question does not distinguish).
+/// What it cannot see is a run-time fact (a wide exact intermediate that overflows to the SDIDI, a
 /// data-dependent width): those only move a value between the two NON-binary64 carriers, which this question does not
 /// distinguish.
 /// <c>FunctionValueLaneDriftTests</c> pins the one list restated here against the renderer's switch, and the

@@ -150,27 +150,49 @@ internal static class IntrinsicCarrierRules
         anyBinary64 && (!allBinary64 || (!meanOfMiddlePair && anyFloatItem && anyApproximation));
 
     /// <summary>Is the value of the call of <paramref name="functionName"/> over <paramref name="arguments"/> the arithmetic MEAN of the two middle arguments and not a selected argument
-    /// (kb/Work PB4753)? True for MEDIAN over an even, statically known count (§15.61.4 r2); a table(ALL) argument stands for an unknown
-    /// count and is treated as a selection, the lane it had. A mean is a NEW value that no argument's own kind describes, so the
-    /// kind-preserving exact lane of <see cref="SelectionNeedsExactLane"/> has nothing to preserve for it.</summary>
-    internal static bool ReturnsMeanOfMiddlePair(string functionName, IReadOnlyList<BoundOperand> arguments) =>
-        functionName == "MEDIAN" && arguments.Count % 2 == 0 && !arguments.Any(a => a is BoundFieldOperand { Place: TableAllPlace });
+    /// (kb/Work PB4753, PB4791)? True for MEDIAN over an even count of arguments (§15.61.4 r2). A table(ALL) argument stands for as many
+    /// arguments as its ranges hold (<see cref="TableAllPlace.StaticCount"/>, the product of a fixed OCCURS's counts), so a list of
+    /// fixed tables has a bind-time count and a bind-time parity. A table(ALL) over an OCCURS DEPENDING or dynamic-capacity range has a
+    /// RUN-TIME count: the parity is not a bind-time fact, and the list is treated as a selection, the lane it had. A mean is a NEW value
+    /// that no argument's own kind describes, so the kind-preserving exact lane of <see cref="SelectionNeedsExactLane"/> has nothing to
+    /// preserve for it.</summary>
+    internal static bool ReturnsMeanOfMiddlePair(string functionName, IReadOnlyList<BoundOperand> arguments)
+    {
+        if (functionName != "MEDIAN") return false;
+        long count = 0;
+        foreach (var a in arguments)
+        {
+            if (a is BoundFieldOperand { Place: TableAllPlace all })
+            {
+                if (all.StaticCount is not { } elements) return false;
+                count += elements;
+            }
+            else count++;
+        }
+        return count % 2 == 0;
+    }
 
     /// <summary>The functions <see cref="ReturnsExactParse"/> answers true for, as a set so that
     /// <c>ReceiverShapeReaderDriftTests</c> can hold each member's runtime body against the renderer (no <c>RenderNum</c>
     /// arm of its own, an SDIDI arm in <c>RenderDec</c>) instead of restating the list.</summary>
     internal static readonly FrozenSet<string> ExactParseFunctions = new[] { "NUMVAL", "NUMVAL-C", "NUMVAL-F" }.ToFrozenSet(StringComparer.Ordinal);
 
-    /// <summary>An exact scaled operand whose digit bound is known: its unscaled digits (<c>NumX.Digits</c>), its scale
-    /// and whether it is a table(ALL) argument, which stands for an unknown number of elements.</summary>
-    internal readonly record struct AlignedOperand(int Digits, int Scale, bool TableAll);
+    /// <summary>An exact scaled operand: its unscaled digits (<c>NumX.Digits</c>, 0 when it has no bound of its own: an
+    /// intrinsic's value, a windowed or image-decoded read), its scale and whether it is a table(ALL) argument, which stands for an
+    /// unknown number of elements.</summary>
+    internal readonly record struct AlignedOperand(int Digits, int Scale, bool TableAll)
+    {
+        /// <summary>Is the operand's digit bound unknown (<c>NumX.Digits</c> 0)? It is then bounded by its 16-byte carrier's
+        /// <see cref="PicInfo.CarrierDigitBound"/> digits, as <c>NumericRenderer.DigitBound</c> bounds it (kb/Work PB4752).</summary>
+        internal bool Unbounded => Digits == 0;
+    }
 
     /// <summary>Can aligning a cross-aligning call's arguments to their common scale — and accumulating the aligned values —
-    /// leave the <see cref="Int128"/> carrier? True only when EVERY argument is an exact scaled operand with a KNOWN
-    /// digit bound (<paramref name="operands"/>: <c>null</c> for an SDIDI or binary64 operand or one of unknown bound,
-    /// for which nothing is provable and the escape-checked native arm (PB252) keeps its documented behaviour) and either
-    /// one argument's aligned bound alone, or the sum of the magnitudes the function adds, each bounded by its aligned
-    /// digits, exceeds <see cref="Int128.MaxValue"/>. THE ONE READER of the question: <c>IntrinsicRenderer.RenderNum</c> asks it of the
+    /// leave the <see cref="Int128"/> carrier? True only when EVERY argument is an exact scaled operand
+    /// (<paramref name="operands"/>: <c>null</c> for an SDIDI or binary64 operand, which takes another lane and for which nothing is
+    /// provable) and either one argument's aligned bound alone, or the sum of the magnitudes the function adds, each bounded by its
+    /// aligned digits, exceeds <see cref="Int128.MaxValue"/>; or when an argument has no bound of its own
+    /// (<see cref="AlignedOperand.Unbounded"/>) and the alignment shifts any argument (kb/Work PB4792). THE ONE READER of the question: <c>IntrinsicRenderer.RenderNum</c> asks it of the
     /// RAW operands it is about to render, and <c>FunctionValueLane</c>'s prediction asks it of the same facts read from the bound tree, so
     /// the carrier a nested SUM / RANGE / MEDIAN / MIDRANGE answers on is predicted by the rule that picks it.</summary>
     /// <remarks>
@@ -190,6 +212,13 @@ internal static class IntrinsicCarrierRules
         if (operands.Count == 0 || operands.Any(x => x is null)) return false;
         var xs = operands.Select(x => x!.Value).ToList();
         int s = xs.Max(x => x.Scale);
+        // ⛔ AN ARGUMENT OF UNKNOWN BOUND LEAVES THE CARRIER WHEN THE ALIGNMENT SHIFTS ANY ARGUMENT (kb/Work PB4792, the function arm of
+        // PB4752's NumericRenderer.CombineAdditive). Such an argument (FUNCTION INTEGER (D), a windowed read) is bounded by its
+        // 16-byte carrier's PicInfo.CarrierDigitBound = 39 digits, past the Int128's 38 whatever the shift is, and the native arm's
+        // alignment ended the run unit (EC-SIZE-OVERFLOW) for a value its receiver holds: SUM (FUNCTION INTEGER (D) F) of
+        // 1000000000000000001 and 1.01. With NO shift the alignment is the identity and only the sum can leave the carrier, the
+        // documented size error (DOC-A.1-179 (1)); the native arm keeps that list, as it did.
+        if (xs.Any(x => x.Unbounded)) return xs.Any(x => x.Scale != s);
         // ⛔ THE BOUND IS ON THE VALUE, NOT ON THE WIDEST ARGUMENT PLUS A DIGIT COUNT. Argument i, aligned to the common
         // scale, is below 10^D_i (D_i its unscaled digits plus the scale gap — a table(ALL) argument stands for an
         // unknown number of elements, so it is charged nine more digits); the function's value is bounded by the sum of
