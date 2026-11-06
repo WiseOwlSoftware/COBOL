@@ -18,6 +18,9 @@ import pathlib
 import sys
 import tempfile
 
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
+
 REPO = pathlib.Path(__file__).resolve().parents[2]
 PRIVATE = REPO / "specs-private"
 
@@ -83,6 +86,7 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     if sys.argv[1:] == ["--self-test"]:
         sys.exit(self_test())
     for e in sorted(EDITIONS):
