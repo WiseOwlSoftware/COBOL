@@ -1,4 +1,4 @@
-## Every spec tool takes an edition (1985, 2002, 2023) from one table in spec_pdf.py
+## Entry 3207 — 2026-11-06 12:22 PST — Every spec tool takes an edition (1985, 2002, 2023) from one table in spec_pdf.py
 
 **Mechanism (kb/Work PB4815, campaign PB4812).** The tools of the transcription process were welded to the 2023 edition: each
 spelled `specs/ISO_COBOL_2023.md` itself (about 45 files) and the PDF-measuring ones called `spec_pdf.require(2023)` at module
@@ -45,3 +45,4 @@ on the 2023 file). Found and left (not in the note's list, now in its Sites para
 still call `spec_pdf.require(2023)`.
 
 Branch review round 1 found the transcription-path sweep blind to a path written as one string literal (and to PowerShell): `scripts/docchecks/vcr.py`, `scripts/fix_spec_pagebreaks.py` and `scripts/gen-reserved-words.ps1` still read the 2023 file by their own literal while the self-test said the tree was clean. The sweep now matches both spellings in `.py`, `.ps1` and `.sh`; the three tools ask `spec_pdf.markdown(2023)` (the PowerShell one through the new `spec_pdf.py --markdown EDITION`); five lines that only name the file as repository data (`inert_lane.py` classification keys and fixtures, the `audit_evidence_supersession.py` rename map) carry a visible `# spec_pdf: names-the-file` marker. The self-test plants every spelling.
+
