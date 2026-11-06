@@ -157,7 +157,7 @@ is tracked tooling with a self-test, so the next batch is a command, never a bri
 | OO (`oo`) | `src/WiseOwl.Cobol.Compiler/Oo/**` `src/WiseOwl.Cobol.Compiler/Binding/Oo*.cs` `src/WiseOwl.Cobol.Compiler/Binding/Prototype*.cs` | — |
 | runtime values and numerics (`runtime-values`) | `src/WiseOwl.Cobol.Runtime/{Values,Intrinsics,Verbs}/**` `src/WiseOwl.Cobol.Runtime/*.{cs,csproj}` | — |
 | runtime collation, Unicode and globalization (`runtime-text`) | `src/WiseOwl.Cobol.Runtime/{Collation,Unicode,Globalization}/**` | — |
-| runtime I/O (`runtime-io`) | `src/WiseOwl.Cobol.Runtime/IO/**` `src/WiseOwl.Cobol.Runtime/Communication/**` `src/WiseOwl.Cobol.Runtime/Messaging/**` | — |
+| runtime I/O (`runtime-io`) | `src/WiseOwl.Cobol.Runtime/IO/**` `src/WiseOwl.Cobol.Runtime/Communication/**` `src/WiseOwl.Cobol.Runtime/Messaging/**` `src/WiseOwl.Cobol.Runtime/Mcs/**` | — |
 | runtime control and exceptions (`runtime-control`) | `src/WiseOwl.Cobol.Runtime/{Control,Exceptions,Repository}/**` | — |
 | editions and diagnostics (`editions-diagnostics`) | `src/WiseOwl.Cobol.Editions/**` `src/WiseOwl.Cobol.Frontend/Diagnostics/**` | — |
 | CLI (`cli`) | `src/WiseOwl.Cobol.Cli/**` | — |

@@ -696,27 +696,35 @@ slice and adds the 2023 kinds to the enumeration. That slice needs S0, which pin
   by default. So two spellings of one directory name one MCS. That this walk matches the OS's own resolution is not
   verified from documentation here; `McsResolutionTests` witnesses a link in a middle and in the final component, and a
   case variant on Windows. The identity `<h>` is the first 16 lower-case hex digits of the SHA-256 of the canonical
-  form's UTF-8 bytes. `MessageStore.Open`, which reads the variable itself today (`MessageStore.cs#Open`), calls
-  `Resolve(null)` instead; the 2023 facility passes `MessagingSettings.Directory`.
+  form's UTF-8 bytes. `Resolve` returns a `McsDirectory` carrying `Path`, `Canonical` and `Identity`; the last two are
+  computed on first use, so `MessageStore.Open`, which calls `Resolve(null)` and uses `Path`, pays no walk; the 2023
+  facility passes `MessagingSettings.Directory`. An empty `configured` names nothing, as an unset variable does. The walk
+  is lexical for `..` (`Path.GetFullPath` removes it first), follows a link's target through the same walk (so a link
+  inside a target path resolves too), keeps a component that does not exist as written, and refuses a chain of more than
+  40 links as a loop (`IOException`).
 - **`McsSocketDirectory.Resolve(h)`** names the socket directory `<S>`. On Unix (Linux, macOS) it is
-  `<base>/wiseowl-mcs-<uid>/<h>/`, where `<uid>` is the effective user id in decimal (`geteuid` through `libc`, which
-  `OfdRegionLocks` already binds) and `<base>` is `$XDG_RUNTIME_DIR` when it is set, absolute and leaves room
+  `<base>/wiseowl-mcs-<uid>/<h>/`, where `<uid>` is the effective user id in decimal (`geteuid` through `libc`) and `<base>` is `$XDG_RUNTIME_DIR` when it is set, absolute and leaves room
   for the longest entry of either facility (`Fits(33)`, the 2023 facility's `p/<N>/<r>`, §5.1), else `/tmp`. It never uses `Path.GetTempPath()` on Unix, because macOS's per-user `$TMPDIR` is too long (§5.1).
   On Windows it is `Path.GetTempPath()` followed by `wiseowl-mcs\<h>\`, inside a per-user directory. On Unix every
   directory it creates is created with mode 0700 (`Directory.CreateDirectory(string, UnixFileMode)`), and an existing
-  `wiseowl-mcs-<uid>` or `<h>` whose mode (`File.GetUnixFileMode`) grants anything to group or others is refused. A
+  `wiseowl-mcs-<uid>` or `<h>` whose mode (`File.GetUnixFileMode`) grants anything to group or others is refused, by `McsSocketDirectoryRefusedException` (an `IOException`), which a directory that cannot be created
+  throws too. `$XDG_RUNTIME_DIR` must also exist. `Resolve` returns a `McsSocketDirectory` whose `Path` ends in the
+  separator. A
   directory this user can create entries in and whose mode grants nothing to anyone else is this user's, so no owner
   test is needed: a directory another user made first denies access and is refused the same way. Under `/tmp` another
   user can therefore deny a user the facility, but never read or plant a socket. A refusal is each facility's own
   failure: EC-MCS-IMP for 2023, a bell that cannot be bound for the communication facility. There is no setting that
   names another socket directory, so two users never share an MCS's sockets.
-- **The budget.** `McsSocketDirectory.Fits(tailBytes)` is true when `<S>`'s length in UTF-8 bytes plus `tailBytes` is
-  at most S0's `MaxPathBytes` (the limit without its NUL). Linux's `sun_path` "is 108 bytes in size" (unix(7),
+- **The budget.** `Fits(tailBytes)`, a member of the resolved `McsSocketDirectory` (its `<S>` is the one measured), is true when `<S>`'s length in UTF-8 bytes plus `tailBytes` is
+  at most `McsSocketDirectory.MaxPathBytes` (the limit without its NUL: 107, and 103 on macOS; `PlatformAssumptionTests` asserts it against
+  the longest path `Bind` accepts). Linux's `sun_path` "is 108 bytes in size" (unix(7),
   man7.org, read 2026-11-04) and macOS's is `char sun_path[104]` (`bsd/sys/un.h`, apple-oss-distributions/xnu main,
   read 2026-11-04), each counting the terminating NUL; "AF_UNIX comes to Windows" states no limit. §5.1 states the 2023 facility's longest entry (33 bytes) and
   its worst case per OS, and `DESIGN-communication-facility.md` §6 its bell's (21 bytes).
 - **The run id `<r>`**: `McsSocketDirectory.NewRunId()`, 16 random lower-case hex digits. Each facility draws its own.
-- **`McsFrame`**: `u32 length | u8 kind | payload`, little-endian, with a 2^31-byte guard. The kinds are one enumeration:
+- **`McsFrame`**: `u32 length | u8 kind | payload`, little-endian, where `length` counts the payload only (not the kind byte), with a 2^31-byte guard (a payload of 2^31 bytes or more is refused,
+  writing and reading). `Read` answers the kind and the caller compares it; a truncated frame, a kind byte no build knows, a `Ring` with a payload
+  and an oversize length are `InvalidDataException`, and the caller closes the link. The kinds are one enumeration:
   `Ring`, which both facilities send to a bell with no payload, and the 2023 kinds of §5.3. A reader that meets a kind
   it does not expect closes the link.
 

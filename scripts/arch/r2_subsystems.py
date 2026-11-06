@@ -105,7 +105,7 @@ TABLE = [
      "include": [R + "/{Values,Intrinsics,Verbs}/**", R + "/*.{cs,csproj}"]},
     {"key": "runtime-text", "area": "runtime/collation", "name": "runtime collation, Unicode and globalization",
      "include": [R + "/{Collation,Unicode,Globalization}/**"]},
-    {"key": "runtime-io", "area": "runtime/io", "name": "runtime I/O", "include": [R + "/IO/**", R + "/Communication/**", R + "/Messaging/**"]},
+    {"key": "runtime-io", "area": "runtime/io", "name": "runtime I/O", "include": [R + "/IO/**", R + "/Communication/**", R + "/Messaging/**", R + "/Mcs/**"]},
     {"key": "runtime-control", "area": "runtime/control", "name": "runtime control and exceptions", "include": [R + "/{Control,Exceptions,Repository}/**"]},
     {"key": "editions-diagnostics", "area": "editions", "name": "editions and diagnostics",
      "include": ["src/WiseOwl.Cobol.Editions/**", F + "/Diagnostics/**"]},

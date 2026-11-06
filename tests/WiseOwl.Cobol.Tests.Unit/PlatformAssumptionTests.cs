@@ -262,6 +262,7 @@ public sealed class PlatformAssumptionTests : IDisposable
         int max = MeasureMaxPathBytes();
         _output.WriteLine($"MaxPathBytes on {Environment.OSVersion.Platform}: {max}");
         Assert.True(max > 0 && max < 230, $"Bind accepted a path of {max} bytes: no limit was found");
+        Assert.Equal(WiseOwl.Cobol.Runtime.Mcs.McsSocketDirectory.MaxPathBytes, max);   // the constant McsSocketDirectory.Fits is written against
         if (OperatingSystem.IsLinux()) Assert.Equal(107, max);          // unix(7): sun_path is 108 bytes, NUL included
         else if (OperatingSystem.IsMacOS()) Assert.Equal(103, max);     // sys/un.h: char sun_path[104]
 
@@ -284,7 +285,7 @@ public sealed class PlatformAssumptionTests : IDisposable
     public void TheWorstCaseEntryOfTheSocketDirectoryFitsMaxPathBytes()
     {
         int max = MeasureMaxPathBytes();
-        const int Entry = 33;           // DESIGN-message-control.md §5.1: p/ (2) + <N>/ (at most 15) + <r> (16)
+        const int Entry = WiseOwl.Cobol.Runtime.Mcs.McsSocketDirectory.LongestEntryBytes;   // DESIGN-message-control.md §5.1: p/ (2) + <N>/ (at most 15) + <r> (16)
         string hash = new('h', 16);     // <h>: 16 hex digits
         var cases = new List<(string Label, string Directory)>();
         if (OperatingSystem.IsWindows())
