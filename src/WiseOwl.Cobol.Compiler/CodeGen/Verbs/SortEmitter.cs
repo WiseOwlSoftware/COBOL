@@ -694,7 +694,14 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         var w = ctx.Writer;
         if (rl.FromMove is { } fromMove) move.Emit(fromMove);   // GR4 a) — the BOUND implicit MOVE (PB348)
         string sd = FileKeyExpr(rl.File);
-        string image = seqIo.SentRecordImage(rl.File, rl.Record);   // THE ONE record-area channel (kb/Work PB327; D-WRT1 and PB322 F)
+        // ⛔ A RECORD HOLDING MANAGED SLOTS (a message tag, object reference or pointer — kb/Work PB4772) has no character
+        // image that reads back, so it is sent as its one-way TRANSFER image (the positions the keys are windows over, the
+        // slots' reserved placeholders in their places) BESIDE its leaf vector, which carries the slots themselves.
+        bool carriesSlots = HoldsSlots(rl.Record.Item);
+        string image = carriesSlots
+            ? OperandText.AsStorageImage(rl.Record, "RELEASE record image of", transfer: true)
+            : seqIo.SentRecordImage(rl.File, rl.Record);   // THE ONE record-area channel (kb/Work PB327; D-WRT1 and PB322 F)
+        string? slots = carriesSlots ? PlaceRenderer.GroupLeaves(rl.Record) : null;
         // §13.18.43.4 GR14 b) / GR19 b): a size outside the record range is EC-SORT-MERGE-RELEASE and the RELEASE
         // is unsuccessful — the runtime's test, before the release (kb/Work PB1036).
         var (min, max) = RecordRange(rl.Varying, rl.RecordWidth);
@@ -708,7 +715,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             // The runtime slices the area to it AFTER the range test — an emitted reference modification would
             // raise EC-BOUND-REF-MOD for a value past the area, a condition no RELEASE rule names.
             length = $"(int){PlaceRenderer.CountRead(dep)}";
-            call = RuntimeApi.SortReleaseStatement(sd, image, min, max, length);
+            call = RuntimeApi.SortReleaseStatement(sd, image, min, max, length, slots: slots);
         }
         else
         {
@@ -717,7 +724,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             // variable-length group (D-FRA (v); kb/Work PB1053; the DEPENDING arm above sends a record cut to another
             // length, which no table describes). The STATEMENT entry: §14.9.32.4 GR1's phase test.
             length = "-1";
-            call = RuntimeApi.SortReleaseStatement(sd, image, min, max, extents: OperandText.RecordSendExtents(rl.Record));
+            call = RuntimeApi.SortReleaseStatement(sd, image, min, max, extents: OperandText.RecordSendExtents(rl.Record), slots: slots);
         }
         if (released is null) { w.Line($"{call};"); return; }
         // The statement's own success (it returns whether the record reached the sort file) gates the store.
@@ -725,6 +732,13 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             seqIo.EmitReleasedRecordAlsoAvailable(rl.File, rl.Record, RuntimeApi.FileReleasedRecord(released, length),
                 OperandText.RecordSendExtents(rl.Record));
     }
+
+    /// <summary>Does this SD record GROUP hold a managed-slot leaf (<see cref="SlotWindow.MembersOf"/>) — the question that
+    /// sends a record through the store as its transfer image beside its leaf vector (kb/Work PB4772)? Asked of the slot
+    /// leaves and never of <see cref="DataItem.IsImageCapable"/>, so a group whose image later reads back (the message-tag
+    /// image of DESIGN-message-control §4.4) still carries its slots rather than lose them through a FromImage that skips
+    /// their positions. An ELEMENTARY pointer-class record is out of line and has no image at all (D-FRA), so it is no case.</summary>
+    private static bool HoldsSlots(DataItem record) => record.IsGroup && SlotWindow.MembersOf(record).Any();
 
     /// <summary>The record range the EC-SORT-MERGE-RELEASE tests use (kb/Work PB1036): a variable-length
     /// sort-merge file's smallest and largest record (§13.18.43.4 GR14 / GR19 — integer-2..integer-3 or
@@ -749,7 +763,11 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         using (w.Block($"if ({RuntimeApi.SortReturnStatement(sd, tmp)})"))
         {
             // GR3 — made available in the record area: the returned record IS the current record, at its own length.
-            seqIo.EmitRecordAreaStore(rt.File, rt.RecordArea, tmp, tmp, RuntimeApi.SortLastReturnedExtents(sd));
+            // A record holding managed slots has no character image to distribute: the leaf vector it was released with
+            // (RELEASE above) is the record (kb/Work PB4772) — the tmp image is its one-way placeholder and is not read.
+            if (rt.RecordArea is { } area && HoldsSlots(area.Item))
+                w.Line(PlaceRenderer.WriteGroupLeaves(area, RuntimeApi.SortLastReturnedSlots(sd) + "!"));
+            else seqIo.EmitRecordAreaStore(rt.File, rt.RecordArea, tmp, tmp, RuntimeApi.SortLastReturnedExtents(sd));
             if (rt.Varying is { Depending: { } dep })   // §13.18.43 GR15 — the length restored into DEPENDING
                 arith.StoreArith(dep, new NumX(RuntimeApi.SortLastReturnedLength(sd), 0), CobolRounding.Truncation);
             // GR5 b) — RETURN then MOVE THE CURRENT RECORD → identifier-1, the move BOUND by
@@ -893,7 +911,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             carried ? PlaceRenderer.WriteVarGroupImage(p, value, "SORT table element", formalStorage: true) : PlaceRenderer.Write(p, value);
         w.Line($"var {im} = new {(carried ? RuntimeApi.VarGroupType : "string")}[{n}];");
         w.Line($"for (int {at} = 0; {at} < {n}; {at}++) {im}[{at}] = {ReadElement(At(ts.Table, PositionRenderer.OneBased(at)))};");
-        // An element's pointer-class members ride the area's managed SLOTS, not its bytes (§14.9.3.4 GR9; kb/Work PB231,
+        // An element's pointer-class members ride the area's managed SLOTS, not its bytes (D-SLOT, DOC-A.1-210; kb/Work PB231,
         // PB1922): the image holds only their reserved placeholder positions, so each such member's value is read with
         // its element BEFORE the first write and written back by the same permutation AFTER the images, which
         // would otherwise leave every pointer behind at its old occurrence.

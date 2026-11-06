@@ -2120,9 +2120,11 @@ internal static class RuntimeApi
     /// The implicit USING release (§14.9.40.4 GR12 b) renders <see cref="SortRelease"/> instead.
     /// <paramref name="min"/>..<paramref name="max"/> is the record range §13.18.43.4 GR14 / GR19 test,
     /// <paramref name="size"/> the GR13 a) DEPENDING ON value (null: the image's own length, GR13 b)/c)) and
-    /// <paramref name="extents"/> the record's extent table (D-FRA (v); kb/Work PB1053).</summary>
-    public static string SortReleaseStatement(string sd, string image, int min, int max, string? size = null, string? extents = null) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.ReleaseStatement)}({sd}, {image}, {min}, {max}{(size is null ? "" : $", size: {size}")}{(extents is null ? "" : $", extents: {extents}")})";
+    /// <paramref name="extents"/> the record's extent table (D-FRA (v); kb/Work PB1053) and
+    /// <paramref name="slots"/> the leaf vector of a record holding managed slots (kb/Work PB4772).</summary>
+    public static string SortReleaseStatement(string sd, string image, int min, int max, string? size = null, string? extents = null,
+        string? slots = null) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.ReleaseStatement)}({sd}, {image}, {min}, {max}{(size is null ? "" : $", size: {size}")}{(extents is null ? "" : $", extents: {extents}")}{(slots is null ? "" : $", slots: {slots}")})";
 
     /// <summary>The RETURN STATEMENT — <c>CobolSort.ReturnStatement</c> (§14.9.34.4 GR1 + GR3's phase and at-end
     /// tests, then GR3's retrieval). The implicit GIVING return renders <see cref="SortReturn"/> instead.</summary>
@@ -2203,6 +2205,11 @@ internal static class RuntimeApi
     /// (v); kb/Work PB1053).</summary>
     public static string SortLastReturnedExtents(string sd) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.LastReturnedExtents)}({sd})";
+
+    /// <summary>The just-returned record's managed-slot values — <c>CobolSort.LastReturnedSlots</c> (kb/Work PB4772): the
+    /// leaf vector the record was released with, which a record with no character image takes back whole.</summary>
+    public static string SortLastReturnedSlots(string sd) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.LastReturnedSlots)}({sd})";
 
     /// <summary>The short-record right-fill of a SORT/MERGE transfer (§14.9.40.4 GR7 / GR16, §14.9.24.4 GR2 / GR13;
     /// kb/Work PB1140) — <c>CobolSort.FillTo</c>. <paramref name="national"/> is

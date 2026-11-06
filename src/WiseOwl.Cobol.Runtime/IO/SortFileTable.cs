@@ -30,6 +30,9 @@ internal sealed class SortStore(SortMemory memory)
     public int LastReturnedLength;
     /// <summary>The extent table of the most recently RETURNed record — null when it carries none.</summary>
     public RecordExtents? LastReturnedExtents;
+    /// <summary>The managed-slot values of the most recently RETURNed record (<see cref="StoredFrame.Carried"/>) — null
+    /// when it holds none.</summary>
+    public object?[]? LastReturnedSlots;
     /// <summary>Which procedure of the executing SORT/MERGE statement is running — the state §14.9.32.4 GR1
     /// ("within the range of an input procedure being executed by a SORT statement that references the
     /// file-name") and §14.9.34.4 GR1 ("within the range of an output procedure being executed by a MERGE or

@@ -35,10 +35,11 @@ internal sealed class SortLayouts
 /// the file when it closes. The file is private to this process and this statement, so its record format is this
 /// class's alone and no file coded character set applies:
 /// <code>
-///   int32   character count n
+///   int32   character count n; its sign bit says the record carries managed slots (a ticket follows the head)
 ///   int32   extent component count k, or -1 when the record carries no extent table
 ///   int32   layout index (<see cref="SortLayouts"/>), -1 for none          — only when k ≥ 0
 ///   k × 8   per component: fixed-run offset(4), length in characters(4)    — only when k ≥ 0
+///   int32   the managed-slot ticket (<see cref="StoredFrame.Carried"/>)    — only when n's sign bit is set
 ///   2n      the image's UTF-16 code units, unconverted
 /// </code>
 /// The code units are copied as they are, so an image round-trips exactly — HIGH-VALUE U+FFFF, a national item's
@@ -89,10 +90,12 @@ internal sealed class SortRunFile : IDisposable
             }
             string image = frame.Image ?? "";
             RecordExtents? extents = frame.Extents;
-            int headBytes = 8 + (extents is null ? 0 : 4 + (8 * extents.Count));
+            bool carried = frame.Carried != StoredFrame.NotCarried;
+            int tableBytes = extents is null ? 0 : 4 + (8 * extents.Count);
+            int headBytes = 8 + tableBytes + (carried ? 4 : 0);
             if (headBytes > _head.Length) _head = new byte[headBytes];
             Span<byte> head = _head.AsSpan(0, headBytes);
-            BinaryPrimitives.WriteInt32LittleEndian(head, image.Length);
+            BinaryPrimitives.WriteInt32LittleEndian(head, carried ? image.Length | int.MinValue : image.Length);
             BinaryPrimitives.WriteInt32LittleEndian(head[4..], extents?.Count ?? -1);
             if (extents is not null)
             {
@@ -103,6 +106,7 @@ internal sealed class SortRunFile : IDisposable
                     BinaryPrimitives.WriteInt32LittleEndian(head[(16 + (8 * k))..], extents.Lengths[k]);
                 }
             }
+            if (carried) BinaryPrimitives.WriteInt32LittleEndian(head[(8 + tableBytes)..], frame.Carried);
             _fs.Write(head);
             _fs.Write(MemoryMarshal.AsBytes(image.AsSpan()));
             _written++;
@@ -132,7 +136,9 @@ internal sealed class SortRunFile : IDisposable
         {
             Span<byte> head = _head.AsSpan(0, 8);
             _fs.ReadExactly(head);
-            int chars = BinaryPrimitives.ReadInt32LittleEndian(head);
+            int rawChars = BinaryPrimitives.ReadInt32LittleEndian(head);
+            bool carried = rawChars < 0;
+            int chars = rawChars & int.MaxValue;
             int components = BinaryPrimitives.ReadInt32LittleEndian(head[4..]);
             RecordExtents? extents = null;
             if (components >= 0)
@@ -150,8 +156,15 @@ internal sealed class SortRunFile : IDisposable
                 }
                 extents = new RecordExtents(fixedAt, lengths, _layouts.At(BinaryPrimitives.ReadInt32LittleEndian(table)));
             }
+            int ticket = StoredFrame.NotCarried;
+            if (carried)
+            {
+                Span<byte> tail = _head.AsSpan(0, 4);
+                _fs.ReadExactly(tail);
+                ticket = BinaryPrimitives.ReadInt32LittleEndian(tail);
+            }
             string image = string.Create(chars, _fs, static (span, fs) => fs.ReadExactly(MemoryMarshal.AsBytes(span)));
-            frame = new StoredFrame(image, extents);
+            frame = new StoredFrame(image, extents, Carried: ticket);
             _read++;
             return true;
         }

@@ -1210,9 +1210,18 @@ of an unsupported facility.
   other uses); no record is dropped silently. **(e) Two undefined results** this storage settles: a RETURN executed
   before the sequence phase, which only unchecked EC-FLOW-RETURN admits (§14.9.34.4 GR1), finds the file at end; a
   RELEASE executed after it, which only unchecked EC-FLOW-RELEASE admits (§14.9.32.4 GR1), releases to no phase and
-  the record is not returned. Witnesses: `conformance-test:SortWorkSpillConformanceTests` (a SORT and a MERGE many times
-  the limit, run as a separate process, the work directory empty afterwards) and `SortWorkBoundTests` (the measured
-  bound, every key class, the extent table and the character repertoire through a run file).
+  the record is not returned. **(f) A record holding managed slots** (kb/Work PB4772) — a strongly-typed SD record with a
+  message-tag, object-reference or pointer leaf, which has no byte form (D-SLOT, A.1 item 210) — is stored as its one-way
+  transfer image, the positions the keys are windows over, and the slot values themselves stay RESIDENT for the
+  statement's life, one small array per such record (`SortWork._carried`), because a managed reference cannot be written
+  to a run file; the record's frame, which can spill, holds only the index of its array, and RETURN gives the array back
+  with the record (§14.9.32.4 GR2, §14.9.34.4 GR3, GR5 b)). The memory limit of (a) therefore bounds the records' characters
+  and not these arrays. Only the INPUT/OUTPUT PROCEDURE form is admitted; a USING or GIVING file, and every MERGE, over such
+  a record keeps the COBOL1756 deferral, because a file record has no managed-slot half. Witnesses: `conformance-test:SortWorkSpillConformanceTests`
+  (a SORT and a MERGE many times the limit, run as a separate process, the work directory empty afterwards),
+  `SortWorkBoundTests` (the measured bound, every key class, the extent table and the character repertoire through a run
+  file) and `SortManagedSlotTests` (a slot vector follows its record through disk runs, with an extent table, past a refused
+  RELEASE and a failing merge), with `conformance:cases/14.9.40-SORT/sort-sd-record-with-managed-slots`.
 - **D-ADDRNF — a fatal address-resolution condition with checking OFF continues with NULL (§14.6.13.1.3 8);
   §8.4.3.13.4 4); §8.4.3.12.4 4))**: `SET … TO ADDRESS OF PROGRAM` (and `SET … TO ENTRY`) that cannot locate the
   program sets EC-PROGRAM-NOT-FOUND and gives the address-identifier the predefined address NULL (§8.4.3.13.4 4));
