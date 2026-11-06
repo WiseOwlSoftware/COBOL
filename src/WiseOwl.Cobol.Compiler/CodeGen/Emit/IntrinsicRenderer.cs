@@ -173,7 +173,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // no guard-digit count survives a carry (0.95 + 0.05), so the arguments must keep their own digits and the
         // wider carrier must be the one that changes. The question is asked of the arguments' digit BOUNDS
         // (NumX.Digits) so an ordinary list keeps its Int128 body unchanged and only a list that may leave the
-        // carrier moves; an argument whose bound is unknown keeps the escape-checked native arm.
+        // carrier moves; an argument whose bound is unknown (an intrinsic's value) moves it when the alignment shifts any
+        // argument (kb/Work PB4792), as CombineAdditive's exact additive does (PB4752).
         if (IntrinsicCarrierRules.CrossAligningFunctions.Contains(sig.Name) && AlignmentMayLeaveCarrier(ic)
             && RenderDec(ic) is { } wideAligned)
             return wideAligned;
@@ -1155,12 +1156,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     /// <summary>Can aligning this call's arguments to their common scale leave the <see cref="Int128"/> carrier? The rule is
     /// <see cref="IntrinsicCarrierRules.AlignmentMayLeaveCarrier"/> (the ONE reader, which the bind-time lane prediction asks of
-    /// the same facts read from the bound tree); this reads them off the RAW operands: an SDIDI or binary64 operand, or
-    /// one of unknown digit bound (<see cref="NumX.Digits"/> 0), is not provable and answers <c>null</c>.</summary>
+    /// the same facts read from the bound tree); this reads them off the RAW operands: an SDIDI or binary64 operand is not
+    /// provable and answers <c>null</c>; one of unknown digit bound (<see cref="NumX.Digits"/> 0) is stated with that bound, which
+    /// the rule reads as <see cref="IntrinsicCarrierRules.AlignedOperand.Unbounded"/> (kb/Work PB4792).</summary>
     /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand: its carrier flags and its digit bound.</remarks>
     private bool AlignmentMayLeaveCarrier(BoundIntrinsicCall ic) =>
         IntrinsicCarrierRules.AlignmentMayLeaveCarrier(ic.Sig.Name, Operands(ic)
-            .Select((x, i) => x.Dec || x.Real || x.Digits == 0
+            .Select((x, i) => x.Dec || x.Real
                 ? (IntrinsicCarrierRules.AlignedOperand?)null
                 : new IntrinsicCarrierRules.AlignedOperand(x.Digits, x.Scale, ic.Args[i] is BoundFieldOperand { Place: TableAllPlace }))
             .ToList());
