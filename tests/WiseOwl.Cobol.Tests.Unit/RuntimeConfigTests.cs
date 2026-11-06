@@ -39,6 +39,8 @@ public sealed class RuntimeConfigTests
     /// <summary>An identifier-shaped environment name: COBOL_… or WISEOWL_COBOL_… in a string literal. Also matches the
     /// switch family's bare prefix <c>"COBOL_"</c>.</summary>
     private static readonly Regex NameLiteral = new("\"((?:WISEOWL_)?COBOL_[A-Z0-9_]*)\"", RegexOptions.Compiled);
+    /// <summary>Whether a registered name is one of the runtime's own knobs (spelled <c>COBOL_*</c>) and not an operating-system variable it reads.</summary>
+    private static bool IsCobolKnobName(string name) => NameLiteral.IsMatch($"\"{name}\"");
 
     private static readonly Regex EnvRead = new(@"Environment\.GetEnvironmentVariable\(", RegexOptions.Compiled);
 
@@ -125,7 +127,7 @@ public sealed class RuntimeConfigTests
         Assert.True(offenders.Count == 0,
             "an environment-variable name literal in the runtime is not a registered entry (or a constant is spelled twice — reference the declaring constant instead):\n  " + string.Join("\n  ", offenders));
         // The scan is not vacuous: it saw every registered name.
-        foreach (string name in names) Assert.Contains(name, seen);
+        foreach (string name in names.Where(IsCobolKnobName)) Assert.Contains(name, seen);   // an operating-system variable the runtime reads (XDG_RUNTIME_DIR) has no COBOL_ spelling to scan for
         Assert.Contains(SwitchStore.Prefix, seen);
     }
 
@@ -161,7 +163,7 @@ public sealed class RuntimeConfigTests
                 if (!names.Contains(value)) offenders.Add($"{type.FullName}.{f.Name} = \"{value}\"");
             }
         }
-        Assert.True(found >= names.Count, $"the metadata scan saw {found} environment-name constants for {names.Count} registered names — the scan is broken, not the registry");
+        Assert.True(found >= names.Count(IsCobolKnobName), $"the metadata scan saw {found} environment-name constants for {names.Count(IsCobolKnobName)} registered COBOL knobs — the scan is broken, not the registry");
         Assert.True(offenders.Count == 0, "a runtime constant names an environment variable the registry does not list:\n  " + string.Join("\n  ", offenders));
     }
 

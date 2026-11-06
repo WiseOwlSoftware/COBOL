@@ -28,6 +28,9 @@ internal sealed class McsSocketDirectory
     /// <summary>The 2023 facility's longest entry under <c>&lt;S&gt;</c>: <c>p/</c> (2), <c>&lt;N&gt;/</c> (at most 15) and <c>&lt;r&gt;</c> (16) (§5.1).</summary>
     internal const int LongestEntryBytes = 33;
 
+    /// <summary>The freedesktop variable that names a Unix user's runtime directory, the preferred base of <c>&lt;S&gt;</c>.</summary>
+    internal const string RuntimeDirectoryVariable = "XDG_RUNTIME_DIR";
+
     private const string UnixFolder = "wiseowl-mcs-", WindowsFolder = "wiseowl-mcs";
 
     private McsSocketDirectory(string path) => Path = path;
@@ -55,7 +58,7 @@ internal sealed class McsSocketDirectory
             string windows = System.IO.Path.GetTempPath() + WindowsFolder + "\\" + identity + "\\";
             return new McsSocketDirectory(Create(windows));
         }
-        string? runtime = Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR");
+        string? runtime = Environment.GetEnvironmentVariable(RuntimeDirectoryVariable);
         uint uid = EffectiveUserId();
         string path = UnixDirectory(runtime is not null && Directory.Exists(runtime) ? runtime : null, uid, identity);
         return new McsSocketDirectory(Create(path));
