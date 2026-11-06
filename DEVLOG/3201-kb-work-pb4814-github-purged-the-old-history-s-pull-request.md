@@ -1,0 +1,4 @@
+## Entry 3201 — 2026-11-06 10:55 PST — kb/Work PB4814: GitHub purged the old history's pull-request refs
+
+GitHub Support (ticket 4960799) removed the refs of all 1,224 pull requests that still reached the pre-rewrite commits, and at 12:52 UTC on 2026-11-06 it reported the cleanup complete. Verified here: all 37 old SHAs named in the request answer the commits API with "No commit found", the github.com commit page tested returns 404, and the rewritten commits resolve. A scan of every pull request's title and body and of every issue and comment, using `verify_publishable.py`'s stamp patterns, found no personal data; its one match is PR #1223's description of the check itself. PB4814 is landed.
+
