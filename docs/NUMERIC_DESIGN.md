@@ -1299,8 +1299,10 @@ clause text and fails if a new member is silently exempted.
    wrapped product. The same bound drives `IntrinsicCarrierRules.AlignmentMayLeaveCarrier` (the one reader, in `compiler.bound`; the renderer and the bind-time lane prediction both ask it): SUM / RANGE / MEDIAN /
    MIDRANGE align every argument to the list's maximum scale, and when the SUM of the magnitudes the function adds (each
    bounded by its aligned digits: every argument for SUM, the two largest for RANGE, ×10 for MEDIAN / MIDRANGE)
-   passes `Int128.MaxValue` the call goes to its SDIDI body (`SumDec` …) instead of raising for a value the receiver
-   holds — its 34 NEAREST-rounded digits are §15.4.1's implementor-defined approximation, not an exact value
+   passes `Int128.MaxValue` the call is evaluated on the exact family's WHOLE value under native arithmetic (`SumWhole` …: the arguments' exact values, the value
+   returned unrounded for the receiver to round ONCE — kb/Work PB4826: `SUM (A B) ROUNDED` of a 26-digit `A` and `.004999999` stores `.00` as `A + B` does, where
+   the SDIDI body's 34 digits stored `.01`), and on its SDIDI body (`SumDec` …) under a standard mode, where the 34-digit SDIDI value IS the value (§15.4.1 1)),
+   instead of raising for a value the receiver holds
    (`9(29)` beside `V9(9)` sums to 1.0000000010e38, which the carrier holds, and is NOT routed). An argument of UNKNOWN bound (an
    intrinsic's value) beside an argument the alignment shifts is bounded by its carrier's 39 digits, past the `Int128`'s 38, so
    the list is routed too, as `CombineAdditive`'s exact additive takes the same operands (kb/Work PB4752, PB4792); with no shift
