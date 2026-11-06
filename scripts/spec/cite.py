@@ -188,7 +188,7 @@ def self_test() -> int:
         planted = pathlib.Path(td)
         planted_md = spec_pdf.markdown(2002, planted)
         planted_md.parent.mkdir()
-        planted_md.write_text("## 9.9 Planted\n\nthe planted sentence\n", encoding="utf-8")
+        planted_md.write_text("## 9.9 Planted\n\nthe planted sentence\n", encoding="utf-8", newline="\n")
         edition_2002 = check(*load(2002, planted), "9.9", "the planted sentence")[0]
         try:
             load(1985, planted)
