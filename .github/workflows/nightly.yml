@@ -129,9 +129,9 @@ jobs:
       # tzdata package; actions/setup-python's interpreter carries no packages. PyYAML: tooling_check.py's self-test proves
       # every agent role and skill definition LOADS by parsing its frontmatter (kb/Work PB3097). Both pinned to the local
       # hosts' versions, as build-and-test.yml's `audits` and `windows-self-tests` jobs do.
-      - name: Python packages for the script self-tests (tzdata, pyyaml, pinned)
+      - name: Python packages for the script self-tests (tzdata, pyyaml, numpy, pinned)
         shell: bash
-        run: python -m pip install --disable-pip-version-check --no-input tzdata==2026.4 pyyaml==6.0.3
+        run: python -m pip install --disable-pip-version-check --no-input tzdata==2026.4 pyyaml==6.0.3 numpy==2.5.4
       - name: Script self-tests (self_tests.py)
         shell: bash
         run: python scripts/self_tests.py
