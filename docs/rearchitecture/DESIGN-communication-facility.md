@@ -1,8 +1,8 @@
 # The communication facility (COBOL-85 and COBOL-2002)
 
 Status: §1 to §5 IMPLEMENTED (kb/Work PB4677, owner decision 12 of PB4614, 2026-11-04). §6's message control system DESIGNED on the
-runtime's paged store and a socket bell (owner decision of 2026-11-04 on the PB4700 transports); §8 designs the engine entry it needs and
-§9 orders the slices that build both (kb/Work PB4734-PB4738). WiseOwl COBOL implements the facility at COBOL-85 and 2002, so the per-edition suites can witness
+runtime's paged store and a socket bell (owner decision of 2026-11-04 on the PB4700 transports); §8 (the engine entry it needs) is IMPLEMENTED as slice 1 (kb/Work PB4734; DESIGN-runtime-library.md 2.2.1.19), and
+§9 orders the slices that build the rest (kb/Work PB4735-PB4738). WiseOwl COBOL implements the facility at COBOL-85 and 2002, so the per-edition suites can witness
 it and NIST-85's CM module runs.
 
 The authority is ISO/IEC 1989:2002 Annex A (Communications facility), with E.5 as its concepts section, read from the 2002 post-ballot text
@@ -365,7 +365,7 @@ FD and no transactions. What it needs from the engine, and the shape that gives 
 
 | Need | Where the engine stands | The change |
 |---|---|---|
-| A statement that edits trees in memory and lands them as one page statement | `KeyedStore.Change` does it, interleaved with the UNDO and HOLDINGS work of commit control, and is `private protected` to `KeyedStore` | Move the transaction-free core into `Store/StoreStatement.cs`: `TreeChange` and `Edit` move with it, and its `Complete(PagedFile file, IReadOnlyList<TreeChange> trees, ...)` sizes the statement (`StatementBound.Of`), begins it (`PagedFile.Begin`), flushes every tree, sets every root, completes it with page 2 last, and discards every pending edit on any refusal. `KeyedStore.Change` keeps its transaction steps (the draw, `Holdings`, the give-back) and calls the core for the rest. One sequence for both clients. |
+| A statement that edits trees in memory and lands them as one page statement | `KeyedStore.Change` does it, interleaved with the UNDO and HOLDINGS work of commit control, and is `private protected` to `KeyedStore` | Move the transaction-free core into `Store/StatementLanding.cs` (the name is not `StoreStatement`, the connector's mutex hold): `TreeChange` and `Edit` move with it, and its `Complete(PagedFile file, IReadOnlyList<TreeChange> trees, ...)` sizes the statement (`StatementBound.Of`), begins it (`PagedFile.Begin`), flushes every tree, sets every root, completes it with page 2 last, and discards every pending edit on any refusal. `KeyedStore.Change` keeps its transaction steps (the draw, `Holdings`, the give-back) and calls the core for the rest. One sequence for both clients. |
 | A store that is not a file of §9.1.6's organizations | `MetaPage` encodes the organization byte as `R` or `I`, decodes nothing else, and `PagedFile.Create` takes `FixedFileAttributes`, whose `Organization` carries exactly §9.1.6's three values | The meta page's organization byte becomes the store's KIND: `R`, `I` and `M`, the message store. `PagedFile.Create` and `Open` take a `StoreKind` with the attributes it has: a file kind carries its `FixedFileAttributes`, the message store none. `MetaPage` carries the `StoreKind` in place of its `FixedFileAttributes`. An `M` page writes, at the offsets a file's page uses: the organization byte (offset 40) `M`, the record-type byte (41) `F`, the minimum (42) and maximum (46) record sizes 0, and the key count (50) 0, so it has no key descriptors and no alternate roots; every other field is written as for a file. `MetaPage.Decode` gains one branch: organization `M` with record type `F`, both sizes 0 and key count 0 decodes as the message store, and `M` with any other value in those four fields is a slot that does not validate (null), as an unknown organization byte is today. `MetaPage.Describes` answers `StoreFormat.Foreign` for a committed `M` slot, so a COBOL OPEN answers '39' (§14.9.27.4 GR10's conflict), never a misread. `PagedFile.Open` for the message store refuses a committed `R` or `I` slot (a keyed file someone put at `mcs.store`), and the MCS answers it with 92 until `cobol mcs reset`. `FixedFileAttributes` keeps its three organizations. No format version change: a build before this one decodes an `M` slot as no slot, finds the magic, and answers '30' (`StoreFormat.Damaged`), and nothing reads an older build's files differently. |
 | One medium seam for both clients' fault-injecting tests | `KeyedStore.MediumObserver`, an `AsyncLocal` on `KeyedStore` | Move it to `Store/PageMediumObserver`, read by `KeyedStore`'s constructor and by `McsStore`'s, so `DyingPageMedium` and the refusing medium reach both through one seam. Every reference moves with it, the test fixtures' included (§8 "Size"); no alias of the old name stays. |
 | A new `PagedFile` over a handle whose last one was refused | `PagedFile` is opened once per connector OPEN; after a refusal the connector stays in permanent error until CLOSE | Nothing new: the MCS's in-hold reopen (§6 "Status 92 takes no action") is `PagedFile.Open` over the same `HandlePageMedium`, which runs the adoption rule (2.2.1.6 R6) as an OPEN does. The session compares the adopted page 2's generation with the one the refused statement stamped; a new engine test asserts that they are equal exactly when the statement landed, at every refusal point of 2.2.1.16. |
@@ -378,7 +378,7 @@ ordinals (it passes none), alternate trees, the TRANSACTIONS and HOLDINGS trees,
 (2.2.1.6 R2, R5) inside `PagedFile.Begin`, and `PagedFile.Close` at the session's end.
 
 **Size.** The estimate, from the code read: about 200 lines change in `IO/Store`, `IO/KeyedStore.cs` and `IO/Sharing/HostRegionLocks.cs`.
-About 90 of them move out of `KeyedStore.Change` into `StoreStatement`; `MetaPage` and `PagedFile` gain about 50 for the kind; the
+About 90 of them move out of `KeyedStore.Change` into `StatementLanding`; `MetaPage` and `PagedFile` gain about 50 for the kind; the
 mutex's result and the presence byte touch about 15 lines at three call sites (`HostRegionLocks.cs`, `KeyedConnector.cs`,
 `KeyedConnector.DeadOwners.cs`). The seam move is larger than either: on origin/main (485c15326) `MediumObserver` appears on 152 lines
 in 19 files: 3 lines in 2 `src` files (`KeyedStore.cs`, `RunUnitFileLock.cs`) and 149 in 17 test files, `CommitRollbackRuntimeTests` (38),
@@ -395,7 +395,7 @@ lines: the codecs, the tag tables, open and seed, the statement, the devices.
 
 Ordered; each lands alone with its doc changes, goldens and tests, and is one kb/Work note.
 
-1. (kb/Work PB4734) **The engine's statement entry (§8).** `StoreStatement`, the store kind, `PageMediumObserver`, `HoldStoreMutex`'s result,
+1. (kb/Work PB4734) **The engine's statement entry (§8).** `StatementLanding`, the store kind, `PageMediumObserver`, `HoldStoreMutex`'s result,
    `McsPresenceByte`, and the subsection of DESIGN-runtime-library.md §2.2.1, with the seam's rename through the 17 test files that
    use it. Behaviour-neutral for keyed files. About 350 lines, 150 of them the rename.
 2. (kb/Work PB4735) **The shared resolutions and frame.** `McsDirectory`, `McsSocketDirectory` and `McsFrame` as DESIGN-message-control.md §6 defines them,

@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// 2.2.1.17, in docs/rearchitecture; kb/Work PB3337, the rows <c>PendingStoreCases</c> held for the transaction slice).
 /// <para>Every run unit is a real <see cref="FileRegistry"/> with real handles on one real host file — its file lock, its
 /// region locks, the store mutex and the transactions' liveness bytes are the host's — while its PAGES go through
-/// <see cref="KeyedStore.MediumObserver"/> to one shared <see cref="MemoryPageMedium"/>, the deterministic fault-injecting
+/// <see cref="PageMediumObserver"/> to one shared <see cref="MemoryPageMedium"/>, the deterministic fault-injecting
 /// medium of 2.2.1.12, so a power loss can lose every write no sync made durable. Over each run unit's handle on it sit a
 /// <see cref="DyingPageMedium"/> (the run unit dies after its n-th write: what it handed over stays, nothing after it
 /// reaches the medium) and a <see cref="RefusingPageMedium"/> whose seam counts every read, write and sync (refusing the
@@ -118,7 +118,7 @@ public sealed class TransactionFaultMatrixTests
             var dying = new DyingPageMedium(handle);
             var u = into ?? new Unit(org);
             u.Media.Add(dying);
-            KeyedStore.MediumObserver.Value = _ => new RefusingPageMedium(dying,
+            PageMediumObserver.Value = _ => new RefusingPageMedium(dying,
                 write: p => u.Seam($"W{p}"), sync: () => u.Seam("S"), read: p => u.Seam($"R{p}"));
             try
             {
@@ -135,7 +135,7 @@ public sealed class TransactionFaultMatrixTests
                 if (commit) u.Reg.RegisterCommitControl(name);
                 u.Reg.OpenStatic(name, mode);
             }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", u.Reg.Status(name));
             if (into is null) _units.Add(u);
             return u;

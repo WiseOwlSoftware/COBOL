@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// <see cref="MemoryPageMedium"/> keeps every version of every page, which the crash cases need and a load of this size
 /// cannot afford (gigabytes); this medium keeps only what a reader sees. Every run
 /// unit's store on the file reads and writes it through its own <see cref="View"/>
-/// (<c>KeyedStore.MediumObserver</c> hands each store one), so a second run unit's OPEN sees exactly the pages the first left: the
+/// (<c>PageMediumObserver</c> hands each store one), so a second run unit's OPEN sees exactly the pages the first left: the
 /// FILE is the truth across run units (2.2.1.7). The host file the connectors open still carries their handles and locks;
 /// only the pages live here.</summary>
 internal sealed class PageArrayMedium

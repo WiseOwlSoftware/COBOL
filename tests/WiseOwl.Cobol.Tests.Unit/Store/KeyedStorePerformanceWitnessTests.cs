@@ -130,9 +130,9 @@ public abstract class KeyedStorePerformanceWitnessTests
             Register(reg, name);
             if (commit) reg.RegisterCommitControl(name);
             PageArrayMedium.View? view = null;
-            KeyedStore.MediumObserver.Value = _ => view = Pages.Open();
+            PageMediumObserver.Value = _ => view = Pages.Open();
             try { reg.OpenStatic(name, mode); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", reg.Status(name));
             return (reg, view!);
         }
