@@ -1,0 +1,4 @@
+## Entry 3218 — 2026-11-06 15:26 PST — kb/Work PB4854-PB4875: the leads of waves 20261884 and 20261885
+
+The enqueue clerk filed 22 new kb/Work notes, PB4854 to PB4875, from the review leads of the wave-20261884 and wave-20261885 reports: five on the debugging facility (PB4810's branch), two on MEDIAN and intrinsics, one comment sweep, three on the communication store and its test, one on PERFORM VARYING, two on messaging, one on message-tag diagnostics below 2023, one duplicate reader, five on the spec tools and one on the progress report. One note was appended to rather than added: PB4811 gained the sentence that it should reuse `DebugTriggerEmitter` and `DebugWhen`. PB4876 to PB4883 stayed unused. No lead was dropped as already landed; the reports' fixed leads and h R1-2 (a landed entry's omission) were not filed, as the brief said. Each note states what its report did not probe, and none claims an inventory row.
+
