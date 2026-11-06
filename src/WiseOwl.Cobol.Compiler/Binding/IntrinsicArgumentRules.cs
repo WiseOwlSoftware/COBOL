@@ -1656,18 +1656,33 @@ internal static class IntrinsicArgumentRules
     /// data item and sit in the screen facility (A.4.2), which docs/CONFORMANCE.md marks not claimed (kb/Work PB260).</para>
     /// </summary>
     public static string? UnsignedIntegerViolation(BoundOperand op) =>
-        op is BoundComputedOperand { Expr: BoundIntrinsicCall ic }
-            ? ic.ResultType switch
-            {
-                IntrinsicType.Numeric =>
-                    $"is FUNCTION {ic.Sig.Name}, a numeric function, which ISO §8.4.3.2.3 SR11 bars from an integer "
-                    + "operand position and so from one that requires an unsigned integer",
-                IntrinsicType.Integer when !CobolNames.Same(ic.Sig.Name, "ABS") =>
-                    $"is FUNCTION {ic.Sig.Name}, an integer function, which ISO §8.4.3.2.3 SR12 bars (all but the "
-                    + "integer form of FUNCTION ABS) from a position that requires an unsigned integer",
-                _ => null,
-            }
-            : null;
+        NumericFunctionResult(op) is not var (name, type) ? null
+        : type switch
+        {
+            IntrinsicType.Numeric =>
+                $"is FUNCTION {name}, a numeric function, which ISO §8.4.3.2.3 SR11 bars from an integer "
+                + "operand position and so from one that requires an unsigned integer",
+            IntrinsicType.Integer when !CobolNames.Same(name, "ABS") =>
+                $"is FUNCTION {name}, an integer function, which ISO §8.4.3.2.3 SR12 bars (all but the "
+                + "integer form of FUNCTION ABS) from a position that requires an unsigned integer",
+            _ => null,
+        };
+
+    /// <summary>⛔ THE ONE READER OF "THIS OPERAND IS A NUMERIC FUNCTION-IDENTIFIER, AND OF WHAT §15.2 TYPE" (kb/Work PB4830): a
+    /// function-identifier reaches an operand position in THREE trees, and a screen that read one let the others through. The
+    /// unfolded call is a <see cref="BoundComputedOperand"/> over a <see cref="BoundIntrinsicCall"/> (its resolved type);
+    /// a result the binder folded (<c>FUNCTION LENGTH</c> of a fixed item or a literal) is a <see cref="BoundNumericLiteral"/>
+    /// carrying <see cref="BoundNumericLiteral.FunctionType"/> and its function's name; and the run-time <c>LENGTH</c> /
+    /// <c>BYTE-LENGTH</c> of a variable-length group is the binder's <see cref="BoundBinary"/> sum marked
+    /// <see cref="BoundComputedOperand.FunctionValue"/> (an INTEGER function's value, §15.50.4 / §15.14.4 — the same reading
+    /// <c>IsIntegerOperand</c> makes). Null for every other operand, and for a function of a string class.</summary>
+    public static (string Name, IntrinsicType Type)? NumericFunctionResult(BoundOperand op) => op switch
+    {
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } ic } => (ic.Sig.Name, ic.ResultType),
+        BoundNumericLiteral { FunctionValue: true, FunctionType: { } type, FoldedFunction: { } name } => (name, type),
+        BoundComputedOperand { FunctionValue: true, Expr: BoundBinary } => ("LENGTH or BYTE-LENGTH of a variable-length group", IntrinsicType.Integer),
+        _ => null,
+    };
 
     /// <summary>The provably-not-always-integral screen for §15.3 type 6's expression alternative (kb/Work
     /// PB124). Returns the violation text, or null to FAIL OPEN — see the arm's comment for the soundness

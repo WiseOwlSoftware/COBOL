@@ -469,17 +469,16 @@ public sealed class IntrinsicFunctionDifferentialTests
     }
 
     [Fact]
-    public void Concat_AdmitsNumericLiterals_AndFoldedNumericFunctions_2023()
+    public void Concat_AdmitsNumericLiterals_2023()
     {
         // PB59 / RV-15.18.4-1 — §15.18.3 r1 lists class NUMERIC: a numeric literal concatenates as its own
-        // characters (§15.18.4 r1), and a FOLDED nested numeric function (FUNCTION LENGTH of a fixed item
-        // becomes a BoundNumericLiteral through IntrinsicBinder.OperandOf) reaches the same admitting arm —
-        // both shapes used to compile clean and abort at run time.
+        // characters (§15.18.4 r1); it used to compile clean and abort at run time. A FOLDED nested LENGTH is no
+        // such literal: an integer function, barred from this unsigned-integer position by §8.4.3.2.3 SR12
+        // (kb/Work PB4830; conformance-suite pb4830-concat-folded-length-unsigned-position).
         AssertSpec(Program(
-            "01 A PIC X(3) VALUE \"AB\".\n           01 B PIC X(2) VALUE \"CD\".\n           01 R PIC X(8).",
-            "    MOVE FUNCTION CONCAT(A, 12) TO R.\n    DISPLAY R.\n"
-            + "    MOVE FUNCTION CONCAT(A, FUNCTION LENGTH(B)) TO R.\n    DISPLAY R.", "IFCATN"),
-            "AB 12\nAB 2", 2023);
+            "01 A PIC X(3) VALUE \"AB\".\n           01 R PIC X(8).",
+            "    MOVE FUNCTION CONCAT(A, 12) TO R.\n    DISPLAY R.", "IFCATN"),
+            "AB 12", 2023);
     }
 
     [Theory]

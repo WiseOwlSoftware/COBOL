@@ -811,14 +811,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + $" ({FormatRuleCitation(sig.Name)}).");
         }
 
-        // FUNCTION LENGTH folds at compile time from PIC metadata (§15.50; deep-dive D7).
-        if (sig.Bind == IntrinsicBind.Fold && sig.Name == "LENGTH")
-            return Folded(sig, args, BindLengthFold(sig, args));
-
-        // FUNCTION BYTE-LENGTH folds at compile time from the item's declared BYTE geometry (§15.14; the D7
-        // byte-vs-position twin of LENGTH).
-        if (sig.Bind == IntrinsicBind.Fold && sig.Name == "BYTE-LENGTH")
-            return Folded(sig, args, BindByteLengthFold(sig, args));
+        // FUNCTION LENGTH (§15.50; deep-dive D7) and BYTE-LENGTH (§15.14) fold at compile time in BindLengthFamily, which returns
+        // before this point; the algebraic family folds below.
 
         // SMALLEST/HIGHEST/LOWEST-ALGEBRAIC fold at compile time from the argument item's PICTURE metadata
         // (§15.83/§15.43/§15.58; the same Fold discipline as LENGTH).
@@ -1725,13 +1719,15 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             bool bad = args[0] switch
             {
+                // A nested NUMERIC function, in whichever tree it arrives (kb/Work PB1420, PB4830): §8.4.3.2.3 SR11/SR12 bar it, and
+                // every integer function but the integer form of ABS, from a position that requires an unsigned integer. FIRST, so a
+                // folded LENGTH is judged as the function it is, never as the plain literal its text looks like.
+                _ when IntrinsicArgumentRules.NumericFunctionResult(args[0]) is not null =>
+                    IntrinsicArgumentRules.UnsignedIntegerViolation(args[0]) is not null,
                 BoundFieldOperand f0 => f0.Place.Item.Pic is { } p0
                     && (p0.Category is PicCategory.NumericEdited || p0.Signed || p0.Scale > 0 || p0.IsFloat),
                 BoundNumericLiteral nl0 => nl0.Text.Contains('.') || nl0.Text.Contains(',')
                     || nl0.Text.StartsWith('-'),
-                // A nested NUMERIC function (kb/Work PB1420): §8.4.3.2.3 SR11/SR12 bar it, and every integer
-                // function but the integer form of ABS, from a position that requires an unsigned integer.
-                BoundComputedOperand => IntrinsicArgumentRules.UnsignedIntegerViolation(args[0]) is not null,
                 _ => false,   // other computed results — the runtime digit screen owns their content
             };
             if (bad)
@@ -2072,7 +2068,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // argument, and §8.4.3.2.3 SR11/SR12 bar every numeric function and every integer function but the
             // integer form of ABS from a position that requires an unsigned integer. The ABS form is legal and
             // renders as its digits (IntrinsicRenderer.StrArgVisitor's numeric-function arm).
-            if (a is BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } })
+            if (IntrinsicArgumentRules.NumericFunctionResult(a) is not null)
             {
                 if (IntrinsicArgumentRules.UnsignedIntegerViolation(a) is { } fnWhy)
                     report($"FUNCTION CONCAT argument-{i + 1} {fnWhy}; ISO §15.18.3 r3 requires a numeric argument "
@@ -2430,7 +2426,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "does not admit as a type-declaration argument");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} type argument");
             }
-            return new BoundNumLiteral((isByte ? typeArg.ByteWidth : ItemLength.Positions(typeArg)).ToString());
+            return Folded(sig, operands, new BoundNumLiteral((isByte ? typeArg.ByteWidth : ItemLength.Positions(typeArg)).ToString()));
         }
         // ⛔ THE §15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
         // (fix-queue PB12). CheckArgumentClasses sits after arity on the generic path and its comment
@@ -2439,7 +2435,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // binder's own arity check, exactly as the generic path orders it.
         CheckArgumentClasses(sig, operands);
         _ = physical;   // §15.50.4 r8 / §15.14.4 r7 — see the remarks: transparent under this implementation's determination.
-        return isByte ? BindByteLengthFold(sig, operands) : BindLengthFold(sig, operands);
+        // ⛔ THROUGH Folded, LIKE EVERY FOLD (kb/Work PB4830): a folded literal carries its function's §15.2 type and name, which the
+        // function-identifier screens (IntrinsicArgumentRules.NumericFunctionResult, §8.4.3.2.3 SR11/SR12) read. This binder returns
+        // before the generic path's LENGTH / BYTE-LENGTH arms, which were therefore never reached and are gone.
+        return Folded(sig, operands, isByte ? BindByteLengthFold(sig, operands) : BindLengthFold(sig, operands));
     }
 
     /// <summary>Does this group have a DYNAMIC LENGTH elementary item somewhere beneath it? (§15.50.4 r7b.)

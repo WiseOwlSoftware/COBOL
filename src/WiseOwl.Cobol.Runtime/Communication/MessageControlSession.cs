@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Runtime.Communication;
 /// </summary>
 /// <param name="store">The store; null opens the one the run unit's environment names, at the first statement.</param>
 /// <param name="awaitData">What a RECEIVE that found no data does before it asks again (A.2.5.3 GR5 b); null is the polling interval.</param>
-internal sealed class MessageControlSession(MessageStore? store = null, Action? awaitData = null)
+internal sealed class MessageControlSession(MessageStore? store = null, Action? awaitData = null) : IDisposable
 {
     /// <summary>The status key values of Table A.1 this implementation reports.</summary>
     private const string Ok = "00", Disabled = "10", AlreadySet = "15", Unknown = "20", UnknownSource = "21", BadCount = "30",
@@ -26,6 +26,9 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
     private Dialogue _dialogue = new();
 
     private MessageStore Store => store ??= MessageStore.Open();
+
+    /// <summary>The end of the run unit (<c>RunUnit.Terminate</c>): the store's handle, endpoint and presence byte given back. Idempotent; a store never opened is nothing to close.</summary>
+    public void Dispose() => store?.Dispose();
 
     /// <summary>One statement over one area: the action's area and dialogue become the run unit's only when the store committed. A refused statement
     /// answers the area it was handed with only the status key changed.</summary>
@@ -59,24 +62,23 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
             {
                 case CommunicationPath.Input:
                     return state.FindQueue(area.QueuePath()) is { } queue
-                        ? SetOne(queue, key, enable, state)
+                        ? SetOne(queue, key, enable)
                         : Unknown;
                 case CommunicationPath.InputTerminal:
-                    return state.FindSource(area.SourceName(format)) is { } source ? SetOne(source, key, enable, state) : UnknownSource;
+                    return state.FindSource(area.SourceName(format)) is { } source ? SetOne(source, key, enable) : UnknownSource;
                 case CommunicationPath.InputOutputTerminal:
                     if (dialogue.LockedTerminalChanged(cd, area, format)) return UnknownSource;
-                    return state.FindTerminal(area.SourceName(format)) is { } terminal ? SetOne(terminal, key, enable, state) : UnknownSource;
+                    return state.FindTerminal(area.SourceName(format)) is { } terminal ? SetOne(terminal, key, enable) : UnknownSource;
                 default:
                     return SetOutput(area, key, enable, state);
             }
         }).Area;
 
-    private static string SetOne(IMessageEndpoint endpoint, string? key, bool enable, MessageStoreState state)
+    private static string SetOne(IMessageEndpoint endpoint, string? key, bool enable)
     {
         if (!endpoint.Admits(key)) return BadKey;
         if (endpoint.Enabled == enable) return AlreadySet;
         endpoint.Enabled = enable;
-        state.Touch();
         return Ok;
     }
 
@@ -104,7 +106,6 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
             else
             {
                 destination.Enabled = enable;
-                state.Touch();
             }
             area.SetErrorKey(i, errorKey);
         }
@@ -188,7 +189,7 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
                 errorKey = '1';
                 unknown = true;
             }
-            else if (dialogue.Release(DestinationKey(name), portion, indicator) is { } message && !destination.TryEnqueue(message, state))
+            else if (dialogue.Release(DestinationKey(name), portion, indicator) is { } message && !destination.TryEnqueue(message))
             {
                 errorKey = '6';
                 full = true;
