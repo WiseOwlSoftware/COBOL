@@ -2331,7 +2331,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <item>INDEX (item 6): a class-index item (§8.5.2.8 item 2), whose length is the index carrier's — the same
     /// <see cref="PicInfo.IndexItem"/> a USAGE INDEX data item has.</item>
     /// </list></summary>
-    /// <remarks>The argument is a <see cref="BoundComputedOperand"/> over the call, or the literal the binder FOLDED a
+    /// <remarks>The argument is a <see cref="BoundComputedOperand"/> over the call (or over the <see cref="BoundBinary"/> sum of a
+    /// variable-length group's LENGTH, kb/Work PB4764), or the literal the binder FOLDED a
     /// constant function to (<see cref="BoundNumericLiteral.FunctionValue"/> — <c>FUNCTION LENGTH(FUNCTION LENGTH(X))</c>);
     /// the fold's value is an integer or numeric one, so it takes the numeric arm: a folded literal is the numeric
     /// literal's own field (<c>FunctionDeviceText.Field</c>).</remarks>

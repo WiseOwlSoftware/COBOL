@@ -884,7 +884,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     {
         // A function-identifier folded at bind time (BoundNumericLiteral { FunctionValue: true }) is the same function value.
         AlgebraicRange? described = (op as BoundComputedOperand) is { } computed && AlgebraicRanges.OfCounterRegister(computed.Expr) is { } register ? register
-            : op is BoundComputedOperand { Expr: BoundIntrinsicCall } or BoundNumericLiteral { FunctionValue: true }
+            : op is BoundComputedOperand { Expr: BoundIntrinsicCall } or BoundComputedOperand { FunctionValue: true, Expr: BoundBinary }
+                    or BoundNumericLiteral { FunctionValue: true }
                 ? AlgebraicRanges.OfFunctionReturnedValue(IntrinsicResultType.IsIntegerOperand(op), v.Dec)
                 : null;
         if (described is not { } range || range.Nearest is null)
