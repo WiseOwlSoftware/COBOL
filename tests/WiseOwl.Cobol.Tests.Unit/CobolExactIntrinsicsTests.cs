@@ -114,6 +114,24 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Equal((int)(BigInteger.Remainder(P, 7) + 7) % 7, (int)CobolIntrinsics.ModExact(Away, Wide(P), Fixed(7)).Sig);
     }
 
+    /// <summary>⛔ The WHOLE bodies keep every digit of the value (kb/Work PB4792, review R1-1): 10000 + .9999999999999999999999999999999 is a
+    /// 36-digit sum, which the 34-digit SDIDI rounds up to 10001; the whole value is 10000.9999999999999999999999999999999. Expected
+    /// values are Python Decimal arithmetic.</summary>
+    [Fact]
+    public void TheWholeBodies_KeepEveryDigitTheRoundedBodiesCut()
+    {
+        string nines = new('9', 31);
+        CobolExact a = Fixed(10000), h = CobolExact.From(Int128.Parse(nines, CultureInfo.InvariantCulture), 31);
+        CobolDec Of(string digits, int scale) => CobolExact.From(Int128.Parse(digits, CultureInfo.InvariantCulture), scale).Image;
+        CobolDec sum = Of("10000" + nines, 31);
+        Assert.Equal(0, CobolDec.Compare(sum, CobolIntrinsics.SumWhole(a, h).Image));
+        Assert.True(CobolDec.Compare(CobolIntrinsics.SumExact(Away, a, h), sum) > 0);   // the rounded body is the 34-digit image, 10001
+        Assert.Equal(0, CobolDec.Compare(Of("9999" + new string('0', 30) + "1", 31), CobolIntrinsics.RangeWhole(a, h).Image));
+        CobolDec half = Of("50004" + new string('9', 30) + "5", 32);
+        Assert.Equal(0, CobolDec.Compare(half, CobolIntrinsics.MidrangeWhole(a, h).Image));
+        Assert.Equal(0, CobolDec.Compare(half, CobolIntrinsics.MedianWhole(a, h).Image));
+    }
+
     /// <summary>⛔ EVERY ARGUMENT AN SDIDI WITH A POSITIVE EXPONENT aligns at the NEGATIVE common scale, exactly (review finding R1-1 of
     /// kb/Work PB4568): <see cref="CobolExact.TryAt"/> refused it and every body fell to the 34-digit images, where 10^40 + 10^5
     /// rounds to 10^40. Expected values are the <see cref="BigInteger"/> evaluation of each equivalent arithmetic expression.</summary>

@@ -173,9 +173,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // no guard-digit count survives a carry (0.95 + 0.05), so the arguments must keep their own digits and the
         // wider carrier must be the one that changes. The question is asked of the arguments' digit BOUNDS
         // (NumX.Digits) so an ordinary list keeps its Int128 body unchanged and only a list that may leave the
-        // carrier moves; an argument whose bound is unknown keeps the escape-checked native arm.
+        // carrier moves; an argument whose bound is unknown (an intrinsic's value) moves it when the alignment shifts any
+        // argument (kb/Work PB4792), as CombineAdditive's exact additive does (PB4752).
         if (IntrinsicCarrierRules.CrossAligningFunctions.Contains(sig.Name) && AlignmentMayLeaveCarrier(ic)
-            && RenderDec(ic) is { } wideAligned)
+            && (AlignmentShiftsUnboundedOperand(ic) && !num.StandardDecimal ? RenderWholeAligned(ic) : RenderDec(ic)) is { } wideAligned)
             return wideAligned;
         // ⛔ MEAN'S VALUE IS THE SDIDI QUOTIENT UNDER NATIVE ARITHMETIC TOO (kb/Work PB3860). §15.60.4 r1's equivalent arithmetic
         // expression ends in a division; under a standard mode the value is that expression's SDIDI value (§15.4.1 r1) and
@@ -1155,15 +1156,41 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     /// <summary>Can aligning this call's arguments to their common scale leave the <see cref="Int128"/> carrier? The rule is
     /// <see cref="IntrinsicCarrierRules.AlignmentMayLeaveCarrier"/> (the ONE reader, which the bind-time lane prediction asks of
-    /// the same facts read from the bound tree); this reads them off the RAW operands: an SDIDI or binary64 operand, or
-    /// one of unknown digit bound (<see cref="NumX.Digits"/> 0), is not provable and answers <c>null</c>.</summary>
+    /// the same facts read from the bound tree); this reads them off the RAW operands: an SDIDI or binary64 operand is not
+    /// provable and answers <c>null</c>; one of unknown digit bound (<see cref="NumX.Digits"/> 0) is stated with that bound, which
+    /// the rule reads as <see cref="IntrinsicCarrierRules.AlignedOperand.Unbounded"/> (kb/Work PB4792).</summary>
     /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand: its carrier flags and its digit bound.</remarks>
     private bool AlignmentMayLeaveCarrier(BoundIntrinsicCall ic) =>
-        IntrinsicCarrierRules.AlignmentMayLeaveCarrier(ic.Sig.Name, Operands(ic)
-            .Select((x, i) => x.Dec || x.Real || x.Digits == 0
+        IntrinsicCarrierRules.AlignmentMayLeaveCarrier(ic.Sig.Name, AlignedOperands(ic));
+
+    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand: its carrier flags and its digit bound.</remarks>
+    private List<IntrinsicCarrierRules.AlignedOperand?> AlignedOperands(BoundIntrinsicCall ic) =>
+        Operands(ic)
+            .Select((x, i) => x.Dec || x.Real
                 ? (IntrinsicCarrierRules.AlignedOperand?)null
                 : new IntrinsicCarrierRules.AlignedOperand(x.Digits, x.Scale, ic.Args[i] is BoundFieldOperand { Place: TableAllPlace }))
-            .ToList());
+            .ToList();
+
+    /// <summary>Does the alignment shift a list's argument of unknown bound (<see cref="IntrinsicCarrierRules.AlignmentShiftsUnboundedOperand"/>,
+    /// kb/Work PB4792)? Reads the same RAW operand facts as <see cref="AlignmentMayLeaveCarrier"/>.</summary>
+    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand: its carrier flags and its digit bound.</remarks>
+    private bool AlignmentShiftsUnboundedOperand(BoundIntrinsicCall ic) =>
+        IntrinsicCarrierRules.AlignmentShiftsUnboundedOperand(ic.Sig.Name, AlignedOperands(ic));
+
+    /// <summary>⛔ A NATIVE LIST THAT ALIGNS AN ARGUMENT OF UNKNOWN BOUND IS EVALUATED ON THE EXACT FAMILY'S WHOLE VALUE (kb/Work PB4792,
+    /// review R1-1): the arguments enter as their exact values and the sum, difference or halved sum is returned unrounded, for the
+    /// receiver to round once (§14.7.4.3). The SDIDI bodies round the value to 34 digits first, so SUM (FUNCTION INTEGER (A) F) of
+    /// 10000 and .9999999999999999999999999999999 would store 10001.00000 where the Int128 body, the arithmetic expression and
+    /// SUM (A F) give 10000.99999 (§15.4.1 leaves the approximation to the implementor; CLAUDE.md rule 1 sends it to GnuCOBOL, whose
+    /// decimal temporary is exact). Null for a function this family does not cover.</summary>
+    private NumX? RenderWholeAligned(BoundIntrinsicCall ic) => ic.Sig.RuntimeMethod switch
+    {
+        "SumScaled" => Exact("SumWhole", ExactValueArgList(ic), null),
+        "RangeScaled" => Exact("RangeWhole", ExactValueArgList(ic), null),
+        "MedianScaled" => Exact("MedianWhole", ExactValueArgList(ic), null),
+        "MidrangeScaled" => Exact("MidrangeWhole", ExactValueArgList(ic), null),
+        _ => null,
+    };
 
     /// <summary>Would landing this MAX/MIN selection at its arguments' common scale overrun the receiver-bound Int128 headroom
     /// (<see cref="ReceiverContext.WorkingScale"/>)? Then the landing would truncate the selected value before the receiver's
