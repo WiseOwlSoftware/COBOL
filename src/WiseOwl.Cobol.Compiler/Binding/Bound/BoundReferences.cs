@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Reflection;
 using WiseOwl.Cobol.Binding.Model;
 
@@ -22,7 +21,10 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// phrase's imperative statements — because it is a statement of its own (rule 7); and any type outside the operand model
 /// (<see cref="DataItem"/>, file and communication models), whose graphs are not operands. The transparent wrappers one written
 /// statement is made of (<see cref="BoundSequence"/>'s operand-evaluation steps, <see cref="BoundImplicitSeries"/>'s members,
-/// the EC, activation, receiver-bracket and debug wrappers) are entered: they are the statement.</para>
+/// the EC, activation, receiver-bracket and debug wrappers) are entered: they are the statement. The implicit move of a verb's FROM
+/// or INTO phrase (a single <see cref="BoundMove"/> field) is entered too: it is the verb's own operand.</para>
+/// <para>The walk is static recursion over parameters and holds no state: the bound tree's layer carries no field of type
+/// <see cref="object"/> (<c>BackendContractDriftTests</c>), and the graph it reads is a tree, so it needs no visited set.</para>
 /// </summary>
 internal static class BoundReferences
 {
@@ -37,7 +39,7 @@ internal static class BoundReferences
     private static List<Place> Collect(object root, object? except)
     {
         var found = new List<Place>();
-        new Walk(found, except).Visit(root, yieldPlace: true, statementsAreDirect: true);
+        Visit(root, found, except, yieldPlace: true, statementsAreDirect: true);
         return found;
     }
 
@@ -48,66 +50,54 @@ internal static class BoundReferences
     /// <summary>The types the walk enters: the bound tree's own nodes and the operand model (places, access paths and positions).
     /// Everything else — a data item, a file, a communication description — is a graph of its own.</summary>
     private static bool Enters(Type t) =>
-        t.Namespace == "WiseOwl.Cobol.Binding.Bound"
+        t.Namespace == typeof(BoundStatement).Namespace
         || typeof(Place).IsAssignableFrom(t) || typeof(AccessPath).IsAssignableFrom(t) || typeof(AccessSegment).IsAssignableFrom(t)
         || typeof(Position).IsAssignableFrom(t) || t == typeof(OffsetTerm)
         || typeof(WindowCoding).IsAssignableFrom(t) || typeof(AllCount).IsAssignableFrom(t);
 
-    private static readonly ConcurrentDictionary<Type, FieldInfo[]> FieldsOf = new();
+    private static void Visit(object? node, List<Place> found, object? except, bool yieldPlace, bool statementsAreDirect)
+    {
+        if (node is null || ReferenceEquals(node, except)) return;
+        var type = node.GetType();
+        if (type.IsPrimitive || type.IsEnum || node is string) return;
+        if (node is IEnumerable list && !Enters(type))
+        {
+            foreach (var element in list) Visit(element, found, except, yieldPlace, statementsAreDirect);
+            return;
+        }
+        if (!Enters(type)) return;
+        switch (node)
+        {
+            case PositionItemRead read:
+                found.Add(new MemberPlace(read.Path, read.Item));   // a subscript or window position that reads an item references it
+                return;
+            case Place place:
+                if (yieldPlace) found.Add(place);
+                // Inside a place only the positions it computes are references (T (I) references I); a wrapped place is the
+                // same reference, never a second one.
+                VisitFields(node, found, except, yieldPlace: false, statementsAreDirect: false);
+                return;
+            case BoundStatement statement:
+                if (!statementsAreDirect) return;   // a statement nested in the one asked
+                VisitFields(node, found, except, yieldPlace: true, statementsAreDirect: IsTransparent(statement));
+                return;
+            default:
+                VisitFields(node, found, except, yieldPlace: true, statementsAreDirect: false);
+                return;
+        }
+    }
 
     /// <summary>Every field a record stores — the compiler-generated backing fields of its properties included, which a computed
     /// property has none of, so the walk reads state and never derived answers — over the whole base chain.</summary>
-    private static FieldInfo[] StoredFields(Type t) => FieldsOf.GetOrAdd(t, static type =>
+    private static void VisitFields(object node, List<Place> found, object? except, bool yieldPlace, bool statementsAreDirect)
     {
-        var all = new List<FieldInfo>();
-        for (var c = type; c is not null && c != typeof(object); c = c.BaseType)
-            all.AddRange(c.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
-                .Where(f => !f.FieldType.IsPrimitive && !f.FieldType.IsEnum && f.FieldType != typeof(string)));
-        return [.. all];
-    });
-
-    private sealed class Walk(List<Place> found, object? except)
-    {
-        private readonly HashSet<object> _seen = new(ReferenceEqualityComparer.Instance);
-
-        public void Visit(object? node, bool yieldPlace, bool statementsAreDirect)
-        {
-            if (node is null || ReferenceEquals(node, except)) return;
-            var type = node.GetType();
-            if (type.IsPrimitive || type.IsEnum || node is string) return;
-            if (node is IEnumerable list && !Enters(type))
+        for (var c = node.GetType(); c is not null && c != typeof(object); c = c.BaseType)
+            foreach (var field in c.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
             {
-                foreach (var element in list) Visit(element, yieldPlace, statementsAreDirect);
-                return;
-            }
-            if (!Enters(type) || !_seen.Add(node)) return;
-            switch (node)
-            {
-                case PositionItemRead read:
-                    found.Add(new MemberPlace(read.Path, read.Item));   // a subscript or window position that reads an item references it
-                    return;
-                case Place place:
-                    if (yieldPlace) found.Add(place);
-                    // Inside a place only the positions it computes are references (T (I) references I); a wrapped place is the
-                    // same reference, never a second one.
-                    VisitFields(node, yieldPlace: false, statementsAreDirect: false);
-                    return;
-                case BoundStatement statement:
-                    if (!statementsAreDirect) return;   // a statement nested in the one asked
-                    VisitFields(node, yieldPlace: true, statementsAreDirect: IsTransparent(statement));
-                    return;
-                default:
-                    VisitFields(node, yieldPlace: true, statementsAreDirect: false);
-                    return;
-            }
-        }
-
-        private void VisitFields(object node, bool yieldPlace, bool statementsAreDirect)
-        {
-            foreach (var field in StoredFields(node.GetType()))
+                if (field.FieldType.IsPrimitive || field.FieldType.IsEnum || field.FieldType == typeof(string)) continue;
                 // A single BoundMove-typed field is the implicit move a verb's FROM or INTO phrase performs (WRITE ... FROM x, READ ... INTO x):
                 // part of the verb's own statement, whose operands the verb explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5 a).
-                Visit(field.GetValue(node), yieldPlace, statementsAreDirect || field.FieldType == typeof(BoundMove));
-        }
+                Visit(field.GetValue(node), found, except, yieldPlace, statementsAreDirect || field.FieldType == typeof(BoundMove));
+            }
     }
 }

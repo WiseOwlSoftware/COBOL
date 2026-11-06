@@ -422,7 +422,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         var levels = v.Levels;
         if (!v.TestAfter)
         {
-            foreach (var lv in levels) InitVaryingTarget(v, lv);   // GR13a: left-to-right init
+            foreach (var lv in levels) InitVaryingLevel(v, lv);   // GR13a: left-to-right init
             EmitBefore(0);
             void EmitBefore(int k)
             {
@@ -431,7 +431,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                     if (k == levels.Count - 1)
                     {
                         body();
-                        Augment(levels[k]);
+                        AugmentLevel(levels[k]);
                     }
                     else
                     {
@@ -448,15 +448,15 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         // ⛔ Do NOT swap these two: the augment-then-reset order is NIST NC201A PFM-TEST-F4-23's
                         // CCVS-85 expectation, which GR13 e) 2 contradicts — see the method doc-comment, the
                         // docs/CONFORMANCE.md §3 determination and kb/Work PB436.
-                        InitVaryingTarget(v, levels[k + 1]);
-                        Augment(levels[k]);
+                        InitVaryingLevel(v, levels[k + 1]);
+                        AugmentLevel(levels[k]);
                     }
                 }
             }
         }
         else
         {
-            InitVaryingTarget(v, levels[0]);
+            InitVaryingLevel(v, levels[0]);
             EmitAfter(0);
             void EmitAfter(int k)
             {
@@ -469,14 +469,30 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         // the false condition are set to their initialization values" — so the augment of level k
                         // (bottom of this block) happens BEFORE this reset of level k+1, the OPPOSITE order to the
                         // TEST BEFORE arm's GR13 e) 2 a–c. Deliberate: each arm is written to its own sub-step.
-                        InitVaryingTarget(v, levels[k + 1]);
+                        InitVaryingLevel(v, levels[k + 1]);
                         EmitAfter(k + 1);
                     }
                     EmitTestExit(levels[k].Until, k);
-                    Augment(levels[k]);
+                    AugmentLevel(levels[k]);
                 }
             }
         }
+    }
+
+    /// <summary>A PERFORM VARYING (or AFTER) level's initialization, then the debugging section that runs "immediately after each
+    /// initialization … of the data item" (X3.23-1985 USE FOR DEBUGGING general rule 5 c / 6 b; docs/CONTROL_FLOW_DESIGN.md D20).</summary>
+    private void InitVaryingLevel(PerformVarying v, VaryingLevel lv)
+    {
+        InitVaryingTarget(v, lv);
+        Debug.EmitLoopPhase(_loop, DebugWhen.LoopInit, LevelOf(lv));
+    }
+
+    /// <summary>A level's augment, then the section that runs "immediately after each … modification … of the data item" (general rule
+    /// 5 c / 6 b).</summary>
+    private void AugmentLevel(VaryingLevel lv)
+    {
+        Augment(lv);
+        Debug.EmitLoopPhase(_loop, DebugWhen.LoopAugment, LevelOf(lv));
     }
 
     /// <summary>Initialize a PERFORM VARYING (or AFTER) level's target from its FROM operand (GR13).
@@ -495,13 +511,6 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// <para>A NUMERIC induction variable (§14.9.28.3 SR2 — the only other legal VARYING identifier) is a PICTURE
     /// store with its own §14.7 size rules and has no index range, so it keeps the plain store.</para></summary>
     private void InitVaryingTarget(PerformVarying v, VaryingLevel lv)
-    {
-        StoreVaryingInit(v, lv);
-        // X3.23-1985 USE FOR DEBUGGING general rule 5 c / 6 b: "immediately after each initialization … of the data item".
-        Debug.EmitLoopPhase(_loop, DebugWhen.LoopInit, LevelOf(lv));
-    }
-
-    private void StoreVaryingInit(PerformVarying v, VaryingLevel lv)
     {
         NumX from = RenderPerEvaluation(lv.From);
         if (lv.Var is not SetIndexTarget)
@@ -531,13 +540,6 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// identified as it is augmented (GR12) — an object-property variable's accessors around THIS store (kb/Work
     /// PB2078).</summary>
     private void Augment(VaryingLevel lv)
-    {
-        StoreVaryingAugment(lv);
-        // X3.23-1985 USE FOR DEBUGGING general rule 5 c / 6 b: "immediately after each … modification … of the data item".
-        Debug.EmitLoopPhase(_loop, DebugWhen.LoopAugment, LevelOf(lv));
-    }
-
-    private void StoreVaryingAugment(VaryingLevel lv)
     {
         NumX by = RenderPerEvaluation(lv.By);
         brackets.Receive(lv.Var, () => set.AugmentSetTarget(lv.Var, down: false, by, "PERFORM VARYING"));
