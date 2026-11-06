@@ -217,7 +217,8 @@ public sealed class RedefinesClassificationTests
         var g = Item(d, "WS-G");
         Assert.Equal(RedefinesTier.Rejected, g.Class!.Tier);
         Assert.Contains("managed slots", g.Class.RejectReason);
-        Assert.Contains("14.9.3.4 GR9", g.Class.RejectReason);
+        Assert.Contains("D-SLOT representation, DOC-A.1-210 and DOC-A.1-216", g.Class.RejectReason);
+        Assert.DoesNotContain("14.9.3.4 GR9", g.Class.RejectReason);
     }
 
     [Fact]

@@ -214,6 +214,33 @@ public readonly struct FunctionValueField
     /// values, a value with no item of its own.</summary>
     public static FunctionValueField Median(params FunctionValueField[] arguments)
     {
+        (FunctionValueField low, FunctionValueField high, bool even) = MedianMiddles(arguments);
+        if (!even) return low;
+        // ⛔ THE MEAN IS THE EXACT MEAN, THE ONE VALUE EVERY NATIVE CHANNEL GIVES (§15.61.4 2), §15.4.1; kb/Work PB3953, PB4750, PB4826
+        // review R1-2): their exact sum times the exact one half, whatever form the sum takes, so DISPLAY shows what COMPUTE stores.
+        // Only two binary64 middles keep the SDIDI mean of their approximations: a sum truncated at 34 digits and then halved was
+        // 4.5 units off in its 34th digit, and MEDIAN (A B) = (A + B) / 2 was true on DISPLAY alone. Under a standard mode the
+        // mean is the SDIDI's (<see cref="MedianStandard"/>).
+        if (low._shape != Shape.Float || high._shape != Shape.Float)
+            return OfExact(CobolExact.Mul(CobolExact.Add(low.Exact(), high.Exact()), CobolExact.From(5, 1)));
+        CobolDec sum = CobolDec.Add(low._value, high._value, CobolRounding.Truncation);
+        return OfValue(CobolDec.Div(sum, CobolDec.From(2, 0), CobolRounding.Truncation));
+    }
+
+    /// <summary>MEDIAN under a STANDARD arithmetic mode (§15.61.4 2): the mean of the two middle values is the arithmetic expression
+    /// <c>(A + B) / 2</c> whose every step is an SDIDI (§15.4.1), rounded by the mode's intermediate rounding
+    /// (<paramref name="mode"/>) exactly as <c>CobolIntrinsics.MedianDec</c> forms it for COMPUTE, so DISPLAY shows what COMPUTE stores
+    /// (kb/Work PB4827, review R2-1: the exact mean of <see cref="Median"/> showed a 35th digit the standard form cannot hold).</summary>
+    public static FunctionValueField MedianStandard(CobolRounding mode, params FunctionValueField[] arguments)
+    {
+        (FunctionValueField low, FunctionValueField high, bool even) = MedianMiddles(arguments);
+        if (!even) return low;
+        return OfValue(CobolDec.Div(CobolDec.Add(low._value, high._value, mode), CobolDec.From(2, 0), mode));
+    }
+
+    /// <summary>The middle of the stable-sorted list (an odd count: <c>low</c>, and <c>even</c> is false) or its two middles.</summary>
+    private static (FunctionValueField Low, FunctionValueField High, bool Even) MedianMiddles(FunctionValueField[] arguments)
+    {
         CobolIntrinsics.RequireArguments(arguments.Length, "MEDIAN");
         var sorted = (FunctionValueField[])arguments.Clone();
         for (int i = 1; i < sorted.Length; i++)   // insertion sort: stable, and the lists are short
@@ -224,14 +251,7 @@ public readonly struct FunctionValueField
             sorted[j + 1] = x;
         }
         int n = sorted.Length;
-        if ((n & 1) == 1) return sorted[n / 2];
-        FunctionValueField low = sorted[n / 2 - 1], high = sorted[n / 2];
-        // The mean of two middles one of which is held exactly is formed EXACTLY (kb/Work PB3953, PB4750): their exact sum times
-        // the exact one half, whatever form the sum takes.
-        if (low._shape == Shape.Exact || high._shape == Shape.Exact)
-            return OfExact(CobolExact.Mul(CobolExact.Add(low.Exact(), high.Exact()), CobolExact.From(5, 1)));
-        CobolDec sum = CobolDec.Add(low._value, high._value, CobolRounding.Truncation);
-        return OfValue(CobolDec.Div(sum, CobolDec.From(2, 0), CobolRounding.Truncation));
+        return (n & 1) == 1 ? (sorted[n / 2], sorted[n / 2], false) : (sorted[n / 2 - 1], sorted[n / 2], true);
     }
 
     /// <summary>The characters DISPLAY writes for this temporary. <paramref name="commaMode"/> is the unit's decimal separator
