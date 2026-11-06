@@ -1,4 +1,4 @@
-## Messaging slice S2a: MessagingProtocol, IPeerTransport and InMemoryTransport (PB4741)
+## Entry 3214 — 2026-11-06 14:03 PST — Messaging slice S2a: MessagingProtocol, IPeerTransport and InMemoryTransport (PB4741)
 
 Slice S2a of `docs/rearchitecture/DESIGN-message-control.md` §9: the 2023 message control protocol as a pure state machine, the transport interface it runs on, and an in-process transport, with no socket and no `RunUnit` change.
 
@@ -19,3 +19,4 @@ Slice S2a of `docs/rearchitecture/DESIGN-message-control.md` §9: the 2023 messa
 **Self-review.** Architecture: one state machine per job, no I/O in it, the codec at the transport boundary. Code: the cited rules are implemented (§14.9.38.4 GR1, GR4, GR5, §14.9.31.4 GR1 b, GR2, GR3, §14.6.11 item 7), sibling arms agree (the server and requestor paths both tolerate a late frame). Performance: one action array per call, no allocation on the idle path. Duplication: the EC-MCS names are spelled once, as constants in `ExceptionCatalog` (the declaration the raise-site registry does not count; the first gate found that string literals in the protocol made `EcRaiseSiteRegistryDriftTests` see raise sites no statement has yet, so S4 retires the declined rows when it declares them).
 
 Review round 1 (four blocking findings, all fixed at the root). `ActionFailed` now names the failed action, so the protocol knows which answer is owed: a failed `Connect` frees its server for the next SEND (R1-1), a failed `Publish` or `RingBells` owes no answer and is no longer counted against the answers still owed (R1-4), and a listener that never published makes the first RECEIVE that needs a requestor EC-MCS-IMP (R1-3). A SEND that ends with a link still granted closes that link (R1-2). Leads fixed in the same files: a run unit does not offer to its own listener, a server tag is checked against the server its serial was sent to, and the unused usings are gone. Seven unit tests added in `MessagingProtocolTests`, one per finding or lead.
+
