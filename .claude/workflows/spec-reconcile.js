@@ -1,7 +1,7 @@
 export const meta = {
   name: 'spec-reconcile',
-  description: 'Compare the canonical ISO PDF against specs/ISO_COBOL_2023.md page by page and ledger every discrepancy',
-  whenToUse: 'Reconciling the OCR transcription against its canonical source. Pass a page-number array as args.',
+  description: 'Compare the canonical standard PDF against its markdown transcription (an edition: 1985, 2002 or 2023) page by page and ledger every discrepancy',
+  whenToUse: 'Reconciling the OCR transcription against its canonical source. Pass a page-number array as args, or {pages, edition} for an edition other than 2023.',
   phases: [
     { title: 'Compare', detail: 'one agent per page batch: read the rendered PDF page, diff against the markdown slice' },
     { title: 'Verify', detail: 'adversarially re-check each claimed discrepancy against the same page' },
@@ -39,7 +39,26 @@ function toPages(a) {
   return []
 }
 
-const PAGES = toPages(args).length ? toPages(args) : [1, 2, 24, 50]
+// args is the page list (an array, or a string of pages and ranges) for the default 2023 edition, or an object
+// {pages, edition} naming the edition (1985, 2002 or 2023). The transcription's path is NOT spelled here:
+// scripts/spec/spec_pdf.py is the one table of editions, and page_workunit.py (called below with --edition) slices the
+// edition's own Markdown.
+const OPTIONS = (args && typeof args === 'object' && !Array.isArray(args)) ? args : { pages: args }
+const EDITION = Number(OPTIONS.edition || 2023)
+// What the prompts say about each edition, keyed by edition (spec_pdf.EDITIONS holds the files). An edition with no
+// row fails loudly here instead of reconciling against another edition's wording.
+const EDITIONS = {
+  1985: { standard: 'ANSI X3.23-1985', dir: '1985' },
+  2002: { standard: 'ISO/IEC 1989:2002', dir: '2002' },
+  2023: { standard: 'ISO/IEC 1989:2023', dir: '' },
+}
+if (!EDITIONS[EDITION]) throw new Error('spec-reconcile: no edition ' + EDITION + ' (rows: ' + Object.keys(EDITIONS).join(', ') + ')')
+const STANDARD = EDITIONS[EDITION].standard
+// The 2023 work keeps its historical locations; another edition writes beside them, never over them.
+const SCRATCH = 'E:/Temp/specrecon' + (EDITION === 2023 ? '' : '-' + EDITIONS[EDITION].dir)
+const LEDGER = 'E:/COBOL/docs/rearchitecture/spec-reconciliation/' + (EDITION === 2023 ? '' : EDITIONS[EDITION].dir + '/')
+const WORKUNIT = 'cd E:/COBOL && python scripts/spec/page_workunit.py'
+const PAGES = toPages(OPTIONS.pages).length ? toPages(OPTIONS.pages) : [1, 2, 24, 50]
 const BATCH = 12
 const batches = []
 for (let i = 0; i < PAGES.length; i += BATCH) batches.push(PAGES.slice(i, i + BATCH))
@@ -86,18 +105,22 @@ const results = await pipeline(
   batches,
   (batch, _orig, i) => agent(
     [
-      'You are reconciling the canonical ISO/IEC 1989:2023 PDF against its markdown transcription at',
-      'E:/COBOL/specs/ISO_COBOL_2023.md. Pages in YOUR batch: ' + batch.join(', ') + '. Work ONLY these pages.',
+      'You are reconciling the canonical ' + STANDARD + ' PDF against its markdown transcription (the ' + EDITION,
+      'edition; the work unit below slices it for you). Pages in YOUR batch: ' + batch.join(', ') + '. Work ONLY these pages.',
       '',
       'These pages were selected because they contain FIGURES (general formats / syntax skeletons). Diagram',
       'fidelity is the priority for this run.',
+      ...(EDITION === 2023 ? [] : [
+        'NOTE: the section numbers cited below (5.2.6.4, 5.2.7) are the 2023 standard\'s. Find the same notation rules in',
+        'the ' + EDITION + ' edition\'s own conventions clause and judge the figures by THAT edition\'s notation.',
+      ]),
       '',
       'STEP 1 - build your work units (renders the PDF pages and extracts the matching markdown slices):',
-      '  cd E:/COBOL && python scripts/spec/page_workunit.py ' + batch.join(' ') + ' --out E:/Temp/specrecon/f' + i + ' --dpi 300',
+      '  ' + WORKUNIT + ' ' + batch.join(' ') + ' --edition ' + EDITION + ' --out ' + SCRATCH + '/f' + i + ' --dpi 300',
       '',
       'STEP 2 - for EACH page P in your batch:',
-      '  a) Read the image E:/Temp/specrecon/f' + i + '/spec_pP.png (the Read tool renders it visually)',
-      '  b) Read the markdown E:/Temp/specrecon/f' + i + '/page-P.md',
+      '  a) Read the image ' + SCRATCH + '/f' + i + '/spec_pP.png (the Read tool renders it visually)',
+      '  b) Read the markdown ' + SCRATCH + '/f' + i + '/page-P.md',
       '  c) Compare them carefully and completely.',
       '',
       'THE PRIORITY DEFECT CLASS - lost CHOICE INDICATORS. Per section 5.2.6.4, a pair of vertical bars just',
@@ -133,7 +156,7 @@ const results = await pipeline(
       '',
       'WHAT IS NOT A DISCREPANCY - do not report these:',
       '  - The page-break furniture the markdown adds: the page anchor, the "## Page N" heading, the running',
-      '    header "ISO/IEC 1989:2023 (E)", the "---" separators, the copyright footer, the "Licensed to ..." line.',
+      '    header (' + STANDARD + '), the "---" separators, the copyright footer, the "Licensed to ..." line.',
       '    That is deliberate navigational scaffolding. The markdown is the PDF text PLUS scaffolding.',
       '  - Reflowed line breaks or hyphenation differences from PDF justification.',
       '  - Markdown formatting choices that preserve meaning (LaTeX vs ASCII art is fine IF no information is lost).',
@@ -144,7 +167,7 @@ const results = await pipeline(
       '',
       'STEP 3 - PERSIST BEFORE YOU RETURN. This is MANDATORY, not a nicety. Use the Write tool to save your',
       'complete findings as JSON to:',
-      '  E:/COBOL/docs/rearchitecture/spec-reconciliation/compare-p' + batch[0] + '-p' + batch[batch.length - 1] + '.json',
+      '  ' + LEDGER + 'compare-p' + batch[0] + '-p' + batch[batch.length - 1] + '.json',
       'Shape: {"batch": ' + JSON.stringify(batch) + ', "pages_checked": [...], "findings": [ ...same objects you return... ]}',
       'Write it EVEN IF you found nothing (findings: []) - a file proving a batch was swept clean is evidence;',
       'its absence is indistinguishable from work that never ran. The run may be interrupted by a rate or session',
@@ -157,7 +180,7 @@ const results = await pipeline(
     return parallel(res.findings.map((f, vi) => () =>
       agent(
         [
-          'Adversarially VERIFY a claimed discrepancy between the ISO PDF and its markdown transcription.',
+          'Adversarially VERIFY a claimed discrepancy between the ' + STANDARD + ' PDF and its markdown transcription.',
           '',
           'CLAIM - page ' + f.page + ', kind=' + f.kind + ', severity=' + f.severity,
           '  PDF allegedly says      : ' + f.pdf_says,
@@ -165,8 +188,8 @@ const results = await pipeline(
           '  Why it allegedly matters: ' + f.why_it_matters,
           '',
           'Check it yourself:',
-          '  cd E:/COBOL && python scripts/spec/page_workunit.py ' + f.page + ' --out E:/Temp/specrecon/v' + f.page + ' --dpi 300',
-          'Then Read E:/Temp/specrecon/v' + f.page + '/spec_p' + f.page + '.png and E:/Temp/specrecon/v' + f.page + '/page-' + f.page + '.md.',
+          '  ' + WORKUNIT + ' ' + f.page + ' --edition ' + EDITION + ' --out ' + SCRATCH + '/v' + f.page + ' --dpi 300',
+          'Then Read ' + SCRATCH + '/v' + f.page + '/spec_p' + f.page + '.png and ' + SCRATCH + '/v' + f.page + '/page-' + f.page + '.md.',
           '',
           'Your job is to REFUTE. Default to real=false when uncertain. Reject the claim if:',
           '  - the "missing" text is actually present (possibly reflowed or on an adjacent line)',
@@ -178,7 +201,7 @@ const results = await pipeline(
           'but was described inaccurately, set real=true and give the corrected description.',
           '',
           'PERSIST BEFORE YOU RETURN - MANDATORY. Use the Write tool to save your verdict as JSON to:',
-          '  E:/COBOL/docs/rearchitecture/spec-reconciliation/verify-p' + f.page + '-' + f.kind + '-' + vi + '.json',
+          '  ' + LEDGER + 'verify-p' + f.page + '-' + f.kind + '-' + vi + '.json',
           'Shape: {"page": ' + f.page + ', "kind": "' + f.kind + '", "severity": "' + f.severity + '",',
           '        "claim": {"pdf_says": ..., "markdown_says": ..., "why_it_matters": ...},',
           '        "verdict": {"real": true|false, "reasoning": ..., "corrected_description": ...}}',

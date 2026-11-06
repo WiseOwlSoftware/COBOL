@@ -156,7 +156,8 @@ from fuzz_ollama import (ABORTED, DEGENERATE, DEGENERATE_FORMS, DEGENERATE_LINES
 from fuzz_undefined import CITATIONS as UNDEFINED_CITATIONS, undefined_results  # noqa: E402  — the programs whose result is undefined (kb/Work PB3862)
 from standard_streams import ensure_utf8  # noqa: E402
 
-SPEC = REPO / "specs" / "ISO_COBOL_2023.md"
+import spec_pdf  # noqa: E402  (scripts/spec, on sys.path above: the one edition table, kb/Work PB4815)
+SPEC = spec_pdf.markdown(2023)
 EDITION = "2014"            # the latest edition GnuCOBOL 3.2 has a dialect for; pinned on both compilers
 SOURCE_FORMAT = "free"
 HANG_GUARD = 90.0           # seconds per process: a generous limit, never a time expectation

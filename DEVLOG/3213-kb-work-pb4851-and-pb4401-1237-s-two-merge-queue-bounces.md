@@ -1,0 +1,4 @@
+## Entry 3213 — 2026-11-06 14:02 PST — kb/Work PB4851 and PB4401: #1237's two merge-queue bounces
+
+Pull request #1237 (PB4815) bounced twice from the merge queue. `scripts/render-spec-page.py` now imported PyMuPDF at module level. CI installs no PyMuPDF, so the `standard_streams.py` self-test's `--help` probe failed on Windows and Linux. Every local gate had passed, because the host has PyMuPDF 1.28.2. Two process defects are behind it. The Python packages the tooling imports sit outside the one toolchain manifest: three workflow pip lines pin three packages, and PyMuPDF and anthropic appear nowhere (filed as PB4851). And the landing lane read a failing self-test step as INFRA and re-queued it, which is the face open note PB4401 already describes; this witness is added there. The branch itself went to a finisher.
+

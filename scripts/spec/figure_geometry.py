@@ -37,6 +37,12 @@ render the page. What the tool is authoritative about is the BARS — and those 
     python scripts/spec/figure_geometry.py 632              # one page, annotated
     python scripts/spec/figure_geometry.py --all            # every choice-indicator group in the standard
     python scripts/spec/figure_geometry.py --all --json out.json
+    python scripts/spec/figure_geometry.py 196 --edition 1985   # another edition (default 2023)
+
+EDITIONS (kb/Work PB4815). `spec_pdf.EDITIONS` records, per edition, whether its general formats are VECTOR strokes (2002,
+2023: measured here) or RASTER pixels (1985, a scan). `page_classifier(edition)` returns the page -> stems function of the
+edition's arm; the raster arm is `figure_raster.measure_page(edition, page)` (PB4817), and until that module exists the arm
+exits naming PB4817 rather than report "no stems" for a page it cannot read.
 """
 from __future__ import annotations
 
@@ -47,9 +53,7 @@ import sys
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
-PDF = spec_pdf.path(2023)
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 
 # Geometry thresholds, in PDF points. Deliberately loose: the figures are typeset at one size throughout.
 MIN_VERT_H = 10.0     # a delimiter stem is at least this tall
@@ -114,6 +118,25 @@ def classify_page(page):
     return out
 
 
+def page_classifier(edition: int):
+    """The page -> delimiter stems function of `edition`'s measuring arm (spec_pdf.geometry): the vector strokes read by
+    `classify_page`, or the scanned pixels read by `figure_raster.measure_page` (PB4817)."""
+    arm = spec_pdf.geometry(edition)
+    if arm == "vector":
+        return classify_page
+    if arm == "raster":
+        try:
+            import figure_raster
+        except ModuleNotFoundError as ex:
+            if ex.name != "figure_raster":
+                raise
+            sys.exit(f"FATAL: the {edition} PDF is a scan, so its delimiters are measured from pixels by "
+                     "scripts/spec/figure_raster.py, which PB4817 creates and does not exist yet. A vector read of a scan "
+                     "finds no strokes and would report a clean page.")
+        return lambda page: figure_raster.measure_page(edition, page)
+    raise ValueError(f"spec_pdf.EDITIONS[{edition}].geometry is {arm!r}, not 'vector' or 'raster'")
+
+
 def group_enclosures(stems, ytol=6.0):
     """Cluster stems that span the same vertical band — one printed enclosure per cluster."""
     groups, cur = [], []
@@ -145,15 +168,17 @@ def main() -> int:
     ap.add_argument("page", nargs="?", type=int, help="PDF page number")
     ap.add_argument("--all", action="store_true", help="scan every page for choice-indicator groups")
     ap.add_argument("--json", help="write the --all result to this file")
+    spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
 
-    spec_pdf.require(2023)
-    import fitz
+    pdf = spec_pdf.require(args.edition)
+    import pymupdf
 
-    doc = fitz.open(PDF)
+    classify = page_classifier(args.edition)
+    doc = pymupdf.open(pdf)
 
     if args.page:
-        stems = classify_page(doc[args.page - 1])
+        stems = classify(doc[args.page - 1])
         print(f"PDF page {args.page}: {len(stems)} delimiter stems")
         for g in group_enclosures(stems):
             bars = sum(1 for s in g if s["kind"] == "bar")
@@ -168,7 +193,7 @@ def main() -> int:
 
     found = []
     for pno in range(1, doc.page_count + 1):
-        for g in group_enclosures(classify_page(doc[pno - 1])):
+        for g in group_enclosures(classify(doc[pno - 1])):
             bars = [s for s in g if s["kind"] == "bar"]
             if len(bars) < 2:
                 continue

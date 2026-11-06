@@ -36,8 +36,8 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
-import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
+SPEC_MD = spec_pdf.markdown(2023)
 PDF = spec_pdf.path(2023)
 
 HEADING = re.compile(r"^\s*(\d+(?:\.\d+)*)\s+[A-Z]")
@@ -87,9 +87,9 @@ def main() -> int:
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
     spec_pdf.require(2023)
-    import fitz
+    import pymupdf
 
-    doc = fitz.open(PDF)
+    doc = pymupdf.open(PDF)
     start, mapping = folio_to_clause(doc)
     print(f"clause 1 begins at PDF page {start + 1}; folios mapped: {len(mapping)}")
     for folio in (3, 5, 6, 16, 25, 29):

@@ -82,8 +82,8 @@ def index(doc=None) -> list[Heading]:
 
     own = doc is None
     if own:
-        import fitz                                                # PyMuPDF, as the sibling tools use it
-        doc = fitz.open(find_pdf())
+        import pymupdf                                                # PyMuPDF, as the sibling tools use it
+        doc = pymupdf.open(find_pdf())
     out: list[Heading] = []
     try:
         for pno in range(doc.page_count):

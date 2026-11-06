@@ -16,6 +16,7 @@ fan out cleanly and no agent has to re-derive the mapping (feedback_agent_dispat
 
     python scripts/spec/page_workunit.py 95 688 --out E:/Temp/specrecon
     python scripts/spec/page_workunit.py --range 100 120 --out E:/Temp/specrecon
+    python scripts/spec/page_workunit.py 95 --out E:/Temp/specrecon --edition 2002   # another edition (default 2023)
 """
 from __future__ import annotations
 
@@ -29,7 +30,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC = REPO / "specs" / "ISO_COBOL_2023.md"
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 RENDER = REPO / "scripts" / "render-spec-page.py"
 
 
@@ -57,6 +58,7 @@ def main() -> int:
     ap.add_argument("--range", nargs=2, type=int, metavar=("FIRST", "LAST"))
     ap.add_argument("--out", required=True)
     ap.add_argument("--dpi", type=int, default=200)
+    spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
 
     pages = list(args.pages)
@@ -67,11 +69,11 @@ def main() -> int:
 
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    lines = SPEC.read_text(encoding="utf-8", errors="replace").splitlines()
+    lines = spec_pdf.markdown(args.edition).read_text(encoding="utf-8", errors="replace").splitlines()
 
     # Render in ONE call — PyMuPDF opens the 9 MB PDF per invocation, so batching matters at 1,261 pages.
     subprocess.run([sys.executable, str(RENDER), *[str(p) for p in pages],
-                    "--dpi", str(args.dpi), "--out", str(out)],
+                    "--dpi", str(args.dpi), "--out", str(out), "--edition", str(args.edition)],
                    check=True, cwd=str(REPO))
 
     made = []

@@ -66,6 +66,7 @@ docstring records the fix; the discipline stands regardless.
     python scripts/spec/audit_grammar_optional_words.py --clause 14.9.41.2 --show-format
     python scripts/spec/audit_grammar_optional_words.py --clause 14.9.38.2 --show-layout   # the option structure
     python scripts/spec/audit_grammar_optional_words.py --self-test     # fixture grammars; needs no PDF
+    python scripts/spec/audit_grammar_optional_words.py --edition 2002  # another edition (default 2023); a scan is refused
 """
 from __future__ import annotations
 
@@ -88,9 +89,7 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
-import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
-PDF = spec_pdf.path(2023)
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 
 #: The printed body band, borrowed from `render_figure` so the running header and the folio/licence footer can
 #: never enter a format's measured band when the format spills across a page break.
@@ -775,11 +774,11 @@ class Band(NamedTuple):
         return [w for _, ws, _ in self.pages for w in ws]
 
 
-def read_band(doc, cache: dict[int, tuple[list, list]], start, nxt) -> Band:
+def read_band(doc, cache: dict[int, tuple[list, list]], start, nxt, classify_page) -> Band:
     """Every word printed between one clause heading and the next, across a page break if it takes one, with the
-    delimiter stems that reach it (for `figure_options.read`)."""
+    delimiter stems that reach it (for `figure_options.read`). `classify_page` is the edition's stem reader
+    (`figure_geometry.page_classifier`)."""
     from figure_extract import extract
-    from figure_geometry import classify_page
     from render_figure import split_fused
 
     last = nxt.page if nxt is not None and nxt.page >= start.page else doc.page_count
@@ -976,6 +975,17 @@ def self_test() -> int:
     once = run_printed(compute.format("COMPUTE IDENTIFIER+"), "COMPUTE", figure_options.COMPUTE)
     check("…while choice indicators license `(… SIZE ERROR …)*` and their NOT, and a bracket the scope terminator",
           not once.candidates and once.anchoring == "demanding", once)
+    saved_argv = sys.argv
+    try:
+        sys.argv = ["audit_grammar_optional_words.py", "--edition", "1985"]
+        main()
+        refused = None
+    except SystemExit as ex:
+        refused = str(ex.code)
+    finally:
+        sys.argv = saved_argv
+    check("--edition 1985: a scan, whose underlines are pixels, is refused naming PB4817 before any file is read",
+          refused is not None and "PB4817" in refused and "1985" in refused, refused)
     print("SELF-TEST:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 
@@ -991,16 +1001,21 @@ def main() -> int:
     ap.add_argument("--list-unanchored", action="store_true",
                     help="name the formats the run cannot anchor: prose titles, and keywords no parser token spells")
     ap.add_argument("--self-test", action="store_true", help="run the fixture-grammar self-test (needs no PDF)")
+    spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
     if args.self_test:
         return self_test()
-    spec_pdf.require(2023)
-    import fitz
+    spec_pdf.require_vector(args.edition, "audit_grammar_optional_words.py")
+    pdf = spec_pdf.require(args.edition)
+    spec_md = spec_pdf.markdown(args.edition)
+    import pymupdf
 
     sys.path.insert(0, str(HERE))
     import clause_page
+    from figure_geometry import page_classifier
 
-    doc = fitz.open(PDF)
+    classify_page = page_classifier(args.edition)
+    doc = pymupdf.open(pdf)
 
     # ---- the grammar side --------------------------------------------------------------------------------
     grammar = parser_rules()                      # ⛔ grammar_source.read refuses an empty population
@@ -1012,7 +1027,7 @@ def main() -> int:
           f"lexer tokens spelling COBOL words: {len(keywords)}")
 
     # ---- the spec side -----------------------------------------------------------------------------------
-    formats = declared_formats(SPEC_MD.read_text(encoding="utf-8"))
+    formats = declared_formats(spec_md.read_text(encoding="utf-8"))
     heads = clause_page.index(doc)
     where = {}
     for i, h in enumerate(heads):
@@ -1042,7 +1057,7 @@ def main() -> int:
     def band(f: Format) -> Band:
         if f.clause not in bands:
             i = where[f.clause]
-            bands[f.clause] = read_band(doc, cache, heads[i], heads[i + 1] if i + 1 < len(heads) else None)
+            bands[f.clause] = read_band(doc, cache, heads[i], heads[i + 1] if i + 1 < len(heads) else None, classify_page)
         return bands[f.clause]
 
     def measured_format(f: Format) -> tuple[set[str], set[str]] | None:
@@ -1140,7 +1155,7 @@ def main() -> int:
     # `grammar_source.read`, which refuses before a single format is measured.)
     failures: list[str] = []
     if not formats:
-        failures.append(f"NO `General format` heading was found in {SPEC_MD} — the transcription declares none")
+        failures.append(f"NO `General format` heading was found in {spec_md} — the transcription declares none")
     if unresolved:
         failures.append(f"{len(unresolved)} declared general format(s) DID NOT RESOLVE to a printed page: "
                         + ", ".join(f.clause for f in unresolved[:12])

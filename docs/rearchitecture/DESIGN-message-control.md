@@ -528,8 +528,12 @@ recover but socket files, which the refusal rule of §5.4.1 removes.
 ### 5.3 Frames
 
 `McsFrame` is §6's frame. A link opens with `HELLO{version, <h>, <r>, pid, served name}` both ways (a requestor's
-served name is empty), or closes on a mismatch of version, `<h>` or, at a server's listener, the name the requestor
-asked for. A message travels as three parts: its image as UTF-16 code units, so no encoding is chosen; its extent table
+served name is empty), or closes on a mismatch of version or `<h>` at either end, or, at a requestor, of the served name
+against the name it asked for (the only place a hash-collided directory shows; the requestor does not connect to that
+server again during the SEND). A requestor writes no `OFFER` on a link before the server's `HELLO` has passed that check.
+A frame a role never receives, or one before `HELLO`, closes the link; a `CLAIM` that crosses a `WITHDRAW` is neither
+(the server has not yet read it) and is ignored. `PeerFrameCodec` (Runtime/Messaging) encodes each payload: text as a
+UTF-16 code-unit count and the units, integers little-endian. A message travels as three parts: its image as UTF-16 code units, so no encoding is chosen; its extent table
 (§4.4), absent or the `FixedAt` and `Lengths` arrays of a `RecordExtents`, which is what a file frame records of it; and
 its slots, each a `MessageTag` as its four fields. SEND SR3 and RECEIVE SR2 refuse every pointer and object-reference
 leaf at compile time, so no other slot reaches a frame. Kinds: `Ring` (no payload; the only frame a bell receives),
@@ -541,6 +545,21 @@ of the last six carrying the serial and, before `ACK`, the offer round. The requ
 `MessagingProtocol` takes the current statement and the events `FrameArrived`, `LinkEnded`, `LinkOpened`, `BellRang` and
 `DeadlinePassed`, and returns actions (`Write`, `Connect`, `Enumerate`, `ArmDeadline`, `Activate`, `Complete`) that
 `MessagingPeer` executes on a transport. It calls nothing.
+
+Slice S2a builds the protocol and its medium without a socket. The full action set is `Write`, `CloseLink`, `Publish`,
+`Unpublish`, `Enumerate`, `Connect`, `RingBells`, `ArmDeadline`, `Activate` and `Complete`; the full event set adds the
+answers to those actions (`Enumerated`, `Connected`, `ActivationEnded`) and `ActionFailed`, which is EC-MCS-IMP for the
+statement the failed action served (Q8); it names the action, because a failed `Connect` frees its server for the next SEND, an
+`Enumerate` or `Connect` owes an answer that it replaces, and a `Publish` or `RingBells` owes none (a lost ring costs nothing; a listener that never published
+makes the first RECEIVE that needs a requestor EC-MCS-IMP). `IPeerTransport` is the medium an action runs on: `Publish`, `Unpublish`,
+`EnumerateServers`, `Connect` (which applies the refusal rule), `Write`, `Close`, `RingBells` and `TryTake`, which hands
+the peer the next `FrameReceived`, `LinkLost`, `LinkAccepted` or `BellRung` in arrival order. `InMemoryTransport` implements it over a shared
+`InMemoryNetwork` that stands for the socket directory: `Abort` ends every link as a kill does and leaves the published
+files, `Dispose` ends as `Terminate` does, and `BetweenListenAndRename` is the §5.4.1 window a test can probe. The peer
+answers every action in the order it issued them, and an action that fails answers with `ActionFailed` in place of its own
+answer; a statement that ends while answers are owed (EC-MCS-IMP) leaves them stale, and the protocol consumes them first. A SEND that ends with a link still granted closes it. A requestor never connects to its own listener (it cannot RECEIVE while its SEND is current), and a server tag is valid only for the server its serial was sent to.
+A requestor keeps a link per server across SENDs (`Sent`, `Replies`); a link the protocol closes after a bad `HELLO` is
+burned for the current SEND only.
 
 #### 5.4.1 SEND Format 1
 
@@ -685,8 +704,8 @@ identifier-1.
 The communication facility keeps the paged store and bell of `DESIGN-communication-facility.md`: its messages outlive
 their senders, and 2023 messages do not. The two share three things, in `src/WiseOwl.Cobol.Runtime/Mcs/`. This section
 defines them once; `DESIGN-communication-facility.md` §6 ("Shared with the 2023 facility") refers here and names only
-its own `bell/` entries. Its slice 2 builds them, `McsFrame` with the kind `Ring`; slice S2a of §9 depends on that
-slice and adds the 2023 kinds to the enumeration. That slice needs S0, which pins `MaxPathBytes`.
+its own `bell/` entries. Its slice 2 built them, `McsFrame` with the kind `Ring`; slice S2a of §9 added the 2023 kinds
+to the enumeration. `MaxPathBytes` is pinned by S0.
 
 - **`McsDirectory.Resolve(configured)`** names the MCS directory: `configured`, else the environment variable
   `WISEOWL_COBOL_MCS`, else the current directory, made absolute with `Path.GetFullPath`. Files open at that path. Its

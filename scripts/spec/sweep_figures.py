@@ -22,6 +22,7 @@ only the fenced ones would leave the worst-transcribed third behind, in the old 
     python scripts/spec/sweep_figures.py --report --pages 600 660
     python scripts/spec/sweep_figures.py --apply
     python scripts/spec/sweep_figures.py --check
+    python scripts/spec/sweep_figures.py --check --edition 2002   # another edition (default 2023)
 """
 from __future__ import annotations
 
@@ -38,10 +39,7 @@ from spec_headings import GENERAL_FORMAT_TITLE   # THE one spelling of the headi
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"
-import spec_pdf  # noqa: E402  (scripts/spec: the one PDF locator, kb/Work PB3208)
-PDF = spec_pdf.path(2023)
+import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 
 PAGE_ANCHOR = re.compile(r'^<a id="page-(\d+)"></a>\s*$')
 MD_HEADING = re.compile(r"^\s*#{1,6}\s+\**(\d+(?:\.\d+)+)\s+(.+?)\**\s*$")
@@ -69,12 +67,22 @@ HRULE = re.compile(r"^\s*-{3,}\s*$")           # a Markdown horizontal rule: pag
 # (pages are not a thing in Markdown). Until then it must be TRANSPARENT: `**ISO/IEC 1989:2023 (E)**` passes
 # the figure test — all upper case, no plain lower-case word — so it was being swept INTO figures, and a page
 # break falling inside a figure split that figure into two spans that matched nothing.
-PAGE_FURNITURE = re.compile(
-    r"""^\s*(?:<a\ id="page-\d+"></a>
-        |\#*\s*Page\ \d+
-        |\#*\s*\**ISO/IEC\s+1989:2023\s*\(E\)\**
+#
+# The running header and the reseller's stamp line are each edition's own (kb/Work PB4815): `FURNITURE_LINES` is keyed by
+# edition, and an edition with no row exits naming the table (1985 and 2002 are written when their runs read those lines).
+FURNITURE_LINES: dict[int, str] = {
+    2023: r"""\#*\s*\**ISO/IEC\s+1989:2023\s*\(E\)\**
         |\**©\s*ISO/IEC\s+\d{4}\**
-        |Licensed\ to\ .*
+        |Licensed\ to\ .*""",
+}
+
+
+def page_furniture(edition: int) -> re.Pattern:
+    """The pattern of a line of page furniture in `edition`'s transcription."""
+    own = spec_pdf.edition_data(FURNITURE_LINES, edition, "page-furniture lines (sweep_figures.FURNITURE_LINES)")
+    return re.compile(r"""^\s*(?:<a\ id="page-\d+"></a>
+        |\#*\s*Page\ \d+
+        |""" + own + r"""
         |\d{1,4})\s*$""", re.X)
 
 # Notation is expected to change; WORDS are not. Everything here is stripped before the comparison: the house
@@ -91,7 +99,7 @@ def unescape(line: str) -> str:
     return re.sub(r"\\([>*_`\[\]])", r"\1", line)
 
 
-def words_of(text: str, drop_notes: bool = False) -> collections.Counter:
+def words_of(text: str, furniture: re.Pattern, drop_notes: bool = False) -> collections.Counter:
     """The WORDS of a figure, with everything that is not a word removed.
 
     Tags, fence markers and back-ticks are markup, not content, and counting them made every comparison fail:
@@ -115,7 +123,7 @@ def words_of(text: str, drop_notes: bool = False) -> collections.Counter:
     # PAGE FURNITURE carries no words either. `targets` already steps over it, but the comparison did not, so
     # a figure that straddles a page break was measured as containing "## Page 156".
     kept = [re.sub(r"^\s*>(?!>)\s?", "", l) for l in src
-            if not FENCE.match(l) and not PAGE_FURNITURE.match(l) and not HRULE.match(l)]
+            if not FENCE.match(l) and not furniture.match(l) and not HRULE.match(l)]
     # `<u>` is ZERO-WIDTH — underlining never introduces a word boundary. Replacing it with a space split
     # `>><u>CALL-CONVENTION</u>` into two words and reported a difference against a markdown form whose
     # rendered text is identical, which is the wrong direction for a gate: it hides a real change behind a
@@ -143,7 +151,7 @@ def words_of(text: str, drop_notes: bool = False) -> collections.Counter:
     return out
 
 
-def figure_ish(line: str) -> bool:
+def figure_ish(line: str, furniture: re.Pattern) -> bool:
     """Whether a bare markdown line could be a general format rather than prose.
 
     Same test the generator uses on the printed page: a figure's lower-case terms are all hyphenated
@@ -152,7 +160,7 @@ def figure_ish(line: str) -> bool:
     # The blockquote test runs on the RAW line. Unescaping first turns the transcription's `\>\>SOURCE FORMAT`
     # into `>>SOURCE FORMAT`, which reads as a blockquote — so every compiler-directive format was discarded
     # as prose and its clause reported as having no figure at all.
-    if not line.strip() or BLOCKQUOTE.match(line) or PAGE_FURNITURE.match(line):
+    if not line.strip() or BLOCKQUOTE.match(line) or furniture.match(line):
         return False
     # Strip tags BEFORE the html test: parts of the transcription already carry their underlining, and
     # `<u>NULL</u>` or `<u>FACTORY</u>. [ … ]` starts with `<`, so those clauses were reported as having no
@@ -204,7 +212,7 @@ def clause_spans(lines):
     return out
 
 
-def targets(lines, lo, hi):
+def targets(lines, lo, hi, furniture):
     """Ordered figure spans inside one page slice, as (start, end_exclusive, kind).
 
     Both shapes are found: a fenced block, and a bare run of figure-ish lines. Anything else — prose, notes,
@@ -226,10 +234,10 @@ def targets(lines, lo, hi):
             i += 1
             continue
         if not in_fence:
-            if figure_ish(line):
+            if figure_ish(line, furniture):
                 if run is None:
                     run = i
-            elif run is not None and (not line.strip() or PAGE_FURNITURE.match(line)
+            elif run is not None and (not line.strip() or furniture.match(line)
                                       or NOTATION_ONLY.match(line)):
                 pass                                     # blanks, furniture and delimiter-only rows keep it open
             elif run is not None:
@@ -241,7 +249,7 @@ def targets(lines, lo, hi):
     # A FENCED block is a figure by construction — its lines are code, and the transcription blockquotes some
     # of them, so the prose test would throw them away. Only a BARE run has to prove it is not prose.
     keep = [(a, b, k) for a, b, k in out
-            if k == "fence" or any(figure_ish(lines[j]) for j in range(a, b))]
+            if k == "fence" or any(figure_ish(lines[j], furniture) for j in range(a, b))]
 
     # ONE PRINTED FIGURE IS SOMETIMES SET AS SEVERAL BLOCKS. UNSTRING is split into two fences and a bare
     # `[ END-UNSTRING ]`; the options paragraph sets `OPTIONS.` above the fence holding its clauses. Adjacent
@@ -251,7 +259,7 @@ def targets(lines, lo, hi):
     # separates the qualification clause's ten figures from one another. Both cases are separated by a figure
     # note; only one is separated by a label, and that is the whole difference.
     def only_furniture(a, b):
-        return all(not lines[j].strip() or PAGE_FURNITURE.match(lines[j]) or HRULE.match(lines[j])
+        return all(not lines[j].strip() or furniture.match(lines[j]) or HRULE.match(lines[j])
                    for j in range(a, b))
 
     merged = []
@@ -280,7 +288,7 @@ def note_lines(lines, a, b):
     return out
 
 
-def regroup(lines, spans, figures):
+def regroup(lines, spans, figures, furniture):
     """Group CONTIGUOUS markdown spans so that each group matches one printed figure, word for word.
 
     One printed figure is sometimes set as several blocks — UNSTRING is split into two fences and a bare
@@ -296,7 +304,7 @@ def regroup(lines, spans, figures):
     n, m = len(figures), len(spans)
     if not n or m < n:
         return None
-    want = [words_of(chr(10).join(b)) for _, _, b in figures]
+    want = [words_of(chr(10).join(b), furniture) for _, _, b in figures]
     solutions = []
 
     def walk(i, j, acc):
@@ -310,7 +318,7 @@ def regroup(lines, spans, figures):
             # Measure the MERGED RANGE, not the sum of the spans in it. A group spans the gaps between its
             # blocks too, and those gaps hold the figure notes — summing spans accepted groupings that would
             # have swallowed a note into the figure, which is how the file-control entry slipped through.
-            total = words_of(chr(10).join(lines[spans[j][0]:spans[k][1]]), drop_notes=True)
+            total = words_of(chr(10).join(lines[spans[j][0]:spans[k][1]]), furniture, drop_notes=True)
             if total == want[i]:
                 acc.append((spans[j][0], spans[k][1], "group"))
                 walk(i + 1, k + 1, acc)
@@ -353,17 +361,23 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="regenerate and diff against the file (regression gate)")
     ap.add_argument("--clause", help="restrict to one clause number, e.g. 14.9.8.2")
     ap.add_argument("--limit", type=int, default=40, help="how many problems to list")
+    spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
-    spec_pdf.require(2023)
-    import fitz
+    spec_pdf.require_vector(args.edition, "sweep_figures.py")
+    pdf = spec_pdf.require(args.edition)
+    spec_md = spec_pdf.markdown(args.edition)
+    furniture = page_furniture(args.edition)
+    folio_offset = spec_pdf.folio_offset(args.edition)
+    import pymupdf
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
     import render_figure as R
     from figure_extract import extract
-    from figure_geometry import classify_page
+    from figure_geometry import page_classifier
 
-    doc = fitz.open(PDF)
-    lines = SPEC_MD.read_text(encoding="utf-8").splitlines()
+    classify_page = page_classifier(args.edition)
+    doc = pymupdf.open(pdf)
+    lines = spec_md.read_text(encoding="utf-8").splitlines()
     index = md_index(lines)
     clause_span = clause_spans(lines)
     figs, failed = generated(doc, extract, classify_page, R)
@@ -383,19 +397,19 @@ def main() -> int:
             problems.append((clause, figures[0][0], None, "no such clause region in the transcription"))
             stats["no_target"] += len(figures)
             continue
-        spans = targets(lines, *whole)
+        spans = targets(lines, *whole, furniture)
         if len(spans) != len(figures):
-            spans = regroup(lines, spans, figures)
+            spans = regroup(lines, spans, figures, furniture)
         if spans is None or len(spans) != len(figures):
-            found = len(targets(lines, *whole))
+            found = len(targets(lines, *whole, furniture))
             problems.append((clause, figures[0][0], None,
                              f"{len(figures)} printed figure(s) but {found} in the transcription, "
                              f"and no grouping of them matches"))
             stats["count_mismatch"] += len(figures)
             continue
         for (a, b, _kind), (pno, fmt, body) in zip(spans, figures):
-            have = words_of(chr(10).join(lines[a:b]), drop_notes=True)
-            want = words_of(chr(10).join(body))
+            have = words_of(chr(10).join(lines[a:b]), furniture, drop_notes=True)
+            want = words_of(chr(10).join(body), furniture)
             # A DOCUMENTED CORRECTION outranks the printed page. Where the transcription deliberately departs
             # from the standard it says so in place and lists the change in the Addendum, so regenerating from
             # the page would silently revert it — 12.3.6.2 corrects the standard's `locae-name-1` under C3.
@@ -435,7 +449,7 @@ def main() -> int:
         print(f"\nneeding attention ({len(problems)}):")
         for clause, pno, fmt, why in problems[:args.limit]:
             lbl = f" Format {fmt}" if fmt else ""
-            print(f"  §{clause}{lbl} (folio {pno - 30})  {why}")
+            print(f"  §{clause}{lbl} (folio {pno - folio_offset})  {why}")
         if len(problems) > args.limit:
             print(f"  … and {len(problems) - args.limit} more")
 
@@ -446,7 +460,7 @@ def main() -> int:
         print(f"\ndrifted from the generated form ({len(edits)}):")
         for a, b, repl, clause, pno, fmt in edits[:args.limit]:
             lbl = f" Format {fmt}" if fmt else ""
-            print(f"  §{clause}{lbl} (folio {pno - 30}), {SPEC_MD.name} lines {a + 1}-{b}")
+            print(f"  §{clause}{lbl} (folio {pno - folio_offset}), {spec_md.name} lines {a + 1}-{b}")
             for line in difflib.unified_diff(lines[a:b], repl, "transcription", "generated", n=0, lineterm=""):
                 print(f"    {line}")
         if len(edits) > args.limit:
@@ -459,8 +473,8 @@ def main() -> int:
         out = list(lines)
         for a, b, repl, *_ in sorted(edits, key=lambda e: e[0], reverse=True):
             out[a:b] = repl
-        SPEC_MD.write_text("\n".join(out) + "\n", encoding="utf-8", newline="\n")
-        print(f"\napplied {len(edits)} figure(s) to {SPEC_MD}")
+        spec_md.write_text("\n".join(out) + "\n", encoding="utf-8", newline="\n")
+        print(f"\napplied {len(edits)} figure(s) to {spec_md}")
         return 0
     if args.check:
         ok = not stats["replaceable"]
