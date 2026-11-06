@@ -18,6 +18,10 @@ later two-way tag image cannot turn this path into a silent loss. Admitted: one 
 peer, fixed size. Not admitted (COBOL1756, now with its own reason): a USING or GIVING file and every MERGE over such a
 record, since a file record has no managed-slot half; that is the file record codec's gap, registered as a lead.
 
+**Runtime ABI.** `CobolSort.ReleaseStatement` gained the `slots` parameter and `LastReturnedSlots` is new, so the shipped
+surface changed incompatibly: `abi_pin.py bump --runtime-major` (24 to 25), `PublicAPI.Shipped.txt`, and
+`tests/doc-facts/compiler-facts.json` regenerated.
+
 **Citations.** The comments I touched cited `ISO §14.9.3.4 GR9` for "pointer slots ride the managed slot"; `cite.py` shows
 14.9.3.4 GR9 is ALLOCATE's null-seeding, so the three sort sites that carried it now cite D-SLOT / DOC-A.1-210. (Six other
 files cite it for the null-seeding sentence, which it does say.)
