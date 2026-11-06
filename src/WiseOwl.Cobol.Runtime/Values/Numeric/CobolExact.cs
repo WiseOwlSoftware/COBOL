@@ -61,9 +61,18 @@ public readonly struct CobolExact
     private CobolExact(CobolBig big, int precision) => (_big, _isBig, _precision) = (big, true, precision);
 
     /// <summary>A result of the arbitrary-precision form on the 256-bit form again when its integer fits it: the third form holds only
-    /// what the first cannot.</summary>
+    /// what the first cannot. A WORKING value (<see cref="Working"/>) stays on it, so that every step of the body that formed it is
+    /// range-free, not just those the 256-bit form cannot do.</summary>
     private static CobolExact Of(CobolBig big, int precision) =>
-        big.TryToWide(out CobolWide wide) ? new(wide, big.Scale, precision) : new(big, precision);
+        !big.Working && big.TryToWide(out CobolWide wide) ? new(wide, big.Scale, precision) : new(big, precision);
+
+    /// <summary>⛔ THIS VALUE AS A WORKING VALUE (kb/Work PB4797): the operand of a body whose intermediate numbers are not values of the
+    /// program — VARIANCE's <c>n·Σdᵢ² − (Σdᵢ)²</c> (n² times the variance) and PRESENT-VALUE's <c>(1 + rate)^n</c> (the value's divisor) —
+    /// and so may pass the 10^6145 a program's value is held to while the result they form is in range. Every <see cref="Add"/>,
+    /// <see cref="Sub"/>, <see cref="Mul"/>, <see cref="Negate"/> and <see cref="Pow"/> it takes part in is exact on the arbitrary-precision
+    /// form and bounded by its working size alone (<see cref="CobolBig.Working"/>); the one <see cref="Quotient"/> that closes the body
+    /// returns the SDIDI value, which its consumer range-checks as it does every value.</summary>
+    internal CobolExact Working() => new(AsBig().AsWorking(), _precision);
 
     /// <summary>This value on the arbitrary-precision form, at its own scale.</summary>
     private CobolBig AsBig() => _isBig ? _big : _sdidi ? CobolBig.FromDec(_dec) : CobolBig.From(_wide, _scale);
