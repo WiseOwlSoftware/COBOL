@@ -89,8 +89,8 @@ public sealed class ReceivingOperandFormDriftTests
         ["returningClause"] = "the PROCEDURE DIVISION header's RETURNING item — a definition, not a statement operand",
         ["usingByReference"] = "the PROCEDURE DIVISION header's USING BY REFERENCE data-name-1 — a formal parameter, a "
             + "level 01/77 linkage-section data-name (§14.2.2 SR1), not a statement operand",
-        ["mcsReceiveStatement"] = "the declined 2023 asynchronous RECEIVE (Annex A.3 item 4) — accepted inert, nothing is stored",
-        ["mcsSendStatement"] = "the declined 2023 asynchronous SEND (Annex A.3 item 4) — accepted inert, nothing is stored",
+        ["messagingReceiveStatement"] = "the declined 2023 asynchronous RECEIVE (Annex A.3 item 4) — accepted inert, nothing is stored",
+        ["messagingSendStatement"] = "the declined 2023 asynchronous SEND (Annex A.3 item 4) — accepted inert, nothing is stored",
         ["sortGivingPhrase"] = "SORT … GIVING names FILES (file-name-2), not identifiers",
         ["mergeGivingPhrase"] = "MERGE … GIVING names FILES (file-name-2), not identifiers",
         ["setBooleanStatement"] = "SET Format 4's receiver is condition-name-1 (§14.9.39.2), a user-defined word, not an identifier",

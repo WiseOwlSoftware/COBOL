@@ -1,0 +1,1 @@
+{"refuse-at": ["2023"], "expect": "COBOL6266: RECEIVE GIVING 'BUF': the item has the BASED clause"}

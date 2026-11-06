@@ -3255,19 +3255,26 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
    by the statement's FORMAT (kb/Work PB4090): Format 1 names a message-server-name, a processor-defined name that is no
    data item (§14.9.38.3 SR2), so it is NOT resolved and an undefined one is no error; Format 2 names a message-tag
    data-name-2 (SR4), a data reference like any other. The grammar's one rule cannot tell the formats apart, so
-   `DeclinedFacilityBinder.ClassifySend` does, from the phrases written (a literal-1 operand and RETURNING are Format 1's,
+   `MessagingBinder.ClassifySend` does, from the phrases written (a literal-1 operand and RETURNING are Format 1's,
    RAISING is Format 2's) and the declaration the name silently resolves to (a message-tag item is Format 2's); a
    statement with evidence for both is **COBOL5488**, and one with evidence for neither is Format 1, so a bare
    `SEND TO name FROM x` is **COBOL1850** (RETURNING is required there, §14.9.38.2 prints it without brackets). The
    operands the formats print as NAMES (SEND's TO operand, which is message-server-name-1 or data-name-2, and its
    RETURNING data-name-1; RECEIVE's data-name-1 and data-name-2) are asked their WRITTEN shape first
-   (`DeclinedFacilityBinder.ScreenName`, kb/Work PB4118): a subscript, a reference modifier or a special register is
+   (`MessagingBinder.ScreenName`, kb/Work PB4118): a subscript, a reference modifier or a special register is
    refused with **COBOL2024**, the one data-name-n shape screen the SORT keys and the file clauses use, and is read no
    further (no second diagnostic for the format or for an undefined name). A qualifier is a name's own form, so a
    TO operand written `A OF B` is a data-name-2: Format 2's evidence (a message-server-name-1 is a bare name), resolved
-   like any data reference. SR4's own
-   requirement that data-name-1 and data-name-2 BE message-tag items is not screened yet (the message-tag type is
-   provided, see below; the screen is slice S3 of DESIGN-message-control.md). Pinned by
+   like any data reference. The syntax rules of both statements are screened (kb/Work PB4743, slice S3 of
+   `docs/rearchitecture/DESIGN-message-control.md`, `MessagingBinder`): SEND's literal-1 is alphanumeric or national
+   (§14.9.38.3 SR1), SEND's data-name-1 and data-name-2 and RECEIVE's data-name-1 are message-tag data items (§14.9.38.3 SR4,
+   §14.9.31.3 SR1) and RECEIVE's data-name-2 an integer data item of class numeric (§14.9.31.3 SR3), each refused with
+   **COBOL6265**; identifier-1 of either statement and every item subordinate to it carries no ANY LENGTH, BASED, DYNAMIC-LENGTH,
+   OBJECT-REFERENCE, POINTER, FUNCTION-POINTER or PROGRAM-POINTER clause and no OCCURS DEPENDING ON whose object lies outside
+   identifier-1 (§14.9.38.3 SR3, §14.9.31.3 SR2), each refused with **COBOL6266** (a RECEIVE's CONSTANT RECORD receiver is the receiving funnel's COBOL1548 first, §13.18.15.3 SR2);
+   and the word after `CONTINUE AFTER MESSAGE` is RECEIVED (§14.9.31.2). The binder builds one node per statement format
+   (`BoundSendToServer`, `BoundSendResponse`, `BoundReceiveMessage`); the statements stay accepted-inert until the exchange
+   is rendered (slice S4). Pinned by
    `conformance:wiseowl/cases/14.9.31-RECEIVE/pb3568-receive-undefined-operand`, its siblings and the
    `conformance:wiseowl/cases/14.9.38-SEND/pb4090-*` cases.
    They are a COBOL-2023 introduction, and below `--std 2023` the edition pass answers **COBOL0900**

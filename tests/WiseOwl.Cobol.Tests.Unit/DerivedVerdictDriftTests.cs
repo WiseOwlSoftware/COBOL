@@ -564,10 +564,15 @@ public sealed class DerivedVerdictDriftTests
     public void TheMcsSelector_IsStillSharp()
     {
         var (ids, _) = Select("mcs-only");
-        Assert.InRange(ids.Count, 12, 40);   // 28 when it landed (kb/Work R43); slice S1 (PB4740) took the message-tag class out
-        // Both statements, general formats included — §4.2.6 ¶3 releases the declined syntax.
-        foreach (string id in (string[])["FMT-14.9.31.2", "FMT-14.9.38.2", "SR-14.9.31.3-3", "GR-14.9.38.4-8"])
+        Assert.InRange(ids.Count, 12, 40);   // 28 when it landed (kb/Work R43); slice S1 (PB4740) took the message-tag class out, slice S3 (PB4743) the formats and syntax rules: 14 remain
+        // Both statements' general rules: the exchange the compiler does not yet render.
+        foreach (string id in (string[])["GR-14.9.31.4-1", "GR-14.9.31.4-5", "GR-14.9.38.4-1", "GR-14.9.38.4-8"])
             Assert.Contains(id, ids);
+        // ⛔ THE FORMATS AND SYNTAX RULES ARE BOUND AND SCREENED (kb/Work PB4743): adjudicated CONFORMS, so the selector must not hold them at
+        // DOCUMENTED-NON-SUPPORT. SR-14.9.38.3-2 names "a message server run unit" and is the row the text arm would still take.
+        foreach (string id in (string[])["FMT-14.9.31.2", "FMT-14.9.38.2", "SR-14.9.31.3-1", "SR-14.9.31.3-2", "SR-14.9.31.3-3",
+                                         "SR-14.9.38.3-1", "SR-14.9.38.3-2", "SR-14.9.38.3-3", "SR-14.9.38.3-4"])
+            Assert.DoesNotContain(id, ids);
         // The message server protocol stated from elsewhere.
         Assert.Contains("GR-14.6.11-7", ids);
         // ⛔ THE MESSAGE-TAG TYPE IS IMPLEMENTED (kb/Work PB4740): its rows are adjudicated CONFORMS, so the selector must not hold them at

@@ -9140,6 +9140,23 @@ public static class DiagnosticCatalog
         + "an integer data item (SR4), and mnemonic-name-1 the name of a feature (SR5).",
         "ISO/IEC 1989:2002 A.2.5.2; A.2.6.2");
 
+    /// <summary>COBOL6265 — an operand of the asynchronous messaging facility's SEND or RECEIVE is not of the class its syntax rule requires.</summary>
+    public static readonly DiagnosticDescriptor MessagingOperandClass = new(
+        "COBOL6265", "messaging-operand-class", EditionSeverity.Error,
+        "An operand of SEND or RECEIVE is not of the class its syntax rule requires: SEND's literal-1 an alphanumeric or national literal "
+        + "(ISO §14.9.38.3 SR1), SEND's data-name-1 and data-name-2 and RECEIVE's data-name-1 message-tag data items (§14.9.38.3 SR4, "
+        + "§14.9.31.3 SR1), and RECEIVE's data-name-2 an integer data item of the class numeric (§14.9.31.3 SR3).",
+        "ISO §14.9.38.3; §14.9.31.3");
+
+    /// <summary>COBOL6266 — identifier-1 of SEND or RECEIVE, or an item subordinate to it, carries a clause that a message area shall not contain.</summary>
+    public static readonly DiagnosticDescriptor MessagingMessageArea = new(
+        "COBOL6266", "messaging-message-area", EditionSeverity.Error,
+        "The data description entries of identifier-1 of SEND or RECEIVE, or of any data item subordinate to it, contain a clause the message area shall not "
+        + "contain: the ANY LENGTH, BASED, DYNAMIC-LENGTH, OBJECT-REFERENCE, POINTER, FUNCTION-POINTER or PROGRAM-POINTER clause, an OCCURS clause with "
+        + "the DEPENDING ON phrase where the depending on data item is not within identifier-1 "
+        + "(ISO §14.9.38.3 SR3; §14.9.31.3 SR2).",
+        "ISO §14.9.38.3 SR3; §14.9.31.3 SR2");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

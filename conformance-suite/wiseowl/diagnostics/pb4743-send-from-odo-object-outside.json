@@ -1,0 +1,1 @@
+{"refuse-at": ["2023"], "expect": "COBOL6266: SEND FROM 'REC': its subordinate 'ITEMS' has an OCCURS clause DEPENDING ON 'WS-COUNT', which is not within identifier-1"}

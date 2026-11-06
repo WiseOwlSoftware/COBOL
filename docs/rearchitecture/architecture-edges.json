@@ -959,11 +959,11 @@
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding.Procedure",
       "uses": 40,
-      "walkUses": 40,
+      "walkUses": 41,
       "removedBy": [
         "PB2347"
       ],
-      "plan": "PB2347 (the same move; MoveClassifier and MoveOverlap stay in compiler.bound); PB4677 added one pair, the composition root's new verb collaborator CommunicationBinder, which PB2347's move takes with the others; the walk read 39 at 669e32aa9, two pairs more than at a02b165da (StatementBinder -> PlacementRules, UntilExitPlacement, landed after the census; Draft 7, H1)",
+      "plan": "PB2347 (the same move; MoveClassifier and MoveOverlap stay in compiler.bound); PB4677 added one pair, the composition root's new verb collaborator CommunicationBinder, and PB4743 another, MessagingBinder (SEND and RECEIVE left DeclinedFacilityBinder), which PB2347's move takes with the others; the walk read 39 at 669e32aa9, two pairs more than at a02b165da (StatementBinder -> PlacementRules, UntilExitPlacement, landed after the census; Draft 7, H1)",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
@@ -1101,6 +1101,13 @@
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
+          "removedBy": [
+            "PB2347"
+          ]
+        },
+        {
+          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+          "to": "WiseOwl.Cobol.Binding.Procedure.MessagingBinder",
           "removedBy": [
             "PB2347"
           ]

@@ -667,8 +667,8 @@
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ScreenDataNameShape": [
-      "WiseOwl.Cobol.Binding.Procedure.DeclinedFacilityBinder",
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
+      "WiseOwl.Cobol.Binding.Procedure.MessagingBinder",
       "WiseOwl.Cobol.Binding.Procedure.SortBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ScreenImmediateMemberLevel": [
@@ -917,6 +917,7 @@
       "WiseOwl.Cobol.Binding.Procedure.InitializeBinder",
       "WiseOwl.Cobol.Binding.Procedure.InspectBinder",
       "WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder",
+      "WiseOwl.Cobol.Binding.Procedure.MessagingBinder",
       "WiseOwl.Cobol.Binding.Procedure.MoveBinder",
       "WiseOwl.Cobol.Binding.Procedure.OoBinder",
       "WiseOwl.Cobol.Binding.Procedure.ParameterConformance",

@@ -273,12 +273,13 @@ The union grammar stays: `mcsReceiveStatement` and `mcsSendStatement` parse at e
 predicate `communicationNameFollows()` keeps a `SEND cd-name ...` out of the 2023 arm, and its RECEIVE parts by the word
 after the operand. Two changes:
 
-- The rules are renamed `messagingReceiveStatement` and `messagingSendStatement`: both facilities have a message
-  control system, so "MCS" does not tell the two statements apart. Every visitor, binder arm, audit line and
-  drift test follows in the same change.
-- `CONTINUE AFTER MESSAGE RECEIVED` is parsed today as `messageKeyword cobolWord`, so `CONTINUE AFTER MESSAGE FOO`
-  compiles. The arm becomes `messageKeyword {wordAhead("RECEIVED")}? cobolWord`; RECEIVED stays a cobolWord because §8.9
-  does not reserve it and §8.10 does not list it as context-sensitive.
+- The rules are renamed `messagingReceiveStatement` and `messagingSendStatement` (PB4743; they were `mcsReceiveStatement`
+  and `mcsSendStatement`): both facilities have a message control system, so "MCS" does not tell the two statements
+  apart. Every visitor, binder arm, audit line and drift test followed in the same change.
+- `CONTINUE AFTER MESSAGE RECEIVED` was parsed as `messageKeyword cobolWord`, so `CONTINUE AFTER MESSAGE FOO`
+  compiled. The arm is `messageKeyword {wordAhead("RECEIVED")}? cobolWord` (PB4743; a `FOO` is COBOL0001, "failed
+  predicate"); RECEIVED stays a cobolWord because §8.9 does not reserve it and §8.10 does not list it as
+  context-sensitive.
 
 SEND keeps one rule for both formats: which format a `SEND TO name FROM x` is depends on the declaration of `name`, which
 no parse alternative reads (kb/Work PB4090).
@@ -338,15 +339,19 @@ public enum MessageParty { None, Server, Requestor }
 `BindReceive`, `ClassifySend`, `ScreenSendRequiredPhrases` and `ScreenName`'s SEND and RECEIVE uses;
 `DeclinedFacilityBinder` keeps VALIDATE alone and its class summary says so. `StatementBinder`'s two arms bind through
 `MessagingBinder` below an availability check that keeps today's below-2023 behavior (`BoundNop`, the COBOL0900 gate fails
-the compile), not through `BindDeclinedStatement`.
+the compile), not through `BindDeclinedStatement`. S3 (PB4743) lands the binder and still routes the two arms through
+`BindDeclinedStatement` (its operand action calls `MessagingBinder` and drops the node), so COBOL1578 and the decline
+stand; `BindDeclinedStatement` now takes the deferred-shape operands back off the unbuilt ledger for every declined
+statement, a duty `DeclinedFacilityBinder.BindValidate` and the two removed members each carried. S4 replaces the arms
+with the real binding and `StatementEmitter`'s three throwing arms with `MessagingEmitter`.
 
 The binder builds three nodes, each carrying its exception phrases through `PhraseBlocks.Bind(...,
 ConditionalPhraseFamily.Exception, ...)`:
 
 | Node | Members |
 |---|---|
-| `BoundSendToServer` | the server (a `string` name or a literal), the FROM place, the RETURNING place, the phrases |
-| `BoundSendResponse` | the TO place, the FROM place, the RAISING exception-name or LAST, the phrases |
+| `BoundSendToServer` | the server (a `string` name or a literal), the FROM operand (a place, or a function or method value), the RETURNING place, the phrases |
+| `BoundSendResponse` | the TO place, the FROM operand (a place, or a function or method value), the RAISING exception-name or LAST, the phrases |
 | `BoundReceiveMessage` | the FROM place, the GIVING place, the length place, the wait (none, seconds expression, poll), the phrases |
 
 `ClassifySend` moves unchanged: a literal-1 and RETURNING are Format 1's evidence, RAISING and a message-tag or qualified TO
@@ -358,16 +363,21 @@ then requires RETURNING (COBOL1850). Format 2's data-name-2 resolves; Format 1's
 2. SEND SR1: literal-1 is alphanumeric or national.
 3. SEND SR4, RECEIVE SR1: RETURNING data-name-1, TO data-name-2 and RECEIVE data-name-1 are message-tag items.
 4. RECEIVE SR3: data-name-2 is an integer numeric item.
-5. SEND SR3, RECEIVE SR2: one walk over identifier-1 and its subordinates (`DataItem.DescendantsOf`) asks for each
-   forbidden clause; RECEIVE adds CONSTANT RECORD. A depending-on item outside identifier-1 is found from the
-   table's `OccursSpec` (`Binding/Model/OdoModel.cs`).
+5. SEND SR3, RECEIVE SR2: one walk over identifier-1 and its subordinates (`DataItem.SelfAndDescendantsOf`) asks for each
+   forbidden clause (`MessagingBinder.ForbiddenClause`). A depending-on item outside identifier-1 is found from the
+   table's `OccursSpec` (`Binding/Model/OdoModel.cs`). RECEIVE's CONSTANT RECORD arm is the receiving funnel's, not the
+   walk's (PB4743's correction of this paragraph): a RECEIVE writes identifier-1, so `ResolveReceiving` has already
+   refused every item of a CONSTANT RECORD (COBOL1548, §13.18.15.3 SR2) before the walk sees a place, and an arm in the
+   walk would be unreachable. SEND reads identifier-1, so SEND accepts a constant record, as its list of clauses says.
 6. The written exception-name of RAISING resolves through `EcNameResolution.TryResolve`, the one funnel, with no level-3
    site: §14.9.38.3 has no level-3 rule, so a level-1 or level-2 name binds (Q6), and a 2023 name below 2023 is still
    COBOL0878.
 
-Each refusal states its rule with the `cite.py`-checked text, the COBOL1720 precedent. Screens 2 to 5 need new codes,
-allocated centrally when the slice starts (MANDATORY-PRACTICES), in one `DiagnosticCatalog` family; PB4677's COBOL6171
-("an operand of the wrong class or category") is reused where its message fits, so one question has one code.
+Each refusal states its rule with the `cite.py`-checked text, the COBOL1720 precedent. Screens 2 to 5 are two codes in
+`DiagnosticCatalog`, allocated by PB4743: COBOL6265 `MessagingOperandClass` (screens 2 to 4: literal-1, the message-tag
+items, RECEIVE's integer item) and COBOL6266 `MessagingMessageArea` (screen 5). PB4677's COBOL6171 names the
+communication facility's operands and its rule texts, so its message does not fit and it is not reused. The one
+operand-class helper (`MessagingBinder.RefuseOperandClass`) quotes the rule; the third allocated code is unused.
 
 **SET Format 17** stops being refused: `SetBinder.BindMessageTagSet` builds a `BoundSetMessageTag` (receiver, sender or
 NULL) by Q1; `SetFormatSelection`'s F17 row stays as it is. **Relation Format 3** gains the message-tag arm in

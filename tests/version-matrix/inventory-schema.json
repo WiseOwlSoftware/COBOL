@@ -801,14 +801,19 @@
     },
     "mcs-only": {
       "verdict": "DOCUMENTED-NON-SUPPORT",
-      "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOL1578 at every SEND/RECEIVE. The owner approved the facility on 2026-11-04 (DESIGN-message-control.md, kb/Work PB4700): each slice that implements part of it narrows this selector to the rows still declined (slice S1, kb/Work PB4740, took the message-tag type: USAGE MESSAGE-TAG, NULL, SET Format 17, the relation, INITIALIZE and BY VALUE), and slice S4 deletes it.",
+      "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOL1578 at every SEND/RECEIVE. The owner approved the facility on 2026-11-04 (DESIGN-message-control.md, kb/Work PB4700): each slice that implements part of it narrows this selector to the rows still declined (slice S1, kb/Work PB4740, took the message-tag type: USAGE MESSAGE-TAG, NULL, SET Format 17, the relation, INITIALIZE and BY VALUE; slice S3, kb/Work PB4743, took the statements' general formats and syntax rules, which the compiler binds and screens), and slice S4 deletes it.",
       "$selector": [
-        "A rule is SOLELY conditioned on the MCS facility when it lives in the facility's own statements — §14.9.31",
-        "RECEIVE and §14.9.38 SEND, general formats included, because §4.2.6 ¶3 releases their syntax ('it is not",
-        "required to diagnose syntax errors within this unsupported syntax') and the grammar recognizes both only to",
-        "warn — or when its content is the message server protocol stated from elsewhere: the EC-MCS exception",
-        "conditions, the implicit SEND at run-unit termination for an active message (GR-14.6.11-7) and the message",
-        "servers themselves.",
+        "A rule is SOLELY conditioned on the MCS facility when it lives in the facility's own statements' general",
+        "rules — §14.9.31 RECEIVE and §14.9.38 SEND, kind GR — whose behavior is the message exchange the compiler",
+        "does not yet render — or when its content is the message server protocol stated from elsewhere: the EC-MCS",
+        "exception conditions, the implicit SEND at run-unit termination for an active message (GR-14.6.11-7) and the",
+        "message servers themselves.",
+        "",
+        "⛔ THE STATEMENTS' FORMATS AND SYNTAX RULES ARE NO LONGER HERE (kb/Work PB4743, slice S3). The binder",
+        "(MessagingBinder) parses, binds and screens both statements: FMT-14.9.31.2, FMT-14.9.38.2, SR-14.9.31.3-1 to -3",
+        "and SR-14.9.38.3-1 to -4 are adjudicated CONFORMS rows, so the clause arm takes the general rules alone",
+        "(kind GR), and SR-14.9.38.3-2 — the one syntax rule the text arm would still select, by its 'message server'",
+        "— is excluded by its own words.",
         "",
         "⛔ THE MESSAGE-TAG CLASS IS NO LONGER HERE (kb/Work PB4740). The data half of the facility is implemented:",
         "the null message-tag content (GR-8.4.3.10.4-4), a message-tag comparison (GR-8.8.4.2.1-9), the USAGE",
@@ -822,10 +827,13 @@
       ],
       "arms": [
         {
-          "$arm": "clause — the facility's own two statements, general formats included (§4.2.6 ¶3)",
+          "$arm": "clause — the facility's own two statements' general rules, whose exchange is not yet rendered",
           "sections": [
             "14.9.31",
             "14.9.38"
+          ],
+          "kinds": [
+            "GR"
           ]
         },
         {
@@ -837,7 +845,8 @@
         }
       ],
       "excludes-patterns": [
-        "\\bnull content\\b"
+        "\\bnull content\\b",
+        "\\bMessage-server-name-1 is the name of a message server run unit\\b"
       ]
     },
     "float-formats-not-provided": {

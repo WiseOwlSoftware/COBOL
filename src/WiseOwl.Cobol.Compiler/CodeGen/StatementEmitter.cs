@@ -208,6 +208,13 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     // clause is active is the runtime's answer, because a clause of ANY element of the run unit makes it act.
     public bool Visit(BoundCommitRollback n) { _transactions.EmitStatement(n); return false; }
     public bool Visit(BoundCommunicationStatement n) { _communication.Emit(n); return false; }
+    // The messaging facility's statements (ISO §14.9.38, §14.9.31; kb/Work PB4743, PB4744): the binder builds them and the declined-statement seam still
+    // answers COBOL1578 instead of passing them on, so none reaches here until the exchange is rendered.
+    public bool Visit(BoundSendToServer n) => throw MessagingNotRendered(n);
+    public bool Visit(BoundSendResponse n) => throw MessagingNotRendered(n);
+    public bool Visit(BoundReceiveMessage n) => throw MessagingNotRendered(n);
+    private static InvalidOperationException MessagingNotRendered(BoundStatement n) => new(
+        $"{n.GetType().Name} reached code generation, which renders no messaging statement before kb/Work PB4744: StatementBinder answers COBOL1578 for SEND and RECEIVE instead of passing the node on");
     /// <summary>⛔ THE CONTINUE AFTER SUSPENSION CALL, ONE ARM PER CARRIER (kb/Work PB1529). §14.9.9.4 GR1: the sign
     /// test (GR1a/GR1b: a fractional (-1,0) still sets the EC) and the m=0 truncation (the implicit COMPUTE without
     /// ROUNDED) are taken by <c>CobolTiming.ContinueAfter</c> from the value in ITS OWN DOMAIN, which then clamps to
