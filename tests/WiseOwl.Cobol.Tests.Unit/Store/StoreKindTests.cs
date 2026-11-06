@@ -3,6 +3,7 @@
 using System.Buffers.Binary;
 using WiseOwl.Cobol.Runtime.IO;
 using WiseOwl.Cobol.Runtime.IO.Store;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Store;
@@ -105,8 +106,7 @@ public sealed class StoreKindTests
     [Fact]
     public void A_message_store_is_Foreign_to_a_COBOL_OPEN_and_a_keyed_store_is_Described()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "wo-pb4734-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("pb4734-store-kind");
         try
         {
             string message = Path.Combine(dir, "mcs.store"), keyed = Path.Combine(dir, "keyed.dat");
@@ -117,7 +117,7 @@ public sealed class StoreKindTests
             Assert.Equal(StoreFormat.Described, MetaPage.Describes(keyed, out var recorded));
             Assert.False(recorded!.Conflicts(StoreKit.Relative));
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
