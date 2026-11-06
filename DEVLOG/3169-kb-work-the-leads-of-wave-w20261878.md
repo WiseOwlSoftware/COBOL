@@ -1,4 +1,4 @@
-## kb/Work: the leads of wave w20261878
+## Entry 3169 — 2026-11-05 16:01 PST — kb/Work: the leads of wave w20261878
 
 Filed the open review leads of wave w20261878 (groups a, b, c, d, f, g, h) as kb/Work notes PB4791 to PB4806, one per item or per mechanism, and made three register corrections. No code changed and no lead was adjudicated: each note states what the reviewer's lead says.
 
@@ -11,3 +11,4 @@ Filed the open review leads of wave w20261878 (groups a, b, c, d, f, g, h) as kb
 - Corrections to landed notes: PB4757 Fix paragraph brought to what 50718d8bd landed; PB4750 Sites adds `CobolExact#Compare`; PB4766 Sites adds `NumericRenderer#CounterStorageImage`.
 
 Not filed, decided earlier: a R1-4, b R2-6, h R3-4 (report or DEVLOG wording). Wave group e has no open leads. Citations written into the notes were run through `cite.py --check`: 15.3 6), 15.7.4 1) b), 15.18.3 2), 13.18.40.5 6) b), 7) b) and 7) all OK.
+
