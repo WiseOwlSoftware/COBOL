@@ -326,12 +326,15 @@ def self_test() -> int:
             "have specifically authorized the use of this material in whole or in part\n"
             "This preface is NOT part of ISO/IEC 1989:2023.\n\n<a id=\"section-1\"></a>\n\n## 1 Scope\n")
     check("a clean 2023 text passes", quietly(check_text, good, 2023) == [])
-    stamped = good.replace("## 1 Scope", "Licensed to someone. Single user license only.\nDownloaded 1/2/2026\n## 1 Scope")
+    # The planted pieces are ASSEMBLED, never written whole: check_tree reads this very file and refuses a download date or
+    # an order number anywhere in the tracked tree.
+    download_date = "Downloaded " + "1/2/" + "2026"
+    order_number = "X_" + "123456"
+    stamped = good.replace("## 1 Scope", f"Licensed to someone. Single user license only.\n{download_date}\n## 1 Scope")
     found = quietly(check_text, stamped, 2023)
     check("a 2023 text carrying the stamp pieces fails once per piece", len(found) == 3)
-    check("1985 reads its own stamp shapes: an `order #` line is refused and the 2023-only `X_######` is not looked for",
-          len(quietly(check_stamp, ["order # 12"], 1985)) == 1
-          and quietly(check_stamp, ["X_123456"], 1985) == [])
+    check("1985 reads its own stamp shapes: an `order #` line is refused and the 2023-only order number is not looked for",
+          len(quietly(check_stamp, ["order # 12"], 1985)) == 1 and quietly(check_stamp, [order_number], 1985) == [])
     for edition in (1985, 2002):
         try:
             quietly(check_text, good, edition)
