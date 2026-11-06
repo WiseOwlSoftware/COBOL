@@ -4,14 +4,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB4770.  ASIGN is no clause of a file control entry and SECTION ends the run it opens: the run is named
+      *> kb/Work PB4770.  ASIGN is no clause of a file control entry and the header MAIN SECTION ends the run it opens: the run is named
       *> (COBOL1970 at ASIGN), not left to the generic report at SECTION.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4770B.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT F1 ASIGN SECTION.
+           SELECT F1 ASIGN MAIN SECTION.
        PROCEDURE DIVISION.
        MAIN-PARA.
            DISPLAY "SHOULD NOT COMPILE"

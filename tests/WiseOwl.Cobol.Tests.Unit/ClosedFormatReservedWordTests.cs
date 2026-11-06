@@ -621,6 +621,18 @@ public sealed class ClosedFormatReservedWordTests
         Assert.Contains("error " + diagnostic, errors[0]);
     }
 
+    /// <summary>⛔ A FOREIGN RUN THAT A HEADER ENDS IS STILL NAMED (kb/Work PB4770, PB4301): the run begins BEFORE the header's
+    /// opening word, so the header's own name is not what the run is made of; only a run that IS the header's name
+    /// (<c>PIC X MAIN SECTION.</c>, above) is a structure fault.</summary>
+    [Theory]
+    [InlineData("01 W-A PIC X VALEU MAIN SECTION.\n" + Proc, "COBOL1941: unexpected 'VALEU'. 'VALEU' is not a clause of the data description entry for 'W-A'")]
+    [InlineData("01 W-A PIC X VALEU 5 DIVISION.\n" + Proc, "COBOL1941: unexpected 'VALEU'. 'VALEU' is not a clause of the data description entry for 'W-A'")]
+    public void AForeignRunEndedByAHeader_IsNamed(string rest, string diagnostic)
+    {
+        var errors = Compile(Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       " + rest, 2023);
+        Assert.Contains("error " + diagnostic, errors[0]);
+    }
+
     /// <summary>⛔ THE FAULT AFTER THE HEADER DOES NOT UNWRITE THE PERIOD BEFORE IT (kb/Work PB4706, the PB4646 review's R1-1): the
     /// slot and hint 14 ask one question of the word and the one after it, so a word that begins what follows gets the
     /// missing-period report whatever else its sentence holds, and that fault is the second report. With a name or a clause
