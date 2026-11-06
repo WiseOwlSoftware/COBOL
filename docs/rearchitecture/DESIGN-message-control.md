@@ -773,7 +773,7 @@ rests on that no document read states:
 - `Socket.Select` over AF_UNIX, recorded for the fallback;
 - the communication facility's bell cases (`DESIGN-communication-facility.md` §7): `Socket.Poll` on a listening socket
   returns at a pending connection; a non-blocking connect to a listener with room completes or answers `WouldBlock`,
-  never `ConnectionRefused`; one to a listener whose backlog is full answers `WouldBlock` or `ConnectionRefused`, recorded.
+  never `ConnectionRefused`; one to a listener whose backlog is full answers `WouldBlock` (Linux), `NoBufferSpaceAvailable` (Windows) or `ConnectionRefused`, recorded; a `WouldBlock` counts as the full-backlog answer only when the connect then fails to finish.
 
 S0 lands the whole class, so the communication facility's slices add no case to it.
 
@@ -786,6 +786,8 @@ listening socket's file works: the new name reaches the listener and the old one
 publishes by rename and needs no `McsPublishByte`. `MaxPathBytes` is 107, as on Linux. A non-blocking connect to a listener
 with room answers `WouldBlock` (Windows answers it whatever the backlog holds), then completes, and the byte arrives; so on
 Windows a `WouldBlock` does not mean a full backlog, and a ring that answers it still arrives once the connect finishes.
+A full backlog (`Listen(1)`, non-blocking connects held open) answers the sixth connect `NoBufferSpaceAvailable` (WSAENOBUFS);
+connects 0 to 4 answer `WouldBlock` and complete. A `Bind` at the path of a listener closed by its own process succeeds.
 The class's output carries each observed answer, and CI's Linux leg adds its own to this record.
 
 The class runs on macOS unchanged when a macOS leg exists, and §1's claim widens with it. The first two decide the

@@ -84,6 +84,9 @@ public sealed class PlatformAssumptionTests : IDisposable
         string source = Path.Combine(dir, "child.cs");
         File.WriteAllText(source, ChildSource, new UTF8Encoding(false));
         var psi = new ProcessStartInfo("dotnet") { WorkingDirectory = dir };
+        // The tree kill below must not reach the host-wide Roslyn server (VBCSCompiler) that other builds on this host share:
+        // with shared compilation off, `dotnet run` compiles in-process and starts no server of its own.
+        psi.Environment["UseSharedCompilation"] = "false";
         psi.ArgumentList.Add("run");
         psi.ArgumentList.Add(source);
         psi.ArgumentList.Add("--");
@@ -165,11 +168,17 @@ public sealed class PlatformAssumptionTests : IDisposable
         if (!survives)
         {
             // This OS removes the file with the socket; "bind over an existing file" needs one, so plant it live.
-            using var live = Listening(path);
-            using var second = NewSocket();
-            var inUse = Assert.Throws<SocketException>(() => Bind(second, path));
-            _output.WriteLine($"Bind over a live listener's file: {inUse.SocketErrorCode}");
-            Assert.Equal(SocketError.AddressAlreadyInUse, inUse.SocketErrorCode);
+            // (A killed listener's leftover file, the stale case, is witnessed by ConnectToTheKilledListenersSocketFileFails.)
+            using (var live = Listening(path))
+            using (var second = NewSocket())
+            {
+                var inUse = Assert.Throws<SocketException>(() => Bind(second, path));
+                _output.WriteLine($"Bind over a live listener's file: {inUse.SocketErrorCode}");
+                Assert.Equal(SocketError.AddressAlreadyInUse, inUse.SocketErrorCode);
+            }
+            // The listener is gone and its file with it: a bind at the same path succeeds.
+            using var rebound = Listening(path);
+            Assert.True(File.Exists(path));
             return;
         }
         using (var second = NewSocket())
@@ -360,8 +369,11 @@ public sealed class PlatformAssumptionTests : IDisposable
     }
 
     [Fact]
-    public void NonBlockingConnectToAListenerWithAFullBacklogAnswersWouldBlockOrRefused()
+    public void NonBlockingConnectToAListenerWithAFullBacklogAnswersAnErrorNeverCompletes()
     {
+        // WouldBlock is the in-progress answer on Windows even for a listener with room, so it counts as the full-backlog
+        // answer only when the connect then fails to finish (the socket still cannot send after the poll). Windows reports
+        // a full backlog as NoBufferSpaceAvailable (WSAENOBUFS); Linux connect(2) as WouldBlock (EAGAIN).
         string path = SocketPath("n2");
         using var server = Listening(path, backlog: 1);
         var held = new List<Socket>();
@@ -374,16 +386,29 @@ public sealed class PlatformAssumptionTests : IDisposable
                 client.Blocking = false;
                 held.Add(client);
                 try { Connect(client, path); }
+                catch (SocketException e) when (e.SocketErrorCode == SocketError.WouldBlock)
+                {
+                    if (client.Poll(ObservationBudget.UnitMs * 1000, SelectMode.SelectWrite) && Finished(client)) continue;
+                    answer = SocketError.WouldBlock;
+                }
                 catch (SocketException e) { answer = e.SocketErrorCode; }
             }
             _output.WriteLine($"non-blocking connect to a listener with a full backlog: after {held.Count} connects, "
                               + (answer is { } a ? a.ToString() : "every connect completed"));
             Assert.NotNull(answer);
-            Assert.True(answer is SocketError.WouldBlock or SocketError.ConnectionRefused, answer.ToString());
+            Assert.True(answer is SocketError.WouldBlock or SocketError.ConnectionRefused or SocketError.NoBufferSpaceAvailable,
+                        answer.ToString());
         }
         finally
         {
             foreach (var socket in held) socket.Dispose();
         }
+    }
+
+    /// <summary>True when the in-progress connect finished: a connected stream socket accepts a byte, an unconnected one does not.</summary>
+    private static bool Finished(Socket client)
+    {
+        try { client.Send([0]); return true; }
+        catch (SocketException) { return false; }
     }
 }
