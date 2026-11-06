@@ -187,6 +187,23 @@ internal static class IntrinsicCarrierRules
         internal bool Unbounded => Digits == 0;
     }
 
+    /// <summary>Does a cross-aligning call have an argument of unknown bound (<see cref="AlignedOperand.Unbounded"/>) while the
+    /// alignment shifts any argument (kb/Work PB4792)? Then the aligned operand is bounded only by its 16-byte carrier's
+    /// <see cref="PicInfo.CarrierDigitBound"/> = 39 digits, past the Int128's 38, whatever the shift is, and the native arm's alignment
+    /// would end the run unit with EC-SIZE-OVERFLOW for a value its receiver may hold. Such a list is NOT taken by the SDIDI's
+    /// 34-digit image (which would round a 36-digit sum the Int128 lane held whole, review R1-1): the renderer evaluates it on
+    /// the exact family's whole value (<c>CobolIntrinsics.SumWhole</c> and siblings), the function arm of <c>CombineAdditive</c>'s
+    /// exact additive. With NO shift the alignment is the identity and only the sum can leave the carrier, the documented size
+    /// error (DOC-A.1-179 (1)): the native arm keeps that list. THE ONE READER of the question, asked by
+    /// <see cref="AlignmentMayLeaveCarrier"/> and by <c>IntrinsicRenderer</c>.</summary>
+    internal static bool AlignmentShiftsUnboundedOperand(string functionName, IReadOnlyList<AlignedOperand?> operands)
+    {
+        if (functionName is "MOD" or "REM" || operands.Count == 0 || operands.Any(x => x is null)) return false;
+        var xs = operands.Select(x => x!.Value).ToList();
+        int s = xs.Max(x => x.Scale);
+        return xs.Any(x => x.Unbounded) && xs.Any(x => x.Scale != s);
+    }
+
     /// <summary>Can aligning a cross-aligning call's arguments to their common scale — and accumulating the aligned values —
     /// leave the <see cref="Int128"/> carrier? True only when EVERY argument is an exact scaled operand
     /// (<paramref name="operands"/>: <c>null</c> for an SDIDI or binary64 operand, which takes another lane and for which nothing is
@@ -218,7 +235,7 @@ internal static class IntrinsicCarrierRules
         // alignment ended the run unit (EC-SIZE-OVERFLOW) for a value its receiver holds: SUM (FUNCTION INTEGER (D) F) of
         // 1000000000000000001 and 1.01. With NO shift the alignment is the identity and only the sum can leave the carrier, the
         // documented size error (DOC-A.1-179 (1)); the native arm keeps that list, as it did.
-        if (xs.Any(x => x.Unbounded)) return xs.Any(x => x.Scale != s);
+        if (xs.Any(x => x.Unbounded)) return AlignmentShiftsUnboundedOperand(functionName, operands);
         // ⛔ THE BOUND IS ON THE VALUE, NOT ON THE WIDEST ARGUMENT PLUS A DIGIT COUNT. Argument i, aligned to the common
         // scale, is below 10^D_i (D_i its unscaled digits plus the scale gap — a table(ALL) argument stands for an
         // unknown number of elements, so it is charged nine more digits); the function's value is bounded by the sum of

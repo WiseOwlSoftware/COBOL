@@ -176,7 +176,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // carrier moves; an argument whose bound is unknown (an intrinsic's value) moves it when the alignment shifts any
         // argument (kb/Work PB4792), as CombineAdditive's exact additive does (PB4752).
         if (IntrinsicCarrierRules.CrossAligningFunctions.Contains(sig.Name) && AlignmentMayLeaveCarrier(ic)
-            && RenderDec(ic) is { } wideAligned)
+            && (AlignmentShiftsUnboundedOperand(ic) && !num.StandardDecimal ? RenderWholeAligned(ic) : RenderDec(ic)) is { } wideAligned)
             return wideAligned;
         // ⛔ MEAN'S VALUE IS THE SDIDI QUOTIENT UNDER NATIVE ARITHMETIC TOO (kb/Work PB3860). §15.60.4 r1's equivalent arithmetic
         // expression ends in a division; under a standard mode the value is that expression's SDIDI value (§15.4.1 r1) and
@@ -1161,11 +1161,36 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// the rule reads as <see cref="IntrinsicCarrierRules.AlignedOperand.Unbounded"/> (kb/Work PB4792).</summary>
     /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand: its carrier flags and its digit bound.</remarks>
     private bool AlignmentMayLeaveCarrier(BoundIntrinsicCall ic) =>
-        IntrinsicCarrierRules.AlignmentMayLeaveCarrier(ic.Sig.Name, Operands(ic)
+        IntrinsicCarrierRules.AlignmentMayLeaveCarrier(ic.Sig.Name, AlignedOperands(ic));
+
+    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand: its carrier flags and its digit bound.</remarks>
+    private List<IntrinsicCarrierRules.AlignedOperand?> AlignedOperands(BoundIntrinsicCall ic) =>
+        Operands(ic)
             .Select((x, i) => x.Dec || x.Real
                 ? (IntrinsicCarrierRules.AlignedOperand?)null
                 : new IntrinsicCarrierRules.AlignedOperand(x.Digits, x.Scale, ic.Args[i] is BoundFieldOperand { Place: TableAllPlace }))
-            .ToList());
+            .ToList();
+
+    /// <summary>Does the alignment shift a list's argument of unknown bound (<see cref="IntrinsicCarrierRules.AlignmentShiftsUnboundedOperand"/>,
+    /// kb/Work PB4792)? Reads the same RAW operand facts as <see cref="AlignmentMayLeaveCarrier"/>.</summary>
+    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand: its carrier flags and its digit bound.</remarks>
+    private bool AlignmentShiftsUnboundedOperand(BoundIntrinsicCall ic) =>
+        IntrinsicCarrierRules.AlignmentShiftsUnboundedOperand(ic.Sig.Name, AlignedOperands(ic));
+
+    /// <summary>⛔ A NATIVE LIST THAT ALIGNS AN ARGUMENT OF UNKNOWN BOUND IS EVALUATED ON THE EXACT FAMILY'S WHOLE VALUE (kb/Work PB4792,
+    /// review R1-1): the arguments enter as their exact values and the sum, difference or halved sum is returned unrounded, for the
+    /// receiver to round once (§14.7.4.3). The SDIDI bodies round the value to 34 digits first, so SUM (FUNCTION INTEGER (A) F) of
+    /// 10000 and .9999999999999999999999999999999 would store 10001.00000 where the Int128 body, the arithmetic expression and
+    /// SUM (A F) give 10000.99999 (§15.4.1 leaves the approximation to the implementor; CLAUDE.md rule 1 sends it to GnuCOBOL, whose
+    /// decimal temporary is exact). Null for a function this family does not cover.</summary>
+    private NumX? RenderWholeAligned(BoundIntrinsicCall ic) => ic.Sig.RuntimeMethod switch
+    {
+        "SumScaled" => Exact("SumWhole", ExactValueArgList(ic), null),
+        "RangeScaled" => Exact("RangeWhole", ExactValueArgList(ic), null),
+        "MedianScaled" => Exact("MedianWhole", ExactValueArgList(ic), null),
+        "MidrangeScaled" => Exact("MidrangeWhole", ExactValueArgList(ic), null),
+        _ => null,
+    };
 
     /// <summary>Would landing this MAX/MIN selection at its arguments' common scale overrun the receiver-bound Int128 headroom
     /// (<see cref="ReceiverContext.WorkingScale"/>)? Then the landing would truncate the selected value before the receiver's
@@ -1347,11 +1372,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // receiver, where the SDIDI's 34 stored 00000 for 73792.
             "MaxScaled" when !num.StandardDecimal => Exact("MaxExact", ExactValueArgList(ic), null),
             "MinScaled" when !num.StandardDecimal => Exact("MinExact", ExactValueArgList(ic), null),
-            "SumScaled" when !num.StandardDecimal => Exact("SumExact", ExactValueArgList(ic), null),
-            "RangeScaled" when !num.StandardDecimal => Exact("RangeExact", ExactValueArgList(ic), null),
+            "SumScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SumExact", $"{mode}, {ExactValueArgList(ic)}")),
+            "RangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RangeExact", $"{mode}, {ExactValueArgList(ic)}")),
             "MeanScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MeanExact", $"{mode}, {ExactValueArgList(ic)}")),
-            "MedianScaled" when !num.StandardDecimal => Exact("MedianExact", ExactValueArgList(ic), null),
-            "MidrangeScaled" when !num.StandardDecimal => Exact("MidrangeExact", ExactValueArgList(ic), null),
+            "MedianScaled" when !num.StandardDecimal => Exact("MedianExact", $"{mode}, {ExactValueArgList(ic)}", null),
+            "MidrangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MidrangeExact", $"{mode}, {ExactValueArgList(ic)}")),
             "Variance" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("VarianceExact", $"{mode}, {ExactValueArgList(ic)}")),
             "StandardDeviation" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("StdDevExact", $"{mode}, {ExactValueArgList(ic)}")),
             "PresentValue" when !num.StandardDecimal =>
