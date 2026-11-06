@@ -116,7 +116,7 @@ internal sealed class RunUnitFileLock : IDisposable
     /// establishes through, and the lock keeps that wrapper for its <see cref="Amend"/> and <see cref="Revert"/>. It is how
     /// a test COUNTS the requests an OPEN makes (<see cref="FileConnector.Open"/> makes at most two, kb/Work PB3498). An
     /// <see cref="AsyncLocal{T}"/>, so only the calling test's own flow observes (the pattern of
-    /// <c>KeyedStore.MediumObserver</c>).</summary>
+    /// <c>PageMediumObserver</c>).</summary>
     internal static readonly AsyncLocal<Func<IColumnLockHost, IColumnLockHost>?> HostObserver = new();
 
     /// <summary>The same through <paramref name="host"/> (null: a host with no lock, <see cref="Outcome.Unavailable"/>).

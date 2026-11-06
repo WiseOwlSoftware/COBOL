@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Conformance;
@@ -88,6 +90,152 @@ public sealed class MessageTagIntroductionGateTests
             """, edition).Errors;
         if (binds) Assert.Empty(errors);
         else EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
+    }
+
+    /// <summary>kb/Work PB4771: below 2023 a SET Format 17 the SR35 rules refuse (a numeric receiver, a numeric sender, two
+    /// receivers, a literal sender) draws ONLY the operands' COBOL0900 gate, because the usage the class refusals read
+    /// does not exist there (DESIGN-message-control.md §7.1: "no second one may appear"); at 2023 each draws its
+    /// COBOL0869 and no gate. The harness's refusal files check a code is reported, not that another is not.</summary>
+    [Theory]
+    [InlineData("SET N TO T", 85)]
+    [InlineData("SET N TO T", 2002)]
+    [InlineData("SET N TO T", 2014)]
+    [InlineData("SET T TO N", 2014)]
+    [InlineData("SET T U TO NULL", 2014)]
+    [InlineData("SET T TO 5", 2014)]
+    [InlineData("SET N TO T", 2023)]
+    [InlineData("SET T TO N", 2023)]
+    [InlineData("SET T U TO NULL", 2023)]
+    [InlineData("SET T TO 5", 2023)]
+    public void SetFormat17Refusals_AreTheGateAloneBelowTheIntroduction(string statement, int edition)
+    {
+        var errors = EditionHarness.CompileFull($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. MTISR.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T USAGE MESSAGE-TAG.
+            01 U USAGE MESSAGE-TAG.
+            01 N PIC 9(4).
+            PROCEDURE DIVISION.
+            MAIN-P.
+                {statement}.
+                STOP RUN.
+            """, edition).Errors;
+        if (edition >= 2023)
+        {
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
+            EditionHarness.AssertNoDiagnostic(errors, "COBOL0900");
+        }
+        else
+        {
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
+            EditionHarness.AssertNoDiagnostic(errors, "COBOL0869");
+        }
+    }
+
+    /// <summary>kb/Work PB4771 review R1-1: a message-tag SENDER that is an IMPORTED function's returned temporary has no
+    /// declaration in this compilation, so no COBOL0900 gate fires on it; the SET must still be refused (§14.9.39.3 SR35,
+    /// COBOL0869) at every edition, never dropped as a no-op that compiles clean below 2023.</summary>
+    [Theory]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void SetFormat17_ImportedFunctionSender_IsRefusedAtEveryEdition(int edition)
+    {
+        string dir = ScratchDirectory.Create("MtImported");
+        try
+        {
+            string lib = CompiledProgramCache.StageSource(Path.Combine(dir, "MTF.cob"), """
+                IDENTIFICATION DIVISION.
+                FUNCTION-ID. MTF.
+                DATA DIVISION.
+                LINKAGE SECTION.
+                01 R USAGE MESSAGE-TAG.
+                PROCEDURE DIVISION RETURNING R.
+                MAIN-P.
+                    SET R TO NULL.
+                    GOBACK.
+                END FUNCTION MTF.
+                """);
+            Assert.True(CompiledProgramCache.Compile(new CompilerDriver.Options(lib, Path.Combine(dir, "MTF.dll"),
+                DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Free)).Success);
+            string caller = CompiledProgramCache.StageSource(Path.Combine(dir, "MTFCALL.cob"), """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. MTFCALL.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    FUNCTION MTF.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 N PIC 9(4) VALUE 7.
+                PROCEDURE DIVISION.
+                MAIN-P.
+                    SET N TO FUNCTION MTF().
+                    STOP RUN.
+                """);
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(caller, Path.Combine(dir, "MTFCALL.dll"),
+                DialectLevel: edition, SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [dir]));
+            Assert.False(r.Success);
+            EditionHarness.AssertHasDiagnostic(r.Errors, "COBOL0869");
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>kb/Work PB4771 review R2-1: an OBJECT PROPERTY of an imported class that is a message-tag item is a
+    /// compiler temporary with no data description entry here, so no COBOL0900 gate fires on it. The SET naming it is
+    /// bound at every edition: SR35 refuses a non-tag partner (COBOL0869), and <c>SET prop TO NULL</c> compiles as at 2023
+    /// instead of being dropped as a no-op.</summary>
+    [Theory]
+    [InlineData("SET N TO TAGP OF O", 2002, false)]
+    [InlineData("SET N TO TAGP OF O", 2014, false)]
+    [InlineData("SET N TO TAGP OF O", 2023, false)]
+    [InlineData("SET TAGP OF O TO N", 2002, false)]
+    [InlineData("SET TAGP OF O TO N", 2014, false)]
+    [InlineData("SET TAGP OF O TO N", 2023, false)]
+    [InlineData("SET TAGP OF O TO NULL", 2002, true)]
+    [InlineData("SET TAGP OF O TO NULL", 2014, true)]
+    [InlineData("SET TAGP OF O TO NULL", 2023, true)]
+    public void SetFormat17_ImportedPropertyOperand_IsBoundAtEveryEdition(string statement, int edition, bool succeeds)
+    {
+        string dir = ScratchDirectory.Create("MtProp");
+        try
+        {
+            string lib = CompiledProgramCache.StageSource(Path.Combine(dir, "MTP.cob"), """
+                IDENTIFICATION DIVISION.
+                CLASS-ID. MTP.
+                OBJECT.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 TAGP USAGE MESSAGE-TAG PROPERTY.
+                END OBJECT.
+                END CLASS MTP.
+                """);
+            Assert.True(CompiledProgramCache.Compile(new CompilerDriver.Options(lib, Path.Combine(dir, "MTP.dll"),
+                DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Free)).Success);
+            string caller = CompiledProgramCache.StageSource(Path.Combine(dir, "MTPCALL.cob"), $"""
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. MTPCALL.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    CLASS MTP PROPERTY TAGP.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 O USAGE OBJECT REFERENCE MTP.
+                01 N PIC 9(4) VALUE 7.
+                PROCEDURE DIVISION.
+                MAIN-P.
+                    {statement}.
+                    STOP RUN.
+                """);
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(caller, Path.Combine(dir, "MTPCALL.dll"),
+                DialectLevel: edition, SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [dir]));
+            Assert.Equal(succeeds, r.Success);
+            if (!succeeds) EditionHarness.AssertHasDiagnostic(r.Errors, "COBOL0869");
+        }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The note's arm 2 from the other side: a group's message-tag usage handed to a leaf that wrote a

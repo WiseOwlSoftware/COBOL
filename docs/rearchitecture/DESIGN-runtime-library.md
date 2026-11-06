@@ -1028,10 +1028,10 @@ META (page 0 and page 1 = the two COMMITTED slots, written alternately; page 2 =
   32   8  magic "CBNFSTR" + format version 6          (the whole-store header is version 5 with its magic at offset 0, so it is
                                                      Foreign here; a page carrying this magic and version whose committed
                                                      slots both fail is `StoreFormat.Damaged`: R6's '30', not GR10's '39')
-  40   1  organization  'R' relative · 'I' indexed
-  41   1  record type   'F' fixed · 'V' varying
-  42   4  minimum logical record size · 46 4 maximum logical record size   (§9.1.6, as the whole-store header)
-  50   2  key count     0 relative; prime + alternates indexed
+  40   1  organization  'R' relative · 'I' indexed · 'M' the message store (2.2.1.19)
+  41   1  record type   'F' fixed · 'V' varying ('F' for 'M')
+  42   4  minimum logical record size · 46 4 maximum logical record size   (§9.1.6, as the whole-store header; 0 for 'M')
+  50   2  key count     0 relative and 'M'; prime + alternates indexed
   52   8  generation    the coherence stamp (2.2.1.7); one more per statement that changed the file
   60   8  release mint  an indexed store's next release ordinal (kb/Work PB2693); 0 relative
   68   8  page count    pages in the file (the allocation frontier)
@@ -2504,11 +2504,11 @@ PB3335 landed a READ ONLY relative writer with no mutex beside the INPUT reader 
 over `RelativeStore` in `KeyedStore.cs`, `Store/PageCache`, `Store/RunUnitPageMedium`, `StoreStatus.Boundary`,
 `KeyedConnector.CoherentUnder`/`EnterStore`/`CompleteStore`/`InStoreMutex` with the whole-store machinery moved to
 `IndexedConnector.WholeStore.cs`, and the connector-level crash, refusal and interleaving cases in
-`tests/WiseOwl.Cobol.Tests.Unit/RelativeEngineTests.cs` over `KeyedStore.MediumObserver`); PB3334 INDEXED on the engine
+`tests/WiseOwl.Cobol.Tests.Unit/RelativeEngineTests.cs` over `PageMediumObserver`); PB3334 INDEXED on the engine
 (the trees, the ordinals, the collations, the indexed half of DOC-A.1-107 — and, once both organizations drive one engine, the
 keyed lifecycle written ONCE, kb/Work PB2753; in the tree: `IndexedConnector` over `IndexedStore` in `KeyedStore.cs`, the
 engine handle `KeyedStore` both stores derive from, with `KeyedStore.Change` the one multi-tree statement and
-`KeyedStore.MediumObserver` the one fault seam; `KeyedConnector.OpenCore`/`CloseCore`/`Attach`/`Detach`/`FormatHolds`;
+`PageMediumObserver` the one fault seam; `KeyedConnector.OpenCore`/`CloseCore`/`Attach`/`Detach`/`FormatHolds`;
 `IndexedConnector.WholeStore.cs` deleted, so no connector reaches the whole-store model; the connector-level cases in
 `tests/WiseOwl.Cobol.Tests.Unit/IndexedEngineTests.cs`); PB3335 the deletion of the whole-store model's remains and
 the rest of page-granular coherence (in the tree: `StoreTable`, `IO/KeyedStore.cs`, a reader's entry through a shared
@@ -2708,6 +2708,46 @@ any later crash — an answer the medium can later contradict is a defect.
 
 The one determination the tables surface that the standard does not settle (a COMMIT over several files, one refused) is
 written at the COMMIT bullet; the owner chose per file (kb/Work PB3337, PB3454).
+
+**2.2.1.19 The engine has a second client: the message store, and the statement core both clients share (kb/Work PB4734;
+DESIGN-communication-facility.md §8).** The engine's one client was `KeyedStore`, behind a file connector. The message control
+system's store (`mcs.store`, DESIGN-communication-facility.md §6) is a second client with no connector, no record frames, no FD and no
+transactions, and it takes the engine whole (pages, ledger, shadow-paged statement, adoption rule R6) with five changes and no
+second path:
+- **The store KIND.** The meta page's organization byte (offset 40) is the store's `StoreKind`: `R` and `I` (a file of §9.1.6's
+  organizations, whose `FixedFileAttributes` the meta records) and `M`, the message store, which has none. `PagedFile.Create` takes a
+  `StoreKind`; `MetaPage` carries it in place of the attributes. An `M` page writes `M`, record type `F`, the minimum (42) and maximum
+  (46) record sizes 0 and the key count (50) 0, so it has no key descriptors and no alternate roots; `MetaPage.Decode` reads `M` with
+  any other value in those four fields as a slot that does not validate (null), as an unknown organization byte always was. The
+  work slot's classification (R6) treats a different kind as FOREIGN, as it treats conflicting attributes. `MetaPage.Describes`
+  answers `StoreFormat.Message` for a committed `M` slot (a keyed OPEN reads it as a conflict, a sequential I-O or EXTEND OPEN as a paged store), so a COBOL OPEN of it answers '39' (§14.9.27.4 GR10's conflict), never a
+  misread; `PagedFile.Open(..., messageStore:)` adopts only a store of its own family and answers '30', writing nothing, for the other
+  (a keyed file someone put at `mcs.store`; the MCS answers it 92 until `cobol mcs reset`). No format version change: a build before
+  this one decodes an `M` slot as no slot, finds the magic and answers '30' (`StoreFormat.Damaged`).
+- **The statement core.** `Store/StatementLanding.Complete(file, trees, ordinals, drawnTransaction, addition)` is the
+  transaction-free half of a changing statement that `KeyedStore.Change` used to carry: it sizes the statement
+  (`StatementBound.Of`), begins it (`PagedFile.Begin`, the caller's entry already made), flushes every tree and sets its root,
+  completes it with page 2 last, and discards every pending edit on any refusal; it answers `Ok` only when the statement landed.
+  `TreeChange` and `Edit` live beside it. `KeyedStore.Change` keeps its transaction steps (the draw, the HOLDINGS addition, the
+  give-back; the addition is an `IStatementAddition`, so the core knows no transaction) and calls the core for the rest: one sequence
+  for both clients. (The name is `StatementLanding`, not the `StoreStatement` the first draft of the message-store design gave it:
+  `StoreStatement` is already the connector's hold on the store mutex.)
+- **One medium seam.** `Store/PageMediumObserver` is the per-flow wrapper of the medium every client opens its store through
+  (`Observe`, read by `KeyedStore`'s constructor and by the message store's), the one seam the fault-injecting media
+  (`DyingPageMedium`, `RefusingPageMedium`) reach both clients through; it replaced `KeyedStore.MediumObserver`, and no alias stays.
+- **The mutex's answer.** `HostRegionLocks.HoldStoreMutex` returns the `RegionLockResult`: a keyed connector reads anything but `Ok`
+  as "no protection" (DOC-A.1-75), and the message store reads `Unavailable` as status 92. Still the one way the mutex is taken.
+- **A presence byte.** `HostRegionLocks.McsPresenceByte` (`RegionBase + 0x103`), held shared by every open message store session and
+  tested exclusively by `cobol mcs reset`.
+
+What the message store does NOT need and does not get: `RunUnitPageMedium` (its one handle is a `HandlePageMedium`), record frames,
+release ordinals, alternate trees, the TRANSACTIONS and HOLDINGS trees and the dead-owner step. A refused handle is reopened with
+`PagedFile.Open` over the same medium, which runs the adoption rule: the adopted page 2's generation equals the one the refused
+statement stamped exactly when the statement landed, provided the reopen is READ-ONLY (`writable: false`, which adopts in memory and
+writes nothing); a writable reopen promotes above the stamp and retires, so its generation never equals it. Witnesses: `unit:StoreKindTests` (the `M` layout and its refusals, `Describes`,
+`Open`'s family check, the core landing and refusing at every page write for a client with no transaction, and the reopen's
+equality at every refusal point, refused before and after the write); `PagedFileCrashMatrixTests`, `TransactionFaultMatrixTests` and
+the keyed stores' drift tests stay green untouched as the behaviour-neutrality oracle.
 
 #### 2.2.2 The sequential organization under APPLY COMMIT — the transaction journal (kb/Work PB3340)
 

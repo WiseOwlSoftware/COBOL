@@ -61,10 +61,10 @@ public sealed class IndexedConnector : KeyedConnector
     private byte[]?[] _suppress = [];
 
     /// <summary>The key-index spelling of THE PRIME RECORD KEY: <c>_alts</c> is indexed from 0, so the prime key
-    /// is the one index below it — the same value as <see cref="KeyedStore.TreeChange.PrimeRoot"/>, the prime tree's.
+    /// is the one index below it — the same value as <see cref="TreeChange.PrimeRoot"/>, the prime tree's.
     /// Every key-index parameter on this connector reads it, and it is what §14.9.27.4 GR14 and §14.9.41.4 GR18/GR19
     /// mean by "the prime record key" / "the primary key".</summary>
-    private const int PrimeKey = KeyedStore.TreeChange.PrimeRoot;
+    private const int PrimeKey = TreeChange.PrimeRoot;
 
     private int _refKey = PrimeKey;      // key of reference: PrimeKey, or i = i-th alternate (§14.9.30.4 GR30/GR31)
     private byte[] _fpiKey = [];         // THE file position indicator — a KEY VALUE (§14.9.41.4 GR17e1; §9.1.11)

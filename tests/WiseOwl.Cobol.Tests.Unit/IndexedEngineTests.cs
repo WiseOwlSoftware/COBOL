@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// section 2.2.1; kb/Work PB3334). A record is n + 1 entries — the prime tree's and one per alternate key — and every change
 /// to them is ONE statement of the page layer, so the rows of 2.2.1.16 and 2.2.1.17 that PB3333 ran through the relative
 /// connector run here with two trees changing at once, the fault injected under the connector's own handle
-/// (<see cref="KeyedStore.MediumObserver"/>):
+/// (<see cref="PageMediumObserver"/>):
 /// <list type="bullet">
 ///   <item>2.2.1.16, "A changing statement (coherent)" and "(NO OTHER)", and "A promotion (CLOSE)": a process death after
 ///   EVERY write of a WRITE, a REWRITE (which moves an alternate entry), a DELETE and a CLOSE. The bar: the next OPEN reads
@@ -109,14 +109,14 @@ public sealed class IndexedEngineTests
         {
             Seed(host, FileOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
             DyingPageMedium? medium = null;
-            KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+            PageMediumObserver.Value = inner => medium = new DyingPageMedium(inner);
             var a = new FileRegistry();
             try
             {
                 Register(a, "A", host, FileOrg.Indexed, sharing, alternateKey: true);
                 a.OpenStatic("A", FileOpenMode.IO);
             }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             int before = medium!.Writes;
             Assert.True(Run(a, change) is "00" or "02");
             int statement = medium.Writes - before;
@@ -147,7 +147,7 @@ public sealed class IndexedEngineTests
             {
                 Seed(host, FileOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
                 DyingPageMedium? medium = null;
-                KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+                PageMediumObserver.Value = inner => medium = new DyingPageMedium(inner);
                 var a = new FileRegistry();
                 try
                 {
@@ -155,7 +155,7 @@ public sealed class IndexedEngineTests
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
-                finally { KeyedStore.MediumObserver.Value = null; }
+                finally { PageMediumObserver.Value = null; }
                 FileRegistry? b = null;
                 if (sharing != FileSharing.NoOther)
                 {
@@ -193,7 +193,7 @@ public sealed class IndexedEngineTests
             }
             finally
             {
-                KeyedStore.MediumObserver.Value = null;
+                PageMediumObserver.Value = null;
                 TryDelete(host);
             }
         }
@@ -218,7 +218,7 @@ public sealed class IndexedEngineTests
             try
             {
                 Seed(host, FileOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
-                KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+                PageMediumObserver.Value = inner => new RefusingPageMedium(inner,
                     write: _ => seen++ == refuseAt ? new IOException("refused by the host") : null);
                 var a = new FileRegistry();
                 try
@@ -227,7 +227,7 @@ public sealed class IndexedEngineTests
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
-                finally { KeyedStore.MediumObserver.Value = null; }
+                finally { PageMediumObserver.Value = null; }
                 refuseAt = seen + i;
                 Assert.Equal("30", Run(a, change));
                 Assert.Equal("30", Write(a, "A", FileOrg.Indexed, 7, "GGGG"));                     // replayed, nothing touched
@@ -254,7 +254,7 @@ public sealed class IndexedEngineTests
             }
             finally
             {
-                KeyedStore.MediumObserver.Value = null;
+                PageMediumObserver.Value = null;
                 TryDelete(host);
             }
         }
@@ -414,7 +414,7 @@ public sealed class IndexedEngineTests
         DyingPageMedium? medium = null;
         try
         {
-            KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+            PageMediumObserver.Value = inner => medium = new DyingPageMedium(inner);
             var a = new FileRegistry();
             Register(a, "A", host, FileOrg.Indexed, sharing, alternateKey: true);
             a.OpenStatic("A", FileOpenMode.Output);
@@ -446,7 +446,7 @@ public sealed class IndexedEngineTests
         }
         finally
         {
-            KeyedStore.MediumObserver.Value = null;
+            PageMediumObserver.Value = null;
             TryDelete(host);
         }
     }
@@ -713,14 +713,14 @@ public sealed class IndexedEngineTests
         {
             Seed(host, FileOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
             int seen = 0;
-            KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
+            PageMediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
             var a = new FileRegistry();
             try
             {
                 Register(a, "A", host, FileOrg.Indexed, sharing, alternateKey: true);
                 a.OpenStatic("A", FileOpenMode.IO);
             }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Write(a, "A", FileOrg.Indexed, 3, "CCCC"));
             int before = seen;
             a.Close("A");
@@ -753,7 +753,7 @@ public sealed class IndexedEngineTests
             try
             {
                 Seed(host, FileOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
-                KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
+                PageMediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 var a = new FileRegistry();
                 try
                 {
@@ -761,7 +761,7 @@ public sealed class IndexedEngineTests
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
-                finally { KeyedStore.MediumObserver.Value = null; }
+                finally { PageMediumObserver.Value = null; }
                 FileRegistry? b = null;
                 if (sharing == FileSharing.AllOther)
                 {
@@ -797,7 +797,7 @@ public sealed class IndexedEngineTests
             }
             finally
             {
-                KeyedStore.MediumObserver.Value = null;
+                PageMediumObserver.Value = null;
                 TryDelete(host);
             }
         }
@@ -819,14 +819,14 @@ public sealed class IndexedEngineTests
         {
             Seed(host, FileOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
             int seen = 0;
-            KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
+            PageMediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
             var a = new FileRegistry();
             try
             {
                 Open(a, "A", host, mode, sharing);
                 Assert.Equal("00", a.Status("A"));
             }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             int opened = seen;
             a.Close("A");
             return opened;
@@ -868,13 +868,13 @@ public sealed class IndexedEngineTests
             {
                 Seed(host, FileOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
                 var a = new FileRegistry();
-                KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
+                PageMediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 try
                 {
                     Open(a, "A", host, mode, sharing);
                     Assert.Equal("30", a.Status("A"));
                 }
-                finally { KeyedStore.MediumObserver.Value = null; }
+                finally { PageMediumObserver.Value = null; }
                 var (byPrime, byAlternate) = NoRecordsOr(mode == FileOpenMode.Output && k == openOps - 1);
                 var expectedPrime = byPrime.ToList();
                 var expectedAlternate = byAlternate.ToList();
@@ -900,7 +900,7 @@ public sealed class IndexedEngineTests
             }
             finally
             {
-                KeyedStore.MediumObserver.Value = null;
+                PageMediumObserver.Value = null;
                 TryDelete(host);
             }
         }
@@ -925,9 +925,9 @@ public sealed class IndexedEngineTests
                 Seed(host, FileOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
                 var a = new FileRegistry();
                 int dieAfter = i;
-                KeyedStore.MediumObserver.Value = inner => new DyingPageMedium(inner) { DieAfter = dieAfter };
+                PageMediumObserver.Value = inner => new DyingPageMedium(inner) { DieAfter = dieAfter };
                 try { Open(a, "A", host, mode, sharing); }   // what the dying run unit is told is not asked
-                finally { KeyedStore.MediumObserver.Value = null; }
+                finally { PageMediumObserver.Value = null; }
                 a.CloseIfOpen("A");                          // its handle goes with it; none of its writes after the death land
                 var (byPrime, byAlternate) = NoRecordsOr(mode == FileOpenMode.Output && i > 0);
                 var (gotPrime, gotAlternate) = Records(host);
@@ -936,7 +936,7 @@ public sealed class IndexedEngineTests
             }
             finally
             {
-                KeyedStore.MediumObserver.Value = null;
+                PageMediumObserver.Value = null;
                 TryDelete(host);
             }
         }
@@ -958,7 +958,7 @@ public sealed class IndexedEngineTests
             Seed(host, FileOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
             int xWrites = 0;
             var x = new FileRegistry();
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => { xWrites++; return null; });
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => { xWrites++; return null; });
             try
             {
                 Register(x, "XI", host, FileOrg.Indexed, FileSharing.AllOther, access: KeyedAccess.Random, alternateKey: true);
@@ -968,18 +968,18 @@ public sealed class IndexedEngineTests
                 x.OpenStatic("XO", FileOpenMode.IO);
                 Assert.Equal("00", x.Status("XO"));
             }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
 
             int refuseAt = int.MaxValue, seen = 0;
             var y = new FileRegistry();
-            KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
+            PageMediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
             try
             {
                 Register(y, "Y", host, FileOrg.Indexed, FileSharing.AllOther, alternateKey: true);
                 y.OpenStatic("Y", FileOpenMode.IO);
                 Assert.Equal("00", y.Status("Y"));
             }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Write(y, "Y", FileOrg.Indexed, 3, "CCCC"));
             // The CLOSE's promotion: its claim (page 2 with PROMOTING), sync 1, then the slot write — refused.
             refuseAt = seen + 2;
@@ -1006,7 +1006,7 @@ public sealed class IndexedEngineTests
         }
         finally
         {
-            KeyedStore.MediumObserver.Value = null;
+            PageMediumObserver.Value = null;
             TryDelete(host);
         }
     }

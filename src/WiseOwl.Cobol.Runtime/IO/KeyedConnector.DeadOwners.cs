@@ -33,7 +33,7 @@ public abstract partial class KeyedConnector
         store.MutexHolder?.Release(HostRegionLocks.StoreMutexByte);
         store.MutexHolder = null;
         SettleDeadOwnersBeside();
-        store.MutexHolder = HostRegionLocks.HoldStoreMutex(_regions!);
+        store.MutexHolder = HostRegionLocks.HoldStoreMutex(_regions!) == RegionLockResult.Ok ? _regions : null;
         if (store.File is { } file && file.Enter(exclusive: false) != StoreStatus.Ok) SetStatus(FileStatusCode.PermanentError);
     }
 

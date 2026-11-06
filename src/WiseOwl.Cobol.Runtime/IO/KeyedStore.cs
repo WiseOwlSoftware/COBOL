@@ -35,17 +35,12 @@ internal enum OwnerLiveness
 /// and the store follows it through page 2 (2.2.1.7).</para></summary>
 internal abstract class KeyedStore
 {
-    /// <summary>Test seam, per async flow (the <see cref="FileRegistry.PauseObserver"/> precedent): wraps the run unit's
-    /// medium of every store made in the flow, so a case can refuse, tear or kill at any page write through a real
-    /// connector of either organization (2.2.1.12's fault-injecting medium).</summary>
-    internal static readonly AsyncLocal<Func<IPageMedium, IPageMedium>?> MediumObserver = new();
-
     private readonly RunUnitPageMedium _handles = new();
     private readonly IPageMedium _medium;
     private int _cachePages = PageCache.DefaultPages;
     private bool _coherent;
 
-    protected KeyedStore() => _medium = MediumObserver.Value?.Invoke(_handles) ?? _handles;
+    protected KeyedStore() => _medium = PageMediumObserver.Observe(_handles);
 
     /// <summary>How many statements of this run unit are inside the store's cross-run-unit mutex. A run unit is one
     /// thread of control, so a nested entry re-enters rather than deadlocking against itself.</summary>
@@ -115,7 +110,7 @@ internal abstract class KeyedStore
         _coherent = coherent;
         File = null;
         _fenceOwed = false;
-        var status = PagedFile.Create(_medium, attributes, coherent, holdingsOrder, out var created, out bool replaced, _cachePages);
+        var status = PagedFile.Create(_medium, StoreKind.Of(attributes), coherent, holdingsOrder, out var created, out bool replaced, _cachePages);
         File = created;
         FileReplaced = replaced;
         return status;
@@ -158,27 +153,16 @@ internal abstract class KeyedStore
     /// run unit opens the store again, which fences, and clears this.</summary>
     private bool _fenceOwed;
 
-    /// <summary>The trees one statement edited, each with the root it sets in the meta: <see cref="PrimeRoot"/> for the
-    /// prime (relative: record-number) tree, an alternate key's index for its tree.</summary>
-    internal readonly record struct TreeChange(BTree Tree, int Root)
-    {
-        /// <summary>The <see cref="Root"/> of the prime (relative: record-number) tree.</summary>
-        public const int PrimeRoot = -1;
-    }
-
-    /// <summary>What a statement's in-memory edit did: the page layer's status, whether the change applies (false: the
-    /// tree declined it — a key already present, a key absent — and nothing is written), and every tree it edited.</summary>
-    internal readonly record struct Edit(StoreStatus Status, bool Done, IReadOnlyList<TreeChange> Trees);
-
     /// <summary>⛔ ONE CHANGE IS ONE STATEMENT OF THE PAGE LAYER, HOWEVER MANY TREES IT CHANGES (2.2.1.6; 2.2.1.4, <i>"An
     /// INDEXED record is n + 1 entries, one per tree"</i>). The statement's entry first, unless the caller's coherent entry
     /// already read page 2 for it (<paramref name="entered"/>), so every tree the edit builds is rooted in the file as it is
     /// now; then <paramref name="edit"/> edits the trees in memory, handed the file and the first release ordinal the
     /// statement mints (<see cref="PagedFile.ReleaseMint"/>; <paramref name="ordinals"/> of them, §14.9.51.4 GR40); then
-    /// <see cref="PagedFile.Begin"/> sized to exactly the pages the edits write (its claim, its reservation), every edit
-    /// flushed, every root set and the statement completed — page 2 last. A torn page or a refused write answers '30' and
-    /// a boundary '24' (<see cref="StoreStatus.Boundary"/>), with page 2 naming the previous statement's trees (R1) and
-    /// every pending edit discarded.
+    /// <see cref="StatementLanding.Complete"/>, the transaction-free core every client of the engine shares, lands the edits as
+    /// one page statement: sized to exactly the pages they write, every edit flushed, every root set and the statement
+    /// completed — page 2 last. A torn page or a refused write answers '30' and a boundary '24'
+    /// (<see cref="StoreStatus.Boundary"/>), with page 2 naming the previous statement's trees (R1) and every pending edit
+    /// discarded.
     /// <para>⛔ UNDER COMMIT CONTROL THE SAME STATEMENT KEEPS THE BEFORE-IMAGE AND THE HOLDINGS
     /// (DESIGN-runtime-library.md 2.2.1.10; kb/Work PB3337): with <paramref name="work"/> the statement also inserts the
     /// record's before-image into the run unit's UNDO tree under (R, identity) unless an entry exists (the first image is
@@ -196,7 +180,7 @@ internal abstract class KeyedStore
         var change = edit(file, file.ReleaseMint);
         if (change.Status != StoreStatus.Ok || !change.Done)
         {
-            Discard(change.Trees);
+            StatementLanding.Discard(change.Trees);
             return change.Status;
         }
         ulong drawn = 0;
@@ -205,54 +189,26 @@ internal abstract class KeyedStore
         {
             if (Transaction == 0 && (drawn = Draw(file, work.Drawer)) == 0)
             {
-                Discard(change.Trees);
+                StatementLanding.Discard(change.Trees);
                 return StoreStatus.PermanentError;
             }
             if (Holdings.Of(file, Transaction == 0 ? drawn : Transaction, firstChange: drawn != 0, work, out holdings)
                 is var held && held != StoreStatus.Ok)
             {
-                Discard(change.Trees);
+                StatementLanding.Discard(change.Trees);
                 GiveBack(work.Drawer, drawn);
                 return held;
             }
         }
-        var status = file.Begin(StatementBound.Of([.. change.Trees.Select(t => t.Tree), .. holdings?.Trees ?? []]),
-            out var statement, ordinals: ordinals, drawnTransaction: drawn, entered: true);
+        var status = StatementLanding.Complete(file, change.Trees, ordinals, drawn, holdings);
         if (status != StoreStatus.Ok)
         {
-            Discard(change.Trees);
-            holdings?.Discard();
             GiveBack(work?.Drawer, drawn);
             return status;
         }
-        var flushed = StoreStatus.Ok;
-        foreach (var (tree, root) in change.Trees)
-        {
-            if (flushed != StoreStatus.Ok) { tree.Discard(); continue; }
-            flushed = tree.Flush(statement!, out var pointer);
-            if (flushed != StoreStatus.Ok) continue;
-            if (root == TreeChange.PrimeRoot) statement!.SetPrimeRoot(pointer);
-            else statement!.SetAlternateRoot(root, pointer);
-        }
-        if (holdings is not null)
-        {
-            if (flushed == StoreStatus.Ok) flushed = holdings.Flush(statement!);
-            else holdings.Discard();
-        }
-        var completed = statement!.Complete();
-        if (flushed == StoreStatus.Ok && completed == StoreStatus.Ok)
-        {
-            if (drawn != 0) (Transaction, _liveness) = (drawn, work!.Drawer);
-            done = true;
-            return StoreStatus.Ok;
-        }
-        GiveBack(work?.Drawer, drawn);
-        return completed == StoreStatus.Ok ? StoreStatus.PermanentError : completed;
-    }
-
-    private static void Discard(IReadOnlyList<TreeChange> trees)
-    {
-        foreach (var t in trees) t.Tree.Discard();
+        if (drawn != 0) (Transaction, _liveness) = (drawn, work!.Drawer);
+        done = true;
+        return StoreStatus.Ok;
     }
 
     // ── Transactions: APPLY COMMIT, COMMIT and ROLLBACK on the engine (2.2.1.10; kb/Work PB3337) ─────────────────────
@@ -555,7 +511,7 @@ internal abstract class KeyedStore
     /// TRANSACTIONS entry naming the UNDO tree — given a placeholder of the pointer's size before the statement begins, so
     /// its page is counted, and the UNDO tree's real root once that tree is flushed (the leaf is already this edit's, so
     /// the second edit changes it in place).</summary>
-    private sealed class Holdings
+    private sealed class Holdings : IStatementAddition
     {
         private static readonly byte[] Placeholder = TransactionKeys.Pointer(new PagePointer(uint.MaxValue, ulong.MaxValue));
 
@@ -772,9 +728,9 @@ internal sealed class IndexedStore : KeyedStore
 
     /// <summary>The release ordinals each record's frame carries: one per key the meta page records (the prime key's
     /// first, §14.9.30.4 GR26, §14.9.35.4 GR24; kb/Work PB341).</summary>
-    public int FrameSlots => File?.Meta.Attributes.Keys.Count ?? 1;
+    public int FrameSlots => File?.Meta.Kind.RequireAttributes().Keys.Count ?? 1;
 
-    /// <summary>The tree of key <paramref name="key"/> (<see cref="KeyedStore.TreeChange.PrimeRoot"/> the prime key, else an
+    /// <summary>The tree of key <paramref name="key"/> (<see cref="TreeChange.PrimeRoot"/> the prime key, else an
     /// alternate key's index) under <paramref name="orders"/>; null when the file holds no store, or no such tree.</summary>
     public BTree? Tree(int key, IndexedKeyOrders orders)
     {
@@ -916,7 +872,7 @@ internal sealed class IndexedStore : KeyedStore
     private sealed class IndexedRestoring(PagedFile file, MetaPage meta, IndexedKeyOrders orders,
         Func<int, byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) : IRestoringTrees
     {
-        private readonly int _frameSlots = meta.Attributes.Keys.Count;
+        private readonly int _frameSlots = meta.Kind.RequireAttributes().Keys.Count;
         private readonly BTree _prime = new(file, orders.Prime, meta.PrimeRoot);
         private readonly SortedDictionary<int, BTree> _alternates = [];
 
