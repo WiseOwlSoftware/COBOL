@@ -91,7 +91,7 @@ public abstract partial class KeyedConnector : FileConnector
         {
             StoreFormat.Empty or StoreFormat.Damaged => false,
             StoreFormat.Described => recorded!.Conflicts(DeclaredAttributes, KeyCheck),
-            _ => true,   // Foreign — not a store this build can interpret
+            _ => true,   // Foreign (not a store this build can interpret) or Message (no file of §9.1.6's organizations)
         };
 
     // ── The ISO §9.1.15 FILE LOCK, and the handle the store's pages travel through ───────────────────────────
@@ -1273,7 +1273,7 @@ public abstract partial class KeyedConnector : FileConnector
         try
         {
             bool exclusive = _regions!.Writable;
-            store.MutexHolder = HostRegionLocks.HoldStoreMutex(_regions);
+            store.MutexHolder = HostRegionLocks.HoldStoreMutex(_regions) == RegionLockResult.Ok ? _regions : null;
             // 2.2.1.7's coherent entry: page 2 read — one page — and adopted when another run unit's statement moved it
             // (its roots, its ledger, the page cache dropped); a writer also takes the mints and, under an EXCLUSIVE
             // hold, resolves a PROMOTING flag. An INPUT connector entering the store a writable sibling opened holds the

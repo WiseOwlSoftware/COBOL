@@ -61,9 +61,9 @@ public sealed class HoldingsKeyOrderTests
         reg.AddAlternateKey(name, [new(4, 4)], duplicates: false, collation: CaseFold());
         reg.RegisterSharing(name, FileSharing.AllOther, LockModeRequiredBy(FileSharing.AllOther), multiple: false);
         if (commit) reg.RegisterCommitControl(name);
-        KeyedStore.MediumObserver.Value = medium;
+        PageMediumObserver.Value = medium;
         try { reg.OpenStatic(name, mode); }
-        finally { KeyedStore.MediumObserver.Value = null; }
+        finally { PageMediumObserver.Value = null; }
         Assert.Equal("00", reg.Status(name));
         return reg;
     }

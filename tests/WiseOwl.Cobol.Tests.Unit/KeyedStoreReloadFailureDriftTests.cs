@@ -225,7 +225,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
         try
         {
             Seed(host, org, ["AAAA", "BBBB"]);
-            WiseOwl.Cobol.Runtime.IO.KeyedStore.MediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(
+            WiseOwl.Cobol.Runtime.IO.Store.PageMediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(
                 inner, write: _ => refusing ? new IOException("refused by the host") : null);
             var a = new FileRegistry();
             Register(a, "A", host, org, sharing);
@@ -241,7 +241,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
         }
         finally
         {
-            WiseOwl.Cobol.Runtime.IO.KeyedStore.MediumObserver.Value = null;
+            WiseOwl.Cobol.Runtime.IO.Store.PageMediumObserver.Value = null;
             TryDelete(host);
         }
     }
@@ -256,7 +256,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
         try
         {
             Seed(host, org, ["AAAA", "BBBB"]);
-            WiseOwl.Cobol.Runtime.IO.KeyedStore.MediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(
+            WiseOwl.Cobol.Runtime.IO.Store.PageMediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(
                 inner, sync: () => refusing ? new IOException("refused by the host") : null);
             var a = new FileRegistry();
             Register(a, "A", host, org, sharing);
@@ -266,7 +266,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
             a.Close("A");
             Assert.Equal("30", a.Status("A"));
         }
-        finally { WiseOwl.Cobol.Runtime.IO.KeyedStore.MediumObserver.Value = null; }
+        finally { WiseOwl.Cobol.Runtime.IO.Store.PageMediumObserver.Value = null; }
         try { AssertFileHoldsThreeRecords(host, org); }
         finally { TryDelete(host); }
     }
@@ -299,7 +299,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
         try
         {
             Seed(host, org, ["AAAA", "BBBB"]);
-            WiseOwl.Cobol.Runtime.IO.KeyedStore.MediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(
+            WiseOwl.Cobol.Runtime.IO.Store.PageMediumObserver.Value = inner => new WiseOwl.Cobol.Tests.Unit.Store.RefusingPageMedium(
                 inner, write: _ => { writes++; return null; }, sync: () => refusing ? new IOException("refused by the host") : null);
             var a = new FileRegistry();
             Register(a, "A", host, org, sharing);
@@ -316,7 +316,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
             Assert.Equal("30", a.Status("A"));
             Assert.Equal(writesBefore, writes);   // the CLOSE owed no promotion: it wrote no page
         }
-        finally { WiseOwl.Cobol.Runtime.IO.KeyedStore.MediumObserver.Value = null; }
+        finally { WiseOwl.Cobol.Runtime.IO.Store.PageMediumObserver.Value = null; }
         try { AssertFileHoldsRecords(host, org, 2); }
         finally { TryDelete(host); }
     }

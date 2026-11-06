@@ -40,10 +40,10 @@ public sealed class DeadOwnerReaderTests : CommitRollbackRuntimeHarness
     private static (FileRegistry Owner, DyingPageMedium Medium) Change(string host, FileOrg org, FileSharing sharing = FileSharing.AllOther)
     {
         DyingPageMedium? medium = null;
-        KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+        PageMediumObserver.Value = inner => medium = new DyingPageMedium(inner);
         FileRegistry a;
         try { a = Open(host, org, commit: true, sharing: sharing); }
-        finally { KeyedStore.MediumObserver.Value = null; }
+        finally { PageMediumObserver.Value = null; }
         Assert.Equal("00", Delete(a, org, 5));
         Assert.Equal("00", Rewrite(a, org, 1, "X001"));
         Assert.Equal("00", Write(a, org, 7, "A007"));

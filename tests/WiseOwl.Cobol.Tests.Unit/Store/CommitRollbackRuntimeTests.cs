@@ -333,10 +333,10 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         {
             Seed(host, org);
             DyingPageMedium? medium = null;
-            KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+            PageMediumObserver.Value = inner => medium = new DyingPageMedium(inner);
             FileRegistry a;
             try { a = Open(host, org, commit: true); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             var b = Open(host, org, commit: false);
             Assert.Equal("00", Delete(a, org, 5));
             Assert.Equal("00", Rewrite(a, org, 1, "X001"));
@@ -368,10 +368,10 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         {
             Seed(host, org);
             DyingPageMedium? medium = null;
-            KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+            PageMediumObserver.Value = inner => medium = new DyingPageMedium(inner);
             FileRegistry a;
             try { a = Open(host, org, commit: true); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             var b = Open(host, org, commit: false);
             Assert.Equal("00", Delete(a, org, 5));
             Assert.Equal("00", Write(b, org, 9, "Z009"));
@@ -740,11 +740,11 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
             Seed(host, org);
             bool refuse = false;
             IOException? Refusal() => refuse ? new IOException("refused by the host") : null;
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => Refusal(), sync: Refusal,
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => Refusal(), sync: Refusal,
                 read: _ => Refusal());
             FileRegistry a;
             try { a = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Write(a, org, 7, "A007"));
             a.Close("F");
             Assert.Equal("00", a.Status("F"));
@@ -1045,10 +1045,10 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
                 refuseOnce = false;
                 return new IOException("refused by the host");
             }
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => null, sync: () => null, read: _ => Refusal());
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => null, sync: () => null, read: _ => Refusal());
             FileRegistry a;
             try { a = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Write(a, org, 7, "A007"));
             ulong id = a.TransactionOf("F");
             a.Close("F");
@@ -1200,10 +1200,10 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
         {
             Seed(host, org);
             bool armed = false;
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, read: _ => armed ? new IOException("refused by the host") : null);
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner, read: _ => armed ? new IOException("refused by the host") : null);
             FileRegistry a;
             try { a = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Read(a, org, 1, out _));
             Assert.Equal("00", Write(a, org, 7, "A007"));
             ulong id = a.TransactionOf("F");
@@ -1259,11 +1259,11 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
             a.Close("F");
             Assert.Equal("00", a.Status("F"));
             int writes = 0, syncs = 0;
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner,
                 write: _ => refusal == "write" && ++writes == 2 ? new IOException("refused by the host") : null,
                 sync: () => refusal == "sync" && ++syncs == 1 ? new IOException("refused by the host") : null);
             try { a.OpenStatic("F", FileOpenMode.Output); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("30", a.Status("F"));
             Assert.Equal(id, a.TransactionOf("F"));
             var c = Open(host, org, commit: false, name: "C", sharing: FileSharing.AllOther);
@@ -1301,9 +1301,9 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
             Assert.Equal("00", Write(a, org, 7, "A007"));
             a.Close("F");
             int syncs = 0;
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, sync: () => ++syncs == 2 ? new IOException("refused by the host") : null);
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner, sync: () => ++syncs == 2 ? new IOException("refused by the host") : null);
             try { a.OpenStatic("F", FileOpenMode.Output); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("30", a.Status("F"));
             Assert.Equal(0ul, a.TransactionOf("F"));
             var d = new FileRegistry();
@@ -1350,11 +1350,11 @@ public sealed class CommitRollbackRuntimeTests : CommitRollbackRuntimeHarness
             // "write": the creation's 2nd write (page 2) and the undo's (the commit slot's restore); "sync": the creation's 1st
             // sync (the commit point) and the undo's write.
             int writes = 0, syncs = 0;
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner,
                 write: _ => ++writes == 2 || refusal == "write" && writes == 3 ? new IOException("refused by the host") : null,
                 sync: () => refusal == "sync" && ++syncs == 1 ? new IOException("refused by the host") : null);
             try { a.OpenStatic("F", FileOpenMode.Output); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("30", a.Status("F"));
             Assert.Equal(0ul, a.TransactionOf("F"));
             var d = new FileRegistry();
@@ -1999,9 +1999,9 @@ public sealed class CommitRollbackRuntimeFileVerbTests : CommitRollbackRuntimeHa
                 return;
             }
             if (refusal == "attach")
-                KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => new IOException("refused by the host"));
+                PageMediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => new IOException("refused by the host"));
             try { a.OpenStatic("F", FileOpenMode.IO); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("30", a.Status("F"));
             Assert.Equal(0ul, a.TransactionOf("F"));
             Assert.Equal(id, a.RetiredTransactionOf("F"));
@@ -2486,9 +2486,9 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
             IOException? Refusal() => refuse ? new IOException("refused by the host") : null;
             var a = new FileRegistry();
             Declare(a, host1, org, commit: true);
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => Refusal(), sync: Refusal);
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => Refusal(), sync: Refusal);
             try { OpenAssigned(a, host1); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Write(a, org, 7, "A007"));
             a.Close("F");
             OpenAssigned(a, host2);
@@ -2530,9 +2530,9 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
             Assert.Equal("00", a.Status("G"));
             bool refuse = false;
             IOException? Refusal() => refuse ? new IOException("refused by the host") : null;
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => Refusal(), sync: Refusal);
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => Refusal(), sync: Refusal);
             try { OpenAssigned(a, host1); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", a.Status("F"));
             Assert.Equal("00", Write(a, org, 7, "G007", name: "G"));
             Assert.Equal("00", Write(a, org, 7, "A007"));
@@ -2626,11 +2626,11 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
             Seed(host, org);
             bool armed = false;
             uint root = 0;
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner,
                 read: page => armed && page == root ? new IOException("refused by the host") : null);
             FileRegistry a;
             try { a = Open(host, org, commit: true, FileOpenMode.Input); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Read(a, org, 1, out _));
             root = a.PagedStoreOf("F")!.Meta.PrimeRoot.Page;
             a.Close("F");
@@ -2669,11 +2669,11 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
             Seed(host, org);
             bool armed = false;
             uint root = 0;
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner,
                 read: page => armed && page == root ? new IOException("refused by the host") : null);
             FileRegistry a;
             try { a = Open(host, org, commit: true, FileOpenMode.Input); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Read(a, org, 1, out _));
             root = a.PagedStoreOf("F")!.Meta.PrimeRoot.Page;
             a.Close("F");
@@ -2733,10 +2733,10 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         {
             Seed(host, org);
             bool armed = false;
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, read: _ => armed ? new IOException("refused by the host") : null);
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner, read: _ => armed ? new IOException("refused by the host") : null);
             FileRegistry a;
             try { a = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Read(a, org, 1, out _));
             Assert.Equal("00", Write(a, org, 7, "A007"));
             ulong id = a.TransactionOf("F");
@@ -2806,10 +2806,10 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         {
             Seed(host, org);
             bool armed = false;
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, read: _ => armed ? new IOException("refused by the host") : null);
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner, read: _ => armed ? new IOException("refused by the host") : null);
             FileRegistry a;
             try { a = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Read(a, org, 1, out _));
             Assert.Equal("00", Write(a, org, 7, "A007"));
             a.Close("F");
@@ -3103,12 +3103,12 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         {
             Seed(host, FileOrg.Indexed);
             int refusals = 0;
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner,
                 write: page => refusals > 0 && page >= MetaPage.MetaPages && (path == "abnormal-always" || refusals-- > 0)
                     ? new IOException("refused by the host") : null);
             FileRegistry a;
             try { a = Open(host, FileOrg.Indexed, commit: true); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Write(a, FileOrg.Indexed, 7, "A007"));
             Assert.Equal("00", Rewrite(a, FileOrg.Indexed, 1, "X001"));
             refusals = 1;
@@ -3142,14 +3142,14 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
     private static void Abandon(string host, FileOrg org, IRegionLockHost? forced = null)
     {
         int refusals = 0;
-        KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+        PageMediumObserver.Value = inner => new RefusingPageMedium(inner,
             write: page => refusals > 0 && page >= MetaPage.MetaPages ? new IOException("refused by the host") : null);
         FileRegistry a;
         try
         {
             using (forced is null ? null : HostRegionLocks.Forcing(forced)) a = Open(host, org, commit: true);
         }
-        finally { KeyedStore.MediumObserver.Value = null; }
+        finally { PageMediumObserver.Value = null; }
         Assert.Equal("00", Write(a, org, 7, "A007"));
         Assert.Equal("00", Rewrite(a, org, 1, "X001"));
         refusals = 1;
@@ -3483,11 +3483,11 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
         {
             Seed(host, FileOrg.Relative);
             bool refuse = false;
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner,
                 write: page => refuse && page >= MetaPage.MetaPages ? new IOException("refused by the host") : null);
             FileRegistry a;
             try { a = Open(host, FileOrg.Relative, commit: true); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             refuse = true;
             Assert.Equal("30", Write(a, FileOrg.Relative, 7, "A007"));
             Assert.Equal(0ul, a.TransactionOf("F"));
@@ -3516,12 +3516,12 @@ public sealed class CommitRollbackRuntimeReplacedFileTests : CommitRollbackRunti
             Seed(host, FileOrg.Indexed);
             bool armed = false;
             int syncs = 0;
-            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+            PageMediumObserver.Value = inner => new RefusingPageMedium(inner,
                 write: page => armed && !refuseSync && page < MetaPage.WorkSlot ? new IOException("slot refused") : null,
                 sync: () => armed && refuseSync && ++syncs == 2 ? new IOException("sync 2 refused") : null);
             FileRegistry a;
             try { a = Open(host, FileOrg.Indexed, commit: true); }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
             Assert.Equal("00", Write(a, FileOrg.Indexed, 7, "A007"));
             Assert.Equal("00", Rewrite(a, FileOrg.Indexed, 1, "X001"));
             armed = true;

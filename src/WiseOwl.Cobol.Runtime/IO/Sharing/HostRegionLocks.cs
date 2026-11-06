@@ -118,11 +118,15 @@ internal static class HostRegionLocks
 
     /// <summary>Take the store mutex through <paramref name="endpoint"/>, waiting for another run unit's statement: exclusive
     /// through a writable handle, shared through an <c>OPEN INPUT</c> connector's read-only one (a reader never changes the
-    /// store, and Linux refuses an exclusive lock through a read-only descriptor; <see cref="RegionLocks.Hold"/>). Null when
-    /// the host cannot carry the lock, and the caller then has no protection against another run unit's writer but the file
-    /// lock (docs/CONFORMANCE.md DOC-A.1-75). The one way the mutex is taken (review finding R1-3 of kb/Work PB3494).</summary>
-    internal static RegionLocks? HoldStoreMutex(RegionLocks endpoint) =>
-        endpoint.Hold(StoreMutexByte, exclusive: endpoint.Writable, wait: true) == RegionLockResult.Ok ? endpoint : null;
+    /// store, and Linux refuses an exclusive lock through a read-only descriptor; <see cref="RegionLocks.Hold"/>). It answers
+    /// the host's whole answer, so each client reads what it owes: <see cref="RegionLockResult.Ok"/> means the mutex is held
+    /// and the caller releases it; a keyed connector reads anything else as no protection against another run unit's writer
+    /// but the file lock (<see cref="RegionLockResult.Unavailable"/>: the host cannot carry the lock, docs/CONFORMANCE.md DOC-A.1-75), and the
+    /// message control system (to come, §9 item 3) reads <see cref="RegionLockResult.Unavailable"/> as status 92, since its store has no file lock
+    /// to fall back on (DESIGN-communication-facility.md §6). The one way the mutex is taken (review finding R1-3 of
+    /// kb/Work PB3494).</summary>
+    internal static RegionLockResult HoldStoreMutex(RegionLocks endpoint) =>
+        endpoint.Hold(StoreMutexByte, exclusive: endpoint.Writable, wait: true);
 
     /// <summary>⛔ THE ONE STORE-MUTEX HOLD AROUND A BODY that is not a record statement — an OPEN's adoption or creation, a
     /// CLOSE's promotion, a COMMIT or a ROLLBACK, a kept handle given back — through <paramref name="endpoint"/>
@@ -131,7 +135,7 @@ internal static class HostRegionLocks
     /// CLOSE under commit control kept both come here, so the two arms never disagree on the mutex's rule.</summary>
     internal static T InStoreMutex<T>(RegionLocks? endpoint, Func<T> body)
     {
-        var holder = endpoint is null ? null : HoldStoreMutex(endpoint);
+        var holder = endpoint is not null && HoldStoreMutex(endpoint) == RegionLockResult.Ok ? endpoint : null;
         try { return body(); }
         finally { holder?.Release(StoreMutexByte); }
     }
@@ -151,6 +155,12 @@ internal static class HostRegionLocks
     /// the file it guards may not exist (a creation's first change precedes the file, a DELETE FILE removes it), which is the
     /// one case a byte held through a handle on the file cannot serve.</summary>
     internal const long EntryMutexByte = RegionBase + 0x102;
+
+    /// <summary>⭐ "A run unit has this message store open" (DESIGN-communication-facility.md §8): to be held SHARED by every open
+    /// message control system session of the run unit's host for the session's life, and tested exclusively by
+    /// <c>cobol mcs reset</c> (<see cref="RegionLocks.HeldByAnother"/>), which refuses to reset a store a run unit holds. Held
+    /// through the endpoint on <c>mcs.store</c> like <see cref="StoreMutexByte"/>; no keyed store takes it.</summary>
+    internal const long McsPresenceByte = RegionBase + 0x103;
 
     /// <summary>The endpoint the <see cref="EntryMutexByte"/> of the physical file at <paramref name="hostPath"/> is held through:
     /// a lock file in the file's lock directory, on every host, needing no handle on the file

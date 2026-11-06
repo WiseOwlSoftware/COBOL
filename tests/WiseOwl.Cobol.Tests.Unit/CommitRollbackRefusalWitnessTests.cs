@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// the open-mode tier and the file-name tier (the containing element's GLOBAL file), with and without a FILE STATUS item.
 ///
 /// <para>The refusal comes from 2.2.1.12's fault-injecting medium (<see cref="RefusingPageMedium"/> through
-/// <c>KeyedStore.MediumObserver</c>, per async flow), so the program is activated in THIS process through its generated
+/// <c>PageMediumObserver</c>, per async flow), so the program is activated in THIS process through its generated
 /// .NET host entry (the module's <c>Call</c>), as <see cref="KeyedClosePermanentErrorWitnessTests"/> does. The medium
 /// refuses the first page write the statement makes: <see cref="Probe"/> counts, through the registry on a copy of the
 /// same file, the writes the OPEN I-O and the WRITE make, and asserts that refusing the next one makes the COMMIT (or the
@@ -96,7 +96,7 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
             FileHarness.Register(unit.Files, "F", copy, org, sharing: null);
             Assert.True(unit.Transactions.Activate(this, ["F"], () => { }, () => { }, _ => false));
             int writes = 0;
-            KeyedStore.MediumObserver.Value = RefusingTheNthWrite(refuse, () => writes++);
+            PageMediumObserver.Value = RefusingTheNthWrite(refuse, () => writes++);
             try
             {
                 FileHarness.Open(unit.Files, "F", FileOpenMode.IO);
@@ -109,7 +109,7 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
             }
             finally
             {
-                KeyedStore.MediumObserver.Value = null;
+                PageMediumObserver.Value = null;
                 unit.Files.CloseAll();
             }
         }
@@ -555,10 +555,10 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
         RunUnitEndedException? ended = null;
         Task.Run(() =>
         {
-            KeyedStore.MediumObserver.Value = RefusingTheNthWrite(refuse);
+            PageMediumObserver.Value = RefusingTheNthWrite(refuse);
             try { entry(ref trace); }
             catch (RunUnitEndedException e) { ended = e; }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
         }).GetAwaiter().GetResult();
         return (trace.TrimEnd().TrimEnd(';').Split(';'), ended);
     }

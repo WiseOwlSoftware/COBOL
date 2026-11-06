@@ -29,20 +29,26 @@ internal enum StoreFormat
     /// can repair. It is not a fixed-attribute conflict ('39'); the adoption rule answers it with §9.1.13.6 item 1's
     /// '30' (2.2.1.6 R6 step 1).</summary>
     Damaged,
+
+    /// <summary>A paged store of the message control system (<see cref="StoreKind.Message"/>): the engine's own format, so a
+    /// sequential OPEN I-O or EXTEND must not write into it, and no file of §9.1.6's organizations, so a keyed OPEN of it is
+    /// GR10's conflict ('39') and it records no <see cref="FixedFileAttributes"/>.</summary>
+    Message,
 }
 
 /// <summary>A META page of the paged keyed store (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4): pages 0 and 1
 /// are the two COMMITTED slots, written alternately by promotions, and page 2 is the WORK slot, written by every
 /// statement that changes the file (2.2.1.6, 2.2.1.15). One encoder (<see cref="Encode"/>) and one decoder
 /// (<see cref="Decode"/>); <see cref="Describes"/> is the §14.9.27.4 GR10 read of the attributes the file records.
-/// <para>The layout after the 32-byte page header: the magic <c>CBNFSTR</c> and the format version, the §9.1.6
-/// attributes (organization, record type, minimum and maximum record size, key count), the coherence
+/// <para>The layout after the 32-byte page header: the magic <c>CBNFSTR</c> and the format version, the store's
+/// <see cref="StoreKind"/> (the organization byte <c>R</c>, <c>I</c> or <c>M</c>, then a file's §9.1.6 attributes: record
+/// type, minimum and maximum record size, key count; the message store writes <c>F</c>, 0, 0 and 0 there), the coherence
 /// <see cref="Generation"/>, the three mints, the page count, the five root POINTERS, the base
 /// (<see cref="CommittedGeneration"/>), the flags byte whose bit 0 is <see cref="Promoting"/>,
 /// <see cref="Committing"/>, and from offset 169 each key's descriptor (<see cref="WriteKeyDescriptor"/>, the ONE key
 /// codec), an alternate key's descriptor followed by the POINTER to its tree.</para></summary>
 internal sealed record MetaPage(
-    FixedFileAttributes Attributes,
+    StoreKind Kind,
     ulong Generation,
     ulong ReleaseMint,
     ulong PageCount,
@@ -84,6 +90,9 @@ internal sealed record MetaPage(
     private static ReadOnlySpan<byte> Magic => "CBNFSTR"u8;
 
     private const int MagicOffset = 32;
+    private const byte RelativeOrganization = (byte)'R';
+    private const byte IndexedOrganization = (byte)'I';
+    private const byte MessageOrganization = (byte)'M';
     private const int OrganizationOffset = 40;
     private const int RecordTypeOffset = 41;
     private const int MinimumOffset = 42;
@@ -109,17 +118,13 @@ internal sealed record MetaPage(
     /// <summary>The flags byte's PROMOTING bit (2.2.1.6 R5).</summary>
     private const byte PromotingFlag = 0x01;
 
-    /// <summary>The empty store's meta for <paramref name="attributes"/> — what creation writes to all three slots
+    /// <summary>The empty store's meta for <paramref name="kind"/> — what creation writes to all three slots
     /// (§14.9.27.4 GR18: <i>"After the creation of the file, the file contains no records"</i>).</summary>
-    public static MetaPage Empty(FixedFileAttributes attributes) => new(
-        attributes, Generation: 0, ReleaseMint: 0, PageCount: MetaPages, TransactionMint: 0,
+    public static MetaPage Empty(StoreKind kind) => new(
+        kind, Generation: 0, ReleaseMint: 0, PageCount: MetaPages, TransactionMint: 0,
         PagePointer.None, PagePointer.None, PagePointer.None, PagePointer.None,
         CommittedGeneration: 0, StampMint: 0, Promoting: false, Committing: 0, PagePointer.None,
-        Enumerable.Repeat(PagePointer.None, AlternateKeyCount(attributes)).ToArray());
-
-    /// <summary>The alternate keys of <paramref name="attributes"/>: every key after the prime key of an INDEXED file;
-    /// none for a RELATIVE one (whose record-number tree is <see cref="PrimeRoot"/>).</summary>
-    public static int AlternateKeyCount(FixedFileAttributes attributes) => Math.Max(0, attributes.Keys.Count - 1);
+        Enumerable.Repeat(PagePointer.None, kind.AlternateKeyCount).ToArray());
 
     /// <summary>Whether the attributes' key descriptors fit the meta page. A declaration past the page's capacity is
     /// refused at the OPEN with '39' (2.2.1.4; DOC-A.1-129).</summary>
@@ -128,20 +133,22 @@ internal sealed record MetaPage(
     /// <summary>The page this meta is written as at slot <paramref name="self"/>, sealed.</summary>
     public byte[] Encode(uint self)
     {
-        if (!Fits(Attributes))
+        if (!Kind.Fits)
             throw new InvalidOperationException("the key descriptors exceed the meta page; MetaPage.Fits refuses the OPEN first");
-        if (AlternateRoots.Count != AlternateKeyCount(Attributes))
+        if (AlternateRoots.Count != Kind.AlternateKeyCount)
             throw new InvalidOperationException("one alternate root per alternate key");
         var page = new byte[PageHeader.PageSize];
         new PageHeader(PageKind.Meta, 0, 0, Generation, self, 0).Encode(page);
         var s = page.AsSpan();
         Magic.CopyTo(s[MagicOffset..]);
         s[MagicOffset + Magic.Length] = FormatVersion;
-        s[OrganizationOffset] = Attributes.Organization == FixedFileAttributes.Indexed ? (byte)'I' : (byte)'R';
-        s[RecordTypeOffset] = Attributes.Varying ? (byte)'V' : (byte)'F';
-        BinaryPrimitives.WriteInt32LittleEndian(s[MinimumOffset..], Attributes.MinRecordSize);
-        BinaryPrimitives.WriteInt32LittleEndian(s[MaximumOffset..], Attributes.MaxRecordSize);
-        BinaryPrimitives.WriteUInt16LittleEndian(s[KeyCountOffset..], (ushort)Attributes.Keys.Count);
+        var attributes = Kind.File;
+        s[OrganizationOffset] = attributes is null ? MessageOrganization
+            : attributes.Organization == FixedFileAttributes.Indexed ? IndexedOrganization : RelativeOrganization;
+        s[RecordTypeOffset] = attributes?.Varying == true ? (byte)'V' : (byte)'F';
+        BinaryPrimitives.WriteInt32LittleEndian(s[MinimumOffset..], attributes?.MinRecordSize ?? 0);
+        BinaryPrimitives.WriteInt32LittleEndian(s[MaximumOffset..], attributes?.MaxRecordSize ?? 0);
+        BinaryPrimitives.WriteUInt16LittleEndian(s[KeyCountOffset..], (ushort)(attributes?.Keys.Count ?? 0));
         BinaryPrimitives.WriteUInt64LittleEndian(s[GenerationOffset..], Generation);
         BinaryPrimitives.WriteUInt64LittleEndian(s[ReleaseMintOffset..], ReleaseMint);
         BinaryPrimitives.WriteUInt64LittleEndian(s[PageCountOffset..], PageCount);
@@ -158,9 +165,9 @@ internal sealed record MetaPage(
         using (var keys = new MemoryStream(page, KeysOffset, PageHeader.PageSize - KeysOffset, writable: true))
         {
             Span<byte> pointer = stackalloc byte[PagePointer.Bytes];
-            for (int k = 0; k < Attributes.Keys.Count; k++)
+            for (int k = 0; k < (attributes?.Keys.Count ?? 0); k++)
             {
-                WriteKeyDescriptor(keys, Attributes.Keys[k]);
+                WriteKeyDescriptor(keys, attributes!.Keys[k]);
                 if (k == 0) continue;
                 AlternateRoots[k - 1].Write(pointer);
                 keys.Write(pointer);
@@ -180,15 +187,19 @@ internal sealed record MetaPage(
         if (header.Kind != PageKind.Meta || header.Self != self || !CarriesMagic(page)) return null;
         string organization = page[OrganizationOffset] switch
         {
-            (byte)'R' => FixedFileAttributes.Relative,
-            (byte)'I' => FixedFileAttributes.Indexed,
+            RelativeOrganization => FixedFileAttributes.Relative,
+            IndexedOrganization => FixedFileAttributes.Indexed,
             _ => "",
         };
-        if (organization.Length == 0 || page[RecordTypeOffset] is not ((byte)'F' or (byte)'V')) return null;
+        bool message = page[OrganizationOffset] == MessageOrganization;
+        if (organization.Length == 0 && !message || page[RecordTypeOffset] is not ((byte)'F' or (byte)'V')) return null;
         int min = BinaryPrimitives.ReadInt32LittleEndian(page[MinimumOffset..]);
         int max = BinaryPrimitives.ReadInt32LittleEndian(page[MaximumOffset..]);
         if (min < 0 || max < 0) return null;
         int keyCount = BinaryPrimitives.ReadUInt16LittleEndian(page[KeyCountOffset..]);
+        // The message store records no file attributes (DESIGN-communication-facility.md §8): an M slot whose record type,
+        // sizes or key count say otherwise is a slot this build did not write.
+        if (message && (page[RecordTypeOffset] != (byte)'F' || min != 0 || max != 0 || keyCount != 0)) return null;
         if (page[FlagsOffset] is not (0 or PromotingFlag)) return null;
         var keys = new List<FixedFileAttributes.KeyDescriptor>(keyCount);
         var alternates = new List<PagePointer>(Math.Max(0, keyCount - 1));
@@ -205,7 +216,8 @@ internal sealed record MetaPage(
             }
         }
         return new MetaPage(
-            new FixedFileAttributes(organization, page[RecordTypeOffset] == (byte)'V', min, max, keys),
+            message ? StoreKind.Message
+                : StoreKind.Of(new FixedFileAttributes(organization, page[RecordTypeOffset] == (byte)'V', min, max, keys)),
             Generation: BinaryPrimitives.ReadUInt64LittleEndian(page[GenerationOffset..]),
             ReleaseMint: BinaryPrimitives.ReadUInt64LittleEndian(page[ReleaseMintOffset..]),
             PageCount: BinaryPrimitives.ReadUInt64LittleEndian(page[PageCountOffset..]),
@@ -245,8 +257,8 @@ internal sealed record MetaPage(
     /// of the OPEN statement"</i>). It reads the three meta pages through a short-lived auxiliary handle and takes the
     /// valid committed slot with the higher generation; a file with no bytes is <see cref="StoreFormat.Empty"/>, one whose
     /// meta pages carry this format's magic but whose committed slots both fail is <see cref="StoreFormat.Damaged"/> (the
-    /// adoption rule's '30'), and anything else is <see cref="StoreFormat.Foreign"/> ('39') — a whole-store file of
-    /// format 5 included.
+    /// adoption rule's '30'), a committed message store is <see cref="StoreFormat.Message"/>, and anything else is
+    /// <see cref="StoreFormat.Foreign"/> ('39') — a whole-store file of format 5 included.
     /// <para>An I/O failure answers <see cref="StoreFormat.Empty"/>, never a conflict: this bounded read is bookkeeping,
     /// and the authority questions (§14.9.27.4 GR3's '37', §9.1.13.6 item 1's '30') are answered in ONE place each — by
     /// the connector's own handle, <c>HostFile.Probe</c> and <c>FileConnector.Open</c>'s catch — never by guessing
@@ -267,7 +279,10 @@ internal sealed record MetaPage(
             }
             if (Committed(Decode(pages[SlotA], SlotA), Decode(pages[SlotB], SlotB)) is { } committed)
             {
-                attributes = committed.Meta.Attributes;
+                // The message store is no file of §9.1.6's organizations: a keyed OPEN of it is GR10's conflict ('39') and
+                // a sequential I-O or EXTEND OPEN of it is the same conflict, never a misread (DESIGN-communication-facility.md §8).
+                if (committed.Meta.Kind.IsMessage) return StoreFormat.Message;
+                attributes = committed.Meta.Kind.RequireAttributes();
                 return StoreFormat.Described;
             }
             return pages.Any(p => CarriesMagic(p)) ? StoreFormat.Damaged : StoreFormat.Foreign;
@@ -284,7 +299,7 @@ internal sealed record MetaPage(
     {
         using var measure = new MemoryStream();
         foreach (var key in attributes.Keys) WriteKeyDescriptor(measure, key);
-        return measure.Length + (long)PagePointer.Bytes * AlternateKeyCount(attributes);
+        return measure.Length + (long)PagePointer.Bytes * StoreKind.AlternateKeysOf(attributes);
     }
 
     // ── The ONE key codec: a key's §9.1.6 fixed attributes ──────────────────────────────────────────────────────

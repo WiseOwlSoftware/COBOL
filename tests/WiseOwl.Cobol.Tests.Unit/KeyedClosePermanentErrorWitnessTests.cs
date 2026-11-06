@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// EC-I-O checking enabled, with no declarative, a format 1 USE procedure on the file, or a declarative for the condition.
 ///
 /// <para>The refusal is the host's answer a real file cannot be made to give on demand, so it comes from 2.2.1.12's
-/// fault-injecting medium (<see cref="RefusingPageMedium"/> through <c>KeyedStore.MediumObserver</c>), which is per
+/// fault-injecting medium (<see cref="RefusingPageMedium"/> through <c>PageMediumObserver</c>), which is per
 /// async flow: the program is therefore activated in THIS process, through its generated .NET host entry (the module's
 /// <c>Call</c>, DESIGN-external-repository §4.3), whose run unit is the flow's own (<see cref="RunUnit.Current"/>). The
 /// program writes its trace into its one BY REFERENCE formal, which the entry decodes in a <c>finally</c>, so the trace
@@ -133,7 +133,7 @@ public sealed class KeyedClosePermanentErrorWitnessTests : WiseOwlCobolTestBase
         var reg = new FileRegistry();
         FileHarness.Register(reg, "W", copy, org);
         FileHarness.Register(reg, "R", copy, org);
-        KeyedStore.MediumObserver.Value = RefusingTheNthSlotARead(RefusedSlotARead);
+        PageMediumObserver.Value = RefusingTheNthSlotARead(RefusedSlotARead);
         try
         {
             reg.OpenStatic("W", FileOpenMode.IO);
@@ -148,7 +148,7 @@ public sealed class KeyedClosePermanentErrorWitnessTests : WiseOwlCobolTestBase
             Assert.Equal("30", reg.Status("W"));
             if (refusal == Refusal.ReAdoption) reg.Close("R");
         }
-        finally { KeyedStore.MediumObserver.Value = null; }
+        finally { PageMediumObserver.Value = null; }
     }
 
     private static string Program(string id, string host, FileOrg org, Refusal refusal, Cover cover)
@@ -264,13 +264,13 @@ public sealed class KeyedClosePermanentErrorWitnessTests : WiseOwlCobolTestBase
         var entry = call.CreateDelegate<Entry>();
         string trace = new(' ', 240);
         RunUnitEndedException? ended = null;
-        // The run unit and the medium seam are both per async flow (RunUnit.Current, KeyedStore.MediumObserver).
+        // The run unit and the medium seam are both per async flow (RunUnit.Current, PageMediumObserver).
         Task.Run(() =>
         {
-            KeyedStore.MediumObserver.Value = RefusingTheNthSlotARead(RefusedSlotARead);
+            PageMediumObserver.Value = RefusingTheNthSlotARead(RefusedSlotARead);
             try { entry(ref trace); }
             catch (RunUnitEndedException e) { ended = e; }
-            finally { KeyedStore.MediumObserver.Value = null; }
+            finally { PageMediumObserver.Value = null; }
         }).GetAwaiter().GetResult();
         return (trace.TrimEnd().TrimEnd(';').Split(';'), ended);
     }
