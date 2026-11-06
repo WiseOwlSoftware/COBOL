@@ -105,7 +105,7 @@ public static class RuntimeConfig
             typeof(SystemClock), "IO/Clock.cs"),
 
         // ── the communication facility (Communication/MessageStore.cs — ISO/IEC 1989:2002 Annex A; kb/Work PB4677) ──
-        new(Communication.MessageStore.DirectoryVariable, "communication",
+        new(Mcs.McsDirectory.Variable, "communication",
             "the message control system's directory, which holds the user's definitions (mcs.json) and the MCS's state (docs/CONFORMANCE.md section 3.3)",
             "a directory path; unset = the current directory",
             typeof(Communication.MessageStore), "Communication/MessageStore.cs"),
