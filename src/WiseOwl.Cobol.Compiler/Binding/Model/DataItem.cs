@@ -1046,6 +1046,18 @@ public sealed class DataItem
         "a synthesized-temp discrimination (kb/Work R26), not a data description clause")]
     public bool IsCompilerTemp { get; internal set; }
 
+    /// <summary>True for an item the REPOSITORY DECODER built from an assembly's record (<c>RepositoryCodec</c>'s one
+    /// <c>Item</c> constructor), and for the compiler temporary cloned from one (<c>CompilerTemps.Create</c> reads its
+    /// model's): no DATA DIVISION entry of THIS compilation describes it, so no entry-level check of this compilation (an
+    /// edition introduction gate, COBOL0900) fires on it. An item of the compilation's own sources, a same-file
+    /// function's RETURNING item or a same-file class's property included, is not imported: its entry is walked by
+    /// the gate. The one fact a statement binder asks to know whether the gate has already refused a compile that names
+    /// the item (kb/Work PB4837).</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "where the model item was read from, a fact of the model's own source and not a description clause; "
+        + "CompilerTemps.Create carries it to a temporary explicitly")]
+    public bool IsImported { get; init; }
+
     /// <summary>True for the §15.4 TEMPORARY holding a NUMERIC function's returned value ("The evaluation of a function
     /// produces a returned value in a temporary elementary data item") when a statement materializes it once
     /// (<c>SendingValueTemp.Materialize</c> — the MOVE multi-receiver hoist, an EVALUATE subject, an INVOKE argument).
