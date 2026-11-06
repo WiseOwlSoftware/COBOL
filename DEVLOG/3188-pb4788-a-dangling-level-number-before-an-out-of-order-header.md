@@ -1,4 +1,4 @@
-## PB4788: a dangling level-number before an out-of-order header is read at every entry slot, not only the data description entry's
+## Entry 3188 — 2026-11-05 20:05 PST — PB4788: a dangling level-number before an out-of-order header is read at every entry slot, not only the data description entry's
 
 **Re-probe.** `SCREEN SECTION.` then `01 LINKAGE SECTION.` drew COBOL5506, "The word LINKAGE is not expected here: expected a user-defined word, BINARY, ..." listing every clause of the screen entry. The same in a report section (`RD R.` then `01 LINKAGE SECTION.`). `01 PROCEDURE DIVISION.` there already drew COBOL0307.
 
@@ -11,3 +11,4 @@
 **Goldens and tests.** `conformance-suite/cases/13.9-Screen-section/pb4788-header-out-of-order-after-a-screen-entrys-level-number` (refused at every edition); `ClosedFormatReservedWordTests.AnOutOfOrderHeaderAfterADanglingLevelNumber_IsNoKindExpected` (screen, screen after a complete entry, constant, report group).
 
 **Noticed, not fixed.** A report-group `01 SCREEN SECTION.` takes SCREEN as the entry's name (a free cobolWord at that slot), so its COBOL0307 stands at SECTION, not SCREEN as in the working-storage section. A different mechanism (the name predicate), registered in the report.
+
