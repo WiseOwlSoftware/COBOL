@@ -19,8 +19,7 @@ the environment variable `WISEOWL_COBOL_MCS`, or the current directory when that
 | File | What it is |
 |---|---|
 | `mcs.json` | Your definitions: the symbolic names of the queues, sources, destinations and terminals |
-| `mcs-state.json` | The messages the MCS holds and which paths are enabled. Delete it to start again from your definitions |
-| `mcs.lock` | Held for the length of one statement, so run units on one machine can share the directory |
+| `mcs.store` | The MCS's store: the messages it holds and which paths are enabled. A changed `mcs.json` is read in by the next run unit: an endpoint it still names keeps its enabled state and its messages, a new one starts as defined, and one it no longer names is dropped with its messages. To start again from your definitions, delete the store while no run unit has it open |
 | `<name>.out` | A destination's or terminal's device: each complete message, one per line |
 
 With no `mcs.json`, every symbolic name is unknown: the statements run and their status keys say so (20 or 21).
@@ -52,7 +51,8 @@ terminal's name; a CD with the `INITIAL` clause then holds those names when the 
 ## Status keys
 
 Table A.1 of the COBOL 2002 standard gives the status key values. WiseOwl COBOL adds two of the `9x` values it leaves to the implementor: `91`, the
-`mcs.json` file cannot be used, and `92`, the host refuses the MCS's files. Each takes no action, so a program can repeat the statement. At COBOL 1985, status `40` reports a wrong `KEY`.
+`mcs.json` file cannot be used, and `92`, the host refuses the MCS's files or cannot lock them (a file system with no usable locks, such as some network file systems, cannot carry a store that two run units share, and the MCS never runs unlocked). Status `91` and `92` take no action, so a program can repeat the statement and it takes effect once.
+A third, `93`, means the store refused the statement and the MCS cannot tell whether it took effect: the CD's area changes only in its status key, and a program that repeats the statement can deliver a message twice. At COBOL 1985, status `40` reports a wrong `KEY`.
 
 `docs/CONFORMANCE.md`, section 3.3, records every determination, and `docs/rearchitecture/DESIGN-communication-facility.md` the design.
 
