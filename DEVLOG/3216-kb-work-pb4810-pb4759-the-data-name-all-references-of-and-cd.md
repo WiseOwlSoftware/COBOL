@@ -1,4 +1,4 @@
-## kb/Work PB4810, PB4759: the data-name, ALL REFERENCES OF and cd-name USE FOR DEBUGGING triggers run
+## Entry 3216 — 2026-11-06 15:06 PST — kb/Work PB4810, PB4759: the data-name, ALL REFERENCES OF and cd-name USE FOR DEBUGGING triggers run
 
 Both notes reproduced on the tree: every data trigger and every cd-name trigger was the staged COBOL1571 (CCVS DB201A on each data
 trigger, DB205A on both cd-names). The branch the dispatch named, notes-transcription-diagrams, carried no PB4810 work: its two commits
@@ -62,3 +62,4 @@ alphanumeric item or a compare of a signed image-carried numeric now copies the 
 spaces as in GnuCOBOL; the decode of a valid image is unchanged; docs/CONFORMANCE.md D-DEBUG-SUB records the latitude. Golden `pb4810-debug-reach-and-implicit` (accepted at 85) and a
 unit test for the sort DEPENDING item. Left: INITIALIZE of a whole OCCURS DYNAMIC table has no written place (its element stores stay references), RAISE and RESUME unwind past an
 enclosing statement's after-statement section.
+
