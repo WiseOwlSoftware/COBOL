@@ -27,8 +27,15 @@ public sealed record BoundInitialize(IReadOnlyList<InitializeAction> Actions) : 
     /// <summary>The receiving places of the expansion that the program did not write: a group's members and a table's occurrences below
     /// <see cref="Written"/>, or every receiver of the ALLOCATE lowering. With no <see cref="Written"/> place the whole-table form's
     /// element places ARE its identifier-1 and stay references.</summary>
-    public IEnumerable<object> ImplicitOperands =>
-        Written is null && !AllocateImplicit ? [] : ReceivingPlaces(Actions).Where(p => !ReferenceEquals(p, Written));
+    public IEnumerable<object> ImplicitOperands
+    {
+        get
+        {
+            if (Written is null && !AllocateImplicit) yield break;
+            foreach (var place in ReceivingPlaces(Actions))
+                if (!ReferenceEquals(place, Written)) yield return place;
+        }
+    }
 
     private static IEnumerable<Place> ReceivingPlaces(IReadOnlyList<InitializeAction> actions)
     {
