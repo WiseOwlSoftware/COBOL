@@ -16,7 +16,8 @@ namespace WiseOwl.Cobol.Runtime;
 /// <para>THE PUBLISHED BOUND (§14.7.5 5): "if native arithmetic is in effect and the implementor defines that the range of values allowed
 /// for the intermediate data item is to be checked" — the range is the SDIDI's: <c>|value| &lt; 10^6145</c> (<see cref="MaxIntegerDigits"/>;
 /// decimal128's largest magnitude is 9.999…E+6144), plus a working-size cap of <see cref="MaxBits"/> bits on the integer, which holds the
-/// cost of <c>X ** N</c> finite. A value past either raises EC-SIZE-OVERFLOW at the operation that formed it.</para>
+/// cost of <c>X ** N</c> finite. A value past either raises EC-SIZE-OVERFLOW at the operation that formed it; a <see cref="Working"/> value, a
+/// number an intrinsic's body forms that is no value of the program, is held to <see cref="MaxBits"/> alone.</para>
 /// <para>NOTHING CHANGES ON THE FAST PATH: <see cref="CobolExact"/> reaches this form only where the <see cref="CobolWide"/> operation
 /// it tries first fails, and normalizes a result that fits the 256-bit form back onto it, so a lane within 77 digits keeps its code.
 /// This file is the ONE file of the runtime's value model that holds an arbitrary-precision integer for the exact path
@@ -69,8 +70,8 @@ internal readonly struct CobolBig
     private static CobolSizeError Underflow() => new("a native power is too small to be contained "
         + "(|value| below 10^-6176; ISO §8.8.1.5.2 r2, §14.7.5 case 5: EC-SIZE-UNDERFLOW)", "EC-SIZE-UNDERFLOW");
 
-    /// <summary>The value <c>value × 10^-scale</c>, range-checked: EC-SIZE-OVERFLOW past <see cref="MaxIntegerDigits"/> integer digits or
-    /// <see cref="MaxBits"/> bits.</summary>
+    /// <summary>The value <c>value × 10^-scale</c>, range-checked: EC-SIZE-OVERFLOW past <see cref="MaxIntegerDigits"/> integer digits (a
+    /// <paramref name="working"/> value is exempt) or <see cref="MaxBits"/> bits.</summary>
     private static CobolBig Of(BigInteger value, long scale, bool working = false)
     {
         if (scale is < int.MinValue or > int.MaxValue) throw Overflow();

@@ -14,3 +14,5 @@ whose own value passes 10^6145 is still a size error (unit test).
 Golden `pb4797_working_numerators_past_the_value_range` (accept 2002 and later: the floating-point literal is a 2002 form) with its
 `_85` refusal (COBOL0900). A unit test pins the three legs. The sibling bodies (SUM, MEAN, RANGE, MOD, REM, MEDIAN, MIDRANGE) form
 nothing larger than their result by more than the argument count and are left. No inventory row changed.
+
+Review round 1: R1-1 (DOC-A.1-123 still published the unconditional 10^6145 intermediate check and the SDIDI-image evaluation of VARIANCE/PRESENT-VALUE) is fixed in docs/CONFORMANCE.md; R1-2 (CobolBig type and Of summaries) is fixed in CobolBig.cs.
