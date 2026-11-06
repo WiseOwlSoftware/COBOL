@@ -348,7 +348,7 @@ CLASSIFICATION = Classification(inert={
                "audits (scripts/, run in every lane), never by a compiler test (kb/Work PB4453; the one exception is the "
                "ISO text, a READ entry)",
 }, read={
-    "specs/ISO_COBOL_2023.md": "the standard's text, the ORACLE (CLAUDE.md rule 1): ~45 Unit and Conformance classes derive their "
+    "specs/ISO_COBOL_2023.md": "the standard's text, the ORACLE (CLAUDE.md rule 1): ~45 Unit and Conformance classes derive their "  # spec_pdf: names-the-file
                           "expected tables from it",
     "docs/rearchitecture/spec-rule-catalog.json": "CatalogCoverageDriftTests and the traceability-inventory drift tests",
     "docs/rearchitecture/architecture-edges.json": "ArchitectureEdgesDriftTests",
@@ -372,7 +372,7 @@ CLASSIFICATION = Classification(inert={
        "conformance-suite/harness/": "scripts/line_endings.py, live_tools.py, temp_names.py and the harness self-tests (the "
                                      "names of the harness files)",
        "docs/rearchitecture/spec-rule-catalog.json": "scripts/spec/audit_annex_a1.py, audit_code_citations.py",
-       "specs/ISO_COBOL_2023.md": "scripts/spec/cite.py, audit_code_citations.py, audit_doc_citations.py, "
+       "specs/ISO_COBOL_2023.md": "scripts/spec/cite.py, audit_code_citations.py, audit_doc_citations.py, "  # spec_pdf: names-the-file
                              "scripts/differential_fuzz.py",
        "src/WiseOwl.Cobol.Cli/WiseOwl.Cobol.Cli.csproj": "scripts/guard-compiler.sh, guard-verify.sh, linux-gate.sh",
        "src/WiseOwl.Cobol.Frontend/Grammar/": "scripts/spec/grammar_source.py (the grammar files, whole)",
@@ -1167,7 +1167,7 @@ def self_test() -> int:
                                         ".claude/skills/x/SKILL.md", "CLAUDE.md", "src/WiseOwl.Cobol.Runtime/README.md",
                                         "docs/rearchitecture/evidence/x.json", "docs/manual/user-guide/files.md",
                                         "src/a.cs", "tests/b.cs", "tools/claude-skills", "DEVLOG", "DEVLOGX/a.cs", "kb",
-                                        "kbx/a.cs", "specs/ISO_COBOL_2023.md", "docs/rearchitecture/spec-rule-catalog.json",
+                                        "kbx/a.cs", "specs/ISO_COBOL_2023.md", "docs/rearchitecture/spec-rule-catalog.json",  # spec_pdf: names-the-file
                                         "docs/rearchitecture/architecture-edges.json",
                                         "docs/rearchitecture/evidence/arch-census/a.json")],
            [True] * 9 + [False] * 11)
@@ -1224,7 +1224,7 @@ def self_test() -> int:
            [(real.classify(p).name, real.classify(p).tooling, real.classify(p).reads_tooling) for p in
             (["tests/_shared/TestRepo.cs"], ["src/a.cs", "scripts/x.py"], ["src/a.cs", "tests/b.cs"],
              ["src/a.cs", "docs/CONFORMANCE.md"], ["docs/CONFORMANCE.md"], ["docs/REARCHITECTURE_PLAN.md", "README.md"],
-             ["DEVLOG/a.md"], ["specs/ISO_COBOL_2023.md"], ["docs/rearchitecture/spec-rule-catalog.json"])],
+             ["DEVLOG/a.md"], ["specs/ISO_COBOL_2023.md"], ["docs/rearchitecture/spec-rule-catalog.json"])],  # spec_pdf: names-the-file
            [("full", False, True), ("full", True, True), ("full", False, False), ("full", False, False), ("inert", False, False),
             ("inert", False, False), ("inert", False, False), ("full", False, True), ("full", False, True)])
     expect("an empty change touches tooling and what a self-test reads: nothing proves it does not",

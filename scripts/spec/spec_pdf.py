@@ -132,10 +132,18 @@ def require(edition: int = DEFAULT_EDITION, private: pathlib.Path = PRIVATE) -> 
 #: mentions the submodule (`git submodule update --init specs-private`) quotes a longer string and is not one.
 _STRAY = re.compile(r"""["']specs-private/?["']|specs-private/[^\s"']*\.pdf""", re.I)
 
-#: A line that BUILDS the path of a transcription by itself: `REPO / "specs" / "ISO_COBOL_2023.md"`. Prose that names the
-#: file (a docstring, a message, a prompt) quotes a longer string and is not one; a tool that needs the file asks
-#: `markdown(edition)`, so the next tool cannot weld itself to one edition's file again (kb/Work PB4815).
-_STRAY_MARKDOWN = re.compile(r"""["']specs["']\s*/\s*["'][^"']*COBOL[^"']*\.md["']""")
+#: A line that BUILDS or QUOTES the path of a transcription by itself, in either spelling: pathlib segments
+#: (`REPO / "specs" / "ISO_COBOL_2023.md"`) or one string literal holding the whole path (`"specs/ISO_COBOL_2023.md"`, a
+#: `--path` default, a PowerShell `Join-Path $repo 'specs/...'`). Prose that names the file (a docstring, a message, a
+#: prompt) quotes a longer string with spaces and is not one; a tool that needs the file asks `markdown(edition)`, so the
+#: next tool cannot weld itself to one edition's file again (kb/Work PB4815).
+_STRAY_MARKDOWN = re.compile(r"""["']specs["']\s*/\s*["'][^"']*COBOL[^"']*\.md["']"""
+                             r"""|["'][^"'\s]*specs/[^"'\s/]*COBOL[^"'\s/]*\.md["']""")
+
+
+#: A trailing comment that marks a line as NAMING the transcription as repository data (a path classification key, a rename
+#: map, a fixture), not reading it: the sweep passes such a line. Each use is visible and greppable.
+NAMES_THE_FILE = "# spec_pdf: names-the-file"
 
 
 def locator_copies_in(files: dict[str, str]) -> list[str]:
@@ -150,7 +158,7 @@ def markdown_copies_in(files: dict[str, str]) -> list[str]:
     """`path:line` of every line in `files` (path -> text) that builds a transcription's path without this module."""
     return [f"{path}:{n}" for path, text in sorted(files.items())
             for n, line in enumerate(text.splitlines(), 1)
-            if _STRAY_MARKDOWN.search(line) and not line.lstrip().startswith("#")]
+            if _STRAY_MARKDOWN.search(line) and not line.lstrip().startswith("#") and NAMES_THE_FILE not in line]
 
 
 def _tracked_sources(repo: pathlib.Path, suffixes: tuple[str, ...]) -> dict[str, str]:
@@ -170,8 +178,9 @@ def locator_copies(repo: pathlib.Path = REPO) -> list[str]:
 
 
 def markdown_copies(repo: pathlib.Path = REPO) -> list[str]:
-    """The same sweep for the transcription's path, over every tracked Python file under scripts/ and .claude/."""
-    return markdown_copies_in(_tracked_sources(repo, (".py",)))
+    """The same sweep for the transcription's path, over every tracked Python, PowerShell and shell file under scripts/
+    and .claude/."""
+    return markdown_copies_in(_tracked_sources(repo, (".py", ".ps1", ".sh")))
 
 
 def self_test() -> int:
@@ -259,9 +268,16 @@ def self_test() -> int:
         "scripts/a.py": 'SPEC_MD = REPO / "specs" / "ISO_COBOL_2023.md"',
         "scripts/b.py": "SPEC = ROOT / 'specs' / 'ANSI_COBOL_1985.md'",
         "scripts/c.py": '"""Reads specs/ISO_COBOL_2002.md"""\nmsg = "no page anchors in specs/ISO_COBOL_2023.md"',
-        "scripts/d.py": '# SPEC = REPO / "specs" / "ISO_COBOL_2023.md"\nREADME = REPO / "specs" / "README.md"'})
-    check("the transcription sweep finds a built path in either quote style and passes prose, a comment and the README",
-          planted_md == ["scripts/a.py:1", "scripts/b.py:1"])
+        "scripts/d.py": '# SPEC = REPO / "specs" / "ISO_COBOL_2023.md"\nREADME = REPO / "specs" / "README.md"',
+        "scripts/e.py": 'SPEC = "specs/ISO_COBOL_2023.md"',
+        "scripts/f.py": "p = REPO / 'specs/ISO_COBOL_2002.md'",
+        "scripts/g.py": 'ap.add_argument("--path", default="specs/ISO_COBOL_2023.md")',
+        "scripts/h.ps1": "$specPath = Join-Path $repo 'specs/ISO_COBOL_2023.md'",
+        "scripts/i.py": 'KEY = {"specs/ISO_COBOL_2023.md": "oracle"}  ' + NAMES_THE_FILE})
+    check("the transcription sweep finds a built path in either quote style, as pathlib segments or one literal, in "
+          "Python and PowerShell, and passes prose, a comment and the README",
+          planted_md == ["scripts/a.py:1", "scripts/b.py:1", "scripts/e.py:1", "scripts/f.py:1", "scripts/g.py:1",
+                         "scripts/h.ps1:1"])
     print(f"=== SPEC PDF LOCATOR SELF-TEST: {'FAIL - ' + str(len(failures)) if failures else 'PASS'} ===")
     return 1 if failures else 0
 
@@ -270,7 +286,13 @@ if __name__ == "__main__":
     ensure_utf8()
     ap = argparse.ArgumentParser(description="List the editions, their transcriptions and whether each licensed PDF is present.")
     ap.add_argument("--self-test", action="store_true", help="run the planted self-test")
-    if ap.parse_args().self_test:
+    ap.add_argument("--markdown", type=int, choices=sorted(EDITIONS), metavar="EDITION",
+                    help="print the absolute path of that edition's transcription and nothing else (for a PowerShell script)")
+    args = ap.parse_args()
+    if args.markdown:
+        print(markdown(args.markdown))
+        sys.exit(0)
+    if args.self_test:
         sys.exit(self_test())
     for e in sorted(EDITIONS):
         print(e, markdown(e).relative_to(REPO).as_posix(), geometry(e), path(e) or "absent")

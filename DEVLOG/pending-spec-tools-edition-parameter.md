@@ -43,3 +43,5 @@ furniture regex was checked equivalent on planted lines; `cite.py`, `lint_render
 on the 2023 file). Found and left (not in the note's list, now in its Sites paragraph): `clause_page.py` (`FRONT_MATTER`,
 `find_pdf`), `measure_index_levels.py`, `measure_sublist_levels.py`, `pdf_deobfuscate.py` and `repairs/rule_label_delimiter.py`
 still call `spec_pdf.require(2023)`.
+
+Branch review round 1 found the transcription-path sweep blind to a path written as one string literal (and to PowerShell): `scripts/docchecks/vcr.py`, `scripts/fix_spec_pagebreaks.py` and `scripts/gen-reserved-words.ps1` still read the 2023 file by their own literal while the self-test said the tree was clean. The sweep now matches both spellings in `.py`, `.ps1` and `.sh`; the three tools ask `spec_pdf.markdown(2023)` (the PowerShell one through the new `spec_pdf.py --markdown EDITION`); five lines that only name the file as repository data (`inert_lane.py` classification keys and fixtures, the `audit_evidence_supersession.py` rename map) carry a visible `# spec_pdf: names-the-file` marker. The self-test plants every spelling.
