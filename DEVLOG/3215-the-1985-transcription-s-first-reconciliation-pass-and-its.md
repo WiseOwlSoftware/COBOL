@@ -1,3 +1,4 @@
-## The 1985 transcription's first reconciliation pass, and its boxes
+## Entry 3215 — 2026-11-06 14:17 PST — The 1985 transcription's first reconciliation pass, and its boxes
 
 The owner had API credit that would lapse, so it paid for a first reconciliation of the raw 1985 pages through the Message Batches API, about $26.30 in all. A canary with four planted errors proved the prompt; the first prompt had answered `[]` without looking and was replaced. The full pass over 976 pages found 377 claims. It also exposed 21 pages where the batch model had left a false start and its own chatter, which were cut mechanically, and three pages that were paraphrased or refused, which were re-converted with the local model. An adversarial verify confirmed 143 claims and refuted 142. A pass over the syntax diagrams found that the transcription loses every box, and the standard itself says a box marks what is unique to level 2 of a module. Boxes are normative, so PB4848, PB4849 and PB4850 now require them. The record is in PB4850.
+
