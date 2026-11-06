@@ -153,24 +153,27 @@ internal static class IntrinsicCarrierRules
     /// (kb/Work PB4753, PB4791)? True for MEDIAN over an even count of arguments (§15.61.4 r2). A table(ALL) argument stands for as many
     /// arguments as its ranges hold (<see cref="TableAllPlace.StaticCount"/>, the product of a fixed OCCURS's counts), so a list of
     /// fixed tables has a bind-time count and a bind-time parity. A table(ALL) over an OCCURS DEPENDING or dynamic-capacity range has a
-    /// RUN-TIME count: the parity is not a bind-time fact, and the list is treated as a selection, the lane it had. A mean is a NEW value
-    /// that no argument's own kind describes, so the kind-preserving exact lane of <see cref="SelectionNeedsExactLane"/> has nothing to
-    /// preserve for it.</summary>
+    /// RUN-TIME count (<see cref="MedianParityIsRunTime"/>): the parity is not a bind-time fact, so this answers false and the list is
+    /// not routed to the float lane here; the exact lane decides the parity at run time (<c>CobolIntrinsics.MedianBinary64Exact</c>,
+    /// kb/Work PB4827). A mean is a NEW value that no argument's own kind describes, so the kind-preserving exact lane of
+    /// <see cref="SelectionNeedsExactLane"/> has nothing to preserve for it.</summary>
     internal static bool ReturnsMeanOfMiddlePair(string functionName, IReadOnlyList<BoundOperand> arguments)
     {
-        if (functionName != "MEDIAN") return false;
+        if (functionName != "MEDIAN" || MedianParityIsRunTime(functionName, arguments)) return false;
         long count = 0;
         foreach (var a in arguments)
-        {
-            if (a is BoundFieldOperand { Place: TableAllPlace all })
-            {
-                if (all.StaticCount is not { } elements) return false;
-                count += elements;
-            }
-            else count++;
-        }
+            count += a is BoundFieldOperand { Place: TableAllPlace all } ? all.StaticCount!.Value : 1;
         return count % 2 == 0;
     }
+
+    /// <summary>Is the count of arguments of a MEDIAN a RUN-TIME fact (kb/Work PB4827)? True when an argument is a table(ALL) with no
+    /// bind-time element count (<see cref="TableAllPlace.StaticCount"/> null: an OCCURS DEPENDING or dynamic-capacity range), whose
+    /// number of elements is "as if each table element associated with that subscript position were specified" (§15.3 14)) at the
+    /// time of the call. Whether the value is a selection (§15.61.4 1)) or the mean of the middle pair (§15.61.4 2)) is then decided
+    /// at run time, by the body, and not by the lane the binder or renderer picks.</summary>
+    internal static bool MedianParityIsRunTime(string functionName, IReadOnlyList<BoundOperand> arguments) =>
+        functionName == "MEDIAN"
+        && arguments.Any(a => a is BoundFieldOperand { Place: TableAllPlace { StaticCount: null } });
 
     /// <summary>The functions <see cref="ReturnsExactParse"/> answers true for, as a set so that
     /// <c>ReceiverShapeReaderDriftTests</c> can hold each member's runtime body against the renderer (no <c>RenderNum</c>

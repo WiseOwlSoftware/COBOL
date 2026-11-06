@@ -175,8 +175,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // (NumX.Digits) so an ordinary list keeps its Int128 body unchanged and only a list that may leave the
         // carrier moves; an argument whose bound is unknown (an intrinsic's value) moves it when the alignment shifts any
         // argument (kb/Work PB4792), as CombineAdditive's exact additive does (PB4752).
+        // ⛔ UNDER NATIVE ARITHMETIC THE LIST IS EVALUATED ON THE EXACT FAMILY'S WHOLE VALUE, BOUNDED OR NOT (kb/Work PB4826): the
+        // SDIDI body's 34 digits (SumDec …) round a 35-to-38-digit value the Int128 body, the arithmetic expression and the receiver's
+        // single rounding (§14.7.4.3) would have kept whole, so SUM (A B) ROUNDED stored .01 where A + B stored .00. A standard mode
+        // keeps the SDIDI body: there the 34-digit SDIDI value IS the returned value (§15.4.1 1)).
         if (IntrinsicCarrierRules.CrossAligningFunctions.Contains(sig.Name) && AlignmentMayLeaveCarrier(ic)
-            && (AlignmentShiftsUnboundedOperand(ic) && !num.StandardDecimal ? RenderWholeAligned(ic) : RenderDec(ic)) is { } wideAligned)
+            && (num.StandardDecimal ? RenderDec(ic) : RenderWholeAligned(ic)) is { } wideAligned)
             return wideAligned;
         // ⛔ MEAN'S VALUE IS THE SDIDI QUOTIENT UNDER NATIVE ARITHMETIC TOO (kb/Work PB3860). §15.60.4 r1's equivalent arithmetic
         // expression ends in a division; under a standard mode the value is that expression's SDIDI value (§15.4.1 r1) and
@@ -1171,18 +1175,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 : new IntrinsicCarrierRules.AlignedOperand(x.Digits, x.Scale, ic.Args[i] is BoundFieldOperand { Place: TableAllPlace }))
             .ToList();
 
-    /// <summary>Does the alignment shift a list's argument of unknown bound (<see cref="IntrinsicCarrierRules.AlignmentShiftsUnboundedOperand"/>,
-    /// kb/Work PB4792)? Reads the same RAW operand facts as <see cref="AlignmentMayLeaveCarrier"/>.</summary>
-    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand: its carrier flags and its digit bound.</remarks>
-    private bool AlignmentShiftsUnboundedOperand(BoundIntrinsicCall ic) =>
-        IntrinsicCarrierRules.AlignmentShiftsUnboundedOperand(ic.Sig.Name, AlignedOperands(ic));
-
-    /// <summary>⛔ A NATIVE LIST THAT ALIGNS AN ARGUMENT OF UNKNOWN BOUND IS EVALUATED ON THE EXACT FAMILY'S WHOLE VALUE (kb/Work PB4792,
-    /// review R1-1): the arguments enter as their exact values and the sum, difference or halved sum is returned unrounded, for the
-    /// receiver to round once (§14.7.4.3). The SDIDI bodies round the value to 34 digits first, so SUM (FUNCTION INTEGER (A) F) of
-    /// 10000 and .9999999999999999999999999999999 would store 10001.00000 where the Int128 body, the arithmetic expression and
-    /// SUM (A F) give 10000.99999 (§15.4.1 leaves the approximation to the implementor; CLAUDE.md rule 1 sends it to GnuCOBOL, whose
-    /// decimal temporary is exact). Null for a function this family does not cover.</summary>
+    /// <summary>⛔ A NATIVE CROSS-ALIGNING LIST THAT LEAVES THE Int128 CARRIER IS EVALUATED ON THE EXACT FAMILY'S WHOLE VALUE (kb/Work PB4792,
+    /// review R1-1, and PB4826 for the list whose arguments all have a bound): the arguments enter as their exact values and the sum,
+    /// difference or halved sum is returned unrounded, for the receiver to round once (§14.7.4.3). The SDIDI bodies round the value to
+    /// 34 digits first, so SUM (FUNCTION INTEGER (A) F) of 10000 and .9999999999999999999999999999999 would store 10001.00000 where the
+    /// Int128 body, the arithmetic expression and SUM (A F) give 10000.99999, and SUM (A B) ROUNDED of a 26-digit A and .004999999
+    /// would store .01 where A + B stores .00 (§15.4.1 leaves the approximation to the implementor; CLAUDE.md rule 1 sends it to
+    /// GnuCOBOL, whose decimal temporary is exact). Null for a function this family does not cover.</summary>
     private NumX? RenderWholeAligned(BoundIntrinsicCall ic) => ic.Sig.RuntimeMethod switch
     {
         "SumScaled" => Exact("SumWhole", ExactValueArgList(ic), null),
@@ -1375,6 +1374,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "SumScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SumExact", $"{mode}, {ExactValueArgList(ic)}")),
             "RangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RangeExact", $"{mode}, {ExactValueArgList(ic)}")),
             "MeanScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MeanExact", $"{mode}, {ExactValueArgList(ic)}")),
+            // ⛔ AN ALL-BINARY64 MEDIAN WHOSE COUNT IS A RUN-TIME FACT DECIDES ITS PARITY AT RUN TIME (kb/Work PB4827). An odd count selects
+            // (§15.61.4 1), the exact lane keeps the selected argument's own kind); an even count is the mean of the two middle values
+            // (§15.61.4 2)), a new value that beside binary64 arguments is the binary64 mean, as the float lane forms it for a count the
+            // binder knows (IntrinsicCarrierRules.ReturnsMeanOfMiddlePair). The exact lane reaches here for two kinds of binary64
+            // (SelectionNeedsExactLane), so the body takes the exact values and forms the binary64 mean itself.
+            "MedianScaled" when !num.StandardDecimal
+                && IntrinsicCarrierRules.MedianParityIsRunTime(ic.Sig.Name, ic.Args) && AllRealArguments(ic)
+                => Exact("MedianBinary64Exact", ExactValueArgList(ic), null),
             "MedianScaled" when !num.StandardDecimal => Exact("MedianExact", $"{mode}, {ExactValueArgList(ic)}", null),
             "MidrangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MidrangeExact", $"{mode}, {ExactValueArgList(ic)}")),
             "Variance" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("VarianceExact", $"{mode}, {ExactValueArgList(ic)}")),
