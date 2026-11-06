@@ -12,9 +12,9 @@
       *> argument-1 below base 11. Both shapes used to compile CLEAN and abort at RUN TIME with
       *> NotImplementedCobolFeatureException (the wrong-stage family): the renderer's string channel
       *> had no numeric-literal arm, pinned as designed by a drift test — the pin moved WITH the fix.
-      *> The folded nested numeric function (FUNCTION LENGTH of a fixed item folds to a numeric
-      *> literal at bind) reaches the same arm. The admission is PER-FUNCTION: NUMVAL and friends
-      *> still refuse a numeric literal (the NUMVAL §15.67.3 and NUMVAL-F §15.69.3 rules exclude it).
+      *> The admission is PER-FUNCTION: NUMVAL and friends still refuse a numeric literal (the NUMVAL
+      *> §15.67.3 and NUMVAL-F §15.69.3 rules exclude it). A nested FUNCTION LENGTH is no such literal: it is an
+      *> integer function, which §8.4.3.2.3 SR12 bars from CONCAT's unsigned-integer position (kb/Work PB4830).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB59NUMLIT.
        DATA DIVISION.
@@ -25,8 +25,6 @@
        PROCEDURE DIVISION.
            MOVE FUNCTION CONCAT(A2 12) TO R8
            DISPLAY "CC12=[" R8 "]"
-           MOVE FUNCTION CONCAT(A2 FUNCTION LENGTH(B2)) TO R8
-           DISPLAY "CCLN=[" R8 "]"
            MOVE FUNCTION BASECONVERT(255, 10, 16) TO R8
            DISPLAY "BC10=[" R8 "]"
            MOVE FUNCTION BASECONVERT(1010, 2, 16) TO R8
