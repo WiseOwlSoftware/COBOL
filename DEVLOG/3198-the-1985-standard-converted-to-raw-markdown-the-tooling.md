@@ -1,4 +1,4 @@
-## The 1985 standard converted to raw Markdown; the tooling campaign filed (PB4815, PB4816, PB4817)
+## Entry 3198 — 2026-11-06 01:28 PST — The 1985 standard converted to raw Markdown; the tooling campaign filed (PB4815, PB4816, PB4817)
 
 The owner approved converting the purchased ANSI INCITS 23-1985 (R2001) PDF through the Message Batches API. A 10-page
 pilot ($0.60, both models) showed Opus 5.5 and Sonnet 5.5 agree on prose and tables and both read general-format words and
@@ -14,3 +14,4 @@ The owner: "make the tooling updates now, but we won't run the tools until I say
 that rule as its standing requirement: PB4815 (every spec tool takes an edition from one table in `spec_pdf.py`), PB4816
 (one restartable, edition-aware batch converter in `scripts/spec/`, replacing `specs-private/scripts`), PB4817 (a raster
 measurer for the scanned general formats). PB4812 is blocked on the three.
+
