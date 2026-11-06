@@ -151,6 +151,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 + "{OUTPUT PROCEDURE | GIVING} (ISO §14.9.40.2 general format)");   // PB236
             return BoundRejected.Reported(ctx.Edition);
         }
+        if (SortRecordCarriesSlots(file) && (usingFiles.Count > 0 || givingFiles.Count > 0))
+            return new BoundUnsupported(SlotRecordFileTransferReason(file, "SORT"));
         if (!ScreenSameClauses(file, usingFiles, givingFiles, merge: false)) return BoundRejected.Reported(ctx.Edition);   // SR10
         if (!ScreenIndexedGivingKey(keys, givingFiles, merge: false)) return BoundRejected.Reported(ctx.Edition);         // SR9
         if (!ScreenTransferRecordSizes(file, usingFiles, givingFiles, merge: false)) return BoundRejected.Reported(ctx.Edition);   // SR5, SR11
@@ -217,7 +219,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             if (ctx.Refs.Places.ResolveItemAt(table, [.. outer, new PositionConstant(1)]) is null)
                 return new BoundUnsupported($"SORT of table '{name}': "
                     + DeferredShapes.Describe(DeferredShape.NestedClassBacking));
-            // A pointer-class member's VALUE rides the area's managed slot, not its bytes (§14.9.3.4 GR9; kb/Work
+            // A pointer-class member's VALUE rides the area's managed slot, not its bytes (D-SLOT, DOC-A.1-210; kb/Work
             // PB231), and the elements move as byte images: the emitter carries each element's slots with its image
             // (kb/Work PB1922), so every such member needs a window of its own here, placed by the ONE place builder —
             // one per occurrence of every OCCURS level between the element and the member (a pointer TABLE inside the
@@ -394,6 +396,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);   // reported by SortAddFileKeys (PB236, PB1030)
         if (SortRecordOf(file) is null)   // after the keys, for the reason BindSort gives (kb/Work PB1173)
             return new BoundUnsupported($"MERGE '{file.CobolName}' without a usable SD record (Tier-C byte island, deferred)");
+        if (SortRecordCarriesSlots(file))   // a MERGE always has USING files (§14.9.24.2): the transfer a slot record cannot take
+            return new BoundUnsupported(SlotRecordFileTransferReason(file, "MERGE"));
 
         var (collating, collErr) = SortBindCollating(m.sortCollatingPhrase(), merge: true);
         if (collErr is { } ce) return ce;
@@ -571,8 +575,28 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// <c>CurrentImage()</c>) and RETURN decomposes it back (determination D-FRA, docs/CONFORMANCE.md §3).</para></summary>
     private static DataItem? SortRecordOf(FileModel file) =>
         file.Records.Count > 0 && (file.Records[0].IsElementary || file.Records[0].IsImageCapable
-            || file.Records[0].CurrentExtentImageCapable)
+            || file.Records[0].CurrentExtentImageCapable || SortRecordCarriesSlots(file))
             ? file.Records[0] : null;
+
+    /// <summary>⛔ AN SD RECORD THAT HOLDS MANAGED SLOTS (kb/Work PB4772): the one record description of a sort-merge file,
+    /// a fixed-size strongly-typed group (§13.18.60.3 SR14 confines a message tag, object reference or pointer to one) with a
+    /// message-tag, object-reference or pointer leaf. Such a group has no character image that reads back
+    /// (<see cref="DataItem.IsImageCapable"/>), so the store carries the record as its ONE-WAY transfer image — the
+    /// positions the keys are windows over — beside its LEAF VECTOR (<see cref="ActivationCrossing.LeafCarried"/>), the
+    /// carrier the managed slots of D-SLOT (DOC-A.1-210) ride in everywhere else. Two record descriptions would share one area by the
+    /// synthesized REDEFINES a strong group may not take part in (§13.18.44.3 SR14), a SAME RECORD AREA peer would need the
+    /// released record stored into it as characters, and a variable-length FILE (<see cref="FileModel.RecordSizeVaries"/>: RECORD VARYING or the implied variable format) releases a size the leaf-vector path ignores, so none
+    /// of the three is admitted.</summary>
+    private static bool SortRecordCarriesSlots(FileModel file) =>
+        file.Records.Count == 1 && !file.SameRecordAreaPeers.Any() && !file.RecordSizeVaries
+        && ActivationCrossing.LeafCarried(file.Records[0]) && file.Records[0].TransferImageCapable;
+
+    /// <summary>The deferral of a SORT/MERGE over a slot-holding SD record with a USING or GIVING file: a FILE record is a
+    /// byte string with no managed-slot half (<c>GateFileRecordByteSurfacePass</c>), so the implicit transfer would
+    /// carry the slot leaves' placeholder bytes in and out and give the record area a message tag or pointer nothing set.</summary>
+    private static string SlotRecordFileTransferReason(FileModel file, string verb) =>
+        $"{verb} USING/GIVING over SD record '{file.Records[0].CobolName}' with a message-tag/object/pointer leaf — a file record has no "
+        + "managed-slot half (the file record codec's own Tier-C byte island), deferred; DESIGN §4.2";
 
     /// <summary>Bind one ASC/DESC key phrase's data-names into <paramref name="keys"/> (ISO §14.9.40 GR1 — the
     /// direction word is transitive across the phrase's data-names; each <c>sortKeyPhrase</c>/<c>mergeKeyPhrase</c>

@@ -3471,10 +3471,11 @@ static WiseOwl.Cobol.Runtime.IO.CobolSort.Key.operator !=(WiseOwl.Cobol.Runtime.
 static WiseOwl.Cobol.Runtime.IO.CobolSort.Key.operator ==(WiseOwl.Cobol.Runtime.IO.CobolSort.Key left, WiseOwl.Cobol.Runtime.IO.CobolSort.Key right) -> bool
 static WiseOwl.Cobol.Runtime.IO.CobolSort.LastReturnedExtents(string! name) -> WiseOwl.Cobol.Runtime.RecordExtents?
 static WiseOwl.Cobol.Runtime.IO.CobolSort.LastReturnedLength(string! name) -> int
+static WiseOwl.Cobol.Runtime.IO.CobolSort.LastReturnedSlots(string! name) -> object?[]?
 static WiseOwl.Cobol.Runtime.IO.CobolSort.Merge(string! name) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolSort.NextInput(string! name) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolSort.Release(string! name, string! image, int readSize, int min, int max, WiseOwl.Cobol.Runtime.RecordExtents? extents = null) -> void
-static WiseOwl.Cobol.Runtime.IO.CobolSort.ReleaseStatement(string! name, string! image, int min, int max, int? size = null, WiseOwl.Cobol.Runtime.RecordExtents? extents = null) -> bool
+static WiseOwl.Cobol.Runtime.IO.CobolSort.ReleaseStatement(string! name, string! image, int min, int max, int? size = null, WiseOwl.Cobol.Runtime.RecordExtents? extents = null, object?[]? slots = null) -> bool
 static WiseOwl.Cobol.Runtime.IO.CobolSort.Return(string! name, out string! image) -> bool
 static WiseOwl.Cobol.Runtime.IO.CobolSort.ReturnStatement(string! name, out string! image) -> bool
 static WiseOwl.Cobol.Runtime.IO.CobolSort.Rewind(string! name) -> void
