@@ -889,7 +889,7 @@ public sealed class MessagingProtocolTests
         requestor.Step();                                                // the enumeration answered: two connects issued
         Assert.Equal(2, requestor.Log.OfType<Connect>().Count());
         requestor.DropAnswer();                                          // the first connect failed: its answer is ActionFailed
-        requestor.Post(new ActionFailed("socket error"));
+        requestor.Post(new ActionFailed(requestor.Log.OfType<Connect>().First(), "socket error"));
         Assert.Equal(ExceptionCatalog.McsImp, requestor.Last.ExceptionName);
         Assert.Equal("socket error", requestor.Last.Detail);
         Assert.Empty(network.RunIds(PeerEndpointKind.Bell, "SRV"));
@@ -902,6 +902,123 @@ public sealed class MessagingProtocolTests
         Assert.Equal(2, requestor.Results.Count);
         Assert.True(requestor.Last.Successful);
         Assert.Equal(1, new[] { a, b }.Count(p => p.Results.Count == 1 && p.Last.Image == "Y"));
+    }
+
+    [Fact]
+    public void AConnectThatFailsFreesItsServerForTheNextSend()
+    {
+        var network = Network();
+        var a = new Peer(network, "srvA", "SRV");
+        var requestor = new Peer(network, "req1");
+        a.Serve();
+        requestor.Send("SRV", "X");
+        requestor.Step();                                                // the enumeration answered: one connect issued
+        requestor.DropAnswer();
+        requestor.Post(new ActionFailed(requestor.Log.OfType<Connect>().Single(), "socket error"));
+        Assert.Equal(ExceptionCatalog.McsImp, requestor.Last.ExceptionName);
+        requestor.Send("SRV", "Y");                                      // the server is alive and published: it is connected to again, not skipped
+        Pump(requestor, a);
+        Assert.Equal(2, requestor.Log.OfType<Connect>().Count());
+        Assert.Single(requestor.Results);
+        a.Receive(default);
+        Pump(requestor, a);
+        Assert.True(requestor.Last.Successful);
+        Assert.Equal("Y", a.Last.Image);
+    }
+
+    [Fact]
+    public void ASendThatEndsImpWithALinkGrantedClosesThatLinkSoTheNextSendIsNotStuckOnIt()
+    {
+        var network = Network();
+        var a = new Peer(network, "srvA", "SRV");
+        var requestor = new Peer(network, "req1");
+        a.Serve();
+        requestor.Send("SRV", "X");
+        Pump(requestor, a);                                              // the offer is made and held
+        a.Receive(default);                                              // the claim
+        while (!requestor.Log.OfType<Write>().Any(w => w.Frame is GrantFrame)) Assert.True(requestor.Step());
+        requestor.Post(new BellRang());                                  // the rescan issues an enumeration ...
+        requestor.DropAnswer();
+        requestor.Post(new ActionFailed(requestor.Log.OfType<Enumerate>().Last(), "socket error"));   // ... which fails with the grant not yet acknowledged
+        Assert.Equal(ExceptionCatalog.McsImp, requestor.Last.ExceptionName);
+        Assert.Contains(requestor.Log, action => action is CloseLink);
+        Pump(requestor, a);
+        requestor.Send("SRV", "Y");
+        Pump(requestor, a);
+        a.Receive(default);
+        Pump(requestor, a);
+        Assert.True(requestor.Last.Successful);                          // the second SEND did not hang on the granted link
+        Assert.Equal("Y", a.Last.Image);
+    }
+
+    [Fact]
+    public void AListenerThatNeverPublishedMakesTheReceiveImpAtTheStatement()
+    {
+        var network = Network();
+        var server = new Peer(network, "srvA", "SRV");
+        server.Serve();
+        server.Post(new ActionFailed(server.Log.OfType<Publish>().Single(), "directory refused"));    // no statement is current
+        Assert.Empty(server.Results);
+        server.Receive(default);
+        Assert.Equal(ExceptionCatalog.McsImp, server.Last.ExceptionName);
+        Assert.Equal("directory refused", server.Last.Detail);
+        Assert.False(server.Protocol.Busy);
+    }
+
+    [Fact]
+    public void AListenerThatFailsToPublishWhileAReceiveWaitsCompletesThatReceiveImp()
+    {
+        var network = Network();
+        var server = new Peer(network, "srvA", "SRV");
+        server.Serve();
+        server.Receive(default);
+        Assert.Empty(server.Results);
+        server.Post(new ActionFailed(server.Log.OfType<RingBells>().Single(), "bell directory refused"));
+        Assert.Equal(ExceptionCatalog.McsImp, server.Last.ExceptionName);
+    }
+
+    [Fact]
+    public void ABellThatFailsToPublishLeavesTheEnumerationAnswerStaleForTheNextSend()
+    {
+        var network = Network();
+        var a = new Peer(network, "srvA", "SRV");                        // not serving yet: the first enumeration answers with nothing
+        var requestor = new Peer(network, "req1");
+        requestor.Send("SRV", "X");
+        requestor.Post(new ActionFailed(requestor.Log.OfType<Publish>().Single(), "bell directory refused"));
+        Assert.Equal(ExceptionCatalog.McsImp, requestor.Last.ExceptionName);
+        a.Serve();
+        requestor.Send("SRV", "Y");                                      // the first SEND's empty answer must not be read as this SEND's
+        Pump(requestor, a);
+        Assert.Single(requestor.Results);
+        a.Receive(default);
+        Pump(requestor, a);
+        Assert.True(requestor.Last.Successful);
+        Assert.Equal("Y", a.Last.Image);
+    }
+
+    [Fact]
+    public void ARunUnitThatSendsToTheNameItServesFindsNoServerInItself()
+    {
+        var network = Network();
+        var own = new Peer(network, "srvA", "SRV");
+        own.Serve();
+        own.Send("SRV", "X");
+        Pump(own);
+        Assert.Equal(ExceptionCatalog.McsNoServer, own.Last.ExceptionName);
+    }
+
+    [Fact]
+    public void AServerTagOfAnotherServerIsAnInvalidTagEvenForASerialThisRunUnitSent()
+    {
+        var (_, server, requestor) = Pair();
+        requestor.Send("SRV", "Q");
+        Pump(requestor, server);
+        server.Receive(default);
+        Pump(requestor, server);
+        Assert.Equal(1, requestor.Last.Tag.Message);
+        requestor.Receive(new MessageTag(Mcs, MessageParty.Server, "OTHER", requestor.Last.Tag.Message));
+        Assert.Equal(ExceptionCatalog.McsInvalidTag, requestor.Last.ExceptionName);
+        Assert.False(requestor.Protocol.Busy);
     }
 
     [Fact]

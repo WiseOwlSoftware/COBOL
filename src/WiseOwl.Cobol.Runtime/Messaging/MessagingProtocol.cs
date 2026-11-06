@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Runtime.Exceptions;
-using WiseOwl.Cobol.Runtime.Mcs;
 
 namespace WiseOwl.Cobol.Runtime.Messaging;
 
@@ -93,7 +92,7 @@ internal sealed class MessagingProtocol
     private readonly Dictionary<string, OutLink> _outByRun = new(StringComparer.Ordinal);
     private readonly HashSet<string> _connecting = new(StringComparer.Ordinal);
     private readonly Dictionary<long, OutLink> _sent = [];
-    private readonly Dictionary<long, (MessageBody? Body, string? Exception)> _replies = [];
+    private readonly Dictionary<long, (MessageBody? Body, string? Exception, string Server)> _replies = [];
     private SendState? _send;
     private int _staleAnswers;
     private long _serial;
@@ -107,6 +106,7 @@ internal sealed class MessagingProtocol
     private long _offerSequence;
 
     private ReceiveState? _receive;
+    private string? _serveFailure;
     private int _token;
     private bool _ended;
 
@@ -187,6 +187,7 @@ internal sealed class MessagingProtocol
             if (_served is null)
                 return Done(StatementResult.Failed(ExceptionCatalog.McsNoRequester));                 // §0 Q2: no requestor can address this run unit
             receive = new ReceiveState(++_token, ReceiveKind.AnyRequestor, capacity);
+            if (_serveFailure is not null) return Done(StatementResult.Failed(ExceptionCatalog.McsImp, _serveFailure));   // §0 Q8: no listener, so none can reach this RECEIVE
         }
         else
         {
@@ -200,7 +201,9 @@ internal sealed class MessagingProtocol
             else
             {
                 // A reply already taken, or a serial never sent, is EC-MCS-INVALID-TAG.
-                if (!_replies.ContainsKey(from.Message) && !_sent.ContainsKey(from.Message)) return Done(StatementResult.Failed(ExceptionCatalog.McsInvalidTag));
+                // The tag names the server too: a serial this run unit sent to another server is not this tag's (serials restart at 1 in every run unit).
+                string? sentTo = _sent.TryGetValue(from.Message, out var holder) ? holder.Name : _replies.TryGetValue(from.Message, out var held) ? held.Server : null;
+                if (!string.Equals(sentTo, from.Name, StringComparison.Ordinal)) return Done(StatementResult.Failed(ExceptionCatalog.McsInvalidTag));
                 receive = new ReceiveState(++_token, ReceiveKind.FromServer, capacity) { Serial = from.Message };
             }
         }
@@ -253,7 +256,7 @@ internal sealed class MessagingProtocol
             case Enumerated e: OnEnumerated(e.RunIds); break;
             case Connected c: OnConnected(c.Endpoint, c.Result); break;
             case ActivationEnded a: OnActivationEnded(a); break;
-            case ActionFailed f: OnActionFailed(f.Detail); break;
+            case ActionFailed f: OnActionFailed(f); break;
             default: throw new ArgumentException($"no handler for {protocolEvent.GetType().Name}", nameof(protocolEvent));
         }
         return Flush();
@@ -302,6 +305,7 @@ internal sealed class MessagingProtocol
         send.Outstanding--;
         foreach (string runId in runIds)
         {
+            if (runId == _runId) continue;                        // this run unit's own listener: it cannot RECEIVE while its SEND is current, so it is no server for it
             if (_outByRun.ContainsKey(runId) || _connecting.Contains(runId) || send.Burned.Contains(runId)) continue;
             _connecting.Add(runId);
             send.Outstanding++;
@@ -341,16 +345,39 @@ internal sealed class MessagingProtocol
         }
     }
 
-    private void OnActionFailed(string detail)
+    /// <summary>An action failed (§0 Q8: EC-MCS-IMP for the statement it served). Which answer is owed depends on the action: <see cref="Enumerate"/> and
+    /// <see cref="Connect"/> owe one, in issue order, which this event replaces (a failed <see cref="Connect"/> also frees its server for the next SEND);
+    /// <see cref="Activate"/> owes its <see cref="ActivationEnded"/>; every other action owes none, so a failure of it is not counted against the answers
+    /// still owed. The answers still owed to a SEND that ends here are stale (<see cref="FinishSend"/>).</summary>
+    private void OnActionFailed(ActionFailed failed)
     {
-        if (ConsumeStale()) return;
-        // The answer to one action failed: EC-MCS-IMP for the statement it served (§0 Q8); the other answers of that statement are stale.
-        if (_send is { } send)
+        string detail = failed.Detail;
+        switch (failed.Action)
         {
-            send.Outstanding--;
-            FinishSend(send, StatementResult.Failed(ExceptionCatalog.McsImp, detail));
+            case Enumerate or Connect:
+                if (failed.Action is Connect connect) _connecting.Remove(connect.Endpoint.RunId);
+                if (ConsumeStale()) return;
+                if (_send is { } send)
+                {
+                    send.Outstanding--;
+                    FinishSend(send, StatementResult.Failed(ExceptionCatalog.McsImp, detail));
+                }
+                break;
+            case Activate:
+                if (_send is { Phase: SendPhase.Activating } activating) FinishSend(activating, StatementResult.Failed(ExceptionCatalog.McsImp, detail));
+                break;
+            case Publish { Endpoint.Kind: PeerEndpointKind.Server } or RingBells:
+                // The listener never published, or the bells never rang (Serve, before any statement): the first RECEIVE that needs a requestor says so.
+                _serveFailure ??= detail;
+                if (_receive is { Kind: not ReceiveKind.FromServer } waiting) CompleteReceive(waiting, StatementResult.Failed(ExceptionCatalog.McsImp, detail));
+                break;
+            case Unpublish:
+                break;                                             // cleanup after the statement it belonged to completed: nothing is left to fail
+            default:                                               // the bell's Publish, a Write, a CloseLink
+                if (_send is { } sending) FinishSend(sending, StatementResult.Failed(ExceptionCatalog.McsImp, detail));
+                else if (_receive is { } receiving) CompleteReceive(receiving, StatementResult.Failed(ExceptionCatalog.McsImp, detail));
+                break;
         }
-        else if (_receive is not null) Done(StatementResult.Failed(ExceptionCatalog.McsImp, detail), flush: false);
     }
 
     /// <summary>The answers owed to a statement that has since ended arrive first, in the order their actions were issued; they are consumed, not applied.</summary>
@@ -458,7 +485,7 @@ internal sealed class MessagingProtocol
             case ReplyFrame reply:
                 if (!_sent.TryGetValue(reply.Serial, out var holder) || holder != link) break;     // a reply to nothing sent on this link is dropped
                 _sent.Remove(reply.Serial);
-                _replies[reply.Serial] = (reply.Message, reply.ExceptionName);
+                _replies[reply.Serial] = (reply.Message, reply.ExceptionName, link.Name);
                 if (_receive is { Kind: ReceiveKind.FromServer } receive && receive.Serial == reply.Serial) AdvanceReceive(receive);
                 break;
             default:
@@ -486,7 +513,7 @@ internal sealed class MessagingProtocol
         foreach (var serial in _sent.Where(p => p.Value == link).Select(p => p.Key).ToArray())
         {
             _sent.Remove(serial);
-            _replies[serial] = (null, null);                      // "server ended"
+            _replies[serial] = (null, null, link.Name);                      // "server ended"
             if (_receive is { Kind: ReceiveKind.FromServer } receive && receive.Serial == serial) AdvanceReceive(receive);
         }
         if (_send is not { } send || send.Name != link.Name) return;
@@ -500,7 +527,7 @@ internal sealed class MessagingProtocol
         AfterLinkLoss(send);
     }
 
-    /// <summary>Every completion of the SEND closes its bell and deletes <c>p/&lt;N&gt;/&lt;r&gt;</c> (design 5.4.1), and withdraws what is still offered.</summary>
+    /// <summary>Every completion of the SEND closes its bell and deletes <c>p/&lt;N&gt;/&lt;r&gt;</c> (design 5.4.1), withdraws what is still offered and closes a link left granted.</summary>
     private void FinishSend(SendState send, StatementResult result)
     {
         if (!ReferenceEquals(_send, send)) return;
@@ -508,6 +535,8 @@ internal sealed class MessagingProtocol
         if (send.BellPublished) _actions.Add(new Unpublish(Bell(send)));
         _staleAnswers += send.Outstanding;
         _send = null;
+        // A link still granted is one whose ACK this SEND will never read (it ended IMP): close it, or it stays granted and every later SEND waits on it.
+        if (send.Granted is { Phase: OutPhase.Granted } abandoned) EndOut(abandoned, closeIt: true);
         _actions.Add(new Complete(result));
     }
 
@@ -610,7 +639,7 @@ internal sealed class MessagingProtocol
 
     /// <summary>§0 Q6: the reply moves into identifier-1 and its length into data-name-2, then the RECEIVE is unsuccessful with the exception the server
     /// raised, or with EC-MCS-ABNORMAL-TERMINATION when the server ended with no reply (design 5.4.3).</summary>
-    private void DeliverReply(ReceiveState receive, (MessageBody? Body, string? Exception) reply)
+    private void DeliverReply(ReceiveState receive, (MessageBody? Body, string? Exception, string Server) reply)
     {
         if (reply.Body is null)
         {

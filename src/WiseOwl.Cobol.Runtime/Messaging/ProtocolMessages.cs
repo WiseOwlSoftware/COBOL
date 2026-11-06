@@ -113,6 +113,8 @@ internal sealed record Connected(PeerEndpoint Endpoint, ConnectResult Result) : 
 /// <summary>The answer to <see cref="Activate"/>: the server was started and has published its listener, or it was not.</summary>
 internal sealed record ActivationEnded(bool Succeeded, string? Detail) : ProtocolEvent;
 
-/// <summary>An action failed for a reason that is not a partner's end (a socket error, a directory the host refuses): the answer to one
-/// <see cref="Publish"/>, <see cref="Enumerate"/>, <see cref="Connect"/> or <see cref="RingBells"/>, and EC-MCS-IMP for the statement it served (§0 Q8).</summary>
-internal sealed record ActionFailed(string Detail) : ProtocolEvent;
+/// <summary><paramref name="Action"/> failed for a reason that is not a partner's end (a socket error, a directory the host refuses), and EC-MCS-IMP
+/// for the statement it served (§0 Q8). A <see cref="Enumerate"/>, <see cref="Connect"/> or <see cref="Activate"/> answers with this in place of its own
+/// answer; the protocol needs the action to know which answer is owed (a failed <see cref="Connect"/> frees its server for the next SEND), and a
+/// <see cref="Publish"/> or <see cref="RingBells"/> that fails has no answer to replace.</summary>
+internal sealed record ActionFailed(ProtocolAction Action, string Detail) : ProtocolEvent;

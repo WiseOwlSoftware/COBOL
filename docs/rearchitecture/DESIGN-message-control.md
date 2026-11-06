@@ -549,13 +549,15 @@ of the last six carrying the serial and, before `ACK`, the offer round. The requ
 Slice S2a builds the protocol and its medium without a socket. The full action set is `Write`, `CloseLink`, `Publish`,
 `Unpublish`, `Enumerate`, `Connect`, `RingBells`, `ArmDeadline`, `Activate` and `Complete`; the full event set adds the
 answers to those actions (`Enumerated`, `Connected`, `ActivationEnded`) and `ActionFailed`, which is EC-MCS-IMP for the
-statement the failed action served (Q8). `IPeerTransport` is the medium an action runs on: `Publish`, `Unpublish`,
+statement the failed action served (Q8); it names the action, because a failed `Connect` frees its server for the next SEND, an
+`Enumerate` or `Connect` owes an answer that it replaces, and a `Publish` or `RingBells` owes none (a listener that never published
+makes the first RECEIVE that needs a requestor EC-MCS-IMP). `IPeerTransport` is the medium an action runs on: `Publish`, `Unpublish`,
 `EnumerateServers`, `Connect` (which applies the refusal rule), `Write`, `Close`, `RingBells` and `TryTake`, which hands
 the peer the next `FrameReceived`, `LinkLost`, `LinkAccepted` or `BellRung` in arrival order. `InMemoryTransport` implements it over a shared
 `InMemoryNetwork` that stands for the socket directory: `Abort` ends every link as a kill does and leaves the published
 files, `Dispose` ends as `Terminate` does, and `BetweenListenAndRename` is the §5.4.1 window a test can probe. The peer
 answers every action in the order it issued them, and an action that fails answers with `ActionFailed` in place of its own
-answer; a statement that ends while answers are owed (EC-MCS-IMP) leaves them stale, and the protocol consumes them first.
+answer; a statement that ends while answers are owed (EC-MCS-IMP) leaves them stale, and the protocol consumes them first. A SEND that ends with a link still granted closes it. A requestor never connects to its own listener (it cannot RECEIVE while its SEND is current), and a server tag is valid only for the server its serial was sent to.
 A requestor keeps a link per server across SENDs (`Sent`, `Replies`); a link the protocol closes after a bad `HELLO` is
 burned for the current SEND only.
 
