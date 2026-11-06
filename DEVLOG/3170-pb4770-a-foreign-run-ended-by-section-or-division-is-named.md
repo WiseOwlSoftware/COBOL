@@ -1,4 +1,4 @@
-## PB4770: a foreign run ended by SECTION or DIVISION is named again
+## Entry 3170 — 2026-11-05 16:47 PST — PB4770: a foreign run ended by SECTION or DIVISION is named again
 
 PB4706 added an `at.WritesAHeader` early return at the top of `CobolErrorStrategy.ClosedFormatResidue`, ahead of the
 `at.ResidueRun` check, so a foreign clause run that a header word ended (`01 B PIC 9 VALEU SECTION.`,
@@ -10,3 +10,4 @@ clause MAIN, so the lead was too broad. Fix: `OffendingPosition.HeaderOpening` n
 run check skips a run that begins at it (`RunIsTheHeadersName`); a run that begins before it is named: COBOL1941 at VALEU,
 COBOL1970 at ASIGN (`VALEU MAIN SECTION.`, `ASIGN MAIN SECTION.`, `VALEU 5 DIVISION.`). Two refusal goldens
 (`pb4770-foreign-run-ended-by-section-in-an-entry`, `...-in-file-control`) at every edition. No inventory row closed.
+
