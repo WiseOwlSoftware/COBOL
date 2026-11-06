@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// identifier-1 RETURNING data-name-1</c> and Format 2 (message-server-response) as <c>SEND TO data-name-2 FROM
 /// identifier-1 [ RAISING … ]</c>. The name after TO is a bare word in both, so which format a statement is depends on
 /// its phrases AND on what the name IS: a message-tag data item (§14.9.38.3 SR4) is Format 2's, any other name is a
-/// message-server-name-1 (SR2). <c>DeclinedFacilityBinder.ClassifySend</c> reads them in one place. The conformance
+/// message-server-name-1 (SR2). <c>MessagingBinder.ClassifySend</c> reads them in one place. The conformance
 /// cases (<c>conformance-suite/wiseowl/cases/14.9.38-SEND/pb4090-*</c>) pin the refusals through the harness; this
 /// class pins the part a golden cannot — the ABSENCE of a diagnostic — and the MESSAGE-TAG arm, whose item binds since
 /// kb/Work PB4740 (USAGE MESSAGE-TAG is a bound category, so a message-tag data item can sit in an accepted program).</para>

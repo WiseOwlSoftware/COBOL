@@ -5,11 +5,11 @@
  "ordinal": 2,
  "subject": "SEND statement",
  "rule-digest": "5df4729d999d",
- "verdict": "DOCUMENTED-NON-SUPPORT",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
- "test-ref": "conformance:wiseowl/cases/14.6.11-Normal-run-unit-termination/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MessagingBinder.cs#ClassifySend; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MessagingBinder.cs#BindSend",
+ "test-ref": "conformance:wiseowl/cases/14.6.11-Normal-run-unit-termination/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec; conformance:wiseowl/cases/14.9.38-SEND/pb4090-send-format1-server-name-returning; conformance:wiseowl/cases/14.9.38-SEND/pb4118-send-names-and-identifiers-accepted; conformance-test:SendFormatClassificationTests.ANonTagToName_IsFormat1_AndNeedsReturning",
  "derivation": "",
  "editions": "2023",
- "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOL1578 at every SEND/RECEIVE (the message-tag data half is bound since kb/Work PB4740: USAGE MESSAGE-TAG, NULL, SET format 17, the message-tag relation, INITIALIZE and BY VALUE draw no refusal). || editions 2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): an asynchronous-messaging (MCS) rule; the facility, its message-tag class and USAGE MESSAGE-TAG are a COBOL-2023 introduction (Annex E.3.2 item 1; MESSAGE-TAG first reserved at 2023). cite.py --check E.3.2 \"A method of allowing communication between run units via messages is provided\" OK.",
+ "notes": "kb/Work PB4743: message-server-name-1 is the name of a message server run unit, a processor-defined name that is no data item; MessagingBinder keeps it a bare word (BoundSendToServer.ServerName) and never resolves it as a data name, so an undefined one is no error. Whether a run unit of that name exists is a run-time fact (EC-MCS-NO-SERVER, slice S4).",
  "state": "OK"
 }

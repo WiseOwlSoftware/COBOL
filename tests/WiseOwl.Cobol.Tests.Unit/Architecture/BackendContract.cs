@@ -18,7 +18,7 @@ internal static class BackendContract
         [
             "Bound.BoundDebugSubject.SubjectName", "Bound.BoundDeclarative.SectionName", "Bound.BoundExceptionMatch.OpenMode",
             "Bound.BoundMethod.CobolName", "Bound.BoundNumLiteral.FoldedFunction", "Bound.BoundNumericLiteral.FoldedFunction",
-            "Bound.BoundParagraph.CobolName", "Bound.BoundProgramAddress.Prototype", "Bound.BoundRangeMembership.Alphabet",
+            "Bound.BoundParagraph.CobolName", "Bound.BoundProgramAddress.Prototype", "Bound.BoundRangeMembership.Alphabet", "Bound.BoundSendToServer.ServerName",
             "Bound.BoundSetSwitches.Switches", "Bound.BoundSwitchCondition.ImplementorName",
             "Bound.InitializeCategories.Spelling()", "Bound.SetCapacityKinds.Text()",
             // intrinsic-function-names as their catalog rows spell them (kb/Work PB4370)

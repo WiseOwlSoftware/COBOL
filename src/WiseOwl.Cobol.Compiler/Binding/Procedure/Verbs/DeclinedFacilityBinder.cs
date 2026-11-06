@@ -1,38 +1,28 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using Antlr4.Runtime;
-using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
-using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
 using Core = CobolParserCore;
 
 /// <summary>
-/// ⛔ THE OPERANDS OF A STATEMENT THE COMPILER ACCEPTS INERT ARE STILL IDENTIFIERS (kb/Work PB3568). A DECLINED
-/// facility's STATEMENT — VALIDATE (§14.9.50, Annex A.4.14) and the MCS SEND / RECEIVE (§14.9.38, §14.9.31, Annex A.3
-/// item 4) — binds to a no-op, so the facility does nothing; but declining a facility licenses its BEHAVIOUR to be
-/// absent, never its SYNTAX RULES: an undefined name, a reference-modified operand and a pointer operand compiled clean
-/// because nothing ever resolved them (GnuCOBOL refused the first, and was right). This collaborator is the ONE place
-/// the declined statements' identifiers are read, so the next declined statement is one more method here, never one
-/// more unbound parse subtree. It builds no node and stores nothing: the resolution is for its DIAGNOSTICS.
-/// <para>⚠ A DEFERRED reference shape (<see cref="RefOutcome.Deferred"/>: a legal reference whose storage place this
-/// compiler has not built) is taken back off the unbuilt-operand ledger here. The ledger exists so the statement funnel
-/// can announce "not implemented — reaching this statement aborts the run unit"; an inert statement never reaches the
-/// storage, so the announcement would be false, and a legal operand is not refused for a place nothing reads.</para>
+/// ⛔ THE OPERANDS OF A STATEMENT THE COMPILER ACCEPTS INERT ARE STILL IDENTIFIERS (kb/Work PB3568). A DECLINED facility's STATEMENT — VALIDATE (§14.9.50,
+/// Annex A.4.14) — binds to a no-op, so the facility does nothing; but declining a facility licenses its BEHAVIOUR to be absent, never its SYNTAX RULES: an
+/// undefined name, a reference-modified operand and a pointer operand compiled clean because nothing ever resolved them (GnuCOBOL refused the first, and
+/// was right). This collaborator is the ONE place the declined statements' identifiers are read, so the next declined statement is one more method here,
+/// never one more unbound parse subtree. It builds no node and stores nothing: the resolution is for its DIAGNOSTICS.
+/// <para>SEND and RECEIVE left this class when the asynchronous messaging facility was implemented (<see cref="MessagingBinder"/>, kb/Work PB4743); they
+/// are still routed through the declined-statement seam until the exchange they build is rendered (kb/Work PB4744).</para>
+/// <para>⚠ A DEFERRED reference shape (<see cref="RefOutcome.Deferred"/>: a legal reference whose storage place this compiler has not built) is taken back
+/// off the unbuilt-operand ledger by the seam that calls this class (<c>StatementBinder.BindDeclinedStatement</c>). The ledger exists so the statement
+/// funnel can announce "not implemented — reaching this statement aborts the run unit"; an inert statement never reaches the storage, so the announcement
+/// would be false, and a legal operand is not refused for a place nothing reads.</para>
 /// </summary>
 internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder host)
 {
-    /// <summary>The citation of SEND's general formats, the clause that prints the TO and RETURNING operands.</summary>
-    private const string SendClause = "ISO §14.9.38.2";
-
-    /// <summary>The citation of RECEIVE's general format, the clause that prints its data-name-1 and data-name-2.</summary>
-    private const string ReceiveClause = "ISO §14.9.31.2";
-
     /// <summary>Bind the operands of <c>VALIDATE { identifier-1 } …</c> (ISO §14.9.50.2): each identifier-1 is
     /// resolved and screened against §14.9.50.3 SR1, SR2, SR4 and SR5. SR6 (more than one identifier in an
     /// exception-checking PERFORM) is the EC binder's (COBOL1607) and SR3 (a VALIDATE-STATUS clause referencing the
@@ -40,172 +30,7 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
     /// asked here.</summary>
     public void BindValidate(Core.ValidateFacilityStatementContext v)
     {
-        int unbuiltMark = ctx.Edition.UnbuiltMark;
         foreach (var dref in v.dataReference()) ScreenValidateOperand(dref);
-        ctx.Edition.TakeUnbuiltSince(unbuiltMark);
-    }
-
-    /// <summary>Bind the identifiers of <c>RECEIVE [FROM] data-name-1 GIVING identifier-1 data-name-2 [CONTINUE AFTER
-    /// … SECONDS] [ON EXCEPTION …] [NOT ON EXCEPTION …]</c> (ISO §14.9.31.2): the three data references resolve, the
-    /// CONTINUE AFTER expression binds as an arithmetic expression, and the imperative statements of the exception
-    /// phrases bind as the statements they are — dead under the declined facility, but still source that must
-    /// compile.</summary>
-    public void BindReceive(Core.McsReceiveStatementContext r)
-    {
-        int unbuiltMark = ctx.Edition.UnbuiltMark;
-        // The grammar gives the rule its three references in the format's order — data-name-1, identifier-1, data-name-2
-        // (the roster test pins the count) — and data-name-1 and data-name-2 are NAMES, so their written shape is asked
-        // before they resolve (kb/Work PB4118): a subscripted, reference-modified or special-register operand is the
-        // ScreenName refusal, and a refused one is not resolved (it was reported once).
-        var references = r.dataReference();
-        for (int i = 0; i < references.Length; i++)
-        {
-            bool isDataName = i != 1;
-            if (isDataName && !ScreenName(references[i], i == 0 ? "RECEIVE data-name-1" : "RECEIVE data-name-2", ReceiveClause)) continue;
-            _ = host.Expr.ResolveSending(references[i]);
-        }
-        if (r.arithmeticExpression() is { } seconds) _ = host.Expr.BindExpr(seconds);
-        BindExceptionPhrases(r.conditionalPhrases());
-        ctx.Edition.TakeUnbuiltSince(unbuiltMark);
-    }
-
-    /// <summary>Bind the identifiers of <c>SEND [TO] { literal-1 | message-server-name-1 | data-name-2 } FROM
-    /// identifier-1 [RETURNING data-name-1 | RAISING …] [ON EXCEPTION …] [NOT ON EXCEPTION …]</c> (ISO §14.9.38.2): the
-    /// FROM and RETURNING operands are data references and resolve.
-    /// <para>⛔ THE TO OPERAND IS READ BY THE STATEMENT'S FORMAT (kb/Work PB4090). A name after TO is
-    /// <i>message-server-name-1</i> in Format 1 — "the name of a message server run unit" (§14.9.38.3 SR2), a
-    /// processor-defined name that is no data item, so it is NOT resolved and an undefined one is no error — or
-    /// <i>data-name-2</i> in Format 2, a message-tag data item (SR4), a data reference like any other. The grammar's one
-    /// <c>dataReference</c> alternative cannot tell them apart; <see cref="ClassifySend"/> does, from the phrases
-    /// written and the declaration the name silently resolves to, and only a Format 2 name is resolved here.</para></summary>
-    public void BindSend(Core.McsSendStatementContext s)
-    {
-        int unbuiltMark = ctx.Edition.UnbuiltMark;
-        var to = DataReferencesAfter(s, Core.SEND, Core.TO).FirstOrDefault();
-        // ⛔ THE TO OPERAND IS A NAME IN BOTH FORMATS (kb/Work PB4118): ask how it was WRITTEN before ClassifySend reads
-        // what it is. A subscripted, reference-modified or special-register operand is neither a message-server-name-1
-        // nor a data-name-2 (ScreenName); it was reported once and is read no further.
-        bool toIsName = to is null || ScreenName(to, "SEND TO operand", SendClause);
-        var format = ClassifySend(s, to, toIsName, out bool toIsMessageTag);
-        foreach (var dref in DataReferencesAfter(s, Core.FROM))
-            _ = host.Expr.ResolveSending(dref);
-        // RETURNING's data-name-1 is a name as well (§14.9.38.2 Format 1), asked the same.
-        foreach (var dref in DataReferencesAfter(s, Core.RETURNING))
-            if (ScreenName(dref, "SEND RETURNING data-name-1", SendClause))
-                _ = host.Expr.ResolveSending(dref);
-        // A message-tag data-name-2 is a declared item the classification above already probed; any other Format 2
-        // name resolves here, so an undefined one is COBOL1639.
-        if (format is SendFormat.MessageServerResponse && to is not null && toIsName && !toIsMessageTag)
-            _ = host.Expr.ResolveSending(to);
-        // Format 2's RAISING EXCEPTION exception-name-1 (§14.9.38.2) is a WRITTEN exception-name, so it resolves through
-        // the ONE funnel every written name takes (EcNameResolution — an unknown name is COBOL0711, an EC-MCS name
-        // keeps the accept-inert warning of the declined facility); it was never read.
-        if (s.cobolWord() is { } exceptionName)
-            _ = EcNameResolution.TryResolve(ctx.Edition, exceptionName.GetText(),
-                $"SEND RAISING EXCEPTION '{exceptionName.GetText()}'", out _);
-        BindExceptionPhrases(s.conditionalPhrases());
-        ScreenSendRequiredPhrases(s, format);
-        ctx.Edition.TakeUnbuiltSince(unbuiltMark);
-    }
-
-    /// <summary>Which of §14.9.38.2's two general formats a written SEND is. <see cref="Unclassified"/> is a statement
-    /// whose format a diagnostic has already refused — it carries a phrase of each (COBOL5488), or its TO operand is
-    /// no name and nothing else says which format it is (COBOL2024) — so no per-format rule is asked of it.</summary>
-    private enum SendFormat { ToMessageServer, MessageServerResponse, Unclassified }
-
-    /// <summary>⛔ THE ONE PLACE A WRITTEN SEND IS ASSIGNED ITS FORMAT (kb/Work PB4090). §14.9.38.2 prints the two
-    /// formats apart only by their operands and their tail: Format 1 is <c>TO { literal-1 | message-server-name-1 }
-    /// FROM identifier-1 RETURNING data-name-1</c>, Format 2 <c>TO data-name-2 FROM identifier-1 [RAISING …]</c>. So
-    /// the evidence of Format 1 is a literal-1 operand and a RETURNING phrase, and of Format 2 a RAISING phrase and a
-    /// TO name that is a message-tag data item (§14.9.38.3 SR4: data-name-2 "shall be the name of a message-tag data
-    /// item"). Evidence for both is COBOL5488; evidence for neither is Format 1 — a bare name after TO that is no
-    /// message-tag item can only be message-server-name-1 (SR2), whose statement then lacks its RETURNING phrase
-    /// (<see cref="ScreenSendRequiredPhrases"/>). The name is read SILENTLY
-    /// (<see cref="ReferenceResolver.ProbeDeclaration"/>): as message-server-name-1 it is no data item, and reporting
-    /// it undefined would refuse legal source.
-    /// <para>⛔ THE OPERAND'S WRITTEN SHAPE COMES BEFORE ITS DECLARATION (kb/Work PB4118). A message-server-name-1 is a
-    /// bare name, so a TO operand written with a qualifier (<c>C OF B</c>) cannot be one: it is a data-name-2, the one
-    /// reading on which §8.4.2.2.2 Format 1 admits a qualifier, and is Format 2's evidence exactly as a message-tag
-    /// item is. An operand <paramref name="toIsName"/> refused (a subscript, a reference modifier, a special register:
-    /// neither format prints one) says nothing about the format; if nothing else does, the statement is
-    /// <see cref="SendFormat.Unclassified"/> and is not also asked for the RETURNING phrase it may not need.</para></summary>
-    private SendFormat ClassifySend(Core.McsSendStatementContext s, Core.DataReferenceContext? to, bool toIsName,
-        out bool toIsMessageTag)
-    {
-        toIsMessageTag = to is not null && toIsName && ctx.Refs.ProbeDeclaration(to) is { } declaration
-            && ItemCategory.IsMessageTag(declaration);
-        bool toIsQualified = to is not null && toIsName && ReferenceResolver.ReadWritten(to).Qualifiers.Count > 0;
-        List<string> format1 = [], format2 = [];
-        if (s.literal() is not null) format1.Add("a literal-1 operand");
-        if (s.RETURNING() is not null) format1.Add("the RETURNING phrase");
-        if (s.RAISING() is not null) format2.Add("the RAISING phrase");
-        if (toIsMessageTag) format2.Add($"the TO operand '{DataBinder.WrittenText(to!)}', a message-tag data item");
-        else if (toIsQualified)
-            format2.Add($"the TO operand '{DataBinder.WrittenText(to!)}', which is qualified (a message-server-name-1 is a bare name)");
-
-        if (format1.Count > 0 && format2.Count > 0)
-        {
-            ctx.Edition.Error(DiagnosticCatalog.SendPhrasesOfTwoFormats,
-                $"SEND is written with {string.Join(" and ", format1)}, which only Format 1 (to-message-server) prints, "
-                + $"and with {string.Join(" and ", format2)}, which only Format 2 (message-server-response) prints "
-                + "(ISO §14.9.38.2; §14.9.38.3 SR2, SR4)");
-            return SendFormat.Unclassified;
-        }
-        if (format1.Count == 0 && format2.Count == 0 && !toIsName) return SendFormat.Unclassified;
-        return format2.Count > 0 ? SendFormat.MessageServerResponse : SendFormat.ToMessageServer;
-    }
-
-    /// <summary>⛔ A NAME OPERAND OF A DECLINED STATEMENT IS ASKED ITS WRITTEN SHAPE BEFORE IT IS READ (kb/Work PB4118).
-    /// SEND's TO operand (message-server-name-1 or data-name-2, §14.9.38.2), its RETURNING data-name-1 and RECEIVE's
-    /// data-name-1 and data-name-2 (§14.9.31.2) are all printed as NAMES: no subscript (§8.4.2.3.1), no reference
-    /// modification (§8.4.3.3.3 NOTE) and no special register (§8.4.3.1.2 Format 10 / 11 are identifiers). The grammar's
-    /// one <c>dataReference</c> alternative parses every such shape, and this binder used to take it for a name without
-    /// asking. The question is the ONE data-name-n shape screen, <see cref="DataBinder.ScreenDataNameShape"/>
-    /// (COBOL2024), the same one the SORT and MERGE keys and the file clauses ask; a qualifier is a name's own form
-    /// (§8.4.2.2.2 Format 1) and passes.</summary>
-    /// <returns>true when the operand is written as a name; false after reporting it.</returns>
-    /// <param name="clause">the ONE clause whose general format prints this operand — <see cref="SendClause"/> or
-    /// <see cref="ReceiveClause"/> — quoted in the refusal, so a RECEIVE operand is never told SEND's format and a SEND
-    /// operand never RECEIVE's (kb/Work PB4169).</param>
-    private bool ScreenName(Core.DataReferenceContext dref, string face, string clause) =>
-        DataBinder.ScreenDataNameShape(dref, face, ctx.Edition,
-            $"a name is what the statement's general format prints here ({clause})");
-
-    /// <summary>⛔ §14.9.38.2 prints `END-SEND` on its own line with NO brackets in BOTH formats, and Format 1's
-    /// `RETURNING data-name-1` line with none either, while it brackets the exception phrases around them (PDF page
-    /// 756, printed folio 726). Brackets are the only convention that makes a portion omissible (§5.2.6.2), so both are
-    /// required wherever their format is written — the facility is declined, its syntax rules are not (the class
-    /// remark). The grammar keeps them optional so the omission is NAMED here (COBOL1850, the one screen of an
-    /// unbracketed phrase, <see cref="StatementValidation.ScreenOmittedRequiredPhrase"/>); its rule's
-    /// <c>audit:required-word</c> line names this member (kb/Work PB2024). RETURNING is required wherever the
-    /// statement IS Format 1 (<see cref="ClassifySend"/>): a literal-1 operand, and a name after TO that is no
-    /// message-tag data item — message-server-name-1 (§14.9.38.3 SR2) — neither of which Format 2 prints (kb/Work
-    /// PB4090). An <see cref="SendFormat.Unclassified"/> statement has drawn its refusal and is asked no more.</summary>
-    private void ScreenSendRequiredPhrases(Core.McsSendStatementContext s, SendFormat format)
-    {
-        ctx.Validation.ScreenOmittedRequiredPhrase(s.END_SEND() is null, "END-SEND", "SEND",
-            "both of its general formats print END-SEND on a line of its own without brackets", SendClause);
-        if (format is not SendFormat.ToMessageServer) return;
-        bool literal = s.literal() is not null;
-        ctx.Validation.ScreenOmittedRequiredPhrase(s.RETURNING() is null, "RETURNING",
-            literal ? "SEND TO literal-1" : "SEND TO message-server-name-1",
-            (literal ? "a literal-1 operand" : "a TO name that is no message-tag data item, which is message-server-name-1")
-            + " is Format 1's (to-message-server), whose general format prints the RETURNING data-name-1 line "
-            + "without brackets", "ISO §14.9.38.2 Format 1");
-    }
-
-    private void BindExceptionPhrases(Core.ConditionalPhrasesContext phrases) =>
-        _ = PhraseBlocks.Bind(phrases, ConditionalPhraseFamily.Exception, b => host.BindBlocks([b]));
-
-    /// <summary>The data references written directly after one of <paramref name="keywords"/> — the grammar gives
-    /// SEND's three operand slots one <c>dataReference</c> rule, so the slot is read from the keyword that opens it.</summary>
-    private static IEnumerable<Core.DataReferenceContext> DataReferencesAfter(ParserRuleContext statement, params int[] keywords)
-    {
-        for (int i = 1; i < statement.ChildCount; i++)
-            if (statement.GetChild(i) is Core.DataReferenceContext dref
-                && statement.GetChild(i - 1) is ITerminalNode { Symbol.Type: var type }
-                && keywords.Contains(type))
-                yield return dref;
     }
 
     /// <summary>One identifier-1 of VALIDATE against §14.9.50.3. The reference-modifier (SR1) is read off the written

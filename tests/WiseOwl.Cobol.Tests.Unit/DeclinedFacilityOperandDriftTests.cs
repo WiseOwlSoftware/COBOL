@@ -31,29 +31,33 @@ public sealed class DeclinedFacilityOperandDriftTests
     private static readonly string DeclinedFacilityBinderPath =
         TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "DeclinedFacilityBinder.cs");
 
+    private static readonly string MessagingBinderPath =
+        TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "MessagingBinder.cs");
+
     private static readonly string GrammarPath =
         TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar", "CobolParserCore.g4");
 
     /// <summary>The declined statement rules, each with the number of <c>dataReference</c> operands the grammar gives
-    /// it and the number <c>DeclinedFacilityBinder</c> resolves. Adding an operand to a rule — or a declined rule —
+    /// it and the number the binder that reads its operands resolves (<c>DeclinedFacilityBinder</c> for VALIDATE,
+    /// <c>MessagingBinder</c> for SEND and RECEIVE, which the declined-statement seam routes until their exchange is rendered, kb/Work PB4743). Adding an operand to a rule — or a declined rule —
     /// is an adjudication: either the binder resolves it, or the reason it cannot is written here.</summary>
     private static readonly Dictionary<string, (int InGrammar, int Resolved, string Reason)> Roster =
         new(StringComparer.Ordinal)
         {
             ["validateFacilityStatement"] = (1, 1,
                 "VALIDATE { identifier-1 } … — the repeated operand, every one screened against §14.9.50.3 SR1/SR2/SR4/SR5"),
-            ["mcsReceiveStatement"] = (3, 3,
+            ["messagingReceiveStatement"] = (3, 3,
                 "RECEIVE [FROM] data-name-1 GIVING identifier-1 data-name-2 — the three data references; data-name-1 and -2 are names (ScreenedNames)"),
-            ["mcsSendStatement"] = (3, 3,
+            ["messagingSendStatement"] = (3, 3,
                 "SEND [TO] { literal-1 | message-server-name-1 | data-name-2 } FROM identifier-1 [RETURNING data-name-1] — "
                 + "FROM and RETURNING always resolve (RETURNING, a name, after its shape is screened); the TO operand resolves only in Format 2, where it is a data-name-2 "
                 + "(§14.9.38.3 SR4): in Format 1 it names a message-server-name-1, 'the name of a message server run unit' "
                 + "(SR2), which is no data item, and the grammar's one dataReference alternative cannot tell the two apart, "
-                + "so DeclinedFacilityBinder.ClassifySend decides the format first (kb/Work PB4090)"),
+                + "so MessagingBinder.ClassifySend decides the format first (kb/Work PB4090)"),
         };
 
     /// <summary>⛔ THE OPERANDS THE GENERAL FORMATS PRINT AS NAMES, each asked its WRITTEN shape by
-    /// <c>DeclinedFacilityBinder.ScreenName</c> before it resolves (kb/Work PB4118): a subscript, a reference modifier or a
+    /// <c>MessagingBinder.ScreenName</c> before it resolves (kb/Work PB4118): a subscript, a reference modifier or a
     /// special register is no name. The census is the other half of <see cref="Roster"/>: an operand there that is a
     /// data-name or a message-server-name (not an identifier) belongs here, so a statement that grows one fails until
     /// the binder screens it or this list says why it need not.</summary>
@@ -68,10 +72,10 @@ public sealed class DeclinedFacilityOperandDriftTests
     [Fact]
     public void EveryNameOperandOfTheDeclinedStatements_IsScreenedForItsWrittenShape()
     {
-        string facility = CodeOf(DeclinedFacilityBinderPath);
+        string facility = CodeOf(MessagingBinderPath);
         foreach (var (face, clauseConstant) in ScreenedNames)
             Assert.True(Regex.IsMatch(facility, @"ScreenName\([^;]*""" + Regex.Escape(face) + @"""[^;]*\b" + clauseConstant + @"\)"),
-                $"DeclinedFacilityBinder no longer asks ScreenName about '{face}' with {clauseConstant}: a name printed by the "
+                $"MessagingBinder no longer asks ScreenName about '{face}' with {clauseConstant}: a name printed by the "
                 + "general format is refused written as a subscripted, reference-modified or special-register reference, and "
                 + "the refusal quotes the ONE clause that prints the operand (kb/Work PB4118, PB4169).");
     }
@@ -81,7 +85,7 @@ public sealed class DeclinedFacilityOperandDriftTests
     [Fact]
     public void TheClauseConstants_CiteTheirOwnStatementsAndNeverBothInOneSentence()
     {
-        string facility = CodeOf(DeclinedFacilityBinderPath);
+        string facility = CodeOf(MessagingBinderPath);
         Assert.Matches(@"SendClause\s*=\s*""ISO §14\.9\.38\.2""", facility);
         Assert.Matches(@"ReceiveClause\s*=\s*""ISO §14\.9\.31\.2""", facility);
         Assert.DoesNotMatch(@"14\.9\.38\.2[^;]*14\.9\.31\.2|14\.9\.31\.2[^;]*14\.9\.38\.2", facility);
@@ -144,7 +148,7 @@ public sealed class DeclinedFacilityOperandDriftTests
         Assert.Equal(Roster.Keys.OrderBy(x => x, StringComparer.Ordinal), routed);
 
         string grammar = CodeOf(GrammarPath);
-        string facility = CodeOf(DeclinedFacilityBinderPath);
+        string facility = CodeOf(DeclinedFacilityBinderPath) + CodeOf(MessagingBinderPath);
         foreach (var (rule, (inGrammar, resolved, reason)) in Roster)
         {
             var m = Regex.Match(grammar, @"^" + rule + @"\s*\r?\n\s*:(?<body>.*?)\r?\n\s*;", RegexOptions.Multiline | RegexOptions.Singleline);
@@ -152,14 +156,14 @@ public sealed class DeclinedFacilityOperandDriftTests
             int refs = Regex.Matches(m.Groups["body"].Value, @"\bdataReference\b").Count;
             Assert.True(refs == inGrammar,
                 $"{rule} gives {refs} dataReference operand(s) in the grammar, the roster expects {inGrammar} ({reason}). "
-                + "Read the new operand in DeclinedFacilityBinder, or record in the roster why it cannot be resolved.");
+                + "Read the new operand in DeclinedFacilityBinder or MessagingBinder, or record in the roster why it cannot be resolved.");
             Assert.True(resolved <= inGrammar, $"{rule}: the roster resolves more operands than the grammar has.");
         }
 
         // the binder half: each roster rule has its method over the generated context, so the roster cannot name a
         // rule the binder does not read.
-        foreach (string context in new[] { "ValidateFacilityStatementContext", "McsReceiveStatementContext", "McsSendStatementContext" })
+        foreach (string context in new[] { "ValidateFacilityStatementContext", "MessagingReceiveStatementContext", "MessagingSendStatementContext" })
             Assert.True(facility.Contains(context, StringComparison.Ordinal),
-                $"DeclinedFacilityBinder no longer binds {context}.");
+                $"neither DeclinedFacilityBinder nor MessagingBinder binds {context}.");
     }
 }

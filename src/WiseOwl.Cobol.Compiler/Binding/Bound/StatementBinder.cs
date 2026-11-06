@@ -48,6 +48,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private FileLockBinder FileLock => _fileLockBinder ??= new FileLockBinder(Ctx, this);
     private DeclinedFacilityBinder? _declinedFacilityBinder;
     private DeclinedFacilityBinder DeclinedFacility => _declinedFacilityBinder ??= new DeclinedFacilityBinder(Ctx, this);
+    private MessagingBinder? _messagingBinder;
+    private MessagingBinder Messaging => _messagingBinder ??= new MessagingBinder(Ctx, this);
     private CommunicationBinder? _communicationBinder;
     private CommunicationBinder Communication => _communicationBinder ??= new CommunicationBinder(Ctx, this);
     private PtrBinder? _ptrBinder;
@@ -606,10 +608,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         //    and never an EC (licensed off by §14.6.13.1.1). The statement's IDENTIFIERS are still read first
         //    (DeclinedFacilityBinder, kb/Work PB3568); BindDeclinedStatement says why below the statement's
         //    introduction (VALIDATE 2002, RECEIVE / SEND 2023) it does neither. ──
-        _ when s.mcsReceiveStatement() is { } rcv => BindDeclinedStatement(Constructs.AsyncMessaging2023,
-            DiagnosticCatalog.McsFacilityUnsupported, DeclinedFacility.BindReceive, rcv),
-        _ when s.mcsSendStatement() is { } snd => BindDeclinedStatement(Constructs.AsyncMessaging2023,
-            DiagnosticCatalog.McsFacilityUnsupported, DeclinedFacility.BindSend, snd),
+        _ when s.messagingReceiveStatement() is { } rcv => BindDeclinedStatement(Constructs.AsyncMessaging2023,
+            DiagnosticCatalog.McsFacilityUnsupported, r => _ = Messaging.BindReceive(r), rcv),
+        _ when s.messagingSendStatement() is { } snd => BindDeclinedStatement(Constructs.AsyncMessaging2023,
+            DiagnosticCatalog.McsFacilityUnsupported, sn => _ = Messaging.BindSend(sn), snd),
         _ when s.commitFacilityStatement() is not null || s.rollbackFacilityStatement() is not null
             => BindCommitRollback(s.commitFacilityStatement() is not null),
         _ when s.validateFacilityStatement() is { } val => BindDeclinedStatement(Constructs.ValidateStatement2002,
@@ -749,7 +751,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         if (!ConstructRegistry.IsAvailable(Ctx.Edition.Edition, construct))
             return new BoundNop(); // no-op: the edition pass refuses it (COBOL0900); this edition declines nothing
+        // A DEFERRED reference shape (a legal operand whose place is not built) comes back off the unbuilt-operand ledger: the statement is inert, never
+        // reaches the storage, and the funnel's "reaching this statement aborts the run unit" would be false (kb/Work PB3568).
+        int unbuiltMark = Ctx.Edition.UnbuiltMark;
         bindOperands(statement);
+        Ctx.Edition.TakeUnbuiltSince(unbuiltMark);
         return BindUnsupportedFacility(declined);
     }
 

@@ -2445,11 +2445,11 @@ internal sealed class VersionConformancePass
         /// module and at 2023 for this facility with a user-word gap between, so the reservation predicate they used to
         /// carry recognized the 2023 formats at --std 85 and compiled them under a warning naming the 2023 facility.
         /// At 2023 the statement is accepted inert by the binder (COBOL1578).</summary>
-        public override object? VisitMcsReceiveStatement(CobolParserCore.McsReceiveStatementContext ctx)
+        public override object? VisitMessagingReceiveStatement(CobolParserCore.MessagingReceiveStatementContext ctx)
         { _p.Check(Constructs.AsyncMessaging2023, "the RECEIVE statement (asynchronous messaging)"); return base.VisitChildren(ctx); }
 
-        /// <summary>SEND — the RECEIVE arm's twin; see <see cref="VisitMcsReceiveStatement"/>.</summary>
-        public override object? VisitMcsSendStatement(CobolParserCore.McsSendStatementContext ctx)
+        /// <summary>SEND — the RECEIVE arm's twin; see <see cref="VisitMessagingReceiveStatement"/>.</summary>
+        public override object? VisitMessagingSendStatement(CobolParserCore.MessagingSendStatementContext ctx)
         { _p.Check(Constructs.AsyncMessaging2023, "the SEND statement (asynchronous messaging)"); return base.VisitChildren(ctx); }
 
         /// <summary>The VALIDATE statement (ISO §14.9.50) — a COBOL-2002 introduction, gated on RECOGNITION (kb/Work
