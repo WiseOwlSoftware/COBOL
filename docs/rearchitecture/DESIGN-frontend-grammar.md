@@ -1929,6 +1929,18 @@ joined the table the same way, which is the table doing its job: a tenth format 
   same report, and `ReservedWordUse` stands down for a header keyword a period lets follow
   (`01 A PIC X` then `LOCAL-STORAGE SECTION.` at 2002 and later). Pinned by
   `ClosedFormatReservedWordTests.AHeaderAfterALevelNumber_IsNeverANameAndAClause` and the `pb4706-*` conformance cases.
+  **The slot at every level-number entry (kb/Work PB4788).** Four entries print `level-number [name] …` (the data
+  description, screen description, report group description and constant entries: `ClosedFormats.LevelNumberEntryRules`,
+  held to the grammar by `ClosedFormatDriftTests`). The parser's context finds the nameless entry by type
+  (`ClosedFormats.EntryAwaitingItsName`), but a section's entry loop (`screenSection`, `reportDescriptionEntry`) fails
+  its prediction at the header's first word with the parser still BEFORE the level-number, so no entry context exists.
+  `OffendingPosition.FollowsALevelNumber` then reads the slot from the walk: the word before the token is an integer
+  the parser has not passed, and an entry of the list is open in the walk (`OpenRuleNames`). Hint 0i (the kinds
+  "expected" refusal, COBOL5506) stands down at a slot that yields (`EntrySlotYields`): a header word there is no kind
+  expected. `SCREEN SECTION.` then `01 LINKAGE SECTION.` is the plain COBOL0001 that `01 FILE SECTION.` is in the
+  working-storage section (the header is out of order, §13.2.1, so no period lets it follow), and `01 PROCEDURE
+  DIVISION.` is COBOL0307. Pinned by `ClosedFormatReservedWordTests.AnOutOfOrderHeaderAfterADanglingLevelNumber_IsNoKindExpected`
+  and the `pb4788-*` conformance case.
 - **The production's token set — the run holds every literal but the reserved words; a reserved word never opens
   it, and the data division's form holds no literal that begins with an unsigned integer (kb/Work PB3373,
   PB3390).** `unrecognizedClause : (residueOpening | residueInteger) (residueItem | residueInteger)*` and

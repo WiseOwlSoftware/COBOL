@@ -1832,7 +1832,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         Func<string, bool> theEditionPrints = recognizer is CobolParserCoreBase editionParser ? editionParser.PrintsKeyword : _ => true;
         // A user-defined word where a format specifies a literal is a constant-name, which COBOL-85 has none of (kb/Work PB4435).
         bool constantNamesPrinted = recognizer is not CobolParserCoreBase constantParser || constantParser.PrintsConstantName;
-        if (!HasStructuralHint(hints) && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
+        if (!HasStructuralHint(hints) && !at.EntrySlotYields && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, admitted.WordChangesNothing, StatementBlockStart(recognizer),
                    at.APeriodLetsTheSentenceFollow, theEditionPrints, constantNamesPrinted || !admitted.WordsStandForLiterals,
                    at.ClosedConstructCouldTake, out bool anOperandIsDue) is { } kindMsg)
@@ -3531,10 +3531,18 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
         private bool? _periodIsMissingBeforeTheEntrySlot;
 
-        /// <summary>Is the token the first word after the level-number of an entry that has written no data-name?</summary>
+        /// <summary>Is the token the first word after the level-number of an entry that has written no name? The parser
+        /// stands inside the entry (its context holds the level-number, <see cref="ClosedFormats.EntryAwaitingItsName"/>), or
+        /// stands before it: a section's entry loop failed its prediction at the token (<c>SCREEN SECTION.</c> then
+        /// <c>01 LINKAGE SECTION.</c>), the level-number is the one word the parse has not taken, and the walk to the token
+        /// has an entry that prints a level-number and an optional name open
+        /// (<see cref="ClosedFormats.LevelNumberEntryRules"/>), kb/Work PB4788.</summary>
         private bool FollowsALevelNumber
-            => _followsALevelNumber ??= !CarriedForward && ClosedFormats.EntryAwaitingItsName(_recognizer.Context) is { } entry
-               && PreviousDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex)?.TokenIndex == entry.levelNumber()?.Stop?.TokenIndex;
+            => _followsALevelNumber ??= !CarriedForward && PreviousDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex) is { } previous
+               && (ClosedFormats.EntryAwaitingItsName(_recognizer.Context) is { } entry
+                   ? previous.TokenIndex == entry.LevelNumber?.TokenIndex
+                   : previous.Type == CobolLexer.INTEGERLIT && ParserTokenIndex == previous.TokenIndex
+                     && Walk?.OpenRuleNames().Any(ClosedFormats.LevelNumberEntryRules.Contains) == true);
 
         private bool? _followsALevelNumber;
 
@@ -3571,8 +3579,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         public string? OwnerName()
         {
             if (ClosedFormats.OwnerName(_recognizer.Context) is { } attached) return attached;
-            if (CarriedForward || ClosedFormats.EntryAwaitingItsName(_recognizer.Context) is not { } entry
-                || entry.levelNumber()?.Stop is not { } levelNumber) return null;
+            if (CarriedForward || ClosedFormats.EntryAwaitingItsName(_recognizer.Context) is not { Entry: CobolParserCore.DataDescriptionEntryContext, LevelNumber: { } levelNumber })
+                return null;
             return NextDefault((ITokenStream)_recognizer.InputStream, levelNumber.TokenIndex) is { } written
                    && written.TokenIndex < Token.TokenIndex && ParserTokenIndex <= written.TokenIndex
                    && ClosedFormats.EntryNameOnlyWords(_recognizer.Atn).Contains(written.Type)

@@ -663,6 +663,26 @@ public sealed class ClosedFormatReservedWordTests
         Assert.Contains("'PROCEDURE'. A period may be missing", errors[0]);
     }
 
+    /// <summary>⛔ A HEADER OUT OF ORDER AFTER A DANGLING LEVEL-NUMBER IS THE SAME REPORT AT EVERY ENTRY SLOT (kb/Work PB4788,
+    /// PB4706). A section's entry loop fails its prediction at the header's first word with the parser still before the
+    /// level-number, so no entry context exists; the slot is read from the walk (<c>OffendingPosition.FollowsALevelNumber</c>).
+    /// §13.2.1 prints the LINKAGE SECTION before the REPORT SECTION and the SCREEN SECTION last, so neither section can be
+    /// followed by LINKAGE SECTION (the screen section by REPORT SECTION either): no period lets the header follow, and the word is no kind "expected" at the
+    /// slot (it drew COBOL5506 listing every clause), the plain report <c>01 FILE SECTION.</c> draws in the working-storage
+    /// section.</summary>
+    [Theory]
+    [InlineData("SCREEN SECTION.\n       01 LINKAGE SECTION.", "COBOL0001: cannot parse construct near 'LINKAGE'")]
+    [InlineData("SCREEN SECTION.\n       01 S1 LINE 1 COL 1 VALUE \"X\".\n       01 LINKAGE SECTION.", "COBOL0001: cannot parse construct near 'LINKAGE'")]
+    [InlineData("SCREEN SECTION.\n       01 K CONSTANT AS 5.\n       01 REPORT SECTION.", "COBOL0001: cannot parse construct near 'REPORT'")]
+    [InlineData("REPORT SECTION.\n       RD R.\n       01 LINKAGE SECTION.", "COBOL0001: cannot parse construct near 'LINKAGE'")]
+    public void AnOutOfOrderHeaderAfterADanglingLevelNumber_IsNoKindExpected(string section, string diagnostic)
+    {
+        var errors = Compile(Head + "       DATA DIVISION.\n       " + section + "\n" + Proc);
+        Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        Assert.Contains("error " + diagnostic, errors[0]);
+        Assert.DoesNotContain("COBOL5506", errors[0]);
+    }
+
     /// <summary>The legal readings the header rule leaves alone (kb/Work PB4706): a word that only STARTS like a header, a word
     /// §8.9 leaves free as an entry-name, and a gated word as an unnamed clause. NC205A's <c>77 PROCEDURE</c>, continued on its
     /// next line, is one word (the 1985 word continuation, which COBOL-2023 removed), not the reserved word.</summary>
