@@ -18,3 +18,9 @@ The self-test draws planted pages (words with one underline, SEND's bracket-bars
 touching a foot, nested braces and brackets, a parenthesis) with a 0.1 to 0.3 degree skew, speckle and dropped pixels,
 and asserts the exact structure. Nothing was run against the licensed PDFs (PB4812's standing requirement). The
 self-test needs numpy, so the pinned `pip install` lines of the CI self-test jobs gain `numpy==2.5.4`.
+
+Review round 1: a brace is not a stem. `figure_geometry` has no brace stems (braces are Symbol-font glyph pieces in a
+vector page), so `render_figure` drew a measured brace as an optional bracket. The measurer now keeps braces in
+`RasterPage.braces` and `extract` returns each as the three glyph pieces (top hook, point, bottom hook) that
+`render_figure.GLYPH_PIECES` decodes; the self-test renders `{ ALFA / BETA }` through `render_figure.build`. An
+underlined word whose components do not pair with its letters is now a reported disagreement.

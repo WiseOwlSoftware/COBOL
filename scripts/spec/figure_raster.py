@@ -12,11 +12,13 @@ columns of nested braces. The words come from the model; the geometry comes from
 WHAT IT RETURNS. A `RasterPage` that `classify_page(rp)` and `extract(rp, band)` read in EXACTLY the shapes
 `figure_geometry.classify_page(page)` and `figure_extract.extract(page, band)` return, in PDF points, so
 `render_figure.py` and the audits take them as their `classify_page` / `extract` arguments unchanged (they are passed
-as callables). The edition decides which module measures: `spec_pdf` records whether an edition's formats are vector
-or raster (PB4815); this module is the raster one and never a second pipeline.
+as callables). Which module measures an edition is PB4815's to decide (open: nothing dispatches to this one yet);
+this module is the raster one and never a second pipeline.
 
-    stem   {"x", "y0", "y1", "h", "kind": "bracket"|"bar"|"brace", "side": "L"|"R"|None}   (as figure_geometry)
-           side "L" is an opening delimiter ('[' whose feet turn right, '{' whose point turns left)
+    stem   {"x", "y0", "y1", "h", "kind": "bracket"|"bar", "side": "L"|"R"|None}   (as figure_geometry)
+           side "L" is an opening delimiter ('[' whose feet turn right)
+    brace  no stem (figure_geometry has none): extract() returns three Symbol glyph words per brace, the top hook,
+           the point and the bottom hook (render_figure.GLYPH_PIECES), as a vector page's text layer does
     word   {"text", "x0", "y0", "x1", "underlined": True|False|[(offset, length), ...]}    (as figure_extract)
 
 HOW IT MEASURES (each step is a function below):
@@ -69,6 +71,8 @@ STEM_FRACTION = 0.75           # a stem shorter than this share of its component
 BRACE_MAX_W = 12.0             # a brace is narrower than this, in points
 BRACE_STRAIGHT = 0.6           # the halves of a brace are straight to within this many points
 BRACE_ALIGNED = 0.8            # ... and aligned with each other to within this many points
+BRACE_GLYPH_H = 13.0           # a Symbol brace piece is about this tall (render_figure.hook_row)
+BRACE_GLYPHS = {"L": ("ì", "í", "î"), "R": ("ü", "ý", "þ")}   # render_figure.GLYPH_PIECES: top, point, bottom
 BRACE_POINT = 1.5              # the middle protrudes at least this far beyond the halves
 WORD_GAP_PT = 3.5              # a horizontal gap between components wider than this separates two words
 MIN_COMPONENT_PX = 4           # smaller ink is speckle
@@ -103,7 +107,8 @@ class Component(NamedTuple):
 class RasterPage:
     """Everything measured from one page image, in PDF points (origin top left, as PyMuPDF)."""
     scale: float                                   # pixels per point
-    stems: list = field(default_factory=list)
+    stems: list = field(default_factory=list)      # brackets and bars only, as figure_geometry returns them
+    braces: list = field(default_factory=list)     # {"x", "y0", "y1", "side", "point"}; extract() draws them as glyphs
     rules: list = field(default_factory=list)      # Rect: the underlines
     words: list = field(default_factory=list)      # extract()-shaped dicts, plus "y1"
     disagreements: list = field(default_factory=list)
@@ -334,7 +339,7 @@ def _foot_side(stem: _Stem, stems: list, ink: np.ndarray, scale: float):
 
 
 def _classify_curly(comp: Component, ink: np.ndarray, scale: float):
-    """'L' for '{', 'R' for '}', None when the component is not a brace (a parenthesis, a tall glyph)."""
+    """('L' or 'R', y of the point in points) for '{' or '}', None when the component is not a brace."""
     sub = ink[comp.y0:comp.y1, comp.x0:comp.x1]
     h = sub.shape[0]
     has = sub.any(axis=1)
@@ -355,22 +360,24 @@ def _classify_curly(comp: Component, ink: np.ndarray, scale: float):
             continue
         reach = (float(np.median(t)) - float(m.min())) if sign < 0 else (float(m.max()) - float(np.median(t)))
         if reach >= BRACE_POINT:
-            return side
+            at = band(0.45, 0.55).start + int(np.argmin(m) if sign < 0 else np.argmax(m))
+            return side, (comp.y0 + at) / scale
     return None
 
 
 def find_braces(ink: np.ndarray, comps: list, stem_labels: set, scale: float):
-    """Braces among the components that hold no stem; returns (stems, unclassified)."""
+    """Braces among the components that hold no stem; returns (braces, unclassified)."""
     found, other = [], []
     for k, comp in enumerate(comps, start=1):
         height, width = (comp.y1 - comp.y0) / scale, (comp.x1 - comp.x0) / scale
         if k in stem_labels or height < FG.MIN_VERT_H or width > BRACE_MAX_W or comp.area < MIN_COMPONENT_PX:
             continue
-        side = _classify_curly(comp, ink, scale)
+        curly = _classify_curly(comp, ink, scale)
         box = {"x": round(comp.x0 / scale, 2), "y0": round(comp.y0 / scale, 2),
                "y1": round(comp.y1 / scale, 2), "h": round(height, 2)}
-        if side:
-            found.append({**box, "kind": "brace", "side": side})
+        if curly:
+            found.append({"x": box["x"], "y0": box["y0"], "y1": box["y1"], "side": curly[0],
+                          "point": round(curly[1], 2)})
         else:
             other.append(box)
     return found, other
@@ -440,6 +447,9 @@ def align(boxes: list, tokens: list | None, rules: list):
                        and (min(x1, r.x1) - max(x0, r.x0)) / max(x1 - x0, 0.1) >= FX.MIN_COVER]
                 if len(chars) == len(text):
                     state = FX.underline_runs(chars, own)
+                else:   # components do not pair with letters (fused or split glyphs): the rule is kept whole, reported
+                    bad.append({"line": i, "word": j, "text": text, "components": len(chars), "letters": len(text),
+                                "reason": "underlined word's components do not match its letters"})
             words.append({"text": text, "x0": round(x0, 1), "y0": round(y0, 1), "x1": round(x1, 1),
                           "y1": round(y1, 1), "underlined": state})
     return words, bad
@@ -463,7 +473,7 @@ def measure_image(gray: np.ndarray, dpi: int = DPI, tokens: list | None = None) 
                          "h": round((s.py1 - s.py0) / scale, 2),
                          "kind": "bracket" if side else "bar", "side": side})
     braces, rp.unclassified = find_braces(ink, comps, stem_labels, scale)
-    rp.stems += braces
+    rp.braces = braces
     rp.stems.sort(key=lambda s: (round(s["y0"], 1), s["x"]))
     rules = find_rules(comps, stem_labels, scale)
     rp.rules = [r for _, r in rules]
@@ -481,14 +491,27 @@ def measure_page(edition: int, page: int, tokens: list | None = None, dpi: int =
 
 
 def classify_page(rp: RasterPage) -> list:
-    """`figure_geometry.classify_page`'s result for a raster page."""
+    """`figure_geometry.classify_page`'s result for a raster page: brackets and bars only (a brace is no stem
+    there; `extract` reports it as the Symbol glyph pieces `render_figure.GLYPH_PIECES` decodes)."""
     return rp.stems
+
+
+def brace_pieces(b: dict) -> list:
+    """A brace as the three Symbol glyph pieces a vector PDF's text layer holds for it (top hook, point, bottom
+    hook), so `render_figure` draws it as it draws a vector page's. Each glyph is BRACE_GLYPH_H tall: the top
+    one starts at the brace's top, the bottom one ends at its bottom, the point one is centred on the point."""
+    top, mid, bot = BRACE_GLYPHS[b["side"]]
+    last = max(b["y1"] - BRACE_GLYPH_H, b["y0"])
+    centre = min(max(b["point"] - BRACE_GLYPH_H / 2, b["y0"]), last)
+    return [{"text": t, "x0": b["x"], "y0": round(y, 2), "x1": b["x"], "underlined": False}
+            for t, y in ((top, b["y0"]), (mid, centre), (bot, last))]
 
 
 def extract(rp: RasterPage, band=None) -> list:
     """`figure_extract.extract`'s result for a raster page (the same sort order and keys)."""
     out = [{k: w[k] for k in ("text", "x0", "y0", "x1", "underlined")} for w in rp.words
            if not band or band[0] <= w["y0"] <= band[1]]
+    out += [piece for b in rp.braces for piece in brace_pieces(b) if not band or band[0] <= piece["y0"] <= band[1]]
     return sorted(out, key=lambda w: (round(w["y0"], 0), w["x0"]))
 
 
@@ -510,6 +533,8 @@ def overlay(gray: np.ndarray, rp: RasterPage) -> np.ndarray:
 
     for st in rp.stems:
         box(st["x"] - 1, st["y0"], st["x"] + 1, st["y1"], colours[st["kind"]])
+    for b in rp.braces:
+        box(b["x"] - 1, b["y0"], b["x"] + 1, b["y1"], colours["brace"])
     for r in rp.rules:
         box(r.x0, r.y0, r.x1, r.y1, (255, 0, 255))
     for w in rp.words:

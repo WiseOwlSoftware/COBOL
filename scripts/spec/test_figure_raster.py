@@ -173,10 +173,11 @@ def main() -> int:
     rp = R.measure_image(scan(img, 0.1, 4))
     total += 3
     got = [(s["kind"], s["side"]) for s in R.classify_page(rp)]
-    want = [("brace", "L"), ("brace", "R"), ("bracket", "L"), ("bracket", "R")]
-    check("braces and nested brackets with their hands", sorted(got) == sorted(want), f"got {got}")
-    check("the brace column is measured", any(s["kind"] == "brace" and near(s["x"], 17, 1.5) for s in rp.stems),
-          f"got {[(s['kind'], s['x']) for s in rp.stems]}")
+    check("brackets with their hands; a brace is no stem (figure_geometry has none)",
+          sorted(got) == [("bracket", "L"), ("bracket", "R")], f"got {got}")
+    check("the braces are measured with their points",
+          sorted((b["side"], round(b["x"])) for b in rp.braces) == [("L", 17), ("R", 127)]
+          and all(near(b["point"], 40, 1.5) for b in rp.braces), f"got {rp.braces}")
     check("a parenthesis is unclassified, not a brace", len(rp.unclassified) == 1, f"got {rp.unclassified}")
 
     # 5. The result feeds the pipeline's own callables in their shapes.
@@ -184,6 +185,33 @@ def main() -> int:
     ok = all(set(s) == {"x", "y0", "y1", "h", "kind", "side"} for s in R.classify_page(rp)) and all(
         set(w) == {"text", "x0", "y0", "x1", "underlined"} for w in R.extract(rp))
     check("classify_page and extract return figure_geometry's and figure_extract's keys", ok)
+
+    # 6. A brace reaches render_figure as the Symbol glyph pieces a vector page holds: { ALFA / BETA } is a
+    #    required choice (5.2.6.3), never the optional brackets of 5.2.6.2.
+    import render_figure as RF
+    img = canvas()
+    brace(img, 20, 20, 60, "L")
+    word(img, 30, 22, 4)
+    word(img, 30, 48, 4)
+    brace(img, 60, 20, 60, "R")
+    rp = R.measure_image(img, tokens=[["ALFA"], ["BETA"]])
+    total += 3
+    pieces = sorted(w["text"] for w in R.extract(rp) if w["text"] in RF.GLYPH_PIECES)
+    check("each brace is three glyph pieces", pieces == sorted("ìíîüýþ"), f"got {pieces}")
+    grid, _ = RF.build(rp, 0, 200, R.extract, R.classify_page)
+    text = chr(10).join("".join(r).rstrip() for r in grid) if grid else ""
+    check("the figure draws braces with their point", all(c in text for c in "╭╮┤├╰╯") and "┌" not in text,
+          f"got{chr(10)}{text}")
+    check("a brace is not drawn as a bracket", "[" not in text and "]" not in text, f"got{chr(10)}{text}")
+
+    # 7. An underlined word whose components do not pair with its letters is reported, not guessed.
+    img = canvas()
+    word(img, 10, 20, 4)
+    underline(img, 10, 10 + 4 * 5.2 - 1.2, 20)
+    rp = R.measure_image(img, tokens=[["ABCDE"]])
+    total += 1
+    check("an underlined word with unpaired components is a disagreement",
+          len(rp.disagreements) == 1 and rp.disagreements[0].get("components") == 4, f"got {rp.disagreements}")
 
     for f in fails:
         print(f"FAIL: {f}")
