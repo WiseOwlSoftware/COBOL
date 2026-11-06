@@ -218,6 +218,10 @@ internal static class RuntimeApi
     /// <summary>MEDIAN over argument fields.</summary>
     public static string FunctionFieldMedian(string arguments) => $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.Median)}({arguments})";
 
+    /// <summary>MEDIAN over argument fields under a standard arithmetic mode: the mean is the SDIDI's, rounded as <paramref name="mode"/> says.</summary>
+    public static string FunctionFieldMedianStandard(string mode, string arguments) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.MedianStandard)}({mode}, {arguments})";
+
     /// <summary>Encode an unscaled value as the BYTES the item occupies at a byte boundary — the record/group
     /// image, a file record, a SORT key window, a Tier-B REDEFINES backing (<c>CobolNum.FormatImage</c>,
     /// DESIGN §14.4). Zoned items render exactly as <see cref="NumFormatDisplay"/>; BINARY and PACKED
