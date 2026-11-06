@@ -1820,7 +1820,7 @@ internal static class IntrinsicArgumentRules
     /// <summary>The functions whose value with ONE argument is that argument (the equivalent arithmetic expression for one
     /// occurrence of argument-1: MAX §15.59.4 1) and MIN §15.63.4 1) "the content of the argument-1 having the greatest (least)
     /// value", SUM §15.88.4 1) a), MEAN §15.60.4 1) a) and MEDIAN §15.61.4 1) "(argument-1)", MIDRANGE §15.62.4 1)
-    /// "((MAX + MIN) / 2)" of one value). A table(ALL) argument is many occurrences, so it is no identity.</summary>
+    /// "((FUNCTION MAX (argument-list) + FUNCTION MIN (argument-list)) / 2)" of one value). A table(ALL) argument is many occurrences, so it is no identity.</summary>
     private static readonly string[] OneArgumentIdentities = ["MAX", "MIN", "SUM", "MEAN", "MEDIAN", "MIDRANGE"];
 
     /// <summary>The expression a call reads as in an additive spine on the valuations of the walk's region, with whether it reads as
@@ -1850,7 +1850,8 @@ internal static class IntrinsicArgumentRules
             return (item, spine.NegativeRegime);
         }
         if (spine.NegativeRegime || !IsNeverNegativeWhereItemsAreNot(inner)) return (null, false);
-        spine.AbsOfSum = true;
+        // A literal-only argument has no items: its value holds on every valuation, so the message keeps its plain wording (R1-3).
+        if (ExactValue(inner) is null) spine.AbsOfSum = true;
         return (inner, false);
     }
 
@@ -2022,7 +2023,7 @@ internal static class IntrinsicArgumentRules
         BoundBinary { Op: '/' } b => IsKeptExactly(ExactValue(b)) && QuotientsAreExact(b.Left) && QuotientsAreExact(b.Right),
         BoundBinary b => QuotientsAreExact(b.Left) && QuotientsAreExact(b.Right),
         BoundNegate n => QuotientsAreExact(n.Operand),
-        BoundPower pw => IsKeptExactly(ExactValue(pw)) && QuotientsAreExact(pw.Base) && QuotientsAreExact(pw.Exp),
+        BoundPower pw => PowerIsKeptExactly(pw) && QuotientsAreExact(pw.Base) && QuotientsAreExact(pw.Exp),
         BoundNumLiteral => true,
         _ => false,
     };
@@ -2031,6 +2032,17 @@ internal static class IntrinsicArgumentRules
     /// <see cref="CobolNum.NestedQuotientScale"/> at receiver scale 0 and operand precision 0 (the guard digits alone). ⛔ Read from
     /// the arithmetic's one home, so a change to the guard moves this fold with it (kb/Work PB4794).</summary>
     private static readonly int ExactFractionDigits = CobolNum.NestedQuotientScale(0, 0);
+
+    /// <summary>Does the arithmetic store a power as <see cref="ExactValue"/> folded it? A power to an integer exponent is NOT a nested
+    /// quotient and is never cut at <see cref="ExactFractionDigits"/>: a non-negative exponent is the exact power
+    /// (<c>CobolExact.Pow</c>), a negative one is the reciprocal <c>1 / (b ** |e|)</c> (<c>CobolExact.Pow</c>), ONE rounding of the exact
+    /// quotient to the SDIDI's <see cref="SdidiDigits"/> digits, so <c>2 ** -20</c> (20 fraction digits) is exact (kb/Work PB4794
+    /// review R1-1). A power that does not fold, or whose value does not terminate, is not kept exactly.</summary>
+    private static bool PowerIsKeptExactly(BoundPower pw) => ExactValue(pw) is { FractionDigits: { } digits }
+        && (ExactValue(pw.Exp)!.Value.Sign >= 0 || digits <= SdidiDigits);
+
+    /// <summary>The significant digits of the standard decimal intermediate data item (decimal128): 34.</summary>
+    private const int SdidiDigits = 34;
 
     /// <summary>Is the value a finite decimal of at most <see cref="ExactFractionDigits"/> fraction digits?</summary>
     private static bool IsKeptExactly(ExactRational? v) => v is { FractionDigits: { } digits } && digits <= ExactFractionDigits;
