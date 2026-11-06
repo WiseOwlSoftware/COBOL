@@ -70,6 +70,18 @@ public static class ExceptionCatalog
     /// <summary>See <see cref="IoEop"/>.</summary>
     public const string IoEopOverflow = "EC-I-O-EOP-OVERFLOW";
 
+    // ⛔ THE EC-MCS NAMES THE MESSAGE CONTROL PROTOCOL SPEAKS (docs/rearchitecture/DESIGN-message-control.md design 2.4; kb/Work PB4741). Spelled once, here, so
+    // the runtime's frames and results name them by constant: this file is the declaration, which EcRaiseSiteRegistryDriftTests does not count as a raise
+    // site. A statement raises them only when slice S4 declares them on EcBinder's NodeKindRaises and retires their DeclinedRaiseSites rows.
+    internal const string McsNoServer = "EC-MCS-NO-SERVER";
+    internal const string McsNoRequester = "EC-MCS-NO-REQUESTER";
+    internal const string McsInvalidTag = "EC-MCS-INVALID-TAG";
+    internal const string McsMessageLength = "EC-MCS-MESSAGE-LENGTH";
+    internal const string McsRequestorFailed = "EC-MCS-REQUESTOR-FAILED";
+    internal const string McsAbnormalTermination = "EC-MCS-ABNORMAL-TERMINATION";
+    internal const string McsNormalTermination = "EC-MCS-NORMAL-TERMINATION";
+    internal const string McsImp = "EC-MCS-IMP";
+
     /// <summary>Is <paramref name="ecName"/> one of GR27 a)'s end-of-page conditions — the conditions a WRITE's
     /// own END-OF-PAGE phrase takes precedence over (§14.9.51.4 GR27 b)-d))?</summary>
     public static bool IsEndOfPage(string? ecName) =>
