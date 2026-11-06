@@ -2,8 +2,12 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
+using Microsoft.Win32.SafeHandles;
 using WiseOwl.Cobol.Runtime.Communication;
+using WiseOwl.Cobol.Runtime.IO;
+using WiseOwl.Cobol.Runtime.IO.Store;
 using WiseOwl.Cobol.Tests.Shared;
+using WiseOwl.Cobol.Tests.Unit.Store;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -16,10 +20,37 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class MessageControlTests : IDisposable
 {
     private readonly string _root = ScratchDirectory.Create("WiseOwlCobol_Mcs_");
+    private readonly List<MessageControlSession> _sessions = [];
+    private MediumFault? _fault;
 
-    public void Dispose() => ScratchDirectory.Remove(_root);
+    /// <summary>The bytes of a file a session may hold open: read with the sharing the store's own handle admits.</summary>
+    private static byte[] Bytes(string path)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var copy = new MemoryStream();
+        stream.CopyTo(copy);
+        return copy.ToArray();
+    }
 
-    private const string Definitions = """
+    /// <summary>The end of the run unit for every session the case opened (<c>RunUnit.Terminate</c> does it for a compiled program): the store's handle is closed before the directory goes.</summary>
+    public void Dispose()
+    {
+        foreach (var session in _sessions) session.Dispose();
+        _fault?.Dispose();
+        ScratchDirectory.Remove(_root);
+    }
+
+    /// <summary>A session over the MCS directory <paramref name="root"/> (the case's own by default), closed when the case ends. The first one also installs the case's
+    /// <see cref="MediumFault"/> on the engine's one medium seam, so every store the case opens runs through it.</summary>
+    private MessageControlSession Open(string? root = null, string[]? scheduled = null, Action? awaitData = null)
+    {
+        _fault ??= new MediumFault();
+        var session = new MessageControlSession(MessageStore.OpenAt(root ?? _root, scheduled ?? []), awaitData);
+        _sessions.Add(session);
+        return session;
+    }
+
+    internal const string Definitions = """
         {
           "queues": [ { "name": "Q1", "messages": [ { "segments": [ "SEED" ], "source": "T1", "date": "260102", "time": "03040506" } ] }, { "name": "Q2" } ],
           "destinations": [ { "name": "D2", "deliverTo": "Q2", "source": "T1" }, { "name": "T9", "deliverTo": "terminal:T1" } ],
@@ -30,35 +61,35 @@ public sealed class MessageControlTests : IDisposable
     private MessageControlSession Session(string definitions = Definitions, params string[] scheduled)
     {
         File.WriteAllText(Path.Combine(_root, "mcs.json"), definitions);
-        return new MessageControlSession(MessageStore.OpenAt(_root, scheduled));
+        return Open(scheduled: scheduled);
     }
 
     /// <summary>GR2's 87 positions: the four queue levels, the date and time, the source, then the text length, end key, status key and message count.</summary>
-    private static string InputArea(string queue) => queue.PadRight(48) + new string('0', 14) + new string(' ', 12) + "0000" + " " + "99" + "000000";
+    internal static string InputArea(string queue) => queue.PadRight(48) + new string('0', 14) + new string(' ', 12) + "0000" + " " + "99" + "000000";
 
-    private static string InputStatus(string area) => area.Substring(79, 2);
+    internal static string InputStatus(string area) => area.Substring(79, 2);
 
-    private static string InputCount(string area) => area.Substring(81, 6);
+    internal static string InputCount(string area) => area.Substring(81, 6);
 
     /// <summary>GR16: destination count, text length, status key, then one error key and destination per occurrence.</summary>
-    private static string OutputArea(int textLength, string destination) => "0001" + textLength.ToString("D4") + "99" + " " + destination.PadRight(12);
+    internal static string OutputArea(int textLength, string destination) => "0001" + textLength.ToString("D4") + "99" + " " + destination.PadRight(12);
 
-    private static string OutputStatus(string area) => area.Substring(8, 2);
+    internal static string OutputStatus(string area) => area.Substring(8, 2);
 
     /// <summary>GR24's 33 positions: date, time, terminal, text length, end key, status key.</summary>
-    private static string InOutArea(string terminal, int textLength = 0) =>
+    internal static string InOutArea(string terminal, int textLength = 0) =>
         new string('0', 14) + terminal.PadRight(12) + textLength.ToString("D4") + " " + "99";
 
-    private static string InOutStatus(string area) => area.Substring(31, 2);
+    internal static string InOutStatus(string area) => area.Substring(31, 2);
 
     [Fact]
     public void NoDefinitionFile_EverySymbolicNameIsUnknown()
     {
-        var session = new MessageControlSession(MessageStore.OpenAt(_root, []));
+        var session = Open();
         Assert.Equal("20", InputStatus(session.AcceptMessageCount(InputArea("Q1"))));
         Assert.Equal("20", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D1"), "A", SendIndicator.EndOfMessage)));
         Assert.Equal("21", InOutStatus(session.Receive("C", CommunicationFormat.InputOutput, InOutArea("T1"), false, "X", noDataPhrase: false).Area));
-        Assert.False(File.Exists(Path.Combine(_root, "mcs-state.json")), "an MCS nobody defined writes nothing");
+        Assert.False(File.Exists(Path.Combine(_root, "mcs.store")), "an MCS nobody defined creates no store");
     }
 
     [Theory]
@@ -117,6 +148,7 @@ public sealed class MessageControlTests : IDisposable
     [InlineData("""{ "terminals": [ { "name": "T1" }, { "name": "t1" } ] }""")]
     [InlineData("""{ "terminals": [ { "name": "X" } ], "destinations": [ { "name": "x" } ] }""")]
     [InlineData("""{ "terminals": [ { "name": "X" } ], "destinations": [ { "name": "X" } ] }""")]
+    [InlineData("""{ "destinations": [ { "name": "D", "capacity": -1 } ] }""")]
     public void UnusableDefinitionFile_IsStatus91_OnEveryStatement(string definitions)
     {
         var session = Session(definitions);
@@ -159,37 +191,43 @@ public sealed class MessageControlTests : IDisposable
     }
 
     [Fact]
-    public void StateTheHostRefuses_IsStatus92_AndTakesNoAction()
+    public void StoreTheHostRefuses_IsStatus92_AndTakesNoAction()
     {
         var session = Session();
-        Directory.CreateDirectory(Path.Combine(_root, "mcs-state.json"));   // the store's file cannot be read: a directory stands in its place
-        var receipt = session.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "XXXX", noDataPhrase: false);
-        Assert.Equal("92", InputStatus(receipt.Area));
-        Assert.Equal("XXXX", receipt.Into);
-        Assert.Equal("92", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "A", SendIndicator.EndOfMessage)));
+        using (RefusedState())
+        {
+            var receipt = session.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "XXXX", noDataPhrase: false);
+            Assert.Equal("92", InputStatus(receipt.Area));
+            Assert.Equal("XXXX", receipt.Into);
+            Assert.Equal("92", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "A", SendIndicator.EndOfMessage)));
+        }
+        Assert.Equal("SEED", session.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "XXXX", noDataPhrase: true).Into);
+        Assert.Equal("000000", InputCount(session.AcceptMessageCount(InputArea("Q2"))));
     }
 
+    /// <summary>A file at <c>mcs.store</c> that no message store wrote, or that a refused flush left damaged: the engine finds no committed meta, and the statement answers 92.</summary>
     [Fact]
-    public void CorruptState_IsStatus92()
+    public void CorruptStore_IsStatus92()
     {
         var session = Session();
-        File.WriteAllText(Path.Combine(_root, "mcs-state.json"), "{ truncated");
+        File.WriteAllText(Path.Combine(_root, "mcs.store"), "{ truncated");
         Assert.Equal("92", InputStatus(session.AcceptMessageCount(InputArea("Q1"))));
     }
 
-    [Theory]
-    [InlineData("{}")]
-    [InlineData("null")]
-    [InlineData("[]")]
-    [InlineData("""{ "queues": [ null ], "sources": [], "destinations": [], "terminals": [] }""")]
-    [InlineData("""{ "queues": [ { "path": "Q1" } ], "sources": [], "destinations": [], "terminals": [] }""")]
-    [InlineData("""{ "queues": [], "queues": [], "sources": [], "destinations": [], "terminals": [] }""")]
-    [InlineData("""{ "queues": [ { "path": "Q1", "path": "Q2", "enabled": true, "messages": [] } ], "sources": [], "destinations": [], "terminals": [] }""")]
-    public void StateOfTheWrongShape_IsStatus92(string state)
+    /// <summary>A keyed file someone put at <c>mcs.store</c> is refused, never misread (DESIGN-communication-facility.md §8): the engine will not adopt a store of the other family.</summary>
+    [Fact]
+    public void KeyedFileAtTheStorePath_IsStatus92_AndIsLeftAsItWas()
     {
-        var session = Session();
-        File.WriteAllText(Path.Combine(_root, "mcs-state.json"), state);
+        string path = Path.Combine(_root, "mcs.store");
+        Session();
+        using (var stream = new FileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
+            Assert.Equal(StoreStatus.Ok, PagedFile.Create(new HandlePageMedium(stream.SafeFileHandle), StoreKind.Of(StoreKit.Relative), coherent: true,
+                HoldingsKeyOrder.RecordNumbers, out _, out _));
+        byte[] before = Bytes(path);
+        var session = Open();
         Assert.Equal("92", InputStatus(session.AcceptMessageCount(InputArea("Q1"))));
+        Assert.Equal("92", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D2"), "A", SendIndicator.EndOfMessage)));
+        Assert.Equal(before, Bytes(path));
     }
 
     /// <summary>Table A.1's PURGE column and Table A.2's error keys, on the arms the goldens do not reach: a disabled destination with a portion is 10 and key 2, and with an unknown destination beside it 80;
@@ -225,27 +263,18 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("ACX", session.Receive("R", CommunicationFormat.Input, InputArea("Q2"), false, "XXX", noDataPhrase: true).Into);
     }
 
-    /// <summary>A directory in the state file's place until the scope ends: the store reads no state and cannot commit one. The end of the scope puts the file back.</summary>
-    private RefusedStateScope RefusedState() => new(Path.Combine(_root, "mcs-state.json"));
-
-    private sealed class RefusedStateScope : IDisposable
+    /// <summary>The host refuses every read, write and flush of <c>mcs.store</c> until the scope ends: the store can neither be entered nor landed on. The end of the scope lets the
+    /// host answer again.</summary>
+    private RefusedScope RefusedState()
     {
-        private readonly string _state;
-        private readonly string? _saved;
+        _fault ??= new MediumFault();
+        _fault.Refusing = true;
+        return new RefusedScope(_fault);
+    }
 
-        internal RefusedStateScope(string state)
-        {
-            _state = state;
-            _saved = File.Exists(state) ? File.ReadAllText(state) : null;
-            File.Delete(state);
-            Directory.CreateDirectory(state);
-        }
-
-        public void Dispose()
-        {
-            Directory.Delete(_state);
-            if (_saved is not null) File.WriteAllText(_state, _saved);
-        }
+    private sealed class RefusedScope(MediumFault fault) : IDisposable
+    {
+        public void Dispose() => fault.Refusing = false;
     }
 
     /// <summary>The refusal Table A.1's 9x names: no action. A program that retries a SEND on 92 delivers the message once.</summary>
@@ -295,6 +324,49 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, two, "AB", SendIndicator.EndOfMessage)));
         Assert.Equal("0" + Environment.NewLine + "AB" + Environment.NewLine, File.ReadAllText(good));
         Assert.Equal("AB" + Environment.NewLine, File.ReadAllText(bad));
+    }
+
+    /// <summary>Device files are output already delivered (DESIGN-communication-facility.md §6 "Devices"): a new store, as after its deletion, adopts the length of the file a device
+    /// has, so a statement that never transmits to it leaves it whole and the first transmission appends after it.</summary>
+    [Fact]
+    public void NewStoreOverAnExistingDeviceFile_KeepsTheDeliveredOutput()
+    {
+        var session = Session("""{ "queues": [ { "name": "Q" } ], "destinations": [ { "name": "D1" } ] }""");
+        string device = Path.Combine(_root, "D1.out");
+        File.WriteAllText(device, "DELIVERED" + Environment.NewLine);
+        Assert.Equal("00", InputStatus(session.AcceptMessageCount(InputArea("Q"))));
+        Assert.Equal("DELIVERED" + Environment.NewLine, File.ReadAllText(device));
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(3, "D1"), "NEW", SendIndicator.EndOfMessage)));
+        Assert.Equal("DELIVERED" + Environment.NewLine + "NEW" + Environment.NewLine, File.ReadAllText(device));
+    }
+
+    /// <summary>A device the host will not open for write refuses no statement that does not transmit to it: a file at its committed end is never opened for write, and the cut of a
+    /// longer one is best effort (the tail stays until the next transmission overwrites it).</summary>
+    [Fact]
+    public void DeviceTheHostWillNotOpenForWrite_RefusesNoStatementThatDoesNotTransmitToIt()
+    {
+        var session = Session("""{ "queues": [ { "name": "Q" } ], "destinations": [ { "name": "D1" } ] }""");
+        string device = Path.Combine(_root, "D1.out");
+        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(3, "D1"), "ONE", SendIndicator.EndOfMessage)));
+        string delivered = File.ReadAllText(device);
+        session.Dispose();
+        File.SetAttributes(device, FileAttributes.ReadOnly);
+        try
+        {
+            var atItsEnd = Open();
+            Assert.Equal("00", InputStatus(atItsEnd.AcceptMessageCount(InputArea("Q"))));
+            Assert.Equal(delivered, File.ReadAllText(device));
+            atItsEnd.Dispose();
+            File.SetAttributes(device, FileAttributes.Normal);
+            File.AppendAllText(device, "DEAD TAIL");
+            File.SetAttributes(device, FileAttributes.ReadOnly);
+            var pastItsEnd = Open();
+            Assert.Equal("00", InputStatus(pastItsEnd.AcceptMessageCount(InputArea("Q"))));
+        }
+        finally
+        {
+            File.SetAttributes(device, FileAttributes.Normal);
+        }
     }
 
     /// <summary>RECEIVE with a store that refuses: the receiver and the area stay as they were but for the status key, and the message stays the store's, whole.</summary>
@@ -354,59 +426,194 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("15", InOutStatus(session.SetPath("I", CommunicationFormat.InputOutput, CommunicationPath.InputOutputTerminal, InOutArea("T1"), null, enable: true)));
     }
 
-    /// <summary>ACCEPT MESSAGE COUNT with a store that cannot read its state: the count stays the program's.</summary>
+    /// <summary>ACCEPT MESSAGE COUNT with a store the host refuses: the count stays the program's.</summary>
     [Fact]
     public void AcceptTheStoreRefuses_LeavesTheCount()
     {
         var session = Session();
-        File.WriteAllText(Path.Combine(_root, "mcs-state.json"), "{ truncated");
         string area = InputArea("Q1")[..81] + "123456";
-        Assert.Equal(area[..79] + "92" + area[81..], session.AcceptMessageCount(area));
+        using (RefusedState())
+            Assert.Equal(area[..79] + "92" + area[81..], session.AcceptMessageCount(area));
+        Assert.Equal("000001", InputCount(session.AcceptMessageCount(InputArea("Q1"))));
     }
 
-    /// <summary>A sharing violation on the lock is another run unit's statement, and is waited out: the statement completes once the lock is free.</summary>
+    /// <summary>⛔ ONE STATEMENT IS ONE STATEMENT OF THE STORE, UNDER ITS MUTEX (DESIGN-communication-facility.md §6 "The transaction"): while a statement reads the store, another run unit's
+    /// endpoint on the same store finds the mutex held, and after the statement it is free. The engine's medium seam observes the read, so the check is made inside the statement and no delay orders it.</summary>
     [Fact]
-    public void LockAnotherRunUnitHolds_IsWaitedOut()
+    public void Statement_HoldsTheStoreMutex_UntilItIsDone()
     {
-        Session();
-        var other = new FileStream(Path.Combine(_root, "mcs.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-        int waits = 0;
-        var session = new MessageControlSession(MessageStore.OpenAt(_root, [], new LockWait(5, () =>
+        var session = Session();
+        session.AcceptMessageCount(InputArea("Q1"));
+        using var other = new FileStream(Path.Combine(_root, "mcs.store"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+        using var endpoint = HostRegionLocks.Open(other.SafeFileHandle, other.Name, writable: true);
+        RegionLockResult? seen = null;
+        _fault!.OnRead = () => seen ??= endpoint.Hold(HostRegionLocks.StoreMutexByte, exclusive: true, wait: false);
+        Assert.Equal("00", InputStatus(session.AcceptMessageCount(InputArea("Q1"))));
+        _fault.OnRead = null;
+        Assert.Equal(RegionLockResult.Held, seen);
+        Assert.Equal(RegionLockResult.Ok, endpoint.Hold(HostRegionLocks.StoreMutexByte, exclusive: true, wait: false));
+    }
+
+    /// <summary>⛔ THE REGION-LOCK REFUSAL (DESIGN-communication-facility.md §6 "A host whose locks answer Unavailable"): a host that cannot carry the store mutex is refused with 92 before the statement reads
+    /// anything, for every statement kind, and mcs.store and every device are left byte for byte as they were. The MCS never runs unlocked and never relies on a share-none open.</summary>
+    [Fact]
+    public void HostWhoseLocksAreUnavailable_IsStatus92_ForEveryStatement_AndLeavesTheFilesAsTheyWere()
+    {
+        var first = Session("""{ "queues": [ { "name": "Q1", "messages": [ "SEED" ] } ], "destinations": [ { "name": "DEV" } ], "terminals": [ { "name": "T1" } ] }""");
+        Assert.Equal("00", OutputStatus(first.Send("C", CommunicationFormat.Output, OutputArea(3, "DEV"), "OLD", SendIndicator.EndOfMessage)));
+        first.Dispose();
+        byte[] store = Bytes(Path.Combine(_root, "mcs.store")), device = Bytes(Path.Combine(_root, "DEV.out"));
+        using (HostRegionLocks.Forcing(new UnavailableHost()))
         {
-            waits++;
-            other.Dispose();
-        })));
-        Assert.Equal("00", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage)));
-        Assert.Equal(1, waits);
-        Assert.Equal("ABCD", session.Receive("R", CommunicationFormat.Input, InputArea("Q2"), false, "....", noDataPhrase: true).Into);
+            var session = Open();
+            string output = OutputArea(3, "DEV"), input = InputArea("Q1"), inOut = InOutArea("T1", 2);
+            Assert.Equal(output[..8] + "92" + output[10..], session.Send("C", CommunicationFormat.Output, output, "NEW", SendIndicator.EndOfMessage));
+            Assert.Equal(output[..8] + "92" + output[10..], session.SetPath("C", CommunicationFormat.Output, CommunicationPath.Output, output, null, enable: false));
+            Assert.Equal(output[..8] + "92" + output[10..], session.Purge("C", CommunicationFormat.Output, output));
+            Assert.Equal(input[..79] + "92" + input[81..], session.AcceptMessageCount(input));
+            Assert.Equal(input[..79] + "92" + input[81..], session.SetPath("C", CommunicationFormat.Input, CommunicationPath.Input, input, null, enable: false));
+            var receipt = session.Receive("C", CommunicationFormat.Input, input, false, "XXXX", noDataPhrase: true);
+            Assert.Equal(input[..79] + "92" + input[81..], receipt.Area);
+            Assert.Equal("XXXX", receipt.Into);
+            Assert.Equal(inOut[..31] + "92", session.Send("I", CommunicationFormat.InputOutput, inOut, "XY", SendIndicator.EndOfMessage));
+        }
+        Assert.Equal(store, Bytes(Path.Combine(_root, "mcs.store")));
+        Assert.Equal(device, Bytes(Path.Combine(_root, "DEV.out")));
+        Assert.False(File.Exists(Path.Combine(_root, "T1.out")));
+        var after = Open();
+        Assert.Equal("SEED", after.Receive("C", CommunicationFormat.Input, InputArea("Q1"), false, "....", noDataPhrase: true).Into);
     }
 
-    /// <summary>A lock never released is status 92 after the retries, never a run unit hung for ever, and the statement took no action.</summary>
+    /// <summary>A store file the host cannot open (the MCS directory is gone) is status 92 at once, and nothing waits.</summary>
     [Fact]
-    public void LockNeverReleased_IsStatus92_AfterTheRetries()
-    {
-        Session();
-        int waits = 0;
-        var session = new MessageControlSession(MessageStore.OpenAt(_root, [], new LockWait(3, () => waits++)));
-        string area = OutputArea(4, "D2");
-        using (new FileStream(Path.Combine(_root, "mcs.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
-            Assert.Equal(area[..8] + "92" + area[10..], session.Send("C", CommunicationFormat.Output, area, "ABCD", SendIndicator.EndOfMessage));
-        Assert.Equal(3, waits);
-        Assert.False(session.Receive("R", CommunicationFormat.Input, InputArea("Q2"), false, "....", noDataPhrase: true).DataAvailable);
-    }
-
-    /// <summary>A refusal that is no sharing violation is no other run unit's statement: status 92 at once, with no wait.</summary>
-    [Fact]
-    public void LockTheHostRefuses_IsStatus92_WithNoWait()
+    public void StoreFileTheHostRefuses_IsStatus92()
     {
         string gone = Path.Combine(_root, "gone");
         Directory.CreateDirectory(gone);
         File.WriteAllText(Path.Combine(gone, "mcs.json"), Definitions);
-        int waits = 0;
-        var session = new MessageControlSession(MessageStore.OpenAt(gone, [], new LockWait(3, () => waits++)));
+        var session = Open(gone);
         ScratchDirectory.Remove(gone);
         Assert.Equal("92", OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage)));
-        Assert.Equal(0, waits);
+    }
+
+    /// <summary>⛔ A STATEMENT REFUSED AT ANY WRITE ANSWERS COMPLETED OR NO ACTION, NEVER BOTH (§6 "Status 92 takes no action"): for every write of a SEND, the host refuses it and every later
+    /// one. The statement then answers 92 and the store holds no message, or answers 00 and holds exactly one; it never answers 92 for a message that landed, nor 00 for one that did not.</summary>
+    [Fact]
+    public void SendRefusedAtEachWrite_AnswersNoActionOrCompleted_NeverBoth()
+    {
+        const string definitions = """{ "queues": [ { "name": "Q" } ], "destinations": [ { "name": "D", "deliverTo": "Q" } ] }""";
+        int refused = 0;
+        for (int from = 0; ; from++)
+        {
+            string root = Path.Combine(_root, "at" + from);
+            Directory.CreateDirectory(root);
+            File.WriteAllText(Path.Combine(root, "mcs.json"), definitions);
+            var session = Open(root);
+            Assert.Equal("00", InputStatus(session.AcceptMessageCount(InputArea("Q"))));
+            _fault!.RefuseWritesFrom = from;
+            string status = OutputStatus(session.Send("C", CommunicationFormat.Output, OutputArea(1, "D"), "M", SendIndicator.EndOfMessage));
+            _fault.RefuseWritesFrom = null;
+            string count = InputCount(session.AcceptMessageCount(InputArea("Q")));
+            if (status == "00")
+            {
+                Assert.Equal("000001", count);
+                break;
+            }
+            Assert.Equal("92", status);
+            Assert.Equal("000000", count);
+            refused++;
+            Assert.True(from < 50, "the statement never completed");
+        }
+        Assert.True(refused > 0, "the matrix refused no write");
+    }
+
+    /// <summary>The reopen that decides a refused statement is itself refused: the session cannot tell whether the statement landed, and answers 93. The next statement opens the store again.</summary>
+    [Fact]
+    public void RefusedStatementWhoseReopenIsRefusedToo_IsStatus93_AndTheSessionOpensTheStoreAgain()
+    {
+        var session = Session("""{ "queues": [ { "name": "Q" } ], "destinations": [ { "name": "D", "deliverTo": "Q" } ] }""");
+        session.AcceptMessageCount(InputArea("Q"));
+        _fault!.RefuseWritesFrom = 0;
+        _fault.ReadsFailAfterARefusedWrite = true;
+        string area = OutputArea(1, "D");
+        Assert.Equal(area[..8] + "93" + area[10..], session.Send("C", CommunicationFormat.Output, area, "M", SendIndicator.EndOfMessage));
+        _fault.RefuseWritesFrom = null;
+        _fault.ReadsFailAfterARefusedWrite = false;
+        Assert.Equal("00", InputStatus(session.AcceptMessageCount(InputArea("Q"))));
+    }
+
+    private sealed class UnavailableHost : IRegionLockHost
+    {
+        public RegionLocks Open(SafeFileHandle handle, string hostPath, bool writable) => new Endpoint(writable);
+
+        /// <summary>An endpoint whose every operation answers <see cref="RegionLockResult.Unavailable"/>, as a file system with no locks does.</summary>
+        private sealed class Endpoint(bool writable) : RegionLocks(writable)
+        {
+            internal override bool ExclusiveNeedsWritableHandle => false;
+
+            internal override RegionLockResult Hold(long offset, bool exclusive, bool wait) => RegionLockResult.Unavailable;
+
+            internal override RegionLockResult HeldByAnother(long offset) => RegionLockResult.Unavailable;
+
+            internal override void Release(long offset) { }
+
+            public override void Dispose() { }
+        }
+    }
+
+    /// <summary>⛔ SEEDING (DESIGN-communication-facility.md §6 "Seeding"): a changed <c>mcs.json</c> keeps a kept endpoint's enabled state and messages and takes its new definition, seeds a new endpoint
+    /// once, and deletes a removed one with its messages and counts. The store holds no row of the removed queue, and a run unit that opens the store again seeds nothing a second time.</summary>
+    [Fact]
+    public void ChangedDefinitions_KeepWhatIsKept_SeedWhatIsNew_AndDeleteWhatIsRemoved()
+    {
+        File.WriteAllText(Path.Combine(_root, "mcs.json"),
+            """{ "queues": [ { "name": "Q1", "key": "OLD", "messages": [ "A" ] }, { "name": "Q2", "messages": [ "GONE" ] } ] }""");
+        var first = Open();
+        Assert.Equal("00", InputStatus(first.SetPath("C", CommunicationFormat.Input, CommunicationPath.Input, InputArea("Q1"), "OLD", enable: false)));
+        Assert.Equal("000001", InputCount(first.AcceptMessageCount(InputArea("Q2"))));
+        File.WriteAllText(Path.Combine(_root, "mcs.json"),
+            """{ "queues": [ { "name": "Q1", "key": "NEW", "messages": [ "IGNORED" ] }, { "name": "Q3", "messages": [ "N" ] } ] }""");
+        var second = Open();
+        Assert.Equal("40", InputStatus(second.SetPath("C", CommunicationFormat.Input, CommunicationPath.Input, InputArea("Q1"), "OLD", enable: true)));   // the new key
+        Assert.Equal("00", InputStatus(second.SetPath("C", CommunicationFormat.Input, CommunicationPath.Input, InputArea("Q1"), "NEW", enable: true)));   // it was kept disabled
+        Assert.Equal("000001", InputCount(second.AcceptMessageCount(InputArea("Q1"))));   // A, not IGNORED
+        Assert.Equal("000001", InputCount(second.AcceptMessageCount(InputArea("Q3"))));
+        Assert.Equal("20", InputStatus(second.AcceptMessageCount(InputArea("Q2"))));
+        string[] queues = [.. McsInspector.Rows(_root).Where(r => r.Key[0] is (byte)'M' or (byte)'N').Select(r => System.Text.Encoding.UTF8.GetString(r.Key, 1, r.Key.Length - 1))];
+        Assert.DoesNotContain(queues, q => q.StartsWith("Q2", StringComparison.Ordinal));
+        McsInspector.AssertCountsEqualARecount(_root);
+        Assert.Equal("N", second.Receive("C", CommunicationFormat.Input, InputArea("Q3"), false, ".", noDataPhrase: true).Into);
+        Assert.False(Open().Receive("C", CommunicationFormat.Input, InputArea("Q3"), false, ".", noDataPhrase: true).DataAvailable);   // the third run unit seeded nothing again
+    }
+
+    /// <summary>⛔ DEVICES (§6 "Devices"): a message is written at the device's committed end, so a tail a dead statement left past it is overwritten by the next transmission, and the first statement of a
+    /// run unit cuts it.</summary>
+    [Fact]
+    public void DeviceTail_PastTheCommittedEnd_IsOverwrittenByTheNextTransmission_AndCutByTheNextRunUnit()
+    {
+        string device = Path.Combine(_root, "DEV.out");
+        var first = Session("""{ "destinations": [ { "name": "DEV" } ] }""");
+        Assert.Equal("00", OutputStatus(first.Send("C", CommunicationFormat.Output, OutputArea(3, "DEV"), "ONE", SendIndicator.EndOfMessage)));
+        File.AppendAllText(device, "JUNK-OF-A-DEAD-STATEMENT");
+        Assert.Equal("00", OutputStatus(first.Send("C", CommunicationFormat.Output, OutputArea(3, "DEV"), "TWO", SendIndicator.EndOfMessage)));
+        Assert.Equal("ONE" + Environment.NewLine + "TWO" + Environment.NewLine, File.ReadAllText(device));
+        File.AppendAllText(device, "MORE-JUNK");
+        Assert.Equal("000000", InputCount(Open().AcceptMessageCount(InputArea("Q"))));
+        Assert.Equal("ONE" + Environment.NewLine + "TWO" + Environment.NewLine, File.ReadAllText(device));
+    }
+
+    /// <summary>The byte <see cref="HostRegionLocks.McsPresenceByte"/> says a run unit has the store open: held shared from its first statement to the end of the run unit (<c>Dispose</c>, which
+    /// <c>RunUnit.Terminate</c> calls), and visible to another handle on the same store.</summary>
+    [Fact]
+    public void SessionHoldsThePresenceByte_UntilTheRunUnitEnds()
+    {
+        var session = Session();
+        session.AcceptMessageCount(InputArea("Q1"));
+        using var other = new FileStream(Path.Combine(_root, "mcs.store"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+        using var endpoint = HostRegionLocks.Open(other.SafeFileHandle, other.Name, writable: true);
+        Assert.Equal(RegionLockResult.Held, endpoint.HeldByAnother(HostRegionLocks.McsPresenceByte));
+        session.Dispose();
+        Assert.Equal(RegionLockResult.Ok, endpoint.HeldByAnother(HostRegionLocks.McsPresenceByte));
     }
 
     [Fact]
@@ -458,7 +665,7 @@ public sealed class MessageControlTests : IDisposable
     {
         var sender = Session();
         int waits = 0;
-        var waiter = new MessageControlSession(MessageStore.OpenAt(_root, []), awaitData: () =>
+        var waiter = Open(awaitData: () =>
         {
             waits++;
             Assert.Equal("00", OutputStatus(sender.Send("C", CommunicationFormat.Output, OutputArea(4, "D2"), "ABCD", SendIndicator.EndOfMessage)));

@@ -113,7 +113,10 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
                 case (_, "AbsScaled"): return RuntimeApi.FunctionFieldAbs(Field(ic.Args[0]));
                 case (_, "MaxScaled"): return RuntimeApi.FunctionFieldMax(ArgumentList(ic));
                 case (_, "MinScaled"): return RuntimeApi.FunctionFieldMin(ArgumentList(ic));
-                case (_, "MedianScaled"): return RuntimeApi.FunctionFieldMedian(ArgumentList(ic));
+                case (_, "MedianScaled"):
+                    return num.StandardDecimal
+                        ? RuntimeApi.FunctionFieldMedianStandard(num.IntermediateMode, ArgumentList(ic))
+                        : RuntimeApi.FunctionFieldMedian(ArgumentList(ic));
                 case (_, "MeanScaled"): return Field(ic.Args[0]);
             }
         }

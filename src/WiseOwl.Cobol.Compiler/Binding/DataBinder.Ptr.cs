@@ -146,7 +146,7 @@ public sealed partial class DataBinder
         // ⛔ THE CELL CLAIM, made HERE because this method IS the one cell-backing forcer and its three callers
         // ARE the three cell surfaces: from now on the class has a StorageCell behind its backing
         // (RedefinesClass.BackingCellClrName), which is what a pointer-class member's MANAGED SLOT addresses
-        // (kb/Work PB231 — the pointer third; §14.9.3.4 GR9). A REDEFINES class never reaches this line and
+        // (kb/Work PB231 — the pointer third; the implementor-defined D-SLOT representation, DOC-A.1-210 and DOC-A.1-216). A REDEFINES class never reaches this line and
         // never gets one, which is exactly why ComputeTier still refuses a pointer leaf.
         cls.IsCellBacked = true;
         foreach (var member in cls.Members)

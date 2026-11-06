@@ -1,0 +1,4 @@
+## Entry 3209 — 2026-11-06 13:02 PST — The 1985 campaign: the hold lifted and the remaining steps filed
+
+After all 976 pages of the 1985 standard were converted, the owner approved every remaining step ("yes, go ahead with all the steps"). PB4812's standing requirement now permits the measurer, sweeps, audits and reconciliation against the 1985 PDF. It still forbids calling the API to convert pages and running anything against the 2002 PDF. PB4816 is re-scoped to adopt the existing pages, add the local-model backend, write LF and assemble `specs/ANSI_COBOL_1985.md`. Three notes file the rest: PB4848 calibrates the raster measurer on real pages, PB4849 regenerates and cross-checks every general format, and PB4850 reconciles the file, passes the publishing gates and connects it to cite.py and the doc index.
+
