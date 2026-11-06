@@ -420,7 +420,7 @@ internal static class RepositoryCodec
             int serial = ++_serial;
             var item = new DataItem
             {
-                Level = r.Level, CobolName = r.Name, ClrName = $"__rd{serial}", Uid = -serial,
+                Level = r.Level, CobolName = r.Name, ClrName = $"__rd{serial}", Uid = -serial, IsImported = true,
                 IsTypedef = r.IsTypedef, TypedefStrong = r.TypedefStrong, IsExternalTypedef = r.IsExternalTypedef,
                 HasExternalClause = r.External, Occurs = r.Occurs,
                 OccursSpec = r.Table is { } t ? new OccursSpec

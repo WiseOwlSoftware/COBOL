@@ -401,8 +401,8 @@ jobs:
       # (Windows pip; under WSL the uv-managed CPython that linux-gate.sh runs, installed by scripts/wsl/setup-wsl.sh,
       # and linux-gate.sh is NOT RUN without it); actions/setup-python's interpreter carries no packages, so it is
       # pinned here.
-      - name: Python YAML parser for the tooling self-test (pyyaml, pinned)
-        run: python3 -m pip install --disable-pip-version-check --no-input pyyaml==6.0.3
+      - name: Python packages for the tooling self-tests (pyyaml, numpy, pinned)
+        run: python3 -m pip install --disable-pip-version-check --no-input pyyaml==6.0.3 numpy==2.5.4
       # scripts/corpus_sweep.py's self-test (the PB209 population gate) obtains the GPL corpus through
       # scripts/external_corpus.py; main's tarball, restored here, keeps the network to a cold cache (kb/Work PB4395).
       - name: Restore main's GnuCOBOL testsuite tarball (GPL, fetched on demand, never committed; saved by toolchain-cache alone)
@@ -801,9 +801,9 @@ jobs:
       # tzdata package; the local hosts carry it (2026.4) and actions/setup-python's does not, so every orchestrator
       # self-test went red here and green locally (train 1037t, run 37748130457). Pinned to the local version. PyYAML
       # likewise: tooling_check.py's self-test parses every agent role and skill frontmatter (kb/Work PB3097).
-      - name: Python packages for the script self-tests (tzdata, pyyaml, pinned)
+      - name: Python packages for the script self-tests (tzdata, pyyaml, numpy, pinned)
         shell: pwsh
-        run: python -m pip install --disable-pip-version-check --no-input tzdata==2026.4 pyyaml==6.0.3
+        run: python -m pip install --disable-pip-version-check --no-input tzdata==2026.4 pyyaml==6.0.3 numpy==2.5.4
       # scripts/corpus_sweep.py's self-test (the PB209 population gate) obtains the GPL corpus through
       # scripts/external_corpus.py; main's tarball, restored here, keeps the network to a cold cache (kb/Work PB4395).
       - name: Restore main's GnuCOBOL testsuite tarball (GPL, fetched on demand, never committed; saved by toolchain-cache alone)

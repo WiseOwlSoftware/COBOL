@@ -97,6 +97,7 @@ internal sealed class CompilerTemps(DataBinder data)
             CobolName = cobolPrefix + data.NextUid,
             ClrName = csPrefix + data.NextUid + "_" + DataItem.WordIdentifier(tag),
             IsCompilerTemp = true,   // kb/Work R26 — the positive is-a-declared-item discrimination
+            IsImported = model.IsImported,   // an imported model has no entry, so no edition gate, in THIS compilation (kb/Work PB4837)
             // (P5.7: the clone-time StoreAsImage seed is gone — StorageFormPass's promoted-set re-sync derives
             //  the temp's storage from its model's PRE-whole-group facts, the fused pipeline's re-sync ordering.)
         };
