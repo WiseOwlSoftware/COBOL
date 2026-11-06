@@ -414,6 +414,9 @@ internal static class IntrinsicResultType
         // selected through a nested integer function. The recursion is bounded by expression nesting depth.
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
             ic.ResultType is IntrinsicType.Integer,
+        // The run-time LENGTH / BYTE-LENGTH of a variable-length group (kb/Work PB4764) is the binder's BoundBinary sum marked
+        // FunctionValue: an INTEGER function's value (§15.50.4 1) and §15.14.4: the returned value is an integer).
+        BoundComputedOperand { FunctionValue: true, Expr: BoundBinary } => true,
         // A COUNTER REGISTER is "a temporary unsigned integer data item" (§8.4.3.14.4 GR1 / §8.4.3.15.4 GR1) that
         // the binder carries as a computed operand, and §8.4.3.15.3 SR1 admits PAGE-COUNTER / LINE-COUNTER "in any
         // context where an integer data item may appear" — `PERFORM PAGE-COUNTER TIMES` among them, which this
