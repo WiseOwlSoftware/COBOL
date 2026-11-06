@@ -5,19 +5,19 @@ using WiseOwl.Cobol.Runtime.Mcs;
 namespace WiseOwl.Cobol.Runtime.Messaging;
 
 /// <summary>
-/// ⛔ THE 2023 MESSAGE CONTROL PROTOCOL AS A STATE MACHINE (docs/rearchitecture/DESIGN-message-control.md §5.2 to §5.6; ISO §14.9.38.4 SEND, §14.9.31.4
+/// ⛔ THE 2023 MESSAGE CONTROL PROTOCOL AS A STATE MACHINE (docs/rearchitecture/DESIGN-message-control.md design 5.2 to design 5.6; ISO §14.9.38.4 SEND, §14.9.31.4
 /// RECEIVE, §14.6.11 item 7). It takes the current statement (<see cref="BeginSend"/>, <see cref="BeginSendResponse"/>, <see cref="BeginReceive"/>) and
 /// the events of <see cref="ProtocolEvent"/> (<see cref="Handle"/>), and answers each with the <see cref="ProtocolAction"/>s its peer executes on an
 /// <see cref="IPeerTransport"/>. It calls nothing, owns no thread and reads no clock, so one scripted scheduler can drive every interleaving the
 /// design lists (§7.2 "Protocol"). It runs on the run unit's thread only; at most one statement is current.
-/// <para><b>State, in memory only</b> (§5.2). A requestor holds <c>Pending</c> (<see cref="SendState"/>, its one SEND in flight), <c>Sent</c> (messages whose
+/// <para><b>State, in memory only</b> (design 5.2). A requestor holds <c>Pending</c> (<see cref="SendState"/>, its one SEND in flight), <c>Sent</c> (messages whose
 /// reply is still due) and <c>Replies</c> (per serial: a reply, or "server ended"); a server holds <c>Offers</c> (per link, oldest first) and <c>Active</c>
 /// (per message taken: requestor, serial, receiving size). A run unit may be both. Links are kept per server across SENDs.</para>
 /// <para><b>Rounds.</b> A requestor numbers the offers it makes: a link is offered the current round once it is ready, the first CLAIM of that round gets
 /// the GRANT and every other offered link a WITHDRAW, so every link offered a round receives one GRANT or WITHDRAW for it before the SEND returns, or ends
-/// (§5.4.1's invariant). A granted link that ends before ACK means no program saw the message, since a server writes ACK before its RECEIVE returns, so a new
+/// (design 5.4.1's invariant). A granted link that ends before ACK means no program saw the message, since a server writes ACK before its RECEIVE returns, so a new
 /// round starts on the links that remain.</para>
-/// <para><b>Frames that cannot be.</b> A frame a role never receives, or one out of order (an OFFER before HELLO), closes the link (§6: "A reader that meets a kind
+/// <para><b>Frames that cannot be.</b> A frame a role never receives, or one out of order (an OFFER before HELLO), closes the link (design 6: "A reader that meets a kind
 /// it does not expect closes the link"); the protocol treats the link as ended.</para>
 /// </summary>
 internal sealed class MessagingProtocol
@@ -63,7 +63,7 @@ internal sealed class MessagingProtocol
 
         /// <summary>Servers this SEND does not connect to again: refused (the transport deleted the file), or closed by the protocol after a HELLO or a
         /// frame that cannot be, which a rescan would find again and loop on. A server whose link merely ended is not burned: a killed one's file is
-        /// found by the next enumeration, refused and deleted (§5.4.1 "The refusal rule").</summary>
+        /// found by the next enumeration, refused and deleted (design 5.4.1 "The refusal rule").</summary>
         internal HashSet<string> Burned { get; } = [];
     }
 
@@ -125,7 +125,7 @@ internal sealed class MessagingProtocol
 
     // ---------------------------------------------------------------- statements
 
-    /// <summary>A run unit that serves a name publishes its listener, then rings the pending bells (§5.4.1 "The pending bell").</summary>
+    /// <summary>A run unit that serves a name publishes its listener, then rings the pending bells (design 5.4.1 "The pending bell").</summary>
     internal IReadOnlyList<ProtocolAction> Serve()
     {
         if (_served is null) throw new InvalidOperationException("this run unit serves no name");
@@ -135,7 +135,7 @@ internal sealed class MessagingProtocol
         return Flush();
     }
 
-    /// <summary>SEND Format 1 (§5.4.1): <paramref name="server"/> is the name as the program spells it.</summary>
+    /// <summary>SEND Format 1 (design 5.4.1): <paramref name="server"/> is the name as the program spells it.</summary>
     internal IReadOnlyList<ProtocolAction> BeginSend(string server, MessageBody message)
     {
         EnsureIdle();
@@ -154,7 +154,7 @@ internal sealed class MessagingProtocol
         return Flush();
     }
 
-    /// <summary>SEND Format 2 (§5.4.2), tested in general-rule order. It never waits.</summary>
+    /// <summary>SEND Format 2 (design 5.4.2), tested in general-rule order. It never waits.</summary>
     internal IReadOnlyList<ProtocolAction> BeginSendResponse(MessageTag to, MessageBody message, string? raising)
     {
         EnsureIdle();
@@ -175,7 +175,7 @@ internal sealed class MessagingProtocol
         return Flush();
     }
 
-    /// <summary>RECEIVE (§5.4.2, §5.4.3): <paramref name="from"/> NULL takes the oldest message from any requestor, a requestor tag the next from that
+    /// <summary>RECEIVE (design 5.4.2, design 5.4.3): <paramref name="from"/> NULL takes the oldest message from any requestor, a requestor tag the next from that
     /// requestor, a server tag the reply to that message. <paramref name="capacity"/> is identifier-1's maximum length in character positions.</summary>
     internal IReadOnlyList<ProtocolAction> BeginReceive(MessageTag from, int capacity, MessageWait wait)
     {
@@ -210,7 +210,7 @@ internal sealed class MessagingProtocol
         return Flush();
     }
 
-    /// <summary>The run unit ends (§5.6): each active message is answered with EC-MCS-NORMAL-TERMINATION or EC-MCS-ABNORMAL-TERMINATION and spaces of the
+    /// <summary>The run unit ends (design 5.6): each active message is answered with EC-MCS-NORMAL-TERMINATION or EC-MCS-ABNORMAL-TERMINATION and spaces of the
     /// size its RECEIVE recorded, because "temp is a temporary data item that is the size of the receiving data item in the associated RECEIVE statement"
     /// (ISO §14.6.11 item 7) that no statement set; then the links, the listener and the pending bell are closed, in that order. No statement completes.</summary>
     internal IReadOnlyList<ProtocolAction> End(bool abnormal)
@@ -279,7 +279,7 @@ internal sealed class MessagingProtocol
         }
         _inByLink[link] = new InLink(link);
         _actions.Add(new Write(link, Hello(_served)));
-        if (_send is { Phase: not SendPhase.Activating } send) Scan(send);     // §5.4.1 step 7: "On BellRang or LinkOpened, repeat step 3"
+        if (_send is { Phase: not SendPhase.Activating } send) Scan(send);     // design 5.4.1 step 7: "On BellRang or LinkOpened, repeat step 3"
     }
 
     private void OnBell()
@@ -336,7 +336,7 @@ internal sealed class MessagingProtocol
         else
         {
             send.Phase = SendPhase.Scanning;
-            Scan(send);                                            // §5.4.5: the requestor enumerates again; none found is EC-MCS-NO-SERVER
+            Scan(send);                                            // design 5.4.5: the requestor enumerates again; none found is EC-MCS-NO-SERVER
         }
     }
 
@@ -366,7 +366,7 @@ internal sealed class MessagingProtocol
 
     private HelloFrame Hello(string servedName) => new(PeerFrameCodec.ProtocolVersion, _mcs, _runId, _pid, servedName);
 
-    /// <summary>§5.4.1 step 3: enumerate the servers' listeners; each answer connects to the entries with no link.</summary>
+    /// <summary>design 5.4.1 step 3: enumerate the servers' listeners; each answer connects to the entries with no link.</summary>
     private void Scan(SendState send)
     {
         send.Outstanding++;
@@ -476,7 +476,7 @@ internal sealed class MessagingProtocol
         }
     }
 
-    /// <summary>A requestor's link is over. A granted link that ends before ACK starts a new round on the links that remain (§5.4.1 step 9).</summary>
+    /// <summary>A requestor's link is over. A granted link that ends before ACK starts a new round on the links that remain (design 5.4.1 step 9).</summary>
     private void EndOut(OutLink link, bool closeIt)
     {
         if (closeIt) _actions.Add(new CloseLink(link.Id));
@@ -499,7 +499,7 @@ internal sealed class MessagingProtocol
         AfterLinkLoss(send);
     }
 
-    /// <summary>Every completion of the SEND closes its bell and deletes <c>p/&lt;N&gt;/&lt;r&gt;</c> (§5.4.1), and withdraws what is still offered.</summary>
+    /// <summary>Every completion of the SEND closes its bell and deletes <c>p/&lt;N&gt;/&lt;r&gt;</c> (design 5.4.1), and withdraws what is still offered.</summary>
     private void FinishSend(SendState send, StatementResult result)
     {
         if (!ReferenceEquals(_send, send)) return;
@@ -548,7 +548,7 @@ internal sealed class MessagingProtocol
     }
 
     /// <summary>A GRANT answers the claim in flight: write ACK, record the message in <c>Active</c> with identifier-1's maximum length, and only then complete
-    /// with the requestor tag (§5.4.2). A message longer than identifier-1 is taken and answered EC-MCS-MESSAGE-LENGTH (§0 Q7).</summary>
+    /// with the requestor tag (design 5.4.2). A message longer than identifier-1 is taken and answered EC-MCS-MESSAGE-LENGTH (§0 Q7).</summary>
     private void Take(ReceiveState receive, Offer offer, MessageBody message)
     {
         _offers.Remove(offer);
@@ -580,7 +580,7 @@ internal sealed class MessagingProtocol
     // ---------------------------------------------------------------- receive
 
     /// <summary>Moves the current RECEIVE as far as the state allows: claim the oldest eligible offer; deliver a held reply; or, once the deadline has
-    /// passed with nothing in flight, complete empty (§5.4.4: at the deadline the holder of the message decides, and a server with a CLAIM in flight waits).</summary>
+    /// passed with nothing in flight, complete empty (design 5.4.4: at the deadline the holder of the message decides, and a server with a CLAIM in flight waits).</summary>
     private void AdvanceReceive(ReceiveState receive)
     {
         if (!ReferenceEquals(_receive, receive)) return;
@@ -608,7 +608,7 @@ internal sealed class MessagingProtocol
     }
 
     /// <summary>§0 Q6: the reply moves into identifier-1 and its length into data-name-2, then the RECEIVE is unsuccessful with the exception the server
-    /// raised, or with EC-MCS-ABNORMAL-TERMINATION when the server ended with no reply (§5.4.3).</summary>
+    /// raised, or with EC-MCS-ABNORMAL-TERMINATION when the server ended with no reply (design 5.4.3).</summary>
     private void DeliverReply(ReceiveState receive, (MessageBody? Body, string? Exception) reply)
     {
         if (reply.Body is null)

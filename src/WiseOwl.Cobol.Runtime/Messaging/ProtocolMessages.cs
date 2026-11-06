@@ -31,7 +31,7 @@ internal enum MessageWaitKind
     Seconds,
 }
 
-/// <summary>How long a RECEIVE waits (the protocol-side twin of the bound <c>MessageWait</c>; slice S4 widens it to the public surface of §5.7).</summary>
+/// <summary>How long a RECEIVE waits (the protocol-side twin of the bound <c>MessageWait</c>; slice S4 widens it to the public surface of design 5.7).</summary>
 internal readonly record struct MessageWait(MessageWaitKind Kind, long Seconds)
 {
     internal static readonly MessageWait Forever = new(MessageWaitKind.Forever, 0);
@@ -45,7 +45,7 @@ internal readonly record struct MessageWait(MessageWaitKind Kind, long Seconds)
 internal sealed record ServerDefinition(int? MaxLength, bool HasStart);
 
 /// <summary>
-/// How one SEND or RECEIVE ended (docs/rearchitecture/DESIGN-message-control.md §5.7's <c>MessageOutcome</c> in the protocol's terms).
+/// How one SEND or RECEIVE ended (docs/rearchitecture/DESIGN-message-control.md design 5.7's <c>MessageOutcome</c> in the protocol's terms).
 /// <paramref name="ExceptionName"/> is null exactly when the statement is successful; an unsuccessful RECEIVE of a reply that raised, or of a message
 /// longer than identifier-1, still carries its <paramref name="Image"/> (§0 Q6, Q7). <paramref name="Length"/> is what data-name-2 receives, or null
 /// when it stays unchanged. A RECEIVE that timed out or polled with nothing waiting is successful with the empty image, zero length and a null
@@ -66,7 +66,7 @@ internal sealed record StatementResult(
     internal static StatementResult TimedOut() => new(null, default, "", null, null, 0);
 }
 
-/// <summary>What <see cref="MessagingProtocol"/> asks its peer to do, in order (docs/rearchitecture/DESIGN-message-control.md §5.4). The protocol calls nothing itself.</summary>
+/// <summary>What <see cref="MessagingProtocol"/> asks its peer to do, in order (docs/rearchitecture/DESIGN-message-control.md design 5.4). The protocol calls nothing itself.</summary>
 internal abstract record ProtocolAction;
 
 /// <summary>Write <paramref name="Frame"/> on <paramref name="Link"/> (<see cref="PeerFrameCodec.Encode"/>, then <see cref="IPeerTransport.Write"/>).</summary>
@@ -91,16 +91,16 @@ internal sealed record Connect(PeerEndpoint Endpoint) : ProtocolAction;
 internal sealed record RingBells(string Spelling) : ProtocolAction;
 
 /// <summary>Arm a one-shot deadline of <paramref name="Seconds"/>; when it passes the peer posts <see cref="DeadlinePassed"/> with the same <paramref name="Token"/>,
-/// after the frames it already holds (a reply that arrived is delivered, §5.4.4). The statement's completion cancels it.</summary>
+/// after the frames it already holds (a reply that arrived is delivered, design 5.4.4). The statement's completion cancels it.</summary>
 internal sealed record ArmDeadline(int Token, long Seconds) : ProtocolAction;
 
-/// <summary>Start the server named <paramref name="Name"/> (§5.4.5), answered by <see cref="ActivationEnded"/>.</summary>
+/// <summary>Start the server named <paramref name="Name"/> (design 5.4.5), answered by <see cref="ActivationEnded"/>.</summary>
 internal sealed record Activate(string Name) : ProtocolAction;
 
 /// <summary>The current statement is over.</summary>
 internal sealed record Complete(StatementResult Result) : ProtocolAction;
 
-/// <summary>What the peer tells <see cref="MessagingProtocol"/>: a transport event decoded, or the answer to an action (docs/rearchitecture/DESIGN-message-control.md §5.4).</summary>
+/// <summary>What the peer tells <see cref="MessagingProtocol"/>: a transport event decoded, or the answer to an action (docs/rearchitecture/DESIGN-message-control.md design 5.4).</summary>
 internal abstract record ProtocolEvent;
 
 /// <summary>A decoded frame arrived on <paramref name="Link"/>.</summary>

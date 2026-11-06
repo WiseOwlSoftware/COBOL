@@ -8,14 +8,14 @@ namespace WiseOwl.Cobol.Runtime.Messaging;
 /// ⛔ THE IN-PROCESS SOCKET DIRECTORY (docs/rearchitecture/DESIGN-message-control.md §7.2 "Protocol", §9 S2a): the shared medium of several
 /// <see cref="InMemoryTransport"/>s, each standing for one run unit. It holds the published endpoints as the socket directory holds their files,
 /// so a transport that is <see cref="InMemoryTransport.Abort"/>ed (a killed process) leaves its files behind and a later connect to one is refused
-/// and deletes it, as §5.4.1's refusal rule has it on real sockets.
+/// and deletes it, as design 5.4.1's refusal rule has it on real sockets.
 /// </summary>
 internal sealed class InMemoryNetwork
 {
     private readonly SortedDictionary<(PeerEndpointKind Kind, string Spelling), SortedDictionary<string, InMemoryTransport>> _entries = [];
 
     /// <summary>Called by a publishing transport after its endpoint is bound and listening and before it becomes visible under its final name: the
-    /// window §5.4.1 closes. A test that enumerates, connects or rings here proves that no one can see a listener that is not yet listening.</summary>
+    /// window design 5.4.1 closes. A test that enumerates, connects or rings here proves that no one can see a listener that is not yet listening.</summary>
     internal Action<PeerEndpoint>? BetweenListenAndRename { get; set; }
 
     /// <summary>Whether <paramref name="endpoint"/> is visible (its file exists), live or left behind by a killed run unit.</summary>

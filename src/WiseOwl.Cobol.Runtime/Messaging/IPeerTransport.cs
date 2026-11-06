@@ -10,7 +10,7 @@ internal readonly record struct PeerLinkId(int Value)
     public override string ToString() => $"link {Value}";
 }
 
-/// <summary>What an endpoint of the socket directory is (docs/rearchitecture/DESIGN-message-control.md §5.1).</summary>
+/// <summary>What an endpoint of the socket directory is (docs/rearchitecture/DESIGN-message-control.md design 5.1).</summary>
 internal enum PeerEndpointKind
 {
     /// <summary>A server's listener, <c>s/&lt;N&gt;/&lt;r&gt;</c>.</summary>
@@ -44,7 +44,7 @@ internal abstract record TransportEvent;
 internal sealed record FrameReceived(PeerLinkId Link, McsFrameKind Kind, byte[] Payload) : TransportEvent;
 
 /// <summary>The link ended: the peer closed it, the process holding the other end was killed, or the stream carried a malformed frame
-/// (docs/rearchitecture/DESIGN-message-control.md §5.5). Nothing follows on it.</summary>
+/// (docs/rearchitecture/DESIGN-message-control.md design 5.5). Nothing follows on it.</summary>
 internal sealed record LinkLost(PeerLinkId Link) : TransportEvent;
 
 /// <summary>A connection arrived at this run unit's published listener.</summary>
@@ -54,7 +54,7 @@ internal sealed record LinkAccepted(PeerLinkId Link) : TransportEvent;
 internal sealed record BellRung(string Spelling) : TransportEvent;
 
 /// <summary>
-/// ⛔ THE SEAM BETWEEN THE PROTOCOL AND ITS MEDIUM (docs/rearchitecture/DESIGN-message-control.md §5.4, §9 S2a): what <see cref="MessagingProtocol"/>'s
+/// ⛔ THE SEAM BETWEEN THE PROTOCOL AND ITS MEDIUM (docs/rearchitecture/DESIGN-message-control.md design 5.4, §9 S2a): what <see cref="MessagingProtocol"/>'s
 /// actions are executed on. <c>SocketTransport</c> (slice S2b) answers it with AF_UNIX sockets and the socket directory, <c>InMemoryTransport</c>
 /// with a shared in-process network the tests script; the protocol runs identically over both because it sees only frames, links and
 /// endpoints. One run unit owns one transport and drives it from one thread: every member is called from that thread, and the events arrive
@@ -63,7 +63,7 @@ internal sealed record BellRung(string Spelling) : TransportEvent;
 internal interface IPeerTransport : IDisposable
 {
     /// <summary>Makes <paramref name="endpoint"/> reachable: it is bound and listening before it is visible under its final name, so no connect ever
-    /// finds a file that is not listening (§5.4.1 "Publishing a listener"). Publishing an endpoint again replaces nothing and throws <see cref="IOException"/>.</summary>
+    /// finds a file that is not listening (design 5.4.1 "Publishing a listener"). Publishing an endpoint again replaces nothing and throws <see cref="IOException"/>.</summary>
     void Publish(PeerEndpoint endpoint);
 
     /// <summary>Closes the listener of <paramref name="endpoint"/> and deletes its file; an endpoint not published, or already gone, is skipped.</summary>
@@ -72,7 +72,7 @@ internal interface IPeerTransport : IDisposable
     /// <summary>The run ids of the servers' listeners under <c>s/&lt;spelling&gt;/</c>, in a stable order.</summary>
     IReadOnlyList<string> EnumerateServers(string spelling);
 
-    /// <summary>Connects to <paramref name="endpoint"/>, applying the refusal rule of §5.4.1.</summary>
+    /// <summary>Connects to <paramref name="endpoint"/>, applying the refusal rule of design 5.4.1.</summary>
     ConnectResult Connect(PeerEndpoint endpoint);
 
     /// <summary>Writes one frame; false when the link has ended (its <see cref="LinkLost"/> follows or has been delivered).</summary>

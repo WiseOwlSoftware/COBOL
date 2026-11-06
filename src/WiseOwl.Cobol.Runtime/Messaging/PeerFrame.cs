@@ -6,7 +6,7 @@ using WiseOwl.Cobol.Runtime.Mcs;
 
 namespace WiseOwl.Cobol.Runtime.Messaging;
 
-/// <summary>A message in flight (docs/rearchitecture/DESIGN-message-control.md §5.3): its image, its extent table (§4.4; null for a message with no
+/// <summary>A message in flight (docs/rearchitecture/DESIGN-message-control.md design 5.3): its image, its extent table (§4.4; null for a message with no
 /// variable-length component) and its slots, each a <see cref="MessageTag"/> (SEND SR3 and RECEIVE SR2 refuse every other slot class at compile time).</summary>
 internal sealed record MessageBody(string Image, RecordExtents? Extents, object?[] Slots)
 {
@@ -17,7 +17,7 @@ internal sealed record MessageBody(string Image, RecordExtents? Extents, object?
     internal MessageBody Truncated(int capacity) => Image.Length <= capacity ? this : this with { Image = Image[..capacity] };
 }
 
-/// <summary>One frame of the 2023 facility's protocol, decoded (§5.3). <see cref="PeerFrameCodec"/> maps it to and from an <see cref="McsFrame"/> payload.</summary>
+/// <summary>One frame of the 2023 facility's protocol, decoded (design 5.3). <see cref="PeerFrameCodec"/> maps it to and from an <see cref="McsFrame"/> payload.</summary>
 internal abstract record PeerFrame
 {
     /// <summary>The kind this frame travels as.</summary>
@@ -25,7 +25,7 @@ internal abstract record PeerFrame
 }
 
 /// <summary>A link's opening, written by both ends. A requestor's <paramref name="ServedName"/> is empty; a server's is the normalized name it serves,
-/// which a requestor compares with the one it asked for, since two names whose hashes collide share a directory (§5.1).</summary>
+/// which a requestor compares with the one it asked for, since two names whose hashes collide share a directory (design 5.1).</summary>
 internal sealed record HelloFrame(int Version, string Mcs, string RunId, int Pid, string ServedName) : PeerFrame
 {
     internal override McsFrameKind Kind => McsFrameKind.Hello;
@@ -68,7 +68,7 @@ internal sealed record ReplyFrame(long Serial, MessageBody Message, string? Exce
 }
 
 /// <summary>
-/// ⛔ THE ONE PAYLOAD CODEC OF THE 2023 FACILITY'S FRAMES (docs/rearchitecture/DESIGN-message-control.md §5.3), little-endian over
+/// ⛔ THE ONE PAYLOAD CODEC OF THE 2023 FACILITY'S FRAMES (docs/rearchitecture/DESIGN-message-control.md design 5.3), little-endian over
 /// <see cref="McsFrame"/>'s envelope. A message travels as three parts: its image as UTF-16 code units, so no encoding is chosen; its extent table
 /// (a flag, then the component count and the <c>FixedAt</c> and <c>Lengths</c> arrays, which is what a file frame records of a
 /// <see cref="RecordExtents"/>); and its slots, each a <see cref="MessageTag"/> as its four fields. A payload that is truncated, overlong, names an
