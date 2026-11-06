@@ -2242,9 +2242,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // parentheses, so `(FUNCTION ABS(N))` - an arithmetic expression (§8.8.1.1), no data item - binds to the same call the sole
         // function does, and the tree-shape arm admitted it (and the boolean `(FUNCTION BOOLEAN-OF-INTEGER(5 4))`, a boolean expression
         // enclosed in parentheses, §8.8.2) where `(X9)` and `(FUNCTION TRIM(X9))` were refused. FunctionValue is set through
-        // OperandOf only for a function written unparenthesized (IsSoleFunctionIdentifier). The BoundBinary a variable-length group's
-        // LENGTH lowers to is a function-identifier too, but FunctionResultLength has no measure for it yet (a lead in PB4712's note).
-        BoundComputedOperand { FunctionValue: true, Expr: BoundIntrinsicCall } or BoundNumericLiteral { FunctionValue: true } =>
+        // OperandOf only for a function written unparenthesized (IsSoleFunctionIdentifier), whatever tree the call lowered to: the BoundBinary a
+        // variable-length group's LENGTH lowers to is a function-identifier too, and its temporary is the run-time LENGTH's (kb/Work PB4764).
+        BoundComputedOperand { FunctionValue: true } or BoundNumericLiteral { FunctionValue: true } =>
             FunctionResultLength(sig, args, bytes: false),
         // An ADDRESS-IDENTIFIER creates "a unique data item of class pointer" (§8.4.3.11.4 GR1 / §8.4.3.13.4 GR1), so
         // r1's "a data item of any class or category" admits it, and its length is the pointer item's r3 length —
@@ -2298,9 +2298,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// string literal has an arm above, and so does every function-identifier the length folds measure. A parenthesized
     /// function, <c>(FUNCTION ABS(N))</c>, or counter register, <c>(LINAGE-COUNTER)</c>, is the arithmetic expression it is written
     /// as and, when the function returns a boolean, the boolean expression (§8.8.2) - never the function-identifier or the data item
-    /// (kb/Work PB4712). The one function-identifier with no arm is the <see cref="BoundBinary"/> of a variable-length group's own
-    /// LENGTH, which <see cref="FunctionResultLength"/> has no measure for yet; it reaches here and is misnamed an arithmetic
-    /// expression (the lead in PB4712's note).</summary>
+    /// (kb/Work PB4712). Every function-identifier has an arm, the <see cref="BoundBinary"/> of a variable-length group's own
+    /// LENGTH included (kb/Work PB4764), so none reaches here.</summary>
     private static string WrittenForm(BoundOperand arg) => arg switch
     {
         BoundNumericLiteral { FunctionValue: false } => "a numeric literal",
@@ -2734,7 +2733,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A FUNCTION-IDENTIFIER is a data item of its §15.2 type (§8.4.3.2.1), admitted by §15.14.3 r1's "a data item
         // of any class or category" — the LENGTH twin's arm, ONE builder for both (kb/Work PB1398). BYTE-LENGTH had
         // NO arm for it, so every function argument fell to the catch-all below and was called "a numeric literal".
-        BoundComputedOperand { FunctionValue: true, Expr: BoundIntrinsicCall } or BoundNumericLiteral { FunctionValue: true } =>
+        BoundComputedOperand { FunctionValue: true } or BoundNumericLiteral { FunctionValue: true } =>
             FunctionResultLength(sig, args, bytes: true),
         // An ADDRESS-IDENTIFIER's unique pointer item (§8.4.3.11.4 GR1 / §8.4.3.13.4 GR1) — a data item of class
         // pointer, admitted by r1 — occupies the pointer carrier's bytes (the LENGTH twin's arm; kb/Work PB1060).
