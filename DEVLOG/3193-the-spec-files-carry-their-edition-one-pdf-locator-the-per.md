@@ -12,8 +12,9 @@ to the purchaser be removed from what the repository publishes, history included
   `clause_page.find_pdf`'s sorted `*.pdf` glob return the 1985 file and the `*COBOL*.pdf` glob ambiguous; all 16 callers
   moved to `spec_pdf.path(edition)` / `require(edition)`.
 - The stamp text a reconciliation agent had quoted (purchaser's name and order number) is redacted in the spec-reconciliation
-  ledger, its agents' files, two evidence files, DEVLOG 0581 and the committed `.claude/settings.local.json` (its index copy
-  only). `verify_publishable.py` now also reads every tracked file in the index (`check_tree`) and refuses an order number, a
-  download date or "Licensed to" followed by a name.
+  ledger, its agents' files, two evidence files and DEVLOG 0581. `verify_publishable.py` now also reads every tracked file in
+  the index (`check_tree`) and refuses an order number, a download date or "Licensed to" followed by a name; it leaves out
+  the files no landing may carry (`coord.NEVER_WORK`), whose committed `.claude/settings.local.json` the history rewrite
+  redacts.
 - PB4759 (the cd-name debugging trigger) is open again: the 1985 Debug module is its source.
 

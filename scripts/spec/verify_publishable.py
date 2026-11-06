@@ -21,7 +21,9 @@ THE WHOLE TRACKED TREE, TOO (owner 2026-11-05: redact the stamp everywhere, hist
 public, and a reconciliation agent once quoted the stamp, purchaser's name and order number included, into its ledger.
 `check_tree` therefore reads EVERY tracked file, as the index holds it, for the personally identifying pieces of a stamp:
 an order number, a download date, and "Licensed to" followed by a name. It reads the index, not the working copy, so the
-per-machine `.claude/settings.local.json` is judged by what a commit would publish.
+per-machine `.claude/settings.local.json` is judged by what a commit would publish. The files no landing may carry
+(`coord.NEVER_WORK`, that settings file among them) are left out: a landing cannot change them, so no gate could ever turn
+a finding there GREEN; their published copies were redacted by the history rewrite of 2026-11-05.
 
 DELIBERATELY RUNS WITHOUT THE PDF. `verify_acknowledgment.py` checks the acknowledgment WORD FOR WORD against the
 printed page, and needs the PDF to do it. This check needs to run in the public repository, where the PDF is
@@ -69,7 +71,9 @@ def check_tree(repo: pathlib.Path = REPO) -> list[str]:
     print("\nper-copy licence data in ANY tracked file (the index) — must be ABSENT:")
     listed = subprocess.run(["git", "-C", str(repo), "ls-files", "-s", "-z"], capture_output=True, check=True).stdout
     entries = [e.split("\t", 1) for e in listed.decode("utf-8").split("\0") if e]
-    blobs = {meta.split()[1]: path for meta, path in entries if not meta.startswith("160000")}
+    sys.path.insert(0, str(repo / "scripts" / "orchestrator"))
+    import coord  # noqa: E402  (the ONE list of the files no landing carries)
+    blobs = {meta.split()[1]: path for meta, path in entries if not meta.startswith("160000") and coord.is_work(path)}
     batch = subprocess.run(["git", "-C", str(repo), "cat-file", "--batch"], input="\n".join(blobs).encode() + b"\n",
                            capture_output=True, check=True).stdout
     failures, at = [], 0
