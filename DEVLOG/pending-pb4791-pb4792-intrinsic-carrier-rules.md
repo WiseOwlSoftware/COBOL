@@ -16,4 +16,6 @@ for a value the receiver holds; RANGE, MEDIAN and MIDRANGE the same. The rendere
 arm of PB4752's `CombineAdditive` rule; with no shift the native arm keeps the list (DOC-A.1-179 (1)). MAX, MIN, ORD-MAX, MEAN and MOD
 swept over the same operands: they answer. Golden `pb4792_alignment_with_an_unbounded_argument_leaves_the_carrier` and its `_85` refusal.
 
+**Review round 1 (R1-1).** The unbounded arm sent a list to the native SDIDI bodies, which returned a 34-digit image: `SUM (FUNCTION INTEGER (A) F)` with A 10000 and F `V9(31)` .999...9 stored 10001.00000 where the exact 36-digit sum stores 10000.99999. `SumExact`, `RangeExact`, `MidrangeExact` and `MedianExact` now return the exact `CobolExact` (halving is the sum times 5 at one more digit), rounded once by the receiver; MEAN, MOD and REM keep their one rounding. Golden cases T1 to T4 in the PB4792 case.
+
 Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,291/22,291 · Unit 40,234/40,234 · Characterization 37/37` (run 000001-20261106T022226Z). Self-review (architecture, full code, performance, duplication): one rule in IntrinsicCarrierRules, both callers state the operand; the unbounded branch is allocation-free beyond the existing lists.
