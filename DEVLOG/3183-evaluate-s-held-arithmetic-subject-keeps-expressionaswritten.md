@@ -1,3 +1,4 @@
-## EVALUATE's held arithmetic subject keeps ExpressionAsWritten (kb/Work PB4804)
+## Entry 3183 — 2026-11-05 18:56 PST — EVALUATE's held arithmetic subject keeps ExpressionAsWritten (kb/Work PB4804)
 
 Re-probe: `EVALUATE (N + 1)` and `EVALUATE (N)` with two class-partial WHENs (`WHEN NUMERIC`, `WHEN NOT NUMERIC`) compiled and ran, answering from the frozen value; the single-use form was already refused (PB1935). Root cause: `EvaluateBinder.BindSubjectValue` built the held intermediate as a bare `BoundFieldOperand(frozen)`, dropping the `ExpressionAsWritten` flag `ConditionBinder.CompoundOperand` set on the written operand (the boolean arm had it since PB4763 R2-2). Fix: the intermediate takes `value.ExpressionAsWritten`, so the class screen (ISO 8.8.4.4.2, identifier-1) refuses with COBOL3318. Sibling sweep: no other held-value construction feeds a class condition. Golden: refused-below negative `pb4804-class-condition-evaluate-held-arithmetic-subject`. PB4804 landed, no inventory rows closed.
+
