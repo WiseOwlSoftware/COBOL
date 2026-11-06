@@ -2110,12 +2110,17 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (a is BoundNumericLiteral nl)
             {
                 if (nl.Text.StartsWith('-') || nl.Text.StartsWith('+') || nl.Text.IndexOfAny(['.', ',']) >= 0)
+                {
                     report($"FUNCTION CONCAT argument-{i + 1} is the numeric literal {nl.Text}; ISO §15.18.3 r3 "
                         + "requires a numeric argument to be an unsigned integer", a);
-                continue;
+                    continue;
+                }
+                // An unsigned integer literal satisfies r3 and goes on to r2's usage family below: a numeric literal's implied
+                // usage is DISPLAY (ISO §9.3.6 SR3, "the implied usage is DISPLAY"), so it is refused
+                // beside a national argument like a numeric display item (kb/Work PB4801; PB4766 review R2-1).
             }
             // r2: the usage family.
-            if (IntrinsicArgumentRules.StaticUsageOf(a) is not { } u) continue;   // fail open
+            if ((a is BoundNumericLiteral ? Usage.Display : IntrinsicArgumentRules.StaticUsageOf(a)) is not { } u) continue;   // fail open
             if (u is not (Usage.Display or Usage.National))
                 report($"FUNCTION CONCAT argument-{i + 1} is of usage {u}; ISO §15.18.3 r2 requires every argument "
                     + "to be usage national or every argument to be usage display", a);
