@@ -30,3 +30,8 @@ syntax rules 10 and 12) and COBOL6335 (a target named twice, syntax rule 6). COB
 `pb4713-debug-cd-name` is now accepted. DebugFacilityTests' staged-COBOL1571 expectations became behavior tests (46 pass).
 DB205A compiles and runs but does not finish; the cause was not diagnosed (a communication-facility
 matter, listed as a lead). The file-name trigger (PB4811) and the DEBUG-CONTENTS reference-modification gap stay open.
+
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 22,342/22,342 · Unit 40,272/40,272 · Characterization 37/37 cases ran (skipped 0)`
+at head a2c47e5314d6 (run 000003-20261106T195442Z). The first gate was RED on six Unit tests of the new code (a namespace literal in an emitted-name scan, two
+drift lists naming the renamed PERFORM store sites, two backend-contract rows and a state field in the new walker, the diagnostic-facts file): the walker
+became static with no state, the PERFORM store sites kept their names, the rows and the facts file were added. The seven new goldens' results are in the trx, all Passed.
