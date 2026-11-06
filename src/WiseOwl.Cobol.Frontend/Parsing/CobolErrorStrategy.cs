@@ -2027,9 +2027,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var atn = recognizer.Atn;
         var token = at.Token;
         bool refusedWord = predictionFailedAt && token.Type == CobolLexer.IDENTIFIER;
-        // ⛔ A SECTION OR DIVISION HEADER WRITTEN WHERE A CLAUSE LIST STANDS IS A STRUCTURE FAULT, WHATEVER ITS FIRST WORD
-        // (kb/Work PB4706): "'SECTION' is not a clause ... for 'MAIN'" reads the header's two words as a name and a clause.
-        if (!(refusedWord || IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type) || at.WritesAHeader)
+        if (!(refusedWord || IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type))
             return null;
         // ⛔ A RESERVED WORD WHERE THE ENTRY'S NAME IS DUE IS THE NAME THE SOURCE WROTE, NOT A CLAUSE IT DOES NOT PRINT
         // (kb/Work PB4604): `01 MOVE PIC X.` writes MOVE where §13.16.3 SR4 puts the entry-name, so the fault is §8.3.2.1
@@ -2047,8 +2045,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // ⛔ A FOREIGN RUN IS REFUSED WHATEVER ENDED IT (kb/Work PB4301): `01 B PIC 9 VALEU 5.` may be a missing period
         // before a level-number, but VALEU is no clause in that reading either, and ClosedFormatPass (which a unit with a
         // parse error never reaches) would name it. The missing period is then the report's second reading, the recovery's.
-        if (at.ResidueRun is { } run && ClosedFormats.Of(run.Parent?.GetType()) is { } runFormat)
+        if (at.ResidueRun is { } run && ClosedFormats.Of(run.Parent?.GetType()) is { } runFormat && !at.RunIsTheHeadersName(run))
             return new Residue(runFormat, run.RuleIndex);
+        // ⛔ A SECTION OR DIVISION HEADER WRITTEN WHERE A CLAUSE LIST STANDS IS A STRUCTURE FAULT, WHATEVER ITS FIRST WORD
+        // (kb/Work PB4706): "'SECTION' is not a clause ... for 'MAIN'" reads the header's two words as a name and a clause.
+        // A foreign run that BEGINS BEFORE the header's opening word is named above all the same (kb/Work PB4770): the header
+        // merely ended it, and PB4301 refuses a run whatever ended it.
+        if (at.WritesAHeader) return null;
         int k = at.Lookahead;
         var probe = walk.Probe();
         // A token that may begin what follows the period is the missing period's, unless it HEADS a longer literal: the
@@ -3538,10 +3541,26 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// <summary>⛔ DO THE TOKEN AND ITS NEIGHBOUR WRITE A SECTION OR DIVISION HEADER (kb/Work PB4706): the token is SECTION
         /// or DIVISION (<see cref="CobolParserCoreBase.ClosesAHeader"/>), or the word before one? Such a run is a STRUCTURE fault
         /// wherever it stands, a header out of order or after a missing period, never a clause or an entry-name.</summary>
-        public bool WritesAHeader
-            => CobolParserCoreBase.ClosesAHeader(Token.Type)
-               || NextDefault((ITokenStream)_recognizer.InputStream, Token.TokenIndex) is { } next
-               && CobolParserCoreBase.ClosesAHeader(next.Type);
+        public bool WritesAHeader => HeaderOpening is not null;
+
+        /// <summary>⛔ THE WORD THAT OPENS THE HEADER THE TOKEN AND ITS NEIGHBOUR WRITE (kb/Work PB4706, PB4770): the token when
+        /// the word after it is SECTION or DIVISION, the word before it when the token is that closing word; null when they
+        /// write no header. A foreign run that begins BEFORE this word is a run the header merely ended (named, PB4301); a
+        /// run that begins AT it is the header's own name (<c>PIC X MAIN SECTION.</c>), a structure fault.</summary>
+        public IToken? HeaderOpening
+        {
+            get
+            {
+                var stream = (ITokenStream)_recognizer.InputStream;
+                if (CobolParserCoreBase.ClosesAHeader(Token.Type)) return PreviousDefault(stream, Token.TokenIndex) ?? Token;
+                return NextDefault(stream, Token.TokenIndex) is { } next && CobolParserCoreBase.ClosesAHeader(next.Type) ? Token : null;
+            }
+        }
+
+        /// <summary>Is <paramref name="run"/>, the foreign run the token ends, nothing but the name of the header written there
+        /// (<see cref="HeaderOpening"/>)?</summary>
+        public bool RunIsTheHeadersName(ParserRuleContext run)
+            => HeaderOpening is { } opening && run.Start.TokenIndex >= opening.TokenIndex;
 
         /// <summary>⛔ THE NAME OF THE ENTRY THE REPORT STANDS IN (kb/Work PB4645): <see cref="ClosedFormats.OwnerName"/> of the
         /// parser's context, and, where a prediction failed AHEAD of the parser (<c>01 W-A MOVE.</c>: the decision at the
