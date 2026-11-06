@@ -389,7 +389,7 @@ carrier — which under the 1-byte-per-position model IS `DataItem.ByteWidth`, t
 per-usage widths are on `ByteWidth`'s doc and CONFORMANCE.md). A type-name argument with an ODO subordinate takes
 "the rules of the OCCURS clause for a receiving data item" (r4a → §13.18.38.4 GR8b, the MAXIMUM — the width the
 template already holds); a bit group / national group (GROUP-USAGE, §13.18.29) is not yet modelled — kb/Work PB79 —
-so every group is r3's alphanumeric group here.
+so every group is r3's alphanumeric group here. A FUNCTION-IDENTIFIER argument (`BoundComputedOperand.FunctionValue`) is the temporary its function returns, whatever tree the binder lowered the call to: a variable-length group's own `LENGTH` is the `BoundBinary` sum, and `LENGTH (FUNCTION LENGTH (VG))` measures it as GnuCOBOL's 4-byte binary run-time LENGTH item the value describes (`FunctionDeviceText.IsNumericFunctionResult`, kb/Work PB4764; 4 for every current length).
 
 **A FUNCTION-IDENTIFIER argument is ONE arm for both folds, keyed on the function's §15.2 type (`FunctionResultLength`,
 kb/Work PB1398).** §8.4.3.2.1 — "A function-identifier references the unique data item that results from the

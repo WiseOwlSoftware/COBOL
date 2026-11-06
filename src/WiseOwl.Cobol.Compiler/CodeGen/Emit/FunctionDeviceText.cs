@@ -47,11 +47,14 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
     };
 
     /// <summary>⛔ IS THIS OPERAND A NUMERIC OR INTEGER FUNCTION'S RETURNED VALUE, whose temporary <see cref="Field"/> describes (kb/Work PB3951)?
-    /// A call, or the literal the binder FOLDED a call to (<c>FUNCTION LENGTH(FUNCTION LENGTH(X))</c>). The ONE predicate the LENGTH and
+    /// A call, the run-time LENGTH sum of a variable-length group (<c>FUNCTION LENGTH (VG)</c>, kb/Work PB4764: GnuCOBOL's 4-byte
+    /// binary LENGTH temporary, which the value describes), or the literal the binder FOLDED a call to (<c>FUNCTION LENGTH(FUNCTION LENGTH(X))</c>). The ONE predicate the LENGTH and
     /// BYTE-LENGTH fold asks (<c>IntrinsicBinder.FunctionResultLength</c>) and their renderer arm answers by, so the operand the binder sends to
     /// the runtime is the operand the renderer measures.</summary>
     public static bool IsNumericFunctionResult(BoundOperand op) => op is
-        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } } or BoundNumericLiteral { FunctionValue: true };
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } }
+            or BoundComputedOperand { FunctionValue: true, Expr: BoundBinary }
+            or BoundNumericLiteral { FunctionValue: true };
 
     private static bool IsFloatingPoint(string literal) => literal.AsSpan().IndexOfAny('E', 'e') >= 0;
 
