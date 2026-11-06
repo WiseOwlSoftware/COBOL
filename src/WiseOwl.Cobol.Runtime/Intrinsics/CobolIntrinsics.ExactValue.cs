@@ -54,23 +54,36 @@ public static partial class CobolIntrinsics
     public static CobolExact MinExact(params CobolExact[] xs) => xs[SelectExact(xs, greatest: false, "MIN")];
 
     /// <summary>MEDIAN (§15.61.4): the middle value in sorted order for an odd count, the mean of the two middle values for an even
-    /// one.</summary>
+    /// one, rounded once to the SDIDI's 34 digits.</summary>
     public static CobolExact MedianExact(CobolRounding mode, params CobolExact[] xs)
+    {
+        CobolExact median = MedianWhole(xs);
+        return xs.Length % 2 != 0 ? median : CobolExact.FromDec(median.ToDecRounded(mode));
+    }
+
+    /// <summary>MEDIAN (§15.61.4) EXACTLY, never cut to the SDIDI's 34 digits: the lane of a list that aligns an argument of unknown
+    /// bound (kb/Work PB4792, review R1-1), whose value the Int128 body held whole before the alignment could leave it.</summary>
+    public static CobolExact MedianWhole(params CobolExact[] xs)
     {
         RequireArguments(xs.Length, "MEDIAN");
         var sorted = (CobolExact[])xs.Clone();
         Array.Sort(sorted, CobolExact.Compare);
         int mid = sorted.Length / 2;
-        return sorted.Length % 2 != 0 ? sorted[mid] : CobolExact.FromDec(HalfSum(sorted[mid - 1], sorted[mid], mode));
+        return sorted.Length % 2 != 0 ? sorted[mid] : HalfSum(sorted[mid - 1], sorted[mid]);
     }
 
-    /// <summary>MIDRANGE (§15.62.4): <c>(FUNCTION MAX + FUNCTION MIN) / 2</c>.</summary>
+    /// <summary>MIDRANGE (§15.62.4): <c>(FUNCTION MAX + FUNCTION MIN) / 2</c>, rounded once.</summary>
     public static CobolDec MidrangeExact(CobolRounding mode, params CobolExact[] xs) =>
-        HalfSum(xs[SelectExact(xs, greatest: true, "MIDRANGE")], xs[SelectExact(xs, greatest: false, "MIDRANGE")], mode);
+        MidrangeWhole(xs).ToDecRounded(mode);
 
-    /// <summary>(<paramref name="a"/> + <paramref name="b"/>) / 2 at the two values' common scale, rounded once.</summary>
-    private static CobolDec HalfSum(CobolExact a, CobolExact b, CobolRounding mode) =>
-        CobolExact.Quotient(CobolExact.Add(a, b), CobolExact.From(2, 0), mode, jam: false);
+    /// <summary>MIDRANGE (§15.62.4) exactly (see <see cref="MedianWhole"/>).</summary>
+    public static CobolExact MidrangeWhole(params CobolExact[] xs) =>
+        HalfSum(xs[SelectExact(xs, greatest: true, "MIDRANGE")], xs[SelectExact(xs, greatest: false, "MIDRANGE")]);
+
+    /// <summary>(<paramref name="a"/> + <paramref name="b"/>) / 2 exactly: the sum times 5 at one more fraction digit (halving is exact in
+    /// decimal), so a caller rounds it once, or not at all.</summary>
+    private static CobolExact HalfSum(CobolExact a, CobolExact b) =>
+        CobolExact.Mul(CobolExact.Add(a, b), CobolExact.From(5, 1));
 
     /// <summary>The exact sum of the values at their common scale, on the wide form and, past it, the arbitrary-precision one.</summary>
     private static CobolExact Total(CobolExact[] xs)
@@ -81,17 +94,24 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>SUM (§15.88.4): the exact sum of the arguments at their common scale, rounded once.</summary>
-    public static CobolDec SumExact(CobolRounding mode, params CobolExact[] xs)
+    public static CobolDec SumExact(CobolRounding mode, params CobolExact[] xs) => SumWhole(xs).ToDecRounded(mode);
+
+    /// <summary>SUM (§15.88.4) exactly (see <see cref="MedianWhole"/>): 10000 and .9999999999999999999999999999999 stored at five places
+    /// are 10000.99999, not the 10001.00000 of the sum's 34-digit image.</summary>
+    public static CobolExact SumWhole(params CobolExact[] xs)
     {
         RequireArguments(xs.Length, "SUM");
-        return Total(xs).ToDecRounded(mode);
+        return Total(xs);
     }
 
     /// <summary>RANGE (§15.76.4): <c>FUNCTION MAX − FUNCTION MIN</c>, at the two values' common scale, rounded once.</summary>
-    public static CobolDec RangeExact(CobolRounding mode, params CobolExact[] xs)
+    public static CobolDec RangeExact(CobolRounding mode, params CobolExact[] xs) => RangeWhole(xs).ToDecRounded(mode);
+
+    /// <summary>RANGE (§15.76.4) exactly (see <see cref="MedianWhole"/>).</summary>
+    public static CobolExact RangeWhole(params CobolExact[] xs)
     {
         CobolExact max = xs[SelectExact(xs, greatest: true, "RANGE")], min = xs[SelectExact(xs, greatest: false, "RANGE")];
-        return CobolExact.Sub(max, min).ToDecRounded(mode);
+        return CobolExact.Sub(max, min);
     }
 
     /// <summary>MEAN (§15.60.4 1): <c>(argument-11 + … + argument-1n) / n</c>, the exact sum divided ONCE — the SDIDI quotient every
@@ -144,14 +164,14 @@ public static partial class CobolIntrinsics
     /// rounded once and never the SDIDI body's (kb/Work PB4750).</summary>
     private static CobolDec VarianceBig(CobolExact[] xs, CobolRounding mode)
     {
-        CobolExact sum = CobolExact.From(0, 0), squares = sum;
+        CobolExact sum = CobolExact.From(0, 0).Working(), squares = sum, first = xs[0].Working();
         foreach (CobolExact x in xs)
         {
-            CobolExact d = CobolExact.Sub(x, xs[0]);
+            CobolExact d = CobolExact.Sub(x.Working(), first);
             sum = CobolExact.Add(sum, d);
             squares = CobolExact.Add(squares, CobolExact.Mul(d, d));
         }
-        CobolExact n = CobolExact.From(xs.Length, 0);
+        CobolExact n = CobolExact.From(xs.Length, 0).Working();
         CobolExact numerator = CobolExact.Sub(CobolExact.Mul(n, squares), CobolExact.Mul(sum, sum));
         return CobolExact.Quotient(numerator, CobolExact.Mul(n, n), mode, jam: false);
     }
@@ -205,8 +225,9 @@ public static partial class CobolIntrinsics
     /// kb/Work PB4592) and divided once (kb/Work PB4750).</summary>
     private static CobolDec PresentValueBig(CobolExact discount, CobolExact[] amounts, CobolRounding mode)
     {
-        CobolExact numerator = CobolExact.From(0, 0);
-        foreach (CobolExact amount in amounts) numerator = CobolExact.Add(CobolExact.Mul(numerator, discount), amount);
+        discount = discount.Working();
+        CobolExact numerator = CobolExact.From(0, 0).Working();
+        foreach (CobolExact amount in amounts) numerator = CobolExact.Add(CobolExact.Mul(numerator, discount), amount.Working());
         return CobolExact.Quotient(numerator, CobolExact.Pow(discount, amounts.Length), mode, jam: false);
     }
 

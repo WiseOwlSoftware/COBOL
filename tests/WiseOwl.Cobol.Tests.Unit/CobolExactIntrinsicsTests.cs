@@ -114,6 +114,24 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Equal((int)(BigInteger.Remainder(P, 7) + 7) % 7, (int)CobolIntrinsics.ModExact(Away, Wide(P), Fixed(7)).Sig);
     }
 
+    /// <summary>⛔ The WHOLE bodies keep every digit of the value (kb/Work PB4792, review R1-1): 10000 + .9999999999999999999999999999999 is a
+    /// 36-digit sum, which the 34-digit SDIDI rounds up to 10001; the whole value is 10000.9999999999999999999999999999999. Expected
+    /// values are Python Decimal arithmetic.</summary>
+    [Fact]
+    public void TheWholeBodies_KeepEveryDigitTheRoundedBodiesCut()
+    {
+        string nines = new('9', 31);
+        CobolExact a = Fixed(10000), h = CobolExact.From(Int128.Parse(nines, CultureInfo.InvariantCulture), 31);
+        CobolDec Of(string digits, int scale) => CobolExact.From(Int128.Parse(digits, CultureInfo.InvariantCulture), scale).Image;
+        CobolDec sum = Of("10000" + nines, 31);
+        Assert.Equal(0, CobolDec.Compare(sum, CobolIntrinsics.SumWhole(a, h).Image));
+        Assert.True(CobolDec.Compare(CobolIntrinsics.SumExact(Away, a, h), sum) > 0);   // the rounded body is the 34-digit image, 10001
+        Assert.Equal(0, CobolDec.Compare(Of("9999" + new string('0', 30) + "1", 31), CobolIntrinsics.RangeWhole(a, h).Image));
+        CobolDec half = Of("50004" + new string('9', 30) + "5", 32);
+        Assert.Equal(0, CobolDec.Compare(half, CobolIntrinsics.MidrangeWhole(a, h).Image));
+        Assert.Equal(0, CobolDec.Compare(half, CobolIntrinsics.MedianWhole(a, h).Image));
+    }
+
     /// <summary>⛔ EVERY ARGUMENT AN SDIDI WITH A POSITIVE EXPONENT aligns at the NEGATIVE common scale, exactly (review finding R1-1 of
     /// kb/Work PB4568): <see cref="CobolExact.TryAt"/> refused it and every body fell to the 34-digit images, where 10^40 + 10^5
     /// rounds to 10^40. Expected values are the <see cref="BigInteger"/> evaluation of each equivalent arithmetic expression.</summary>
@@ -187,6 +205,21 @@ public sealed class CobolExactIntrinsicsTests
         Assert.Equal(0, CobolDec.Compare(D("5"), CobolIntrinsics.PresentValueExact(Away, rate, Fixed(2), Fixed(3))));
         // The ordering never needs the fallback.
         Assert.Equal(2, CobolIntrinsics.OrdMinExact(Fixed(1), tiny, Fixed(3)));
+    }
+
+    /// <summary>⛔ The numbers VARIANCE and PRESENT-VALUE form on the way to their value are WORKING values (kb/Work PB4797): VARIANCE
+    /// (0 ×9, 2·10^3072) is 0.36·10^6144 although its numerator 9·X² is 3.6·10^6145, and PRESENT-VALUE (10^3100, 1, 1, 1) is about
+    /// 10^-3100 although its divisor (1 + 10^3100)³ is about 10^9300. Neither is an EC-SIZE-OVERFLOW; the result is the exact value.</summary>
+    [Fact]
+    public void WorkingNumbersPastTheValueRange_DoNotOverflowAnInRangeResult()
+    {
+        CobolExact[] list = [.. Enumerable.Repeat(Fixed(0), 9), Sdidi("2", 3072)];
+        CobolDec variance = CobolIntrinsics.VarianceExact(Away, list);
+        Assert.Equal(0, CobolDec.Compare(new CobolDec(36, 6142), variance));
+        CobolDec pv = CobolIntrinsics.PresentValueExact(Away, Sdidi("1", 3100), Fixed(1), Fixed(1), Fixed(1));
+        Assert.True(CobolDec.Compare(new CobolDec(2, -3100), pv) > 0 && CobolDec.Compare(new CobolDec(5, -3101), pv) < 0);
+        // The result's own range is still the caller's: a variance whose VALUE is past 10^6145 stays a size error.
+        Assert.Throws<CobolSizeError>(() => CobolIntrinsics.VarianceExact(Away, Fixed(0), Sdidi("1", 3100)));
     }
 
     // ── THE RUN-TIME-SCALED EXACT CARRIER (kb/Work PB4575): an expression in which a wide value meets an SDIDI-carried operand. ──
