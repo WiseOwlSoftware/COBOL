@@ -271,8 +271,8 @@ public static class ConditionalPhraseAssociation
             Positive(ConditionalPhraseFamily.Overflow, Constructs.CallOnOverflowRemoved2023),
         ],
         // §14.9.31.2, §14.9.38.2, §14.9.10.2 Format 2 (file).
-        [Core.RULE_mcsReceiveStatement] = [Pair(ConditionalPhraseFamily.Exception)],
-        [Core.RULE_mcsSendStatement] = [Pair(ConditionalPhraseFamily.Exception)],
+        [Core.RULE_messagingReceiveStatement] = [Pair(ConditionalPhraseFamily.Exception)],
+        [Core.RULE_messagingSendStatement] = [Pair(ConditionalPhraseFamily.Exception)],
         [Core.RULE_deleteFileStatement] = [Pair(ConditionalPhraseFamily.Exception)],
         // §14.9.1.2 / §14.9.11.2: only the screen format (ACCEPT Format 3, DISPLAY Format 2) prints the pair, beside an
         // independent positioning phrase that proves it; written without one, the format is presumed (kb/Work PB1528).

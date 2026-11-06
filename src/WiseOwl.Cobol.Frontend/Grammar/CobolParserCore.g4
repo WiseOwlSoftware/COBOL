@@ -1009,8 +1009,8 @@ statement
     //    program that DECLARES the word has every occurrence retyped to IDENTIFIER by the reservation gate (PB655).
     //    COMMIT / ROLLBACK (reserved from 2023, their introduction) keep facilityWord: the statement is the bare verb,
     //    so `COMMIT.` at 2014, where COMMIT is a user word, IS a paragraph header and no parse can tell otherwise. ──
-    | {wordAhead("RECEIVE")}?     mcsReceiveStatement
-    | {wordAhead("SEND") && !communicationNameFollows()}? mcsSendStatement
+    | {wordAhead("RECEIVE")}?     messagingReceiveStatement
+    | {wordAhead("SEND") && !communicationNameFollows()}? messagingSendStatement
     //    ⛔ THE COMMUNICATION FACILITY'S STATEMENTS ARE THE UNION GRAMMAR TOO (kb/Work PB4677; CobolCommunication.g4), keyword-led
     //    like the arms above, and gated on recognition (communication-facility-removed-2014). RECEIVE parts itself from the 2023
     //    format by the word after its operand. `SEND x FROM y` is the shape of both SENDs, so a declared cd-name decides, which
@@ -1074,9 +1074,12 @@ embeddedBlockStatement
 // The generated keyword rule reads the token or the retyped spelling (cobol-words.json `keywordWhereFree`). With
 // such a data item both arms begin with the same IDENTIFIER, and the word after it parts them: RECEIVED can follow
 // no arithmetic expression, while `MESSAGE + 1` or `MESSAGE SECONDS` is the data item in arithmetic-expression-1.
-mcsReceiveStatement
+// ⛔ THE WORD AFTER MESSAGE IS RECEIVED, NO OTHER (§14.9.31.2 prints `MESSAGE RECEIVED`; kb/Work PB4743, DESIGN-message-control.md §4.1): the arm was
+// `messageKeyword cobolWord`, so `CONTINUE AFTER MESSAGE FOO` compiled. RECEIVED stays a cobolWord because §8.9 does not reserve it and §8.10 does not list
+// it as context-sensitive. The two statements are named for the facility, not for its message control system, because the communication facility has an MCS too.
+messagingReceiveStatement
     : RECEIVE FROM? dataReference GIVING dataReference dataReference
-      (CONTINUE AFTER? (arithmeticExpression SECONDS? | messageKeyword cobolWord))?
+      (CONTINUE AFTER? (arithmeticExpression SECONDS? | messageKeyword {wordAhead("RECEIVED")}? cobolWord))?
       conditionalPhrases
       END_RECEIVE?
     ;
@@ -1098,15 +1101,15 @@ mcsReceiveStatement
 // over-acceptance defect PB412/PB421 are. The shared FACT — that the second EXCEPTION is optional wherever the
 // standard prints `LAST EXCEPTION` — is held across every spelling by
 // PrintedFormatAlternativeDriftTests.EveryPrintedLastExceptionSpelling_MakesTheSecondExceptionOptional.
-mcsSendStatement
+messagingSendStatement
     // §14.9.38.2 prints END-SEND, and Format 1's RETURNING line, WITHOUT brackets: both are required, and the binder
     // names their omission (COBOL1850) rather than this rule turning it into a token-level parse error. The grammar
     // audit reads the next line and reports END-SEND as DECIDED (kb/Work PB2024):
-    // audit:required-word END-SEND decided-by DeclinedFacilityBinder.ScreenSendRequiredPhrases
+    // audit:required-word END-SEND decided-by MessagingBinder.ScreenSendRequiredPhrases
     // ⚠ THE TWO FORMATS STAY ONE RULE ON PURPOSE (kb/Work PB4090, PB4085): the name after TO is a message-server-name-1
     // in Format 1 and a message-tag data-name-2 in Format 2 (§14.9.38.3 SR2, SR4), both a bare word, and which it is
     // is a fact about its DECLARATION, which no parse alternative can read — so splitting the rule per format would
-    // still leave `SEND TO name FROM x` to the binder. DeclinedFacilityBinder.ClassifySend assigns the format once;
+    // still leave `SEND TO name FROM x` to the binder. MessagingBinder.ClassifySend assigns the format once;
     // a phrase of each format in one statement is COBOL5488 and a Format 1 without RETURNING is COBOL1850.
     : SEND TO? (literal | dataReference) FROM dataReference
       (RETURNING dataReference)?

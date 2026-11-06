@@ -895,7 +895,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
            PROGRAM-ID. OPW1.
            DATA DIVISION.
            WORKING-STORAGE SECTION.
-           01 T PIC X(16) VALUE "TAG".
+           01 T USAGE MESSAGE-TAG.
            01 B PIC X(32) VALUE "BODY".
            01 L PIC 9(4) VALUE 0.
            PROCEDURE DIVISION.

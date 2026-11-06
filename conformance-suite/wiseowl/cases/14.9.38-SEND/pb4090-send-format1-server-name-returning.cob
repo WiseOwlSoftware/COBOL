@@ -16,20 +16,20 @@
       *>   leg 2  the same with the optional word TO omitted (14.9.38.2 prints TO without an underline, 5.2.3).
       *> SEND is the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4 item 1;
       *> Annex A.3 item 4): each SEND is accepted and performs no message I-O, so the program's output is its own
-      *> DISPLAYs. EXPECTED VALUES, DERIVED: nothing is sent or received, so WS-REPLY keeps its VALUE "NONE" and the
-      *> two DISPLAYs print what the program started with.
+      *> DISPLAYs. EXPECTED VALUES, DERIVED: nothing is sent or received, so WS-REPLY stays NULL (14.9.38.4 GR6 sets the tag only when a server run unit takes the message) and the
+      *> two tests of WS-REPLY find it NULL, as it began.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4090F1.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 WS-MSG   PIC X(8) VALUE "HELLO".
-       01 WS-REPLY PIC X(8) VALUE "NONE".
+       01 WS-REPLY USAGE MESSAGE-TAG.
        PROCEDURE DIVISION.
        MAIN-P.
            SEND TO SRVNAME FROM WS-MSG RETURNING WS-REPLY
            END-SEND.
-           DISPLAY "LEG1=" WS-REPLY.
+           IF WS-REPLY = NULL DISPLAY "LEG1=NULL" END-IF.
            SEND SRVTWO FROM WS-MSG RETURNING WS-REPLY
            END-SEND.
-           DISPLAY "LEG2=" WS-REPLY.
+           IF WS-REPLY = NULL DISPLAY "LEG2=NULL" END-IF.
            STOP RUN.

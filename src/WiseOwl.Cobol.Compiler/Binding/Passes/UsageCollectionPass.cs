@@ -307,6 +307,9 @@ internal static class UsageCollectionPass
         public bool Visit(BoundNop n) => false;
         public bool Visit(BoundCommitRollback n) => false;   // CONTINUE-equivalent (kb/Work PB137)
         public bool Visit(BoundContinueAfter n) => false;
+        public bool Visit(BoundSendToServer n) { P(n.From); return false; }   // the message image round trip (kb/Work PB4743)
+        public bool Visit(BoundSendResponse n) { P(n.From); return false; }
+        public bool Visit(BoundReceiveMessage n) { P(n.Into); return false; }
         public bool Visit(BoundNextSentence n) => false;
         public bool Visit(BoundOpen n) => false;
         public bool Visit(BoundClose n) => false;

@@ -164,7 +164,7 @@ public sealed class PrintedFormatAlternativeDriftTests
     /// legal at every one of those sites, and §7.3.21.4 rule 2 is the standard citing itself — the PROPAGATE
     /// rule writes the phrase back as "as though a GOBACK RAISING LAST statement were executed".
     /// <para>This is stated over the GRAMMAR TEXT rather than over one rule because the defect recurred by
-    /// COPY: PB407 relaxed the shared <c>raisingPhrase</c>, and <c>mcsSendStatement</c>'s inline spelling of the
+    /// COPY: PB407 relaxed the shared <c>raisingPhrase</c>, and <c>messagingSendStatement</c>'s inline spelling of the
     /// same two words — a rule that cannot share <c>raisingPhrase</c>, because SEND's brace prints two
     /// alternatives where GOBACK's prints three — kept the falsely-restrictive form and went on rejecting
     /// <c>SEND … RAISING LAST</c>. A fourth site tomorrow, sharing or inline, fails here.</para></summary>
@@ -183,7 +183,7 @@ public sealed class PrintedFormatAlternativeDriftTests
             }
 
         // Shape assertion: the sweep must find the sites it exists to check — `raisingPhrase` and
-        // `mcsSendStatement` today — or it is matching nothing and would pass on an empty grammar.
+        // `messagingSendStatement` today — or it is matching nothing and would pass on an empty grammar.
         Assert.True(sites.Count >= 2,
             $"the LAST EXCEPTION sweep found {sites.Count} site(s) — the scrape is broken, not the grammar");
         Assert.Empty(offenders);

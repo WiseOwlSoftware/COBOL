@@ -138,7 +138,7 @@ public sealed class GobackGeneralFormatTests
     /// <summary>⛔ FACT 3'S THIRD SITE, AND THE ARM PB407's REPAIR DID NOT REACH (kb/Work PB402). §14.9.38.2
     /// Format 2 prints the same <c>RAISING { EXCEPTION exception-name-1 | LAST EXCEPTION }</c> brace, measured
     /// on canonical PDF page 756 / printed folio 726 with LAST underlined and the following EXCEPTION not — a
-    /// THIRD page carrying the typesetting. <c>mcsSendStatement</c> spells that brace INLINE (it has two
+    /// THIRD page carrying the typesetting. <c>messagingSendStatement</c> spells that brace INLINE (it has two
     /// alternatives where <c>raisingPhrase</c> has three: SEND's format prints no identifier-1 arm), so
     /// relaxing the shared rule left this one requiring the word, and <c>SEND … RAISING LAST</c> was
     /// <c>COBOL0001: missing token before '.'</c> — measured on this tree before the fix.
@@ -156,7 +156,7 @@ public sealed class GobackGeneralFormatTests
             PROGRAM-ID. {pid}.
             DATA DIVISION.
             WORKING-STORAGE SECTION.
-            01 D-NAME PIC X(8) VALUE "SRV".
+            01 D-NAME USAGE MESSAGE-TAG.
             01 MSG-OUT PIC X(8) VALUE "HELLO".
             PROCEDURE DIVISION.
             MAIN-PARA.
