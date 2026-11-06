@@ -7,9 +7,9 @@
  "rule-digest": "c6912bc8377a",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#StrArgList",
- "test-ref": "conformance:cases/15.12.3-Argument-rules/pb59_numeric_literal_argument; conformance-test:IntrinsicFunctionDifferentialTests.Concat_AdmitsNumericLiterals_AndFoldedNumericFunctions_2023; conformance-test:IntrinsicFunctionDifferentialTests.Concat_ConcatenatesArgumentImages_2023",
+ "test-ref": "conformance:cases/15.12.3-Argument-rules/pb59_numeric_literal_argument; conformance-test:IntrinsicFunctionDifferentialTests.Concat_ConcatenatesArgumentImages_2023; conformance-test:IntrinsicFunctionDifferentialTests.Concat_AdmitsNumericLiterals_2023",
  "derivation": "",
  "editions": "2023",
- "notes": "LANDED 2026-08-09 (PB59): every argument shape 15.18.3 r1 admits now returns a value - the figurative and ALL shapes landed with PB25, and the numeric literal (r1 lists class numeric; the value concatenates as its own characters per 15.18.4 r1) plus the FOLDED nested numeric function (FUNCTION LENGTH folds to a BoundNumericLiteral through IntrinsicBinder.OperandOf - the second producer of the same leaf, in the golden) land with the admitting StrArgList. r3's usage-display/unsigned conditions remain bind-unscreened residue, named on the DeliberatelyUnscreened row.",
+ "notes": "LANDED 2026-08-09 (PB59): every argument shape 15.18.3 r1 admits now returns a value - the figurative and ALL shapes landed with PB25, and the numeric literal (r1 lists class numeric; the value concatenates as its own characters per 15.18.4 r1) lands with the admitting StrArgList. A folded nested numeric function (FUNCTION LENGTH of a fixed item) is NOT such a literal: it is an integer function, which 8.4.3.2.3 SR12 bars from r3's unsigned-integer position (PB4830). r3's usage-display/unsigned conditions remain bind-unscreened residue, named on the DeliberatelyUnscreened row. retired-witness: conformance-test:IntrinsicFunctionDifferentialTests.Concat_AdmitsNumericLiterals_AndFoldedNumericFunctions_2023 (the test is renamed to Concat_AdmitsNumericLiterals_2023: a folded nested LENGTH is an integer function that 8.4.3.2.3 SR12 bars from CONCAT's unsigned-integer position (PB4830), so the test no longer admits it)",
  "state": "OK"
 }
