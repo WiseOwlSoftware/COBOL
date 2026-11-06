@@ -15,3 +15,5 @@ for a value the receiver holds; RANGE, MEDIAN and MIDRANGE the same. The rendere
 (`AlignedOperand.Unbounded`) and the rule answers true when an argument is unbounded and the alignment shifts any argument, the function
 arm of PB4752's `CombineAdditive` rule; with no shift the native arm keeps the list (DOC-A.1-179 (1)). MAX, MIN, ORD-MAX, MEAN and MOD
 swept over the same operands: they answer. Golden `pb4792_alignment_with_an_unbounded_argument_leaves_the_carrier` and its `_85` refusal.
+
+Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,291/22,291 · Unit 40,234/40,234 · Characterization 37/37` (run 000001-20261106T022226Z). Self-review (architecture, full code, performance, duplication): one rule in IntrinsicCarrierRules, both callers state the operand; the unbounded branch is allocation-free beyond the existing lists.
