@@ -9,3 +9,5 @@ One file, `IntrinsicArgumentRules.cs`, three mechanisms of the ISO section 15.3 
 **PB4805 - retired.** `FARTHEST-FROM-ZERO` over `FUNCTION LENGTH` of a variable-length group no longer reaches the loud arm: commit 867fe25c8 (PB4764 review R1-1) added the `BoundComputedOperand { FunctionValue: true, Expr: BoundBinary }` arm to `ConditionRenderer.ComputedExtremeTest` and to `IsIntegerOperand`, and the existing golden `pb4764_length_of_variable_length_group_extreme` runs it (`L-FAR`, `B-NOT-NEAR`, `L1-NEAR`).
 
 No inventory row moved: AR-15.3-6 already reads CONFORMS.
+
+Self-review (architecture, full code, performance, duplication): one mechanism per job (the spine walk reads calls in ReadCall only, the item witness in ItemWitness only); every cited rule run through cite.py --check; no hot-path allocation (compile-time, small arrays); the three regional walks share CollectAdditive. Gate: GREEN, run 000002-20261106T024047Z, Conformance 22,298/22,298, Unit 40,234/40,234, Characterization 37/37 (its first run, 000001, was RED on pb617-integer-expr-literal-sum, which pins the constant-witness wording; the wording is kept when no signed ABS or ABS of a sum was read).
