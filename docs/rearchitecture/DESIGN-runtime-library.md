@@ -2720,7 +2720,7 @@ second path:
   (46) record sizes 0 and the key count (50) 0, so it has no key descriptors and no alternate roots; `MetaPage.Decode` reads `M` with
   any other value in those four fields as a slot that does not validate (null), as an unknown organization byte always was. The
   work slot's classification (R6) treats a different kind as FOREIGN, as it treats conflicting attributes. `MetaPage.Describes`
-  answers `StoreFormat.Foreign` for a committed `M` slot, so a COBOL OPEN of it answers '39' (§14.9.27.4 GR10's conflict), never a
+  answers `StoreFormat.Message` for a committed `M` slot (a keyed OPEN reads it as a conflict, a sequential I-O or EXTEND OPEN as a paged store), so a COBOL OPEN of it answers '39' (§14.9.27.4 GR10's conflict), never a
   misread; `PagedFile.Open(..., messageStore:)` adopts only a store of its own family and answers '30', writing nothing, for the other
   (a keyed file someone put at `mcs.store`; the MCS answers it 92 until `cobol mcs reset`). No format version change: a build before
   this one decodes an `M` slot as no slot, finds the magic and answers '30' (`StoreFormat.Damaged`).
@@ -2743,7 +2743,8 @@ second path:
 What the message store does NOT need and does not get: `RunUnitPageMedium` (its one handle is a `HandlePageMedium`), record frames,
 release ordinals, alternate trees, the TRANSACTIONS and HOLDINGS trees and the dead-owner step. A refused handle is reopened with
 `PagedFile.Open` over the same medium, which runs the adoption rule: the adopted page 2's generation equals the one the refused
-statement stamped exactly when the statement landed. Witnesses: `unit:StoreKindTests` (the `M` layout and its refusals, `Describes`,
+statement stamped exactly when the statement landed, provided the reopen is READ-ONLY (`writable: false`, which adopts in memory and
+writes nothing); a writable reopen promotes above the stamp and retires, so its generation never equals it. Witnesses: `unit:StoreKindTests` (the `M` layout and its refusals, `Describes`,
 `Open`'s family check, the core landing and refusing at every page write for a client with no transaction, and the reopen's
 equality at every refusal point, refused before and after the write); `PagedFileCrashMatrixTests`, `TransactionFaultMatrixTests` and
 the keyed stores' drift tests stay green untouched as the behaviour-neutrality oracle.

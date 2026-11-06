@@ -162,7 +162,7 @@ public sealed class FileBoundaryTests : IDisposable
         Assert.Equal(WiseOwl.Cobol.Runtime.IO.Store.StoreStatus.Ok,
             WiseOwl.Cobol.Runtime.IO.Store.PagedFile.Open(medium, writable: false, coherent: false, HoldingsKeyOrder.RecordNumbers, out var file));
         var meta = file!.Meta;
-        Assert.Equal(2, meta.Kind.Attributes.Keys.Count);
+        Assert.Equal(2, meta.Kind.RequireAttributes().Keys.Count);
         Assert.Single(meta.AlternateRoots);
         var prime = Entries(new WiseOwl.Cobol.Runtime.IO.Store.BTree(file, WiseOwl.Cobol.Runtime.IO.Store.KeyOrders.Ordinal, meta.PrimeRoot))
             .Select(e => (Key: Encoding.Latin1.GetString(e.Key), Frame: RecordFraming.DecodeFrame(e.Value, 2, null)!.Value))

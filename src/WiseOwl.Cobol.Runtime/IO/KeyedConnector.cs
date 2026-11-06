@@ -91,7 +91,7 @@ public abstract partial class KeyedConnector : FileConnector
         {
             StoreFormat.Empty or StoreFormat.Damaged => false,
             StoreFormat.Described => recorded!.Conflicts(DeclaredAttributes, KeyCheck),
-            _ => true,   // Foreign — not a store this build can interpret
+            _ => true,   // Foreign (not a store this build can interpret) or Message (no file of §9.1.6's organizations)
         };
 
     // ── The ISO §9.1.15 FILE LOCK, and the handle the store's pages travel through ───────────────────────────

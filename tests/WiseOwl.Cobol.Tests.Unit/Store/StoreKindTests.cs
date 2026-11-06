@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// PB4734). The meta page's organization byte is the store's <see cref="StoreKind"/>: <c>R</c> and <c>I</c> for the files of
 /// ISO/IEC 1989:2023 §9.1.6's organizations and <c>M</c> for the message store, which records no fixed file attributes.
 /// §14.9.27.4 GR10 makes a physical file whose attributes conflict with the description a conflict at OPEN, so a COBOL OPEN of
-/// an <c>M</c> store answers '39' (<see cref="StoreFormat.Foreign"/>), and the engine refuses a store of the other family
+/// an <c>M</c> store answers '39' (<see cref="StoreFormat.Message"/>), and the engine refuses a store of the other family
 /// rather than misread it. The shared core (<see cref="StatementLanding.Complete"/>) completes, refuses and discards for a
 /// client with no transaction, and a fresh <see cref="PagedFile.Open"/> over the same medium after a refusal adopts the
 /// statement's page 2 exactly when the statement landed (2.2.1.6 R6), which is the message control system's in-hold reopen.
@@ -104,7 +104,32 @@ public sealed class StoreKindTests
     }
 
     [Fact]
-    public void A_message_store_is_Foreign_to_a_COBOL_OPEN_and_a_keyed_store_is_Described()
+    public void A_store_kind_and_a_message_meta_format_without_throwing()
+    {
+        // A record's synthesized ToString reads every public property: the message store's kind must not throw there.
+        Assert.False(string.IsNullOrEmpty(StoreKind.Message.ToString()));
+        var (_, _, store) = NewMessageStore();
+        Assert.False(string.IsNullOrEmpty(store.Meta.ToString()));
+        Assert.Throws<InvalidOperationException>(() => StoreKind.Message.RequireAttributes());
+    }
+
+    [Fact]
+    public void A_writable_reopen_promotes_above_the_stamp_so_only_a_read_only_reopen_decides_whether_a_statement_landed()
+    {
+        // DESIGN-communication-facility.md 6 step 3: the in-hold reopen that decides landing is read-only (INPUT adopts in
+        // memory and writes nothing). A writable reopen promotes and retires at a higher generation, so it can never equal the
+        // stamp, even for a statement that landed.
+        var (medium, _, store) = NewMessageStore();
+        Assert.Equal(StoreStatus.Ok, Statement(store, 1, "one"));
+        ulong stamped = store.Meta.Generation;
+        Assert.Equal(StoreStatus.Ok, PagedFile.Open(medium.Open("A"), writable: false, coherent: true, Order, out var readOnly, messageStore: true));
+        Assert.Equal(stamped, readOnly!.Meta.Generation);
+        Assert.Equal(StoreStatus.Ok, PagedFile.Open(medium.Open("A"), writable: true, coherent: true, Order, out var writable, messageStore: true));
+        Assert.True(writable!.Meta.Generation > stamped);
+    }
+
+    [Fact]
+    public void A_message_store_is_a_Message_format_to_a_COBOL_OPEN_and_a_keyed_store_is_Described()
     {
         string dir = ScratchDirectory.Create("pb4734-store-kind");
         try
@@ -112,7 +137,7 @@ public sealed class StoreKindTests
             string message = Path.Combine(dir, "mcs.store"), keyed = Path.Combine(dir, "keyed.dat");
             File.WriteAllBytes(message, NewMessageStore().Medium.Contents());
             File.WriteAllBytes(keyed, StoreKit.NewStore().Medium.Contents());
-            Assert.Equal(StoreFormat.Foreign, MetaPage.Describes(message, out var none));
+            Assert.Equal(StoreFormat.Message, MetaPage.Describes(message, out var none));
             Assert.Null(none);
             Assert.Equal(StoreFormat.Described, MetaPage.Describes(keyed, out var recorded));
             Assert.False(recorded!.Conflicts(StoreKit.Relative));

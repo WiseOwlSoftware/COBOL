@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Runtime.IO.Store;
 /// DESIGN-communication-facility.md §8): a test's wrapper of the medium every client of the engine opens its store through, per
 /// async flow (the <see cref="FileRegistry.PauseObserver"/> precedent), so a case can refuse, tear or kill at any page write
 /// through a real client — a keyed store behind a file connector (<c>KeyedStore</c>) or the message control system's store
-/// (<c>McsStore</c>) — with one fake medium (<c>DyingPageMedium</c>, <c>RefusingPageMedium</c>) and no second seam.</summary>
+/// (<c>McsStore</c>, DESIGN-communication-facility.md §9 item 3, not yet built) — with one fake medium (<c>DyingPageMedium</c>, <c>RefusingPageMedium</c>) and no second seam.</summary>
 internal static class PageMediumObserver
 {
     private static readonly AsyncLocal<Func<IPageMedium, IPageMedium>?> Wrapper = new();

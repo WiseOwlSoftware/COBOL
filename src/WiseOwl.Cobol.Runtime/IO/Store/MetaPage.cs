@@ -29,6 +29,11 @@ internal enum StoreFormat
     /// can repair. It is not a fixed-attribute conflict ('39'); the adoption rule answers it with §9.1.13.6 item 1's
     /// '30' (2.2.1.6 R6 step 1).</summary>
     Damaged,
+
+    /// <summary>A paged store of the message control system (<see cref="StoreKind.Message"/>): the engine's own format, so a
+    /// sequential OPEN I-O or EXTEND must not write into it, and no file of §9.1.6's organizations, so a keyed OPEN of it is
+    /// GR10's conflict ('39') and it records no <see cref="FixedFileAttributes"/>.</summary>
+    Message,
 }
 
 /// <summary>A META page of the paged keyed store (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4): pages 0 and 1
@@ -252,8 +257,8 @@ internal sealed record MetaPage(
     /// of the OPEN statement"</i>). It reads the three meta pages through a short-lived auxiliary handle and takes the
     /// valid committed slot with the higher generation; a file with no bytes is <see cref="StoreFormat.Empty"/>, one whose
     /// meta pages carry this format's magic but whose committed slots both fail is <see cref="StoreFormat.Damaged"/> (the
-    /// adoption rule's '30'), and anything else is <see cref="StoreFormat.Foreign"/> ('39') — a whole-store file of
-    /// format 5 included.
+    /// adoption rule's '30'), a committed message store is <see cref="StoreFormat.Message"/>, and anything else is
+    /// <see cref="StoreFormat.Foreign"/> ('39') — a whole-store file of format 5 included.
     /// <para>An I/O failure answers <see cref="StoreFormat.Empty"/>, never a conflict: this bounded read is bookkeeping,
     /// and the authority questions (§14.9.27.4 GR3's '37', §9.1.13.6 item 1's '30') are answered in ONE place each — by
     /// the connector's own handle, <c>HostFile.Probe</c> and <c>FileConnector.Open</c>'s catch — never by guessing
@@ -274,10 +279,10 @@ internal sealed record MetaPage(
             }
             if (Committed(Decode(pages[SlotA], SlotA), Decode(pages[SlotB], SlotB)) is { } committed)
             {
-                // The message store is no file of §9.1.6's organizations: a COBOL OPEN of it is GR10's conflict ('39'),
-                // never a misread (DESIGN-communication-facility.md §8).
-                if (committed.Meta.Kind.IsMessage) return StoreFormat.Foreign;
-                attributes = committed.Meta.Kind.Attributes;
+                // The message store is no file of §9.1.6's organizations: a keyed OPEN of it is GR10's conflict ('39') and
+                // a sequential I-O or EXTEND OPEN of it is the same conflict, never a misread (DESIGN-communication-facility.md §8).
+                if (committed.Meta.Kind.IsMessage) return StoreFormat.Message;
+                attributes = committed.Meta.Kind.RequireAttributes();
                 return StoreFormat.Described;
             }
             return pages.Any(p => CarriesMagic(p)) ? StoreFormat.Damaged : StoreFormat.Foreign;

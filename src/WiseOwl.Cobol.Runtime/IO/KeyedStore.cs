@@ -728,9 +728,9 @@ internal sealed class IndexedStore : KeyedStore
 
     /// <summary>The release ordinals each record's frame carries: one per key the meta page records (the prime key's
     /// first, §14.9.30.4 GR26, §14.9.35.4 GR24; kb/Work PB341).</summary>
-    public int FrameSlots => File?.Meta.Kind.Attributes.Keys.Count ?? 1;
+    public int FrameSlots => File?.Meta.Kind.RequireAttributes().Keys.Count ?? 1;
 
-    /// <summary>The tree of key <paramref name="key"/> (<see cref="KeyedStore.TreeChange.PrimeRoot"/> the prime key, else an
+    /// <summary>The tree of key <paramref name="key"/> (<see cref="TreeChange.PrimeRoot"/> the prime key, else an
     /// alternate key's index) under <paramref name="orders"/>; null when the file holds no store, or no such tree.</summary>
     public BTree? Tree(int key, IndexedKeyOrders orders)
     {
@@ -872,7 +872,7 @@ internal sealed class IndexedStore : KeyedStore
     private sealed class IndexedRestoring(PagedFile file, MetaPage meta, IndexedKeyOrders orders,
         Func<int, byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) : IRestoringTrees
     {
-        private readonly int _frameSlots = meta.Kind.Attributes.Keys.Count;
+        private readonly int _frameSlots = meta.Kind.RequireAttributes().Keys.Count;
         private readonly BTree _prime = new(file, orders.Prime, meta.PrimeRoot);
         private readonly SortedDictionary<int, BTree> _alternates = [];
 

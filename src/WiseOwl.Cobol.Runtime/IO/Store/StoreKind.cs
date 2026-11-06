@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Runtime.IO.Store;
 /// no file, has no record frames or keys, and so carries no <see cref="FixedFileAttributes"/>. The engine is one for every
 /// kind (pages, ledger, statement, adoption rule); only the meta page's layout of the kind differs.
 /// <para>A message store is never a file of §9.1.6's organizations: <see cref="MetaPage.Describes"/> answers
-/// <see cref="StoreFormat.Foreign"/> for it, so a COBOL OPEN of the path answers '39' (§14.9.27.4 GR10's conflict), and
+/// <see cref="StoreFormat.Message"/> for it, so a COBOL OPEN of the path answers '39' (§14.9.27.4 GR10's conflict), and
 /// <see cref="PagedFile.Open"/> refuses a store of the other family.</para></summary>
 internal sealed record StoreKind
 {
@@ -26,9 +26,9 @@ internal sealed record StoreKind
     /// <summary>Whether this is the message store.</summary>
     public bool IsMessage => File is null;
 
-    /// <summary>The attributes of a file store.</summary>
+    /// <summary>The attributes of a file store. A method, not a property: a record's synthesized ToString reads every public property, and the message store's must not throw.</summary>
     /// <exception cref="InvalidOperationException">The message store has none: a caller of a file asks only a file store.</exception>
-    public FixedFileAttributes Attributes =>
+    public FixedFileAttributes RequireAttributes() =>
         File ?? throw new InvalidOperationException("the message store records no fixed file attributes");
 
     /// <summary>The alternate keys the store has: every key after the prime key of an INDEXED file; none for a RELATIVE

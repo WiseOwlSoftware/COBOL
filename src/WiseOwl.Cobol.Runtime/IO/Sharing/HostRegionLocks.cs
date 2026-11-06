@@ -122,7 +122,7 @@ internal static class HostRegionLocks
     /// the host's whole answer, so each client reads what it owes: <see cref="RegionLockResult.Ok"/> means the mutex is held
     /// and the caller releases it; a keyed connector reads anything else as no protection against another run unit's writer
     /// but the file lock (<see cref="RegionLockResult.Unavailable"/>: the host cannot carry the lock, docs/CONFORMANCE.md DOC-A.1-75), and the
-    /// message control system reads <see cref="RegionLockResult.Unavailable"/> as status 92, since its store has no file lock
+    /// message control system (to come, §9 item 3) reads <see cref="RegionLockResult.Unavailable"/> as status 92, since its store has no file lock
     /// to fall back on (DESIGN-communication-facility.md §6). The one way the mutex is taken (review finding R1-3 of
     /// kb/Work PB3494).</summary>
     internal static RegionLockResult HoldStoreMutex(RegionLocks endpoint) =>
@@ -156,7 +156,7 @@ internal static class HostRegionLocks
     /// one case a byte held through a handle on the file cannot serve.</summary>
     internal const long EntryMutexByte = RegionBase + 0x102;
 
-    /// <summary>⭐ "A run unit has this message store open" (DESIGN-communication-facility.md §8): held SHARED by every open
+    /// <summary>⭐ "A run unit has this message store open" (DESIGN-communication-facility.md §8): to be held SHARED by every open
     /// message control system session of the run unit's host for the session's life, and tested exclusively by
     /// <c>cobol mcs reset</c> (<see cref="RegionLocks.HeldByAnother"/>), which refuses to reset a store a run unit holds. Held
     /// through the endpoint on <c>mcs.store</c> like <see cref="StoreMutexByte"/>; no keyed store takes it.</summary>

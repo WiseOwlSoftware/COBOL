@@ -62,8 +62,8 @@ public sealed class PageLayoutGoldenTests
             Assert.Equal(keys, page.AsSpan(MetaPage.KeysOffset, keys.Length).ToArray());
             Assert.True(page.AsSpan(MetaPage.KeysOffset + keys.Length).IndexOfAnyExcept((byte)0) < 0);
             var decoded = MetaPage.Decode(page, p)!;
-            Assert.Equal(StoreKit.TwoKeyIndexed.Keys.Count, decoded.Kind.Attributes.Keys.Count);
-            Assert.False(decoded.Kind.Attributes.Conflicts(StoreKit.TwoKeyIndexed));
+            Assert.Equal(StoreKit.TwoKeyIndexed.Keys.Count, decoded.Kind.RequireAttributes().Keys.Count);
+            Assert.False(decoded.Kind.RequireAttributes().Conflicts(StoreKit.TwoKeyIndexed));
             Assert.Equal([PagePointer.None], decoded.AlternateRoots);
         }
     }
