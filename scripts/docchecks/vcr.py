@@ -15,17 +15,16 @@ from pathlib import Path
 
 from . import common
 import spec_pdf  # scripts/spec, on sys.path via common
+import citation  # scripts/spec, on sys.path via common
 from .common import Check
 
 CONSTRUCTS = "tests/version-matrix/constructs.json"
 SPEC = spec_pdf.markdown(2023).relative_to(spec_pdf.REPO).as_posix()   # the one edition table (kb/Work PB4815)
 START, END = "<!-- GEN:VCR-STATUS START -->", "<!-- GEN:VCR-STATUS END -->"
 GATE_ANCHOR = re.compile(r"<!--\s*((?:gate:[^\s>]+\s*)+)-->")
-# A clause number is either the body's dotted decimal (14.9.39.4) or an annex's letter-headed form (E.2, A.4.14); the
-# title is optional because all 178 headings of clause 3 are a bare number. Same grammar as scripts/spec/cite.py.
-SPEC_HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(?:\s+.*?)?\s*$")
-SPEC_REF = re.compile(r"§([0-9A-Z][0-9A-Za-z.]*)")
-CITATION = re.compile(r"§([0-9A-Z][0-9A-Za-z.]*)\s+`([^`]+)`")
+# A citation and the clause regions it names are scripts/spec/citation.py's, the one citation parser (kb/Work PB4887); a
+# citation followed by a code span quotes that clause's text.
+QUOTED_CITATION = re.compile(citation.PATTERN + r"\s+`(?P<quote>[^`]+)`")
 LINE_REF = re.compile(r"@[0-9]{3,6}(\s*[-–]\s*[0-9]{3,6})?")
 
 
@@ -78,27 +77,31 @@ def normalize(s: str) -> str:
 
 
 def clause_regions(spec_lines: list[str]) -> dict[str, list[str]]:
-    heads = [(m.group(1), i) for i, ln in enumerate(spec_lines) if (m := SPEC_HEADING.match(ln))]
+    """clause -> its region's normalized lines, from the 2023 transcription's headings (`citation.iso_regions`)."""
     regions: dict[str, list[str]] = {}
-    for k, (num, at) in enumerate(heads):
-        end = heads[k + 1][1] if k + 1 < len(heads) else len(spec_lines)
+    for num, _title, at, end in citation.iso_regions(spec_lines):
         regions.setdefault(num, []).extend(normalize(spec_lines[i]) for i in range(at, end))
     return regions
 
 
 def citation_findings(vcr_lines: list[str], regions: dict[str, list[str]]) -> list[str]:
+    """Every citation the document writes resolves: a 2023 one in `regions`, another edition's in its own transcription
+    (`citation.validate`); a malformed one is a finding."""
     bad = []
     for i, ln in enumerate(vcr_lines, 1):
-        for m in SPEC_REF.finditer(ln):
-            clause = m.group(1).rstrip(".")
-            if clause not in regions:
-                bad.append(f"line {i}: §{clause} is not a clause of the standard")
-        for m in CITATION.finditer(ln):
-            clause = m.group(1).rstrip(".")
-            if clause in regions:
-                needle = normalize(m.group(2))
-                if not any(needle in line for line in regions[clause]):
-                    bad.append(f"line {i}: §{clause} exists but does not contain `{m.group(2)}`")
+        for c in citation.scan(ln):
+            problem = c.error or (None if c.edition != 2023 else
+                                  None if c.locator in regions else f"§{c.locator} is not a clause of the standard")
+            if c.edition != 2023 and problem is None:
+                problem = citation.validate(c)
+            if problem:
+                bad.append(f"line {i}: {problem}")
+        for m in QUOTED_CITATION.finditer(ln):
+            c = citation.from_match(m)
+            if c is not None and c.edition == 2023 and c.locator in regions:
+                needle = normalize(m["quote"])
+                if not any(needle in line for line in regions[c.locator]):
+                    bad.append(f"line {i}: §{c.locator} exists but does not contain `{m['quote']}`")
     return [f"VERSION_CHANGE_REFERENCE.md spec citation does not resolve (re-derive with `python scripts/spec/cite.py --find "
             f"\"<text>\"`): {b}" for b in bad]
 
@@ -177,9 +180,12 @@ def self_test() -> list[str]:
         ("an index equal to the rendering is in sync", index_findings(framed, rendered), []),
         ("a stale index is a finding", len(index_findings(framed.replace("2002", "1999"), rendered)), 1),
         ("a missing marker is a finding", len(index_findings("no markers", rendered)), 1),
-        ("a resolving citation is clean", citation_findings(["§14.9.1 `quick BROWN fox`"], clause_regions(spec)), []),
-        ("an unknown clause is a finding", len(citation_findings(["see §99.9"], clause_regions(spec))), 1),
-        ("a quote the clause lacks is a finding", len(citation_findings(["§14.9.2 `quick brown`"], clause_regions(spec))), 1),
+        ("a resolving citation is clean", citation_findings(["§2023:14.9.1 `quick BROWN fox`"], clause_regions(spec)), []),
+        ("the edition form resolves the same way", citation_findings(["§2023:14.9.1 `quick BROWN fox`"], clause_regions(spec)), []),
+        ("the edition form's quote is checked", len(citation_findings(["§2023:14.9.2 `quick brown`"], clause_regions(spec))), 1),
+        ("a malformed citation is a finding", len(citation_findings(["see §5000: there"], clause_regions(spec))), 1),
+        ("an unknown clause is a finding", len(citation_findings(["see §2023:99.9"], clause_regions(spec))), 1),
+        ("a quote the clause lacks is a finding", len(citation_findings(["§2023:14.9.2 `quick brown`"], clause_regions(spec))), 1),
         ("a spec line number is a finding", len(line_number_findings(["see @1234 - 1300"])), 1),
         ("an edition marker is not a line number", line_number_findings(["added @2023 and @2014"]), []),
     ])

@@ -13,8 +13,12 @@ Owner-emphasized, each earned by a correction. These nine are the SSOT; `PROMPT.
    `docs/CONFORMANCE.md`. When a general-format DIAGRAM is
    load-bearing, render the PDF page (`scripts/render-spec-page.py <page>`): the OCR'd diagrams were systematically
    lossy toward falsely-restrictive syntax.
-   **⛔ VALIDATE EVERY CITATION MECHANICALLY — `python scripts/spec/cite.py --check <clause> "<text>"`.** The
-   failure mode is not inventing a citation, it is INHERITING one: a queue entry or design doc carries a §, its
+   **A citation names its edition: `§<edition>:<locator>[ <rule>]`** — `§2023:13.18.35.4 GR1`, `§1985:VI.5.3.2 GR3`
+   (owner 2026-11-06, kb/Work PB4887; the format and its one parser are `scripts/spec/citation.py`). A bare `§` is a
+   section of a repository document, never the standard; until PB4887's rewrite lands the tree's older bare
+   citations still read as 2023, and every citation you write carries its edition.
+   **⛔ VALIDATE EVERY CITATION MECHANICALLY — `python scripts/spec/cite.py --check "§2023:<clause>[ <rule>]" "<text>"`.**
+   The failure mode is not inventing a citation, it is INHERITING one: a queue entry or design doc carries a §, its
    quoted text is genuinely in the standard, and the clause NUMBER is never re-derived before it propagates into
    code comments, goldens and the DEVLOG. Two CA10 citations were wrong exactly this way. A citation you did not
    run `--check` on is not a citation.

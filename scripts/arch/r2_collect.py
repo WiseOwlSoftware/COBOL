@@ -157,7 +157,7 @@ def checkpoint_name(name: str):
 def _spec():
     sys.path.insert(0, str(REPO / "scripts" / "spec"))
     import cite  # noqa: E402
-    return cite, cite.load()
+    return cite, cite.load(2023)
 
 
 def spec_ref_problems(refs) -> list[str]:
@@ -168,7 +168,8 @@ def spec_ref_problems(refs) -> list[str]:
     for r in refs:
         if not isinstance(r, dict) or not r.get("clause") or not r.get("text"):
             bad.append("spec_ref %r is not {clause, text}" % (r,))
-        elif cite.check(lines, cls, str(r["clause"]), str(r["text"]))[0] != 0:
+        # a spec_ref's `clause` is a clause of ISO/IEC 1989:2023 by the record's schema (the R2 collection reads 2023)
+        elif cite.check(lines, cls, cite.citation.Citation(2023, str(r["clause"])), str(r["text"]))[0] != 0:
             bad.append("spec_ref §%s does not contain %r (cite.py --check)" % (r["clause"], r["text"]))
     return bad
 

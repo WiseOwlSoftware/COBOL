@@ -78,8 +78,15 @@ import subprocess
 import sys
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import citation  # noqa: E402  (the one citation format and its parser, kb/Work PB4887)
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
+
+
+def clauses_2023(text: str) -> set[str]:
+    """The 2023 clauses `text` cites (a note's `spec_refs` are clauses of ISO/IEC 1989:2023), read by `citation.scan`."""
+    return {c.locator for c in citation.scan(text) if c.edition == 2023 and not c.error}
 QUEUE = REPO / "docs" / "rearchitecture" / "CONFORMANCE-FIX-QUEUE.md"
 PLAN = REPO / "docs" / "REARCHITECTURE_PLAN.md"
 WORK = REPO / "kb" / "Work"
@@ -99,7 +106,6 @@ PB_HEAD = re.compile(
     r"^### (?P<id>PB\d+)\s*·\s*\[(?P<sev>[A-Z]+)\]\s*·\s*(?P<area>[^·]+?)\s*·\s*(?P<rest>.*)$", re.M)
 FLAGS = re.compile(r"^>\s*⚙\s*\*\*flags:\*\*\s*(?P<flags>.+)$", re.M)
 BLOCKED = re.compile(r"blocked-by:\s*(PB\d+)")
-CLAUSE = re.compile(r"§(\d+(?:\.\d+)*)")
 A_ROW = re.compile(r"^\|\s*(?P<id>A\d+[a-z]?)\s*\|\s*(?P<title>.+?)\s*\|(?P<rest>.*)\|\s*$", re.M)
 
 
@@ -164,7 +170,7 @@ def migrate() -> int:
             "severity": m.group("sev"), "area": m.group("area").strip(),
             "summary": re.sub(r"[⛔✅⚠⚖◑]", "", rest).strip(" —-"),
             "blocked_by": sorted(set(BLOCKED.findall(body))),
-            "spec_refs": sorted({c for c in CLAUSE.findall(body)})[:12],
+            "spec_refs": sorted(clauses_2023(body))[:12],
             **harm_fields(flags),
         }
         (WORK / f'{item["id"]}.md').write_text(write_note(item, "\n" + body.strip() + "\n"), encoding="utf-8", newline="\n")
@@ -181,7 +187,7 @@ def migrate() -> int:
         item = {
             "id": m.group("id"), "kind": "analysis", "status": st, "severity": "MAJOR",
             "area": "analysis", "summary": summary, "blocked_by": [],
-            "spec_refs": sorted({c for c in CLAUSE.findall(m.group(0))})[:6],
+            "spec_refs": sorted(clauses_2023(m.group(0)))[:6],
             **harm_fields(["process"]),
         }
         body = "\n" + "\n".join(f"- {c}" for c in [title] + cells if c) + "\n"
@@ -210,7 +216,7 @@ def migrate() -> int:
                 "id": f"R{n:02d}", "kind": "defect", "status": "open", "severity": "MINOR",
                 "area": "residue", "summary": re.sub(r"\s+", " ", p)[:110],
                 "blocked_by": [],
-                "spec_refs": sorted({c for c in CLAUSE.findall(p)})[:6], **harm_fields(flags),
+                "spec_refs": sorted(clauses_2023(p))[:6], **harm_fields(flags),
             }
             (WORK / f'{item["id"]}.md').write_text(
                 write_note(item, f"\n{p}\n\n> Migrated from the fix queue's RESIDUE block, which never itemised "

@@ -365,7 +365,7 @@ def arm_refute_and_filing(root: pathlib.Path, t: ft.Triage) -> None:
         "a refutation line with no citations": ({"refute_over": {"citations": []}}, "no `citations`"),
         # PB3972 review R1-2: the filed record is the REFUTER's copy, so its clauses are checked, not the adjudicator's
         "a corrected copy citing a clause the refuter did not list":
-            ({"md": record_md(expected="§14.9.4.4 and §14.9.4.3 say so.")}, "§14.9.4.3"),
+            ({"md": record_md(expected="§2023:14.9.4.4 and §2023:14.9.4.3 say so.")}, "§2023:14.9.4.3"),
         "a refuter citation the corrected copy never names":
             ({"refute_over": {"citations": [CITE, CITE2]}}, "not named in the record's Expected result"),
         "a refutation outcome that is none": ({"refute_over": {"outcome": "MAYBE"}}, "outcome"),

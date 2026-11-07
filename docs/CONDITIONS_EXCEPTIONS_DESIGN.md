@@ -104,7 +104,7 @@ OO mechanism (feedback_one_mechanism_per_job):
 
 Decision-complete design for the conditions + exception subsystem of the greenfield COBOL→C#/Roslyn compiler (src/WiseOwl.Cobol.{Frontend,Compiler,Runtime,Cli}; C# namespaces `WiseOwl.Cobol.*`). Covers IF/ELSE/END-IF; EVALUATE (all forms); level-88 condition-names + SET cond TO TRUE/FALSE; class/sign/relational/abbreviated-combined conditions with NOT>AND>XOR>OR precedence; and the COBOL-2002/2023 EC exception model (EC-* hierarchy, >>TURN, RAISE/RESUME, USE…EXCEPTION/ERROR declaratives, EXCEPTION-OBJECT, ON SIZE ERROR/AT END/INVALID KEY/ON OVERFLOW/ON EXCEPTION).
 
-Two C# code shapes — both are the Roslyn backend's rendering of the ONE backend-neutral bound tree (G4/ICodeGenBackend: all semantics live in the BoundCondition/EC bound nodes + the binder-computed TurnState; emitters only render; the future CIL backend lowers the SAME bound nodes to branches with its own private lowering): (1) conditions are PURE C# boolean expressions (ConditionRenderer.Render(BoundCondition)→string, no side effects) so they compose into if/while/?:/EVALUATE-arms and level-88 bool properties; (2) the exception model is stateful runtime (WiseOwl.Cobol.Runtime.Exceptions) plus emitted guards that appear ONLY when a program uses the feature — EC checking is OFF by default (ISO §14.6.13.1.1, §5000), so the typed-native fast path emits zero exception scaffolding in the common case.
+Two C# code shapes — both are the Roslyn backend's rendering of the ONE backend-neutral bound tree (G4/ICodeGenBackend: all semantics live in the BoundCondition/EC bound nodes + the binder-computed TurnState; emitters only render; the future CIL backend lowers the SAME bound nodes to branches with its own private lowering): (1) conditions are PURE C# boolean expressions (ConditionRenderer.Render(BoundCondition)→string, no side effects) so they compose into if/while/?:/EVALUATE-arms and level-88 bool properties; (2) the exception model is stateful runtime (WiseOwl.Cobol.Runtime.Exceptions) plus emitted guards that appear ONLY when a program uses the feature — EC checking is OFF by default (§2023:14.6.13.1.1, §2023:7.3.25.4 GR1), so the typed-native fast path emits zero exception scaffolding in the common case.
 
 Correct behavior is defined by the ISO spec (specs/ISO_COBOL_2023.md — cite the §); the legacy engine's ConditionLowerer.cs and PicRuntime.cs (364 NIST green; deleted from `main`, archived) were a differential regression net and reference ONLY, never authority; the byte IMPLEMENTATION is rejected and re-derived over native string/long(/Int128)/bool — the numeric design's scaled integers; System.Decimal is rejected (docs/NUMERIC_DESIGN.md). THIS document is that full prose (condensed view: docs/DESIGN.md §11; brief overview: docs/ARCHITECTURE.md). New diagnostics occupy a COBOL07xx band. New runtime classes: CobolClass (class-condition predicates over UTF-16 chars), ExceptionCatalog (generated from ISO Table 13: level-3→level-2→EC-ALL hierarchy + fatality), ExceptionState (last-exception register, EXCEPTION-OBJECT, file/location/statement), CobolException/CobolFatalException, ExceptionDispatch (declarative registry). Implementation is mechanical from here.
 
@@ -687,13 +687,13 @@ the numeric-edited image has exactly two readers, and the recipe reads `OperandP
 
 ### D9. EC checking is OFF by default; conditional phrases (ON SIZE ERROR/AT END/INVALID KEY/ON OVERFLOW/ON EXCEPTION) are ALWAYS active when written and do NOT require >>TURN.
 
-**Rationale.** ISO §14.6.13.1.1/§5000: default is EC-ALL CHECKING OFF. ISO §14.6.13.1.4 GR1: an explicit conditional phrase handles the condition regardless of TURN state. The phrases are the COBOL-85/2002 handler form the NIST corpus uses; >>TURN/EC-name declaratives are the secondary 2002+ mechanism (edition-gated; diagnosed at --std=85 — see Per-edition gating). Result: programs that don't use exceptions emit zero scaffolding (commercial-quality fast path).
+**Rationale.** ISO §2023:14.6.13.1.1 ("By default, checking is not enabled for any exception condition") and §2023:7.3.25.4 GR1 ("The default TURN directive is '>>TURN EC-ALL CHECKING OFF'"): default is EC-ALL CHECKING OFF. ISO §14.6.13.1.4 GR1: an explicit conditional phrase handles the condition regardless of TURN state. The phrases are the COBOL-85/2002 handler form the NIST corpus uses; >>TURN/EC-name declaratives are the secondary 2002+ mechanism (edition-gated; diagnosed at --std=85 — see Per-edition gating). Result: programs that don't use exceptions emit zero scaffolding (commercial-quality fast path).
 
 **Rejected alternatives.** Always-on EC checking — huge per-statement runtime cost (ISO NOTE warns of significant penalty) and non-ISO default. Require >>TURN for the classic phrases — breaks COBOL-85 ON SIZE ERROR / AT END semantics.
 
 ### D10. >>TURN is resolved at COMPILE time by a TurnState that walks the procedure division in source order; it decides WHETHER the emitter emits an EC guard at all for each statement.
 
-**Rationale.** ISO §4970/§5018: TURN enables checking for the source text that follows in the compilation group. EC-ALL expands to all level-3 names; a level-2 name expands to its children (§5002-5004); EC-I-O-WARNING only toggles explicitly (§5006). Compile-time resolution means OFF compiles to nothing — the key C#-native win.
+**Rationale.** ISO §2023:7.3.25.1: TURN turns checking on or off and "is processed during the compilation stage of processing", for the source text that follows it in the compilation group. EC-ALL expands to all level-3 names (§2023:7.3.25.4 GR2); a level-2 name expands to its children (§2023:7.3.25.4 GR3); EC-I-O-WARNING only toggles explicitly (§2023:7.3.25.4 GR4). Compile-time resolution means OFF compiles to nothing — the key C#-native win.
 
 **Rejected alternatives.** A runtime per-EC enabled-flags table consulted at every statement — defeats the zero-overhead property and adds branches where none are needed.
 
@@ -1153,9 +1153,9 @@ been recorded, so a condition error node can never reach a successful compile an
 - ROUNDED happens BEFORE the size-error test (round to scale, then check integer-part capacity).
 - AT END/INVALID KEY phrase, when present and the condition exists, suppresses all OTHER applicable exception processing (ISO §11409) — the phrase wins over declaratives.
 - Pointer relations support only = / NOT = (ISO §8.8.4.2.2 Format 3 — the message-tag-object-or-pointer-reference general format admits only the EQUAL/=/<> operators; comparison rule §8.8.4.2.16) → ReferenceEquals / is null on ManagedPointer.
-- EC-I-O-WARNING can only be turned on/off explicitly in a >>TURN or PERFORM WHEN (§5006); EC-ALL does not include it.
+- EC-I-O-WARNING can only be turned on/off explicitly in a >>TURN or PERFORM WHEN (§2023:7.3.25.4 GR4); EC-ALL does not include it.
 - Whole-group comparison routes through the record struct's AsImage() character image into CobolString.Compare.
-- User-defined exceptions EC-USER-<suffix> are always nonfatal (ISO §24505) and only raisable by RAISE / EXIT…RAISING / GOBACK RAISING.
+- User-defined exceptions EC-USER-<suffix> are always nonfatal (§2023:14.6.13.1.1: "All user-defined exception conditions shall be nonfatal") and only raisable by RAISE / EXIT…RAISING / GOBACK RAISING.
 - A condition-name may be qualified/subscripted (cond-name OF grp (i)) → emit a parameterized bool method, not a property (tables are supported).
 
 ## Per-edition gating (G1 — one `cobol.exe`, four ISO editions via `--std`)
@@ -1217,7 +1217,7 @@ done).
 - §14.9.28.4 GR14 — the exception-checking PERFORM's implicit TURN scoping: WHEN-named ECs implicitly enabled over imperative-statement-1, then an implicit PUSH ALL + TURN OFF ALL for the handler bodies / FINALLY, and a POP ALL immediately preceding END-PERFORM (GR20 fatal/nonfatal return, GR22 post-PERFORM checking retention)
 - §14.9.39 SET statement (GR6 condition-name TO TRUE → first VALUE literal; switch ON/OFF) ; §14.9.49 USE declaratives (GLOBAL; AFTER EXCEPTION/ERROR; ON file/INPUT/OUTPUT/I-O/EXTEND)
 - §9.1.12 input-output exception processing (applicable exception processing statements; first-match selection); §9.1.13 I-O status → EC-I-O-* mapping (1x AT-END, 2x INVALID-KEY, 3x/4x/7x fatal, etc.)
-- TURN compiler directive (§4970/§5000-§5024 — default EC-ALL OFF; EC-ALL/level-2 expansion; WITH LOCATION; EC-I-O-WARNING explicit-only); PROPAGATE directive (§4808)
+- TURN compiler directive (§2023:7.3.25 — default EC-ALL OFF; EC-ALL/level-2 expansion; WITH LOCATION; EC-I-O-WARNING explicit-only); PROPAGATE directive (§2023:7.3.21)
 - §15.28–15.33 — EXCEPTION-FILE/-LOCATION/-STATEMENT/-STATUS intrinsic functions
 
 ## Resolved questions (settled in `DESIGN.md` §18 — answers recorded inline per the keep-deep-dives-current rule)
@@ -1232,7 +1232,7 @@ done).
   silent. Below 2023 the situation cannot arise: the 31-character COBOL-2002 word ceiling (COBOL1567,
   `CobolWordRule` — enforced for tree words AND directive-carried words) rejects the name first.
 
-- SETTLED (§18.16): EC checking ships OFF by default (NIST-faithful, fast, ISO §5000), enabled only by >>TURN/phrases; the conformance corpus drives the EC-on paths.
+- SETTLED (§18.16): EC checking ships OFF by default (NIST-faithful, fast, §2023:7.3.25.4 GR1), enabled only by >>TURN/phrases; the conformance corpus drives the EC-on paths.
 - SETTLED (§18.16): an unhandled fatal EC terminates the run unit with a diagnostic + a nonzero exit (the ISO §14.6.13.1.3 implementor choice).
 - `>>PROPAGATE` and the exception-checking PERFORM WHEN (§14.9.28) are COBOL-2023 constructs (VCR row 79), diagnosed at --std=85|2002|2014 (G1) and implemented at 2023: "Automatic propagation" above and D12.
 - SETTLED (§18.17): VALIDATE / EC-VALIDATE is declined (Annex A.4.14, docs/CONFORMANCE.md §4 item 3): the statement compiles inert with the COBOL1580 warning, and it is flagged obsolete (2023 Table 13; VCR row 125).

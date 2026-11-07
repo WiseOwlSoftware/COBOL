@@ -2252,7 +2252,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     their .NET encodings, no BOM, little-endian; a literal phrase = one byte per character, the ordinal − 1).
 15. **Reference modification out of range.** Throw (`EC-BOUND-REF-MOD` → `CobolRuntimeException`) by default; a
     lenient clamping dialect is a later option.
-16. **Exception model default.** EC checking OFF by default (NIST-faithful, fast — ISO §5000), enabled only by
+16. **Exception model default.** EC checking OFF by default (NIST-faithful, fast — §2023:7.3.25.4 GR1), enabled only by
     `>>TURN`/phrases; an unhandled **fatal** EC terminates the run unit with a diagnostic + nonzero exit.
 17. **VALIDATE.** Declined (Annex A.4.14; docs/CONFORMANCE.md §4 item 3): the statement compiles inert with the
     COBOL1580 warning, no EC-VALIDATE condition is raised, and it is marked obsolete (2023 Table 13).

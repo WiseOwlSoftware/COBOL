@@ -231,6 +231,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         '("SUBJECT",', '("HEADER",', '("PHANTOM",', '("FORMAT",', '("RULE",', '("SUBITEM",', '("FORMAT-NAME",',
         '("FORMAT-RULE",',
         '("QUOTE-RULE",',  # a QUOTATION resolved to its own top-level rule (kb/Work PB597)
+        '("CITATION",', 'BARE fires on a bare 2023 citation',  # the edition form and its phase-2 refusal (kb/Work PB4887)
         '("DIAG-NO-RULE",', '("DIAG-UNQUALIFIED",',  # the DIAGNOSTIC-STRING family (kb/Work PB838)
         # CONSTRUCT-CODE (kb/Work PB4467): a construct citation names the ISO rule only. One arm per kind of token it refuses.
         '("a C# member",', '("a source file",', '("a call",', '("a generated name",', '("a PascalCase identifier",',
@@ -245,11 +246,20 @@ DECLARED: dict[str, tuple[str, ...]] = {
         '("elided quotation, repaired", None', '("paraphrase, not an elision", "absent"',
         'fires   on a file WITHOUT', 'silent  on the same file WITH it',
         'in-process: every ruling made with no process spawned',  # kb/Work PB2525
+        '("1985, misfiled", "misfiled"',  # a 1985 citation checked against the 1985 transcription (kb/Work PB4887)
     ),
     'scripts/spec/cite.py': (
         'fires EMPTY-NEEDLE (check)', 'fires EMPTY-NEEDLE (find)', 'pins 14.7.7 2) bare', 'pins 14.9.8.4 1) b)',
         'accepts the PRINTED form (C6)', 'fires on a wrong clause',
-        'reads the transcription of the edition named (2002), not 2023', 'an edition whose transcription is absent exits naming it',
+        'reads the transcription of the edition the citation names (2002)', 'an edition whose transcription is absent exits naming it',
+        'fires on a rule the text is not under (GR2)', 'fires on a 1985 paragraph of the wrong section',  # kb/Work PB4887
+    ),
+    # THE ONE CITATION PARSER (kb/Work PB4887 item 5): every edition, every locator shape and each rejection.
+    'scripts/spec/citation.py': (
+        'rejects an unknown edition', 'rejects a 1985 locator without its section', 'rejects a Roman locator for 2023',
+        'rejects no edition once bare stops meaning 2023', '2023 phantom refused',
+        '1985 paragraph outside its section is refused', '1985 printed page validates', '1985 appendix paragraph validates',
+        '2002 validates against its transcription once it exists', 'scan flags an unknown edition',
     ),
     # THE RUNNER (kb/Work PB2563, PB2914): the planted-tree arms are the "a failing self-test turns the gate red" proof,
     # the fleet arms the reuse, the machine-wide budget and the hang detector; the real-tree arms the net and the entry
