@@ -111,6 +111,11 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places)
             foreach (var fire in fires) EmitFire(fire, line, flags);
     }
 
+    /// <summary>The same sections as <see cref="LandBeforeTransfer"/>, as the text of their statements, for a transfer the emitter spells as one
+    /// string (the RESUME landing, <c>DispatchState.ResumeTransfer</c>); empty when nothing is owed.</summary>
+    public string OwedBeforeTransferText() =>
+        string.Join(" ", _owedAfter.SelectMany(owed => owed.Fires.Select(fire => FireText(fire, owed.Line, owed.Flags))));
+
     private static List<DebugFire> Of(BoundDebugTriggered n, DebugWhen when) => n.Fires.Where(f => f.When == when).ToList();
 
     /// <summary>A WRITE or REWRITE emitter calls this immediately after its FROM phrase's implicit move and before the I-O
@@ -165,7 +170,9 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places)
     public static bool HasLoopPhase(LoopFires? loop, DebugWhen when, int level) =>
         loop is not null && loop.Fires.Any(f => f.When == when && f.Level == level);
 
-    private void EmitFire(DebugFire fire, int line, PhraseFlags flags)
+    private void EmitFire(DebugFire fire, int line, PhraseFlags flags) => ctx.Writer.Line(FireText(fire, line, flags));
+
+    private string FireText(DebugFire fire, int line, PhraseFlags flags)
     {
         string contents = fire.Contents switch
         {
@@ -176,8 +183,8 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places)
         };
         string occurrences = fire.Referenced is null ? "" : string.Concat(OccurrenceNumbers(fire.Referenced).Select(o => ", " + o));
         string guard = flags.Guard(fire) is { } phrases ? $"__DebugReady && ({phrases})" : "__DebugReady";
-        ctx.Writer.Line($"if ({guard}) __RunDebugRef({line}, {CsLiteral(fire.Target.Name)}, {contents}, "
-            + $"{fire.Target.SectionStartPc}, {fire.Target.SectionEndPc}{occurrences});");
+        return $"if ({guard}) __RunDebugRef({line}, {CsLiteral(fire.Target.Name)}, {contents}, "
+            + $"{fire.Target.SectionStartPc}, {fire.Target.SectionEndPc}{occurrences});";
     }
 
     /// <summary>⛔ DEBUG-CONTENTS of a data-name target: "the content of the data item referenced by identifier-1" (X3.23-1985 USE FOR

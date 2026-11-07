@@ -717,6 +717,59 @@ public sealed class DebugFacilityTests
         EditionHarness.AssertEveryDiagnosticPositioned(diags, nameof(SortProcedureSubject_At85_StagedLoud1571));
     }
 
+    /// <summary>RESUME AT procedure-name is a GO TO (ISO §14.9.33.4 GR3), so it abandons the statements around it and the sections they owe run
+    /// first (X3.23-1985 USE FOR DEBUGGING general rules 5 d and 6 c, kb/Work PB4857): the IF around a RAISE that a declarative resumes elsewhere,
+    /// and the IF around the RESUME inside the declarative. RESUME AT NEXT STATEMENT continues after the lowest statement, so the IF around the
+    /// RAISE completes and runs its section once. The statements are 2002 introductions and the facility is 1985's, so the one program that has
+    /// both is the 2002 compile that keeps the removed declarative (--permissive).</summary>
+    [Fact]
+    public void RaiseAndResume_LandTheSectionsTheAbandonedStatementsOwe()
+    {
+        const string src = """
+            >>TURN EC-USER-RZ CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DBGRESUME.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 D PIC 9 VALUE 1.
+            01 K PIC 9 VALUE 1.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            DB0 SECTION.
+                USE FOR DEBUGGING ON ALL REFERENCES OF D.
+            DB0-B.
+                DISPLAY "  DB0".
+            HZ SECTION.
+                USE AFTER EXCEPTION CONDITION EC-USER-RZ.
+            HZ-P.
+                DISPLAY "  HANDLER".
+                IF K = 1 IF D = 1 RESUME AT M3 END-IF END-IF.
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            M1.
+                DISPLAY "A: RESUME AT M3".
+                IF D = 1 RAISE EXCEPTION EC-USER-RZ.
+                DISPLAY "NOT HERE".
+            M2.
+                DISPLAY "NOT HERE EITHER".
+            M3.
+                DISPLAY "M3".
+                MOVE 2 TO K.
+                DISPLAY "B: RESUME AT NEXT STATEMENT".
+                IF D = 1 RAISE EXCEPTION EC-USER-RZ.
+                DISPLAY "AFTER B".
+                STOP RUN.
+            """;
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 2002, permissive: true);
+        Assert.True(ok, detail);
+        var lines = stdout.Replace("\r", "").TrimEnd('\n').Split('\n');
+        Assert.Equal(["A: RESUME AT M3", "  HANDLER", "  DB0", "  DB0", "M3", "B: RESUME AT NEXT STATEMENT", "  HANDLER", "  DB0", "AFTER B"], lines);
+    }
+
     /// <summary>The pointer verbs hold a based item or an addressed item as a DATA ITEM only: ALLOCATE's based item, SET ADDRESS OF's receiver and
     /// ADDRESS OF's operand are each an operand the statement explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5, kb/Work
     /// PB4855), so the section of each runs after the statement. The verbs are 2002 introductions and the facility is 1985's, so the one
