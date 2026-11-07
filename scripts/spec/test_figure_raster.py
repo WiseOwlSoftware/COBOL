@@ -353,6 +353,29 @@ def main() -> int:
           [(sd, x) for sd, x, _, _ in sides] == [("L", 20), ("R", 100)] and all(near(y0, 20, 1.0) and near(y1, 40.6, 1.0)
                                                                               for _, _, y0, y1 in sides), f"got {sides}")
 
+    # 8h. A box that WRAPS A LINE (kb/Work PB4898): the boxes of two printed lines drawn as one outline, a polygon of two
+    #     joined rectangles open where they meet (1985 PDF pages 389 and 684, first paragraph). Each line's rectangle is a
+    #     box; every rule is erased, so none is read as an underline, and the words of each line are in its own box.
+    img = canvas()
+    fill(img, 20, 20, 200, 20.6)                                # line 1: top
+    fill(img, 20, 20, 20.6, 34.6)                               # line 1: left side
+    fill(img, 199.4, 20, 200, 34.6)                             # line 1: right side
+    fill(img, 20, 34, 40, 34.6)                                 # line 1's bottom, left of line 2's box ...
+    fill(img, 110, 34, 200, 34.6)                               # ... and right of it: between them the outline is open
+    fill(img, 40, 34, 40.6, 48.6)                               # line 2: left side
+    fill(img, 109.4, 34, 110, 48.6)                             # line 2: right side
+    fill(img, 40, 48, 110, 48.6)                                # line 2: bottom
+    word(img, 30, 25, 6)
+    word(img, 50, 39, 4)
+    rp = R.measure_image(img, tokens=[["ABCDEF"], ["GHIJ"]])
+    total += 2
+    got = [(round(b["x0"]), round(b["y0"]), round(b["x1"]), round(b["y1"]), len(b["words"])) for b in rp.boxes]
+    check("a box that wraps a line is a box per line, each with its line's words",
+          len(got) == 2 and all(near(a, b, 1.0) for a, b in zip(got[0], (20, 20, 200, 35, 1)))
+          and all(near(a, b, 1.0) for a, b in zip(got[1], (40, 34, 110, 49, 1))), f"got {got}")
+    check("a wrapped box's rules, its open seam included, are neither underlines nor choice bars",
+          rp.rules == [] and all(s["kind"] != "bar" for s in R.classify_page(rp)), f"got {rp.rules} {R.classify_page(rp)}")
+
     # 10. Reading the converted figure's words onto the scan (kb/Work PB4849).
     def dot(img, x, y):
         fill(img, x, y, x + 1.8, y + 1.6)
@@ -439,7 +462,9 @@ def main() -> int:
     #    the stamp margins excluded, each counted BY EYE against the rendered page. The calibration table is
     #    figure_raster_pages/calibration.json; a crop is measured with its page's skew. PDF page 222's crop holds no
     #    box: its underline fused to `SEQUENCE`'s Q read as a box 1.3 pt tall, and erased, until `find_boxes` required
-    #    the rectangle its rules enclose to be a box's size (kb/Work PB4849).
+    #    the rectangle its rules enclose to be a box's size (kb/Work PB4849). The prose crops of pages 389 and 684 hold
+    #    boxes that wrap a line, one outline around two lines' boxes: read as choice bars and no boxes (page 389) until
+    #    `find_boxes` took each rectangle of a face for a box (kb/Work PB4898).
     pages = pathlib.Path(__file__).resolve().parent / "figure_raster_pages"
     cal = json.loads((pages / "calibration.json").read_text(encoding="utf-8"))
     for e in cal["pages"]:

@@ -25,8 +25,9 @@ HOW IT MEASURES (each step is a function below; every constant carries the PDF p
   1. render the region in grayscale at >= 400 dpi, binarize (Otsu), and DESKEW: a scan is rotated by a fraction of a
      degree, which breaks a 40 pt rule into stair steps; the angle that makes the rows of ink sharpest is undone. A
      CROP of a page is measured with the page's own angle (`skew=`): a crop holds too little ink to estimate it.
-  2. label connected components. BOXES first (`find_boxes`): a component whose four sides are rules is a box of the
-     high level, and its rules are erased so they are not read again as underlines or choice bars.
+  2. label connected components. BOXES first (`find_boxes`): a rectangle of four rules is a box of the high level, and
+     its rules are erased so they are not read again as underlines or choice bars. The boxes of two printed lines may
+     be one outline, a polygon open where they meet (a span that wraps a line, PB4898): each line's rectangle is a box.
   3. UNDERLINES FUSED to their word's glyphs (`split_fused_rules`): a band of rows with a run longer than any glyph's
      stroke is a rule; it is erased and the letters are components again (a descender's tail rejoins its letter).
   4. STEMS: a vertical run of ink >= MIN_VERT_H tall and <= MAX_VERT_W thick whose length is the height of its
@@ -52,7 +53,8 @@ HOW IT MEASURES (each step is a function below; every constant carries the PDF p
 WHAT IT WAS CALIBRATED ON. Thirteen general-format regions of the 1985 scan (PDF pages 196, 217, 252, 389, 396, 426, 444,
 493, 568, 602, 684, 693, 845: the Environment, Nucleus, Sequential, Relative, Indexed, Sort-Merge, Report Writer and
 Communication modules, Debug, and Amendment 1), each counted BY EYE against the rendered page: brackets by side, braces
-by side, boxes and (on three pages) underlines. The crops, with the stamp margins excluded, and the counts are in
+by side, boxes and (on three pages) underlines; with them, the boxed first paragraphs of pages 389 and 684, whose
+boxes wrap a line (PB4898), and page 222's underline fused to a descender (PB4849). The crops, with the stamp margins excluded, and the counts are in
 `figure_raster_pages/` (`calibration.json`); `test_figure_raster.py` measures every crop and asserts the counts. PB4848's
 table in kb/Work lists the measured values and what is not yet right (Amendment 1's bold face, PDF pages 841 and 844;
 on page 602 the eye counts 41 underlines and the measurer 42, the extra one the fused foot serifs of "am" in
@@ -547,45 +549,137 @@ def _side(mask: np.ndarray, scale: float):
 def find_boxes(ink: np.ndarray, labels: np.ndarray, comps: list, scale: float):
     """The BOXES of the standard's high level (kb/Work PB4848: "specifications unique to level 2 of the modules are
     enclosed in boxes", PDF page 23; page 147: "specifications unique to the high level are enclosed in boxes"; the
-    amendments delete and move boxes). A box is one component of four joined rules (`_side` on each of its four
-    sides). Its rules are often fused to what stands against them (a brace or bracket touching the right edge: pages
-    396, 389), so only each rule's own rows or columns are erased, never the component's other ink. Returns (ink with
-    the boxes' rules erased, [Rect]); the caller relabels, so the erased rules are neither read again as underlines
-    nor their sides as choice bars, and what touched them is its own component again."""
+    amendments delete and move boxes). A box is a rectangle of four rules (`_box`). A span that wraps a line is boxed
+    once per printed line, and where the boxes of two lines touch the printer drew ONE outline: a polygon of two joined
+    rectangles, open where they meet (PDF page 389's first paragraph: `and the` over `and the MULTIPLE`, `location ...
+    reel.` over `FILE TAPE clause`; page 684's: `a message segment, ... a` over `or more`; kb/Work PB4898). So a
+    component's boxes are found from the FACES its rules enclose, one box per rectangle of a face (`_faces`); a
+    component that encloses no face of a box's size (a rule the scan broke) is judged whole. Its rules are often fused
+    to what stands against them (a brace or bracket touching the right edge: pages 396, 389), so only each rule's own
+    rows or columns are erased, never the component's other ink. Returns (ink with the boxes' rules erased, [Rect], one
+    per rectangle); the caller relabels, so the erased rules are neither read again as underlines nor their sides as
+    choice bars, and what touched them is its own component again."""
     ink = ink.copy()
     found = []
     for k, c in enumerate(comps, start=1):
         if (c.x1 - c.x0) < BOX_MIN_W * scale or (c.y1 - c.y0) < BOX_MIN_H * scale:
             continue
         mine = labels[c.y0:c.y1, c.x0:c.x1] == k
-        # The component's box may reach past the rules (a descender from the line above fused to the top rule, page 396):
-        # find the top and bottom rules first and judge the left and right sides between them, then the reverse.
-        top, bot = _side(mine, scale), _side(mine[::-1], scale)
-        if top is None or bot is None:
-            continue
-        r0, r1 = int(np.percentile(top[0][top[0] >= 0], 1)), mine.shape[0] - int(np.percentile(bot[0][bot[0] >= 0], 1))
-        band = mine[r0:r1]
-        left, right = _side(band.T, scale), _side(band.T[::-1], scale)
-        if left is None or right is None:
-            continue
-        c0, c1 = int(np.percentile(left[0][left[0] >= 0], 1)), band.shape[1] - int(np.percentile(right[0][right[0] >= 0], 1))
-        # The rules found may enclose far less than the component: one side of a drawn diagram's frame read as "two
-        # sides" 1.4 pt apart (PDF page 353), an underline fused to its word's descender as "a top and a bottom" 1.3 pt
-        # apart (page 222; its crop is a calibration case), and the false box's "rules" were erased. A box is the
-        # rectangle its rules enclose, so that rectangle must itself be a box's size (kb/Work PB4849).
-        if (c1 - c0) < BOX_MIN_W * scale or (r1 - r0) < BOX_MIN_H * scale:
-            continue
-        box = band[:, c0:c1]
-        sides = [_side(box, scale), _side(box[::-1], scale), _side(box.T, scale), _side(box.T[::-1], scale)]
-        if any(x is None for x in sides):
-            continue
-        sub = ink[c.y0 + r0:c.y0 + r1, c.x0 + c0:c.x0 + c1]
-        views = [sub, sub[::-1], sub.T, sub.T[::-1]]                 # the same four orientations, as views of `sub`
-        for (first, thick), view in zip(sides, views):
-            for col in np.nonzero(first >= 0)[0]:
-                view[first[col]:first[col] + thick + 1, col] = False
-        found.append(Rect((c.x0 + c0) / scale, (c.y0 + r0) / scale, (c.x0 + c1) / scale, (c.y0 + r1) / scale))
+        whole = (0, mine.shape[0], 0, mine.shape[1], np.zeros_like(mine), np.zeros_like(mine))
+        for y0, y1, x0, x1, joint, beyond in _faces(mine, scale) or [whole]:
+            box = _box((mine[y0:y1, x0:x1] & ~beyond) | joint, scale)
+            if box is None:
+                continue
+            r0, r1, c0, c1, sides = box
+            oy, ox = c.y0 + y0 + r0, c.x0 + x0 + c0
+            sub = ink[oy:oy + r1 - r0, ox:ox + c1 - c0]
+            seam = joint[r0:r1, c0:c1]
+            # The four orientations `_box` judged, as views of `sub`; where a side is the open seam of a polygon there is
+            # no rule to erase, and the ink there (a descender) is kept.
+            for (first, thick), view, open_ in zip(sides, [sub, sub[::-1], sub.T, sub.T[::-1]],
+                                                   [seam, seam[::-1], seam.T, seam.T[::-1]]):
+                for col in np.nonzero(first >= 0)[0]:
+                    view[first[col]:first[col] + thick + 1, col] &= open_[first[col]:first[col] + thick + 1, col]
+            found.append(Rect(ox / scale, oy / scale, (ox + c1 - c0) / scale, (oy + r1 - r0) / scale))
     return ink, found
+
+
+def _faces(mine: np.ndarray, scale: float) -> list:
+    """One window per RECTANGLE of each FACE a component's rules enclose that is a box's size (kb/Work PB4898), as
+    (y0, y1, x0, x1, seam, beyond): the window's rows and columns in `mine`; the SEAM, a rule drawn where the printer drew
+    none, across the columns this rectangle shares with the face's next rectangle above or below; and BEYOND, the ink
+    past the seam (the next line's glyphs) that `_box` must not see; so `_box` judges each rectangle as the box it is,
+    on (window & ~beyond) | seam. A face is the paper the component's ink cuts off from the paper around it; a printed
+    line's rectangle is a run of the face's rows whose left and right ends stay within BOX_TILT (a polygon's ends jump
+    by a column's width where its next line begins). Ink fused inside a box (a bracket whose feet touch its side:
+    `[RECORD]` on PDF page 389) cuts small faces off the box's own; a small face belongs to the box-sized face whose rows
+    hold it, so the rectangle still reaches the box's rules. Each window reaches a rule's thickness and tilt beyond its
+    rectangle, so it holds the rules that enclose it."""
+    h, w = mine.shape
+    paper = np.ones((h + 2, w + 2), dtype=bool)                  # a margin of paper joins everything outside the rules
+    paper[1:-1, 1:-1] = ~mine
+    # `label` joins pixels that touch at a corner, which is right for ink and wrong for paper: paper would cross a rule
+    # where the scan steps it diagonally. Widening the ink by a pixel closes every such step.
+    paper[1:-1, 1:-2] &= ~mine[:, 1:]
+    paper[1:-1, 2:-1] &= ~mine[:, :-1]
+    labels, holes = label(paper)
+    labels = labels[1:-1, 1:-1]
+    inner = [(k, f) for k, f in enumerate(holes, start=1)
+             if f.x0 > 0 and f.y0 > 0 and f.x1 < w + 2 and f.y1 < h + 2]   # the one touching the margin is outside
+    big = [(k, f) for k, f in inner if (f.x1 - f.x0) >= BOX_MIN_W * scale and (f.y1 - f.y0) >= BOX_MIN_H * scale]
+    pad = int(math.ceil((BOX_RULE + BOX_TILT) * scale))
+    tilt = BOX_TILT * scale
+    line = max(1, int(BOX_MIN_H * scale / 2))                   # a jump of the ends shorter than this is a glyph, not a line
+    thick = max(1, int(BOX_RULE * scale / 2))
+    windows = []
+    for k, f in big:
+        face = labels == k
+        for j, g in inner:
+            if (j, g) not in big and g.y0 >= f.y0 - 1 and g.y1 <= f.y1 + 1 and g.x0 >= f.x0 - pad and g.x1 <= f.x1 + pad:
+                face |= labels == j
+        rows = np.nonzero(face.any(axis=1))[0]
+        lo = face[rows].argmax(axis=1)
+        hi = w - face[rows][:, ::-1].argmax(axis=1)
+        # The ends per row, smoothed over a line's half height so a glyph fused to a side (a bracket's foot) is no jump.
+        span = 2 * (line // 2) + 1
+        lo, hi = (np.median(np.lib.stride_tricks.sliding_window_view(np.pad(e, line // 2, mode="edge"), span), axis=1)
+                  for e in (lo, hi))
+        rects = []                                               # [first row, last row + 1, left, right]
+        for r, a, b in zip(rows, lo, hi):
+            if rects and abs(a - rects[-1][2]) <= tilt and abs(b - rects[-1][3]) <= tilt and r == rects[-1][1]:
+                rects[-1][1] = int(r) + 1
+            else:
+                rects.append([int(r), int(r) + 1, int(a), int(b)])
+        # A run shorter than half a line is no printed line: the first or last rows of a face under a rule the scan
+        # tilted, which reach only part of its width. It joins the line beside it, and no seam is drawn between them.
+        lines = []
+        for rect in rects:
+            if lines and rect[1] - rect[0] < line:
+                lines[-1][1] = rect[1]
+            elif lines and lines[-1][1] - lines[-1][0] < line:
+                lines[-1] = [lines[-1][0], *rect[1:]]
+            else:
+                lines.append(rect)
+        rects = lines
+        for i, (r0, r1, a, b) in enumerate(rects):
+            y0, y1, x0, x1 = max(0, r0 - pad), min(h, r1 + pad), max(0, a - pad), min(w, b + pad)
+            seam = np.zeros((y1 - y0, x1 - x0), dtype=bool)
+            beyond = np.zeros_like(seam)
+            for n, edge, toward in ((i - 1, r0 - y0, -1), (i + 1, r1 - y0, 1)):
+                if 0 <= n < len(rects):
+                    s0, s1 = max(a, rects[n][2]) - x0, min(b, rects[n][3]) - x0
+                    if s1 > s0:
+                        # the seam: a rule just outside this rectangle, and nothing beyond it (the next line's glyphs)
+                        seam[max(0, edge - thick):edge if toward < 0 else edge + thick, s0:s1] = True
+                        beyond[(slice(0, max(0, edge - thick)) if toward < 0 else slice(edge + thick, None)), s0:s1] = True
+            windows.append((y0, y1, x0, x1, seam, beyond))
+    return windows
+
+
+def _box(mine: np.ndarray, scale: float):
+    """Is `mine` (a component's pixels, or a window of them around one face) a BOX: four rules (`_side`) that enclose a
+    rectangle of a box's size? Returns (r0, r1, c0, c1, [top, bottom, left, right] as `_side` gives them over the box
+    rectangle mine[r0:r1, c0:c1]) or None."""
+    # The window may reach past the rules (a descender from the line above fused to the top rule, page 396): find the
+    # top and bottom rules first and judge the left and right sides between them, then the reverse.
+    top, bot = _side(mine, scale), _side(mine[::-1], scale)
+    if top is None or bot is None:
+        return None
+    r0, r1 = int(np.percentile(top[0][top[0] >= 0], 1)), mine.shape[0] - int(np.percentile(bot[0][bot[0] >= 0], 1))
+    band = mine[r0:r1]
+    left, right = _side(band.T, scale), _side(band.T[::-1], scale)
+    if left is None or right is None:
+        return None
+    c0, c1 = int(np.percentile(left[0][left[0] >= 0], 1)), band.shape[1] - int(np.percentile(right[0][right[0] >= 0], 1))
+    # The rules found may enclose far less than the window: one side of a drawn diagram's frame read as "two sides"
+    # 1.4 pt apart (PDF page 353), an underline fused to its word's descender as "a top and a bottom" 1.3 pt apart
+    # (page 222; its crop is a calibration case), and the false box's "rules" were erased. A box is the rectangle its
+    # rules enclose, so that rectangle must itself be a box's size (kb/Work PB4849).
+    if (c1 - c0) < BOX_MIN_W * scale or (r1 - r0) < BOX_MIN_H * scale:
+        return None
+    box = band[:, c0:c1]
+    sides = [_side(box, scale), _side(box[::-1], scale), _side(box.T, scale), _side(box.T[::-1], scale)]
+    return None if any(x is None for x in sides) else (r0, r1, c0, c1, sides)
 
 
 def split_fused_rules(ink: np.ndarray, comps: list, scale: float):

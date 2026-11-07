@@ -92,6 +92,24 @@
    "underlines": null
   },
   {
+   "page": 389,
+   "file": "p0389-prose.png",
+   "x0_pt": 40.0,
+   "y0_pt": 97.0,
+   "region_pt": [
+    100,
+    150
+   ],
+   "skew_deg": -0.25,
+   "stems_L": 0,
+   "stems_R": 0,
+   "bars": 0,
+   "braces_L": 0,
+   "braces_R": 0,
+   "boxes": 4,
+   "underlines": null
+  },
+  {
    "page": 396,
    "file": "p0396.png",
    "x0_pt": 40.0,
@@ -214,6 +232,24 @@
    "bars": 0,
    "braces_L": 5,
    "braces_R": 5,
+   "boxes": 3,
+   "underlines": null
+  },
+  {
+   "page": 684,
+   "file": "p0684-prose.png",
+   "x0_pt": 40.0,
+   "y0_pt": 107.0,
+   "region_pt": [
+    110,
+    139
+   ],
+   "skew_deg": -0.25,
+   "stems_L": 0,
+   "stems_R": 0,
+   "bars": 0,
+   "braces_L": 0,
+   "braces_R": 0,
    "boxes": 3,
    "underlines": null
   },
