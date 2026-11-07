@@ -1,0 +1,17 @@
+{
+ "page": 776,
+ "figure": 0,
+ "drawn_lines": [
+  "    01  A  PIC X(1000).",
+  "    01  B  PIC XXX.",
+  "    01  PTR  REDEFINES B  PIC 999.",
+  "    01  CC.",
+  "        02  C  PIC 9(4)  OCCURS 100 TIMES.",
+  "",
+  "    PROCEDURE DIVISION.",
+  "        MOVE 1 TO PTR.",
+  "        STRING A DELIMITED BY SPACE INTO B POINTER C (PTR)."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is Appendix XVII (substantive changes potentially affecting existing programs): the block is an example program fragment or comparison of COBOL source in plain type, illustrating a change, not a general format."
+}

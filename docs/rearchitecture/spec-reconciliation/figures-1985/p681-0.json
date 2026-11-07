@@ -1,0 +1,24 @@
+{
+ "page": 681,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>RECEIVE</u> cd-name-1 ⎧ <u>MESSAGE</u> ⎫ <u>INTO</u> identifier-1",
+  "                  ⎩ <u>SEGMENT</u> ⎭",
+  "",
+  "    [<u>NO</u> <u>DATA</u> imperative-statement-1]",
+  "",
+  "    [WITH <u>DATA</u> imperative-statement-2]",
+  "",
+  "    [<u>END-RECEIVE</u>]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                  ╭   <u>MESSAGE</u>   ╮",
+  "<u>RECEIVE</u> cd-name-1 ┤             ├ <u>INTO</u> identifier-1",
+  "                  ╰ ║ <u>SEGMENT</u> ║ ╯",
+  "[ <u>NO</u> <u>DATA</u> imperative-statement-1 ]",
+  "[ WITH <u>DATA</u> imperative-statement-2 ]",
+  "[ <u>END-RECEIVE</u> ]"
+ ],
+ "reason": "The printed page boxes SEGMENT (level 2) inside the MESSAGE/SEGMENT brace and underlines it whole; the batch lost the box, and the regeneration underlined SEGME only."
+}

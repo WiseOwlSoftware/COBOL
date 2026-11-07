@@ -1,0 +1,16 @@
+{
+ "page": 206,
+ "figure": 0,
+ "drawn_lines": [
+  "                                         ┌⎧<u>THROUGH</u>⎫              ┐",
+  "66 data-name-1 <u>RENAMES</u> data-name-2     │⎨       ⎬  data-name-3 │ .",
+  "                                         └⎩<u>THRU</u>   ⎭              ┘"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "                                   ┌ ╭ <u>THROUGH</u> ╮             ┐",
+  "66 data-name-1 <u>RENAMES</u> data-name-2 │ ┤         ├ data-name-3 │ .",
+  "                                   └ ╰ <u>THRU</u>    ╯             ┘"
+ ],
+ "reason": "The printed page brackets the THROUGH/THRU brace together with data-name-3, as the regeneration draws it; the batch drew a stray choice bar."
+}

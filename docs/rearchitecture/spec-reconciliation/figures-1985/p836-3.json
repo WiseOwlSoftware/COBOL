@@ -1,0 +1,33 @@
+{
+ "page": 836,
+ "figure": 3,
+ "drawn_lines": [
+  "Intrinsic functions",
+  " ACOS function . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " ANNUITY function . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " ASIN function. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " ATAN function . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " CHAR function . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " COS function . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " CURRENT-DATE function  . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " DATE-OF-INTEGER function . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " DAY-OF-INTEGER function. . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " FACTORIAL function . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " INTEGER function  . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " INTEGER-OF-DATE function . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " INTEGER-OF-DAY function. . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " INTEGER-PART function . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " LENGTH function. . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " LOG function . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " LOG10 function . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " LOWER-CASE function . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " MAX function. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " MEAN function . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " MEDIAN function. . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " MIDRANGE function . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " MIN function . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR",
+  " MOD function  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   1 ITR"
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is the amendment's list of changes to the summary-of-elements table (Page No. / Change to ANSI X3.23-1985 and ISO 1989-1985): table entries with dot leaders and module levels, not a general format."
+}

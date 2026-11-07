@@ -1,0 +1,12 @@
+{
+ "page": 230,
+ "figure": 1,
+ "drawn_lines": [
+  "data-name-1 (leftmost-character-position: [length])"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "data-name-1 ( leftmost-character-position: [ length ] )"
+ ],
+ "reason": "The printed page sets the reference-modification format line as the regeneration reads it; it is a general format of the composite skeleton."
+}

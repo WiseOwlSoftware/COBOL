@@ -530,6 +530,32 @@ def main() -> int:
           [w["text"] for w in rp.words if w["text"]] == ["GO", "TO", "[", "procedure-name-1", "]"] and not rp.disagreements,
           f"got {[w['text'] for w in rp.words]} {rp.disagreements}")
 
+    # 10k. An underlined word whose letters fused into fewer components than it has letters keeps its rule whole, except
+    #      for a separator printed after (or before) the letters that the rule never reaches (PDF page 182: the rule
+    #      under `DECLARATIVES.` stops short of the period; the printed page underlines the reserved word only).
+    from types import SimpleNamespace as _Rule
+    fused = [(10.0 + 7 * k, 20.0, 16.0 + 7 * k, 28.0) for k in range(10)] + [(80.0, 25.0, 82.0, 28.0)]  # 12 letters fused to 10, then "."
+    for name, rules, text, want, noted in (
+            ("the period the rule stops short of is not underlined",
+             [_Rule(x0=10.5, x1=76.0, y0=29.0)], "DECLARATIVES.", [(0, 12)], False),
+            ("a period the rule reaches keeps the rule whole (and the note)",
+             [_Rule(x0=10.5, x1=82.0, y0=29.0)], "DECLARATIVES.", True, True),
+            ("a word ending in no separator keeps the rule whole (and the note)",
+             [_Rule(x0=10.5, x1=76.0, y0=29.0)], "DECLARATIVESX", True, True)):
+        bad = []
+        got = R._state((10.0, 20.0, 82.0, 28.0, fused), text, rules, {}, bad)
+        total += 1
+        check(f"10k: {name}", got == want and bool(bad) == noted, f"got {got} {bad}")
+    # ... and a word whose components DO pair with its letters, the rule overrunning the last letter's foot into the
+    #     period, past its centre but not under the whole glyph (PDF page 380's `I-O-CONTROL.`): the period is plain.
+    cells = [(10.0 + 6 * k, 20.0, 15.4 + 6 * k, 28.0) for k in range(4)] + [(34.1, 25.0, 36.3, 28.0)]
+    for name, x1, want in (("an overrun past the period's centre leaves it plain", 35.4, [(0, 4)]),
+                           ("a rule struck under the whole period underlines it", 37.0, True)):
+        bad = []
+        got = R._state((10.0, 20.0, 36.3, 28.0, cells), "WORD.", [_Rule(x0=9.8, x1=x1, y0=29.0)], {}, bad)
+        total += 1
+        check(f"10k: {name}", got == want and not bad, f"got {got} {bad}")
+
     # 10e. Two figures that share words are placed TOGETHER, in order (ADD's formats share `[ON SIZE ERROR ...]`).
     def hint(y, *words_):
         return [(10 + 40 * k, y, 40 + 40 * k, y + 8, w) for k, w in enumerate(words_)]

@@ -1011,19 +1011,61 @@ TRIM_NOTE = "underlined word's components do not match its letters"
 
 def _state(box, text, rules, where: dict, bad: list):
     """A paired word's underline state, `figure_extract`'s own (`is_underlined`, then `underline_runs` to trim, which can
-    only remove characters). An underlined word whose components do not pair with its letters keeps its rule whole and
-    is reported."""
+    only remove characters), then a separator at either end the rule does not span taken off (`_trim_separators`). An
+    underlined word whose components do not pair with its letters keeps its rule whole (but for those separators), and
+    is reported when nothing could be trimmed."""
     x0, y0, x1, y1, chars = box
     state = FX.is_underlined((x0, y0, x1, y1), rules)
     if state is True and text and len(text) > 1:
         own = [r for r in rules if FX.MIN_ABOVE <= r.y0 - y1 <= FX.MAX_GAP
                and (min(x1, r.x1) - max(x0, r.x0)) / max(x1 - x0, 0.1) >= FX.MIN_COVER]
-        if len(chars) == len(text):
-            state = FX.underline_runs(chars, own)
-        else:
-            bad.append(dict(where, text=text, components=len(chars), letters=len(text),
-                            reason=TRIM_NOTE))
+        matched = len(chars) == len(text)
+        state = _trim_separators(FX.underline_runs(chars, own) if matched else True, chars, text, own)
+        if state is True and not matched:
+            bad.append(dict(where, text=text, components=len(chars), letters=len(text), reason=TRIM_NOTE))
     return state
+
+
+#: A separator glyph a word may carry hard against it (`DECLARATIVES.`, `FILE:`): punctuation, never a letter.
+SEPARATOR_GLYPHS = frozenset(".,;:")
+
+
+def _trim_separators(state, chars, text: str, rules):
+    """`state` (True, False or `underline_runs`' runs) with the separators at either end of the word taken off when the
+    rule does not SPAN the separator's glyph (kb/Work PB4849). The 1985 standard is typewritten: an underline is struck
+    as underscores, one per character cell, so an underlined separator has the rule running wholly under it, and a rule
+    that stops at its foot or short of it underlines the letters only. On PDF page 182 the rule under `DECLARATIVES.`
+    stops 3.6 pt short of the period; on page 380 the rule under `I-O-CONTROL.` overruns the L's foot 1.3 pt into the
+    period's 2.2 pt glyph (past its centre), and both whole tokens were read as underlined where the printed page
+    underlines the reserved word only. The glyph is the word's first or last component whether or not its components
+    pair with its letters (an underline touching a letter fuses the two, never a separator printed clear of the rule).
+    Like `underline_runs`, this only removes characters, and only separators."""
+    if state is False or not chars:
+        return state
+    seps = "".join(SEPARATOR_GLYPHS)
+    lead = len(text) - len(text.lstrip(seps))
+    tail = len(text) - len(text.rstrip(seps))
+    if lead + tail >= len(text):
+        return state
+
+    def spanned(c):
+        cx0, _, cx1, cy1 = c
+        return any(FX.MIN_ABOVE <= r.y0 - cy1 <= FX.MAX_GAP and r.x0 <= cx0 and r.x1 >= cx1 for r in rules)
+    lead = lead if lead and not spanned(chars[0]) else 0
+    tail = tail if tail and not spanned(chars[-1]) else 0
+    if not (lead or tail):
+        return state
+    on = [True] * len(text) if state is True else [any(o <= i < o + n for o, n in state) for i in range(len(text))]
+    for i in [*range(lead), *range(len(text) - tail, len(text))]:
+        on[i] = False
+    runs, cur = [], None
+    for i, v in enumerate(on + [False]):
+        if v and cur is None:
+            cur = i
+        elif not v and cur is not None:
+            runs.append((cur, i - cur))
+            cur = None
+    return runs or False
 
 
 DELIMS = frozenset("[]{}()")

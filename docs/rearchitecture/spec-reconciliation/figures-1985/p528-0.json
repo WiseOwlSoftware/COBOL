@@ -1,0 +1,16 @@
+{
+ "page": 528,
+ "figure": 0,
+ "drawn_lines": [
+  "                           ┌    ⎧│<u>COMMON</u> │⎫         ┐",
+  "<u>PROGRAM-ID</u>.  program-name │ IS ⎨│       │⎬ PROGRAM │ .",
+  "                           └    ⎩│<u>INITIAL</u>│⎭         ┘"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "╔                          ┌    ╭ │ <u>COMMON</u>  │ ╮         ┐   ╗",
+  "║ <u>PROGRAM-ID</u>. program-name │ IS ┤ │         │ ├ PROGRAM │ . ║",
+  "╚                          └    ╰ │ <u>INITIAL</u> │ ╯         ┘   ╝"
+ ],
+ "reason": "The printed page draws the PROGRAM-ID format inside the section's level-2 box, COMMON and INITIAL between choice bars inside the brace, as the regeneration draws it (the same format as page 526)."
+}

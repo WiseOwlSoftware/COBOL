@@ -1,0 +1,16 @@
+{
+ "page": 526,
+ "figure": 0,
+ "drawn_lines": [
+  "                         ┌    ⎧│<u>COMMON</u> │⎫         ┐",
+  "<u>PROGRAM-ID</u>. program-name │ IS ⎨│       │⎬ PROGRAM │ .",
+  "                         └    ⎩│<u>INITIAL</u>│⎭         ┘"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "╔                          ┌    ╭ │ <u>COMMON</u>  │ ╮         ┐   ╗",
+  "║ <u>PROGRAM-ID</u>. program-name │ IS ┤ │         │ ├ PROGRAM │ . ║",
+  "╚                          └    ╰ │ <u>INITIAL</u> │ ╯         ┘   ╝"
+ ],
+ "reason": "The printed page encloses the whole clause or statement, prose and general format, in one level-2 box (the page's outline), so the format lies inside a box as the regeneration draws it; the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment."
+}

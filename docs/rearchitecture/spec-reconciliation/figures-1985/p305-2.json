@@ -1,0 +1,25 @@
+{
+ "page": 305,
+ "figure": 2,
+ "drawn_lines": [
+  "<u>ADD</u> ⎧<u>CORRESPONDING</u>⎫ identifier-1 <u>TO</u> identifier-2 [<u>ROUNDED</u>]",
+  "    ⎩<u>CORR</u>         ⎭",
+  "",
+  "    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]",
+  "",
+  "    [<u>END-ADD</u>]"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "╔     ╭ <u>CORRESPONDING</u> ╮                                          ╗",
+  "║ <u>ADD</u> ┤               ├ identifier-1 <u>TO</u> identifier-2 [ <u>ROUNDED</u> ] ║",
+  "║     ╰ <u>CORR</u>          ╯                                          ║",
+  "║                                                                ║",
+  "║ [ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]                       ║",
+  "║ [ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]                   ║",
+  "╚ [ <u>END-ADD</u> ]                                                    ╝"
+ ],
+ "reason": "The printed page draws a level-2 box around exactly the span the regeneration boxes (checked on the rendered page and against the box pass's list of the page's boxes); the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment."
+}

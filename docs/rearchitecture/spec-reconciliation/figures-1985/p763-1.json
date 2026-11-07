@@ -1,0 +1,16 @@
+{
+ "page": 763,
+ "figure": 1,
+ "drawn_lines": [
+  "Under second Standard COBOL:     Under third Standard COBOL:",
+  "",
+  "MOVE A-ODO TO B-ODO.             MOVE A TO B.",
+  "MOVE A TO B.",
+  "",
+  "READ INPUT-FILE                  READ INPUT-FILE INTO B.",
+  "MOVE A-ODO TO B-ODO.",
+  "MOVE A TO B."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is Appendix XVII (substantive changes potentially affecting existing programs): the block is an example program fragment or comparison of COBOL source in plain type, illustrating a change, not a general format."
+}

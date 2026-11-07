@@ -1,0 +1,25 @@
+{
+ "page": 332,
+ "figure": 0,
+ "drawn_lines": [
+  "   INSPECT ITEM TALLYING",
+  "",
+  "        COUNT-0 FOR ALL \"AB\", ALL \"D\"",
+  "        COUNT-1 FOR ALL \"BC\"",
+  "        COUNT-2 FOR LEADING \"EF\"",
+  "        COUNT-3 FOR LEADING \"B\"",
+  "        COUNT-4 FOR CHARACTERS;",
+  "",
+  "   INSPECT ITEM REPLACING",
+  "",
+  "        ALL \"AB\" BY \"XY\", \"D\" BY \"X\"",
+  "        ALL \"BC\" BY \"VW\"",
+  "        LEADING \"EF\" BY \"TU\"",
+  "        LEADING \"B\" BY \"S\"",
+  "        FIRST \"G\" BY \"R\"",
+  "        FIRST \"G\" BY \"P\"",
+  "        CHARACTERS BY \"Z\""
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page sets this as Example 1 of the INSPECT statement (6.18.5 Examples): COBOL statements in plain type, not a general format."
+}

@@ -1,0 +1,10 @@
+{
+ "page": 768,
+ "figure": 0,
+ "drawn_lines": [
+  "     COPY XYZ",
+  "    D    REPLACING 1 BY 2."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is Appendix XVII (substantive changes potentially affecting existing programs): the block is an example program fragment or comparison of COBOL source in plain type, illustrating a change, not a general format."
+}

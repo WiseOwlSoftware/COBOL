@@ -1,0 +1,15 @@
+{
+ "page": 386,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>PADDING</u> CHARACTER IS ⎧data-name-1⎫",
+  "                     ⎩literal-1  ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔                      ╭ data-name-1 ╮ ╗",
+  "║ <u>PADDING</u> CHARACTER IS ┤             ├ ║",
+  "╚                      ╰ literal-1   ╯ ╝"
+ ],
+ "reason": "The printed page encloses the whole PADDING CHARACTER clause, prose and format, in one level-2 box; the batch lost the box, and the regeneration drew one of its sides as a choice bar."
+}

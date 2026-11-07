@@ -1,0 +1,12 @@
+{
+ "page": 772,
+ "figure": 1,
+ "drawn_lines": [
+  "          PERFORM PARA2 VARYING X FROM 1 BY 1 UNTIL X IS GREATER THAN 3.",
+  "",
+  "      PARA2.",
+  "          PERFORM PARA3 VARYING Y FROM X BY 1 UNTIL Y IS GREATER THAN 3."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is Appendix XVII (substantive changes potentially affecting existing programs): the block is an example program fragment or comparison of COBOL source in plain type, illustrating a change, not a general format."
+}

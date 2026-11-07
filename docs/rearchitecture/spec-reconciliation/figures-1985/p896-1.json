@@ -1,0 +1,9 @@
+{
+ "page": 896,
+ "figure": 1,
+ "drawn_lines": [
+  "          argument-1 - (argument-2 * FUNCTION INTEGER-PART (argument-1 / argument-2))"
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page gives this in Returned Values as the arithmetic expression defining the REM function's result, not a general format."
+}

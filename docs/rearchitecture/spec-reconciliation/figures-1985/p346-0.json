@@ -1,0 +1,33 @@
+{
+ "page": 346,
+ "figure": 0,
+ "drawn_lines": [
+  "                    Entrance",
+  "                       │",
+  "                       ▼",
+  "          ┌────────────────────────────┐",
+  "          │ Set identifier-2 equal to  │",
+  "          │   current FROM value       │",
+  "          └────────────────────────────┘",
+  "                       │",
+  "                       ▼",
+  "               ╭───────────────╮                True",
+  "     ┌────────►│  Condition-1  │──────────────────────────────► Exit",
+  "     │         ╰───────────────╯",
+  "     │                 │",
+  "     │                 │ False",
+  "     │                 ▼",
+  "     │    ┌────────────────────────────┐",
+  "     │    │ Execute specified set      │",
+  "     │    │     of statements          │",
+  "     │    └────────────────────────────┘",
+  "     │                 │",
+  "     │                 ▼",
+  "     │    ┌────────────────────────────┐",
+  "     └────│ Augment identifier-2 with  │",
+  "          │    current BY value        │",
+  "          └────────────────────────────┘"
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page shows a boxed flowchart figure of the VARYING option of a PERFORM statement, not a general format."
+}

@@ -1,0 +1,29 @@
+{
+ "page": 702,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>OBJECT-COMPUTER</u>.  [computer-name",
+  "",
+  "  ┌                       ⎧<u>WORDS</u>     ⎫┐",
+  "  │<u>MEMORY</u> SIZE integer-1 ⎨<u>CHARACTERS</u>⎬│",
+  "  └                       ⎩<u>MODULES</u>   ⎭┘",
+  "",
+  "  [PROGRAM COLLATING <u>SEQUENCE</u> IS alphabet-name-1]",
+  "",
+  "  [<u>SEGMENT-LIMIT</u> IS segment-number].]"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "╔ <u>OBJECT-COMPUTER</u>. [ computer-name                  ╗",
+  "║                                                   ║",
+  "║ ┌                       ╭ <u>WORDS</u>      ╮ ┐          ║",
+  "║ │                       │            │ │          ║",
+  "║ │ <u>MEMORY</u> SIZE integer-1 ┤ <u>CHARACTERS</u> ├ │          ║",
+  "║ │                       │            │ │          ║",
+  "║ └                       ╰ <u>MODULES</u>    ╯ ┘          ║",
+  "║                                                   ║",
+  "║ [ PROGRAM COLLATING <u>SEQUENCE</u> IS alphabet-name-1 ] ║",
+  "╚ [ <u>SEGMENT-LIMIT</u> IS segment-number ] . ]           ╝"
+ ],
+ "reason": "The printed page draws the OBJECT-COMPUTER paragraph's format inside the page's level-2 box, with one MEMORY SIZE brace, as the regeneration draws it; the batch lost the box."
+}

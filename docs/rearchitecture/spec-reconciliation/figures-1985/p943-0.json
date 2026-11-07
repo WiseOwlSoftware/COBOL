@@ -1,0 +1,13 @@
+{
+ "page": 943,
+ "figure": 0,
+ "drawn_lines": [
+  "DATA DIVISION.",
+  "01  K  PIC 9  VALUE IS 0.",
+  "01  A.",
+  "    02  B  PIC X  OCCURS 0 TO 3 TIMES",
+  "                  DEPENDING ON K."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is the amendment's Description of Change (X3.23b-1993): the block is an example program fragment of COBOL source in plain type, illustrating a change, not a general format."
+}

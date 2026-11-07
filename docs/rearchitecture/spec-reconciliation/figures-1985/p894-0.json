@@ -1,0 +1,12 @@
+{
+ "page": 894,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>FUNCTION</u> <u>RANDOM</u> [(argument-1)]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>FUNCTION</u> <u>RANDOM</u> [ ( argument-1 ) ]"
+ ],
+ "reason": "The printed page (the intrinsic-function amendment, typeset) sets this one-line format exactly as the batch drew it: FUNCTION and the function name underlined, the parentheses, braces, brackets and ellipsis as typed; the measurer missed the typeset parentheses (or the format). Drawn in the house style."
+}

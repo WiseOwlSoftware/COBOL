@@ -1,0 +1,12 @@
+{
+ "page": 359,
+ "figure": 3,
+ "drawn_lines": [
+  "<u>SET</u> {condition-name-1} ...  <u>TO</u> <u>TRUE</u>"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "║ <u>SET</u> { condition-name-1 } … <u>TO</u> <u>TRUE</u> ║"
+ ],
+ "reason": "The printed page encloses SET Format 4 in a level-2 box (the batch lost it); the regeneration drew the box's sides as choice bars. The box drawn as rule 9's two sides."
+}

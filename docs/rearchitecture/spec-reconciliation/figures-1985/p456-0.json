@@ -1,0 +1,21 @@
+{
+ "page": 456,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>READ</u> file-name-1 [<u>NEXT</u>] RECORD  [<u>INTO</u> identifier-1]",
+  "",
+  "    [AT <u>END</u> imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> AT <u>END</u> imperative-statement-2]",
+  "",
+  "    [<u>END-READ</u>]"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "<u>READ</u> file-name-1 ║ [ <u>NEXT</u> ] ║ RECORD [ <u>INTO</u> identifier-1 ]",
+  "[ AT <u>END</u> imperative-statement-1 ]",
+  "[ <u>NOT</u> AT <u>END</u> imperative-statement-2 ]",
+  "[ <u>END-READ</u> ]"
+ ],
+ "reason": "The printed page draws a level-2 box around exactly the span the regeneration boxes (checked on the rendered page and against the box pass's list of the page's boxes); the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment."
+}

@@ -1,0 +1,18 @@
+{
+ "page": 678,
+ "figure": 1,
+ "drawn_lines": [
+  "       ⎧<u>INPUT</u> [<u>TERMINAL</u>]⎫               ┌             ⎧identifier-1⎫┐",
+  "<u>ENABLE</u> ⎨<u>I-O</u> <u>TERMINAL</u>     ⎬  cd-name-1    │WITH <u>KEY</u>     ⎨            ⎬│",
+  "       ⎩<u>OUTPUT</u>           ⎭               └             ⎩literal-1   ⎭┘"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔        ╭ <u>INPUT</u> [ <u>TERMINAL</u> ] ╮                                         ╗",
+  "║        │                    │           ┌          ╭ identifier-1 ╮ ┐ ║",
+  "║ <u>ENABLE</u> ┤ <u>I-O</u> <u>TERMINAL</u>       ├ cd-name-1 │ WITH <u>KEY</u> ┤              ├ │ ║",
+  "║        │                    │           └          ╰ literal-1    ╯ ┘ ║",
+  "╚        ╰ <u>OUTPUT</u>             ╯                                         ╝"
+ ],
+ "reason": "The printed page encloses the ENABLE statement, prose and format, in one level-2 box, which neither drawing carries; the regeneration's words, groups and underlines match the page. Drawn from the regeneration with the box's two sides."
+}

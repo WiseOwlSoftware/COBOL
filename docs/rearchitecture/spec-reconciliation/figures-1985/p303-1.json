@@ -1,0 +1,21 @@
+{
+ "page": 303,
+ "figure": 1,
+ "drawn_lines": [
+  "                         ⎧ <u>DATE</u>        ⎫",
+  "<u>ACCEPT</u> identifier-2 <u>FROM</u> ⎨ <u>DAY</u>         ⎬",
+  "                         ⎪ <u>DAY-OF-WEEK</u> ⎪",
+  "                         ⎩ <u>TIME</u>        ⎭"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "╔                          ╭ <u>DATE</u>        ╮ ╗",
+  "║                          │             │ ║",
+  "║                          │ <u>DAY</u>         │ ║",
+  "║ <u>ACCEPT</u> identifier-2 <u>FROM</u> ┤             ├ ║",
+  "║                          │ <u>DAY-OF-WEEK</u> │ ║",
+  "║                          │             │ ║",
+  "╚                          ╰ <u>TIME</u>        ╯ ╝"
+ ],
+ "reason": "The printed page draws a level-2 box around exactly the span the regeneration boxes (checked on the rendered page and against the box pass's list of the page's boxes); the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment."
+}

@@ -1,0 +1,27 @@
+{
+ "page": 522,
+ "figure": 0,
+ "drawn_lines": [
+  " identification-division",
+  "",
+  "[environment-division]",
+  "",
+  "[data-division]",
+  "",
+  "[procedure-division]",
+  "",
+  "[source-program] ...",
+  "",
+  "[end-program-header]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔ identification-division  ╗",
+  "║ [ environment-division ] ║",
+  "║ [ data-division ]        ║",
+  "║ [ procedure-division ]   ║",
+  "║ [ source-program ] …     ║",
+  "╚ [ end-program-header ]   ╝"
+ ],
+ "reason": "The printed page encloses this source-program format (with its nested source-program and end program header) in one level-2 box; the batch lost the box, and the regeneration drew part of its left side as a choice bar. Drawn one printed line per row with the box's two sides."
+}

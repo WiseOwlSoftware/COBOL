@@ -1,0 +1,12 @@
+{
+ "page": 168,
+ "figure": 0,
+ "drawn_lines": [
+  "data-name-1 (leftmost-character-position: [length])"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "data-name-1 ( leftmost-character-position: [ length ] )"
+ ],
+ "reason": "The printed page sets this one-line format exactly as the batch drew it (its words, underlines and typed delimiters); the measurer could not locate or pair it. Drawn in the house style."
+}

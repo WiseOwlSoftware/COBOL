@@ -1,0 +1,24 @@
+{
+ "page": 693,
+ "figure": 0,
+ "drawn_lines": [
+  "                     ⎧ cd-name-1                        ⎫",
+  "                     ⎪ [<u>ALL</u> REFERENCES OF] identifier-1 ⎪",
+  "<u>USE</u> FOR <u>DEBUGGING</u> ON ⎨ file-name-1                      ⎬ ...",
+  "                     ⎪ procedure-name-1                 ⎪",
+  "                     ⎩ <u>ALL</u> <u>PROCEDURES</u>                   ⎭"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "                     ╭ ╔ cd-name-1                          ╗ ╮",
+  "                     │ ║                                    ║ │",
+  "                     │ ║ [ <u>ALL</u> REFERENCES OF ] identifier-1 ║ │",
+  "                     │ ║                                    ║ │",
+  "<u>USE</u> FOR <u>DEBUGGING</u> ON ┤ ╚ file-name-1                        ╝ ├ …",
+  "                     │                                        │",
+  "                     │   procedure-name-1                     │",
+  "                     │                                        │",
+  "                     ╰   <u>ALL</u> <u>PROCEDURES</u>                       ╯"
+ ],
+ "reason": "The printed page draws a level-2 box around exactly the span the regeneration boxes (checked on the rendered page and against the box pass's list of the page's boxes); the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment."
+}

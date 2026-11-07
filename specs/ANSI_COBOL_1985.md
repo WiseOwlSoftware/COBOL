@@ -6583,8 +6583,8 @@ Reference modification defines a data item by specifying a leftmost character an
 
 ##### 4.3.8.3.2 General Format
 
-<pre>
-data-name-1 (leftmost-character-position: [length])
+<pre style="line-height:1">
+data-name-1 ( leftmost-character-position: [ length ] )
 </pre>
 
 ##### 4.3.8.3.3 Syntax Rules
@@ -6828,20 +6828,14 @@ The following is the general format of the paragraphs in the Identification Divi
 
 #### 6.1.3.1 General Format
 
-<pre>
- <u>IDENTIFICATION</u> <u>DIVISION</u>.
-
- <u>PROGRAM-ID</u>.  program-identification-entry
-
-[<u>AUTHOR</u>.  [comment-entry] ... ]
-
-[<u>INSTALLATION</u>.  [comment-entry] ... ]
-
-[<u>DATE-WRITTEN</u>.  [comment-entry] ... ]
-
-[<u>DATE-COMPILED</u>.  [comment-entry] ... ]
-
-[<u>SECURITY</u>.  [comment-entry] ... ]
+<pre style="line-height:1">
+<u>IDENTIFICATION</u> <u>DIVISION</u>.
+<u>PROGRAM-ID</u>. program-identification-entry
+[ <u>AUTHOR</u>. [ comment-entry ] … ]
+[ <u>INSTALLATION</u>. [ comment-entry ] … ]
+[ <u>DATE-WRITTEN</u>. [ comment-entry ] … ]
+[ <u>DATE-COMPILED</u>. [ comment-entry ] … ]
+[ <u>SECURITY</u>. [ comment-entry ] … ]
 </pre>
 
 IV-30
@@ -7034,8 +7028,8 @@ Procedure Division
 
 The Procedure Division is identified by, and must begin with, the following header:
 
-<pre>
-<u>PROCEDURE</u> <u>DIVISION</u>  [<u>USING</u> {data-name-1} ... ].
+<pre style="line-height:1">
+<u>PROCEDURE</u> <u>DIVISION</u> [ <u>USING</u> { data-name-1 } … ] .
 </pre>
 
 ##### 6.4.1.4.2 Procedure Division Body
@@ -7044,24 +7038,16 @@ The body of the Procedure Division must conform to one of the following formats:
 
 <u>Format 1</u>:
 
-<pre>
-[<u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u> [segment-number].
-
-    USE statement.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
-
- <u>END</u> <u>DECLARATIVES</u>.]
-
-{section-name <u>SECTION</u> [segment-number].
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
+<pre style="line-height:1">
+[ <u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u> [ segment-number ] .
+USE statement.
+[ paragraph-name.
+[ sentence ] … ] … } …
+<u>END</u> <u>DECLARATIVES</u>. ]
+{ section-name <u>SECTION</u> [ segment-number ] .
+[ paragraph-name.
+[ sentence ] … ] … } …
 </pre>
 
 <u>Format 2</u>:
@@ -7634,29 +7620,29 @@ V-4
 
 <u>SEQUENTIAL FILE</u>:
 
-<pre>
-<u>SELECT</u>  [<u>OPTIONAL</u>]  file-name-1
+<pre style="line-height:1">
+<u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
 
-    <u>ASSIGN</u> TO ⎧implementor-name-1⎫ ...
-              ⎩literal-1         ⎭
+          ╭ implementor-name-1 ╮
+<u>ASSIGN</u> TO ┤                    ├ …
+          ╰ literal-1          ╯
 
-    ┌                   ┌AREA ┐┐
-    │<u>RESERVE</u> integer-1 │     ││
-    └                   └AREAS┘┘
+┌                   ┌ AREA  ┐ ┐
+│ <u>RESERVE</u> integer-1 │       │ │
+└                   └ AREAS ┘ ┘
 
-    [[<u>ORGANIZATION</u> IS]  <u>SEQUENTIAL</u>]
+[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ]
 
-    ┌                        ⎧data-name-1⎫┐
-    │<u>PADDING</u> CHARACTER IS   ⎨           ⎬│
-    └                        ⎩literal-2  ⎭┘
+┌                      ╭ data-name-1 ╮ ┐
+│ <u>PADDING</u> CHARACTER IS ┤             ├ │
+└                      ╰ literal-2   ╯ ┘
 
-    ┌                         ⎧<u>STANDARD-1</u>        ⎫┐
-    │<u>RECORD</u> <u>DELIMITER</u> IS      ⎨                  ⎬│
-    └                         ⎩implementor-name-2⎭┘
+┌                     ╭ <u>STANDARD-1</u>         ╮ ┐
+│ <u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├ │
+└                     ╰ implementor-name-2 ╯ ┘
 
-    [<u>ACCESS</u> MODE IS <u>SEQUENTIAL</u>]
-
-    [FILE <u>STATUS</u> IS data-name-2].
+[ <u>ACCESS</u> MODE IS <u>SEQUENTIAL</u> ]
+[ FILE <u>STATUS</u> IS data-name-2 ] .
 </pre>
 
 <u>RELATIVE FILE</u>:
@@ -7732,31 +7718,30 @@ V-6
 
 ## GENERAL FORMAT FOR FILE CONTROL ENTRY
 
-<pre>
-<u>REPORT FILE</u>:
+<pre style="line-height:1">
+<u>REPORT</u> <u>FILE</u>:
+<u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
 
-<u>SELECT</u>  [<u>OPTIONAL</u>]  file-name-1
+          ╭ implementor-name-1 ╮
+<u>ASSIGN</u> TO ┤                    ├ …
+          ╰ literal-1          ╯
 
-    <u>ASSIGN</u> TO ⎧implementor-name-1⎫ ...
-              ⎩literal-1         ⎭
+┌                   ┌ AREA  ┐ ┐
+│ <u>RESERVE</u> integer-1 │       │ │
+└                   └ AREAS ┘ ┘
 
-    ┌                    ┌     ┐┐
-    │<u>RESERVE</u> integer-1  │AREA ││
-    └                    └AREAS┘┘
+[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] ]
 
-    [[<u>ORGANIZATION</u> IS]  <u>SEQUENTIAL</u>]]
+┌                      ╭ data-name-1 ╮ ┐
+│ <u>PADDING</u> CHARACTER IS ┤             ├ │
+└                      ╰ literal-2   ╯ ┘
 
-    ┌                       ┐
-    │<u>PADDING</u> CHARACTER IS  ⎧data-name-1⎫│
-    └                     ⎩literal-2  ⎭┘
+┌                     ╭ <u>STANDARD-1</u>         ╮ ┐
+│ <u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├ │
+└                     ╰ implementor-name-2 ╯ ┘
 
-    ┌                         ┐
-    │<u>RECORD</u> <u>DELIMITER</u> IS  ⎧<u>STANDARD-1</u>        ⎫│
-    └                     ⎩implementor-name-2⎭┘
-
-    [<u>ACCESS</u> MODE IS <u>SEQUENTIAL</u>]
-
-    [FILE <u>STATUS</u> IS data-name-2].
+[ <u>ACCESS</u> MODE IS <u>SEQUENTIAL</u> ]
+[ FILE <u>STATUS</u> IS data-name-2 ] .
 </pre>
 
 V-7
@@ -8038,10 +8023,10 @@ Data Division - Data Description Entry
 
 <u>FORMAT 2</u>:
 
-<pre>
-                                         ┌⎧<u>THROUGH</u>⎫              ┐
-66 data-name-1 <u>RENAMES</u> data-name-2     │⎨       ⎬  data-name-3 │ .
-                                         └⎩<u>THRU</u>   ⎭              ┘
+<pre style="line-height:1">
+                                   ┌ ╭ <u>THROUGH</u> ╮             ┐
+66 data-name-1 <u>RENAMES</u> data-name-2 │ ┤         ├ data-name-3 │ .
+                                   └ ╰ <u>THRU</u>    ╯             ┘
 </pre>
 
 <u>FORMAT 3</u>:
@@ -8193,54 +8178,54 @@ Data Division - Report Group Description Entry
 
 <u>FORMAT 2</u>:
 
-<pre>
-level-number  [data-name-1]
+<pre style="line-height:1">
+level-number [ data-name-1 ]
 
-    ┌                 ⎧integer-1  [ON <u>NEXT</u> <u>PAGE</u>]⎫┐
-    │<u>LINE</u> NUMBER IS  ⎨                           ⎬│
-    └                 ⎩<u>PLUS</u> Integer-2            ⎭┘
+┌                ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮ ┐
+│ <u>LINE</u> NUMBER IS ┤                            ├ │
+└                ╰ <u>PLUS</u> Integer-2             ╯ ┘
 
-    [[<u>USAGE</u> IS]  <u>DISPLAY</u>].
+[ [ <u>USAGE</u> IS ] <u>DISPLAY</u> ] .
 </pre>
 
 <u>FORMAT 3</u>:
 
-<pre>
-level-number  [data-name-1]
+<pre style="line-height:1">
+level-number [ data-name-1 ]
 
-    ⎧<u>PICTURE</u>⎫
-    ⎨       ⎬ IS character-string
-    ⎩<u>PIC</u>    ⎭
+╭ <u>PICTURE</u> ╮
+┤         ├ IS character-string
+╰ <u>PIC</u>     ╯
 
-    [[<u>USAGE</u> IS]  <u>DISPLAY</u>]
+[ [ <u>USAGE</u> IS ] <u>DISPLAY</u> ]
 
-    ┌          ⎧<u>LEADING</u> ⎫                    ┐
-    │[<u>SIGN</u> IS] ⎨        ⎬ <u>SEPARATE</u> CHARACTER│
-    └          ⎩<u>TRAILING</u>⎭                    ┘
+┌             ╭ <u>LEADING</u>  ╮                    ┐
+│ [ <u>SIGN</u> IS ] ┤          ├ <u>SEPARATE</u> CHARACTER │
+└             ╰ <u>TRAILING</u> ╯                    ┘
 
-    ┌⎧<u>JUSTIFIED</u>⎫      ┐
-    │⎨         ⎬ RIGHT│
-    └⎩<u>JUST</u>     ⎭      ┘
+┌ ╭ <u>JUSTIFIED</u> ╮       ┐
+│ ┤           ├ RIGHT │
+└ ╰ <u>JUST</u>      ╯       ┘
 
-    [<u>BLANK</u> WHEN <u>ZERO</u>]
+[ <u>BLANK</u> WHEN <u>ZERO</u> ]
 
-    ┌                 ⎧integer-1  [ON <u>NEXT</u> <u>PAGE</u>]⎫┐
-    │<u>LINE</u> NUMBER IS  ⎨                           ⎬│
-    └                 ⎩<u>PLUS</u> integer-2            ⎭┘
+┌                ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮ ┐
+│ <u>LINE</u> NUMBER IS ┤                            ├ │
+└                ╰ <u>PLUS</u> integer-2             ╯ ┘
 
-    [<u>COLUMN</u> NUMBER IS integer-3]
+[ <u>COLUMN</u> NUMBER IS integer-3 ]
 
-    ⎧<u>SOURCE</u> IS identifier-1                                   ⎫
-    ⎪                                                         ⎪
-    ⎪<u>VALUE</u> IS literal-1                                       ⎪
-    ⎪                                                         ⎪
-    ⎨{<u>SUM</u>  {identifier-2} ...  [<u>UPON</u> {data-name-2} ... ]} ...⎬
-    ⎪                                                         ⎪
-    ⎪       ┌         ⎧data-name-3⎫┐                          ⎪
-    ⎪       │<u>RESET</u> ON ⎨           ⎬│                          ⎪
-    ⎩       └         ⎩<u>FINAL</u>      ⎭┘                          ⎭
+╭ <u>SOURCE</u> IS identifier-1                                  ╮
+│                                                         │
+│ <u>VALUE</u> IS literal-1                                      │
+│                                                         │
+┤ { <u>SUM</u> { identifier-2 } … [ <u>UPON</u> { data-name-2 } … ] } … ├
+│                                                         │
+│ ┌          ╭ data-name-3 ╮ ┐                            │
+│ │ <u>RESET</u> ON ┤             ├ │                            │
+╰ └          ╰ <u>FINAL</u>       ╯ ┘                            ╯
 
-    [<u>GROUP</u> INDICATE].
+[ <u>GROUP</u> INDICATE ] .
 </pre>
 
 V-18
@@ -8255,26 +8240,17 @@ V-18
 
 <u>FORMAT 1</u>:
 
-<pre>
-[<u>PROCEDURE</u> <u>DIVISION</u>  [<u>USING</u>  {data-name-1} ... ].
-
-[<u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u> [segment-number].
-
-     USE statement.
-
-[paragraph-name.
-
-     [sentence] ... ] ... } ...
-
- <u>END</u> <u>DECLARATIVES</u>.]
-
-{section-name <u>SECTION</u> [segment-number].
-
-[paragraph-name.
-
-     [sentence] ... ] ... } ... ]
+<pre style="line-height:1">
+[ <u>PROCEDURE</u> <u>DIVISION</u> [ <u>USING</u> { data-name-1 } … ] .
+[ <u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u> [ segment-number ] .
+USE statement.
+[ paragraph-name.
+[ sentence ] … ] … } …
+<u>END</u> <u>DECLARATIVES</u>. ]
+{ section-name <u>SECTION</u> [ segment-number ] .
+[ paragraph-name.
+[ sentence ] … ] … } … ]
 </pre>
 
 <u>FORMAT 2</u>:
@@ -8544,11 +8520,11 @@ Verb Formats (EXIT - INSPECT)
 
 ## GENERAL FORMAT FOR COBOL VERBS
 
-<pre>
+<pre style="line-height:1">
 <u>EXIT</u>
 </pre>
 
-<pre>
+<pre style="line-height:1">
 <u>EXIT</u> <u>PROGRAM</u>
 </pre>
 
@@ -9319,8 +9295,8 @@ Miscellaneous Formats
 
 <u>REFERENCE MODIFICATION</u>:
 
-<pre>
-data-name-1 (leftmost-character-position: [length])
+<pre style="line-height:1">
+data-name-1 ( leftmost-character-position: [ length ] )
 </pre>
 
 <u>IDENTIFIER</u>:
@@ -9489,16 +9465,12 @@ The following gives the general format and order of presentation of the entries 
 
 #### 2.3.1 General Format
 
-<pre>
- identification-division
-
-[environment-division]
-
-[data-division]
-
-[procedure-division]
-
-[end-program-header]
+<pre style="line-height:1">
+identification-division
+  [ environment-division ]
+  [ data-division ]
+  [ procedure-division ]
+║ [ end-program-header ] ║
 </pre>
 
 #### 2.3.2 Syntax Rules
@@ -9614,8 +9586,8 @@ The PROGRAM-ID paragraph specifies the name by which a program is identified.
 
 #### 3.3.2 General Format
 
-<pre>
-<u>PROGRAM-ID</u>.  program-name.
+<pre style="line-height:1">
+<u>PROGRAM-ID</u>. program-name.
 </pre>
 
 #### 3.3.3 Syntax Rules
@@ -9702,8 +9674,8 @@ The SOURCE-COMPUTER paragraph provides a means of describing the computer upon w
 
 ### 4.3.2 General Format
 
-<pre>
-<u>SOURCE-COMPUTER</u>.  [computer-name  [WITH <u>DEBUGGING</u> <u>MODE</u>].]
+<pre style="line-height:1">
+<u>SOURCE-COMPUTER</u>. [ computer-name [ WITH <u>DEBUGGING</u> <u>MODE</u> ] . ]
 </pre>
 
 ### 4.3.3 Syntax Rules
@@ -9736,14 +9708,16 @@ The OBJECT-COMPUTER paragraph provides a means of describing the computer on whi
 
 ### 4.4.2 General Format
 
-<pre>
-<u>OBJECT-COMPUTER</u>.  [computer-name
+<pre style="line-height:1">
+<u>OBJECT-COMPUTER</u>. [ computer-name
 
-  ┌                       ⎧<u>WORDS</u>     ⎫┐
-  │<u>MEMORY</u> SIZE integer-1 ⎨<u>CHARACTERS</u>⎬│
-  └                       ⎩<u>MODULES</u>   ⎭┘
+┌                       ╭ <u>WORDS</u>      ╮ ┐
+│                       │            │ │
+│ <u>MEMORY</u> SIZE integer-1 ┤ <u>CHARACTERS</u> ├ │
+│                       │            │ │
+└                       ╰ <u>MODULES</u>    ╯ ┘
 
-  [PROGRAM COLLATING <u>SEQUENCE</u> IS alphabet-name-1].]
+[ PROGRAM COLLATING <u>SEQUENCE</u> IS alphabet-name-1 ] . ]
 </pre>
 
 ### 4.4.3 Syntax Rules
@@ -10122,7 +10096,7 @@ The BLANK WHEN ZERO clause permits the blanking of an item when its value is zer
 
 ### 5.4.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>BLANK</u> WHEN <u>ZERO</u>
 </pre>
 
@@ -10260,14 +10234,14 @@ The OCCURS clause eliminates the need for separate entries for repeated data ite
 
 <u>Format 1:</u>
 
-<pre>
+<pre style="line-height:1">
 <u>OCCURS</u> integer-2 TIMES
 
-   ┌⎧<u>ASCENDING</u> ⎫                              ┐
-   │⎨           ⎬ KEY IS  {data-name-2} ...    │ ...
-   └⎩<u>DESCENDING</u>⎭                              ┘
+╔ ┌ ╭ <u>ASCENDING</u>  ╮                          ┐   ╗
+║ │ ┤            ├ KEY IS { data-name-2 } … │ … ║
+╚ └ ╰ <u>DESCENDING</u> ╯                          ┘   ╝
 
-    [<u>INDEXED</u> BY  {index-name-1} ... ]
+[ <u>INDEXED</u> BY { index-name-1 } … ]
 </pre>
 
 <u>Format 2:</u>
@@ -11345,10 +11319,12 @@ The result of the test is true if the switch is set to the specified position co
 
 The sign condition determines whether or not the algebraic value of an arithmetic expression is less than, greater than, or equal to zero. The general format for a sign condition is as follows:
 
-<pre>
-                                ⎧<u>POSITIVE</u>⎫
-arithmetic-expression-1 IS [<u>NOT</u>] ⎨<u>NEGATIVE</u>⎬
-                                ⎩<u>ZERO</u>    ⎭
+<pre style="line-height:1">
+╔                                    ╭ <u>POSITIVE</u> ╮ ╗
+║                                    │          │ ║
+║ arithmetic-expression-1 IS [ <u>NOT</u> ] ┤ <u>NEGATIVE</u> ├ ║
+║                                    │          │ ║
+╚                                    ╰ <u>ZERO</u>     ╯ ╝
 </pre>
 
 When used, NOT and the next key word specify one sign condition that defines the algebraic test to be executed for truth value; e.g., NOT ZERO is a truth test for a nonzero (positive or negative) value. An operand is positive, if its value is greater than zero, negative if its value is less than zero, and zero if its value is equal to zero. Arithmetic-expression-1 must contain at least one reference to a variable.
@@ -11379,8 +11355,8 @@ A condition is negated by use of the logical operator 'NOT' which reverses the t
 
 The general format for a negated condition is:
 
-<pre>
-<u>NOT</u> condition-1
+<pre style="line-height:1">
+║ <u>NOT</u> condition-1 ║
 </pre>
 
 #### 6.3.2.2 Combined Conditions
@@ -11775,17 +11751,20 @@ The ACCEPT statement causes low volume data to be made available to the specifie
 
 <u>Format 1</u>:
 
-<pre>
-<u>ACCEPT</u> identifier-1 [<u>FROM</u> mnemonic-name-1]
+<pre style="line-height:1">
+<u>ACCEPT</u> identifier-1 ║ [ <u>FROM</u> mnemonic-name-1 ] ║
 </pre>
 
 <u>Format 2</u>:
 
-<pre>
-                         ⎧ <u>DATE</u>        ⎫
-<u>ACCEPT</u> identifier-2 <u>FROM</u> ⎨ <u>DAY</u>         ⎬
-                         ⎪ <u>DAY-OF-WEEK</u> ⎪
-                         ⎩ <u>TIME</u>        ⎭
+<pre style="line-height:1">
+╔                          ╭ <u>DATE</u>        ╮ ╗
+║                          │             │ ║
+║                          │ <u>DAY</u>         │ ║
+║ <u>ACCEPT</u> identifier-2 <u>FROM</u> ┤             ├ ║
+║                          │ <u>DAY-OF-WEEK</u> │ ║
+║                          │             │ ║
+╚                          ╰ <u>TIME</u>        ╯ ╝
 </pre>
 
 ### 6.5.3 Syntax Rules
@@ -11869,15 +11848,14 @@ The ADD statement causes two or more numeric operands to be summed and the resul
 
 <u>Format 3</u>:
 
-<pre>
-<u>ADD</u> ⎧<u>CORRESPONDING</u>⎫ identifier-1 <u>TO</u> identifier-2 [<u>ROUNDED</u>]
-    ⎩<u>CORR</u>         ⎭
-
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-ADD</u>]
+<pre style="line-height:1">
+╔     ╭ <u>CORRESPONDING</u> ╮                                          ╗
+║ <u>ADD</u> ┤               ├ identifier-1 <u>TO</u> identifier-2 [ <u>ROUNDED</u> ] ║
+║     ╰ <u>CORR</u>          ╯                                          ║
+║                                                                ║
+║ [ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]                       ║
+║ [ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]                   ║
+╚ [ <u>END-ADD</u> ]                                                    ╝
 </pre>
 
 ### 6.6.3 Syntax Rules
@@ -11928,8 +11906,8 @@ The ALTER statement modifies a predetermined sequence of operations. The ALTER s
 
 #### 6.7.2 General Format
 
-<pre>
-<u>ALTER</u> {procedure-name-1 <u>TO</u>  [<u>PROCEED</u> <u>TO</u>]  procedure-name-2} ...
+<pre style="line-height:1">
+<u>ALTER</u> { procedure-name-1 <u>TO</u> [ <u>PROCEED</u> <u>TO</u> ] procedure-name-2 } ║ … ║
 </pre>
 
 #### 6.7.3 Syntax Rules
@@ -12026,9 +12004,10 @@ The DISPLAY statement causes low volume data to be transferred to an appropriate
 
 ### 6.10.2 General Format
 
-<pre>
-<u>DISPLAY</u> ⎧identifier-1⎫ ...  [<u>UPON</u> mnemonic-name-1]  [WITH <u>NO</u> <u>ADVANCING</u>]
-        ⎩literal-1   ⎭
+<pre style="line-height:1">
+        ╭ identifier-1 ╮
+<u>DISPLAY</u> ┤              ├ … ║ [ <u>UPON</u> mnemonic-name-1 ] [ WITH <u>NO</u> <u>ADVANCING</u> ] ║
+        ╰ literal-1    ╯
 </pre>
 
 ### 6.10.3 Syntax Rules
@@ -12408,8 +12387,8 @@ The GO TO statement causes control to be transferred from one part of the Proced
 
 <u>Format 1</u>:
 
-<pre>
-<u>GO</u> TO [procedure-name-1]
+<pre style="line-height:1">
+<u>GO</u> TO ║ [ ║ procedure-name-1 ║ ] ║
 </pre>
 
 <u>Format 2</u>:
@@ -12943,9 +12922,10 @@ The MOVE statement transfers data, in accordance with the rules of editing, to o
 
 <u>Format 2</u>:
 
-<pre>
-<u>MOVE</u> ⎧<u>CORRESPONDING</u>⎫ identifier-1 <u>TO</u> identifier-2
-     ⎩<u>CORR</u>         ⎭
+<pre style="line-height:1">
+╔      ╭ <u>CORRESPONDING</u> ╮                              ╗
+║ <u>MOVE</u> ┤               ├ identifier-1 <u>TO</u> identifier-2 ║
+╚      ╰ <u>CORR</u>          ╯                              ╝
 </pre>
 
 ### 6.19.3 Syntax Rules
@@ -13731,8 +13711,8 @@ Nucleus - SET
 
 <u>Format 4</u>:
 
-<pre>
-<u>SET</u> {condition-name-1} ...  <u>TO</u> <u>TRUE</u>
+<pre style="line-height:1">
+║ <u>SET</u> { condition-name-1 } … <u>TO</u> <u>TRUE</u> ║
 </pre>
 
 ## 6.23.3 Syntax Rules
@@ -14415,14 +14395,10 @@ The Input-Output Section is located in the Environment Division of a source prog
 
 The general format of the Input-Output Section is shown below.
 
-<pre>
+<pre style="line-height:1">
 <u>INPUT-OUTPUT</u> <u>SECTION</u>.
-
-<u>FILE-CONTROL</u>.  {file-control-entry} ...
-
-╔═══════════════════════════════════════════════╗
-║[<u>I-O-CONTROL</u>.   [input-output-control-entry]]║
-╚═══════════════════════════════════════════════╝
+<u>FILE-CONTROL</u>. { file-control-entry } …
+║ [ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ] ║
 </pre>
 
 VII-6
@@ -14613,9 +14589,10 @@ The PADDING CHARACTER clause specifies the character which is to be used for blo
 
 ### 2.7.2 General Format
 
-<pre>
-<u>PADDING</u> CHARACTER IS ⎧data-name-1⎫
-                     ⎩literal-1  ⎭
+<pre style="line-height:1">
+╔                      ╭ data-name-1 ╮ ╗
+║ <u>PADDING</u> CHARACTER IS ┤             ├ ║
+╚                      ╰ literal-1   ╯ ╝
 </pre>
 
 ### 2.7.3 Syntax Rules
@@ -14755,8 +14732,8 @@ The MULTIPLE FILE TAPE clause specifies the location of files on a multiple file
 
 ### 2.11.2 General Format
 
-<pre>
-<u>MULTIPLE</u> <u>FILE</u> TAPE CONTAINS  {file-name-1  [<u>POSITION</u> integer-1]} ...
+<pre style="line-height:1">
+║ <u>MULTIPLE</u> <u>FILE</u> TAPE CONTAINS { file-name-1 [ <u>POSITION</u> integer-1 ] } … ║
 </pre>
 
 ### 2.11.3 General Rules
@@ -14984,9 +14961,10 @@ The BLOCK CONTAINS clause specifies the size of a physical record.
 
 #### 3.3.2 General Format
 
-<pre>
-<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ⎧<u>RECORDS</u>   ⎫
-                                      ⎩CHARACTERS⎭
+<pre style="line-height:1">
+                                              ╭ <u>RECORDS</u>    ╮
+<u>BLOCK</u> CONTAINS ║ [ integer-1 <u>TO</u> ] ║ integer-2 ┤            ├
+                                              ╰ CHARACTERS ╯
 </pre>
 
 #### 3.3.3 General Rules
@@ -15063,10 +15041,10 @@ The DATA RECORDS clause serves only as documentation for the names of data recor
 
 ### 3.5.2 General Format
 
-<pre>
-     ⎧<u>RECORD</u> IS  ⎫
-<u>DATA</u> ⎨           ⎬ {data-name-1} ...
-     ⎩<u>RECORDS</u> ARE⎭
+<pre style="line-height:1">
+     ╭ <u>RECORD</u> IS   ╮
+<u>DATA</u> ┤             ├ { data-name-1 } …
+     ╰ <u>RECORDS</u> ARE ╯
 </pre>
 
 ### 3.5.3 Syntax Rules
@@ -15123,12 +15101,14 @@ The LINAGE clause provides a means for specifying the depth of a logical page in
 
 ### 3.7.2 General Format
 
-<pre>
-<u>LINAGE</u> IS ⎧data-name-1⎫ LINES  ┌WITH <u>FOOTING</u> AT ⎧data-name-2⎫┐
-          ⎩integer-1  ⎭        └                ⎩integer-2  ⎭┘
-
-    ┌LINES AT <u>TOP</u> ⎧data-name-3⎫┐  ┌LINES AT <u>BOTTOM</u> ⎧data-name-4⎫┐
-    └             ⎩integer-3  ⎭┘  └                ⎩integer-4  ⎭┘
+<pre style="line-height:1">
+╔           ╭ data-name-1 ╮       ┌                 ╭ data-name-2 ╮ ┐  ╗
+║ <u>LINAGE</u> IS ┤             ├ LINES │ WITH <u>FOOTING</u> AT ┤             ├ │  ║
+║           ╰ integer-1   ╯       └                 ╰ integer-2   ╯ ┘  ║
+║                                                                      ║
+║ ┌              ╭ data-name-3 ╮ ┐ ┌                 ╭ data-name-4 ╮ ┐ ║
+║ │ LINES AT <u>TOP</u> ┤             ├ │ │ LINES AT <u>BOTTOM</u> ┤             ├ │ ║
+╚ └              ╰ integer-3   ╯ ┘ └                 ╰ integer-4   ╯ ┘ ╝
 </pre>
 
 ### 3.7.3 Syntax Rules
@@ -15223,16 +15203,15 @@ The RECORD clause specifies the number of character positions in a fixed length 
 
 Format 1:
 
-<pre>
+<pre style="line-height:1">
 <u>RECORD</u> CONTAINS integer-1 CHARACTERS
 </pre>
 
 Format 2:
 
-<pre>
-<u>RECORD</u> IS <u>VARYING</u> IN SIZE  [[FROM integer-2]  [<u>TO</u> integer-3]  CHARACTERS]
-
-   [<u>DEPENDING</u> ON data-name-1]
+<pre style="line-height:1">
+╔ <u>RECORD</u> IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] ╗
+╚ [ <u>DEPENDING</u> ON data-name-1 ]                                                 ╝
 </pre>
 
 Format 3:
@@ -15331,10 +15310,11 @@ The VALUE OF clause particularizes the description of an item in the label recor
 
 ## 3.9.2 General Format
 
-<pre>
-         ⎧                      ⎧data-name-1⎫⎫
-<u>VALUE</u> <u>OF</u> ⎨implementor-name-1 IS ⎨           ⎬⎬ ...
-         ⎩                      ⎩literal-1  ⎭⎭
+<pre style="line-height:1">
+         ╭                       ╭ ║ data-name-1 ║ ╮
+<u>VALUE</u> <u>OF</u> ┤ implementor-name-1 IS │                 ├ ╮ …
+         │                       ┤                 │ ├
+         ╰                       ╰   literal-1     ╯ ╯
 </pre>
 
 ## 3.9.3 Syntax Rules
@@ -15748,14 +15728,11 @@ The READ statement makes available the next logical record from a file.
 
 ### 4.4.2 General Format
 
-<pre>
-<u>READ</u> file-name-1 [<u>NEXT</u>] RECORD [<u>INTO</u> identifier-1]
-
-    [AT <u>END</u> imperative-statement-1]
-
-    [<u>NOT</u> AT <u>END</u> imperative-statement-2]
-
-    [<u>END-READ</u>]
+<pre style="line-height:1">
+<u>READ</u> file-name-1 ║ [ <u>NEXT</u> ] ║ RECORD [ <u>INTO</u> identifier-1 ]
+[ AT <u>END</u> imperative-statement-1 ]
+[ <u>NOT</u> AT <u>END</u> imperative-statement-2 ]
+[ <u>END-READ</u> ]
 </pre>
 
 ### 4.4.3 Syntax Rules
@@ -16000,20 +15977,27 @@ The WRITE statement releases a logical record for an output file. It can also be
 
 ### 4.7.2 General Format
 
-<pre>
-<u>WRITE</u> record-name-1  [<u>FROM</u> identifier-1]
-   ┌                     ⎧ ⎧identifier-2⎫ ┌LINE ┐ ⎫ ┐
-   │ ⎧<u>BEFORE</u>⎫            ⎪ ⎩integer-1   ⎭ └LINES┘ ⎪ │
-   │ ⎨      ⎬ ADVANCING  ⎨                        ⎬ │
-   │ ⎩<u>AFTER</u> ⎭            ⎪ ⎧mnemonic-name-1⎫      ⎪ │
-   └                     ⎩ ⎩<u>PAGE</u>           ⎭      ⎭ ┘
-  ┌   ⎧<u>END-OF-PAGE</u>⎫                        ┐
-  │AT ⎨           ⎬ imperative-statement-1 │
-  └   ⎩<u>EOP</u>        ⎭                        ┘
-  ┌       ⎧<u>END-OF-PAGE</u>⎫                        ┐
-  │<u>NOT</u> AT ⎨           ⎬ imperative-statement-2 │
-  └       ⎩<u>EOP</u>        ⎭                        ┘
-  [<u>END-WRITE</u>]
+<pre style="line-height:1">
+<u>WRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
+
+┌                      ╭ ╭   identifier-2 ╮ ┌ LINE  ┐ ╮ ┐
+│                      │ ┤                ├ │       │ │ │
+│ ╭ <u>BEFORE</u> ╮           │ ╰   integer-1    ╯ └ LINES ┘ │ │
+│ ┤        ├ ADVANCING │                              ├ │
+│ ╰ <u>AFTER</u>  ╯           ┤                              │ │
+│                      │ ╭ ║ mnemonic-name-1 ║ ╮      │ │
+│                      │ ┤                     ├      │ │
+└                      ╰ ╰   <u>PAGE</u>              ╯      ╯ ┘
+
+╔ ┌    ╭ <u>END-OF-PAGE</u> ╮                        ┐     ╗
+║ │ AT ┤             ├ imperative-statement-1 │     ║
+║ └    ╰ <u>EOP</u>         ╯                        ┘     ║
+║                                                   ║
+║ ┌        ╭ <u>END-OF-PAGE</u> ╮                        ┐ ║
+║ │ <u>NOT</u> AT ┤             ├ imperative-statement-2 │ ║
+╚ └        ╰ <u>EOP</u>         ╯                        ┘ ╝
+
+[ <u>END-WRITE</u> ]
 </pre>
 
 ### 4.7.3 Syntax Rules
@@ -16463,10 +16447,12 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
 
 ### 2.4.2 General Format
 
-<pre>
-               ⎧ <u>SEQUENTIAL</u>  [<u>RELATIVE</u> KEY IS data-name-1] ⎫
-<u>ACCESS</u> MODE IS ⎨ ⎧<u>RANDOM</u> ⎫    <u>RELATIVE</u> KEY IS data-name-1  ⎬
-               ⎩ ⎩<u>DYNAMIC</u>⎭                                 ⎭
+<pre style="line-height:1">
+               ╭ <u>SEQUENTIAL</u> [ <u>RELATIVE</u> KEY IS data-name-1 ] ╮
+<u>ACCESS</u> MODE IS │                                            │
+               ┤ ╭   <u>RANDOM</u>  ╮                              ├
+               │ ┤           ├ <u>RELATIVE</u> KEY IS data-name-1  │
+               ╰ ╰ ║ <u>DYNAMIC</u> ╯ ║                            ╯
 </pre>
 
 ### 2.4.3 Syntax Rules
@@ -16519,8 +16505,8 @@ The ORGANIZATION IS RELATIVE clause specifies relative organization as the logic
 
 ### 2.5.2 General Format
 
-<pre>
-[<u>ORGANIZATION</u> IS]  <u>RELATIVE</u>
+<pre style="line-height:1">
+[ <u>ORGANIZATION</u> IS ] <u>RELATIVE</u>
 </pre>
 
 ### 2.5.3 General Rules
@@ -16642,26 +16628,17 @@ Relative I-O - Procedure Division
 
 The Procedure Division contains declarative procedures when the USE statement from the Relative I-O module is present in a COBOL source program. Shown below is the general format of the Procedure Division when the USE statement is present.
 
-<pre>
- <u>PROCEDURE</u> <u>DIVISION</u>.
-
- <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-    USE statement.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
-
- <u>END</u> <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
+<pre style="line-height:1">
+<u>PROCEDURE</u> <u>DIVISION</u>.
+<u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u>.
+USE statement.
+[ paragraph-name.
+[ sentence ] … ] … } …
+<u>END</u> <u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u>.
+[ paragraph-name.
+[ sentence ] … ] … } …
 </pre>
 
 VIII-16
@@ -16678,8 +16655,8 @@ The CLOSE statement terminates the processing of files with optional lock.
 
 ### 4.2.2 General Format
 
-<pre>
-<u>CLOSE</u>  {file-name-1  [WITH <u>LOCK</u>] } ...
+<pre style="line-height:1">
+<u>CLOSE</u> { file-name-1 ║ [ WITH <u>LOCK</u> ] ║ } …
 </pre>
 
 ### 4.2.3 Syntax Rules
@@ -16955,14 +16932,11 @@ For sequential access, the READ statement makes available the next logical recor
 
 <u>Format 1</u>:
 
-<pre>
-<u>READ</u> file-name-1 [<u>NEXT</u>] RECORD  [<u>INTO</u> identifier-1]
-
-    [AT <u>END</u> imperative-statement-1]
-
-    [<u>NOT</u> AT <u>END</u> imperative-statement-2]
-
-    [<u>END-READ</u>]
+<pre style="line-height:1">
+<u>READ</u> file-name-1 ║ [ <u>NEXT</u> ] ║ RECORD [ <u>INTO</u> identifier-1 ]
+[ AT <u>END</u> imperative-statement-1 ]
+[ <u>NOT</u> AT <u>END</u> imperative-statement-2 ]
+[ <u>END-READ</u> ]
 </pre>
 
 <u>Format 2</u>:
@@ -17767,8 +17741,8 @@ The ALTERNATE RECORD KEY clause specifies an alternate record key access path to
 
 ### 2.5.2 General Format
 
-<pre>
-<u>ALTERNATE</u> <u>RECORD</u> KEY IS data-name-1  [WITH <u>DUPLICATES</u>]
+<pre style="line-height:1">
+║ <u>ALTERNATE</u> <u>RECORD</u> KEY IS data-name-1 [ WITH <u>DUPLICATES</u> ] ║
 </pre>
 
 ### 2.5.3 Syntax Rules
@@ -17980,26 +17954,17 @@ Indexed I-O - Procedure Division
 
 The Procedure Division contains declarative procedures when the USE statement from the Indexed I-O module is present in a COBOL source program. Shown below is the general format of the Procedure Division when the USE statement is present.
 
-<pre>
+<pre style="line-height:1">
 <u>PROCEDURE</u> <u>DIVISION</u>.
-
 <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-    USE statement.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
-
+{ section-name <u>SECTION</u>.
+USE statement.
+[ paragraph-name.
+[ sentence ] … ] … } …
 <u>END</u> <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
+{ section-name <u>SECTION</u>.
+[ paragraph-name.
+[ sentence ] … ] … } …
 </pre>
 
 IX-18
@@ -18312,16 +18277,12 @@ Format 1:
 
 Format 2:
 
-<pre>
-<u>READ</u> file-name-1 RECORD  [<u>INTO</u> identifier-1]
-
-   [<u>KEY</u> IS data-name-1]
-
-   [<u>INVALID</u> KEY imperative-statement-3]
-
-   [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-4]
-
-   [<u>END-READ</u>]
+<pre style="line-height:1">
+<u>READ</u> file-name-1 RECORD [ <u>INTO</u> identifier-1 ]
+║ [ <u>KEY</u> IS data-name-1 ] ║
+  [ <u>INVALID</u> KEY imperative-statement-3 ]
+  [ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-4 ]
+  [ <u>END-READ</u> ]
 </pre>
 
 ### 4.5.3 Syntax Rules
@@ -19050,18 +19011,13 @@ The following gives the general format and order of presentation of the entries 
 
 #### 2.3.1 General Format
 
-<pre>
- identification-division
-
-[environment-division]
-
-[data-division]
-
-[procedure-division]
-
-[source-program] ...
-
-[end-program-header]
+<pre style="line-height:1">
+╔ identification-division  ╗
+║ [ environment-division ] ║
+║ [ data-division ]        ║
+║ [ procedure-division ]   ║
+║ [ source-program ] …     ║
+╚ [ end-program-header ]   ╝
 </pre>
 
 X-8
@@ -19178,10 +19134,10 @@ The PROGRAM-ID paragraph specifies the name by which a program is identified and
 
 ### 3.1.2 General Format
 
-<pre>
-                         ┌    ⎧│<u>COMMON</u> │⎫         ┐
-<u>PROGRAM-ID</u>. program-name │ IS ⎨│       │⎬ PROGRAM │ .
-                         └    ⎩│<u>INITIAL</u>│⎭         ┘
+<pre style="line-height:1">
+╔                          ┌    ╭ │ <u>COMMON</u>  │ ╮         ┐   ╗
+║ <u>PROGRAM-ID</u>. program-name │ IS ┤ │         │ ├ PROGRAM │ . ║
+╚                          └    ╰ │ <u>INITIAL</u> │ ╯         ┘   ╝
 </pre>
 
 ### 3.1.3 Syntax Rules
@@ -19252,10 +19208,10 @@ The PROGRAM-ID paragraph specifies the name by which a program is identified and
 
 ### 3.1.2 General Format
 
-<pre>
-                           ┌    ⎧│<u>COMMON</u> │⎫         ┐
-<u>PROGRAM-ID</u>.  program-name │ IS ⎨│       │⎬ PROGRAM │ .
-                           └    ⎩│<u>INITIAL</u>│⎭         ┘
+<pre style="line-height:1">
+╔                          ┌    ╭ │ <u>COMMON</u>  │ ╮         ┐   ╗
+║ <u>PROGRAM-ID</u>. program-name │ IS ┤ │         │ ├ PROGRAM │ . ║
+╚                          └    ╰ │ <u>INITIAL</u> │ ╯         ┘   ╝
 </pre>
 
 ### 3.1.3 Syntax Rules
@@ -19395,31 +19351,34 @@ Inter-Program Communication - File Description Entry
 
 <u>Format 2:</u>
 
-<pre>
-<u>FD</u>  file-name-1
+<pre style="line-height:1">
+<u>FD</u> file-name-1
+╔ [ IS <u>EXTERNAL</u> ] ╗
+╚ [ IS <u>GLOBAL</u> ]   ╝
 
-     ┌──────────────┐
-     │[IS <u>EXTERNAL</u>]│
-     │              │
-     │[IS <u>GLOBAL</u>]  │
-     └──────────────┘
-     ┌                                         ⎧<u>RECORDS</u>   ⎫┐
-     │<u>BLOCK</u> CONTAINS  [integer-1 <u>TO</u>]  integer-2 ⎨          ⎬│
-     └                                         ⎩CHARACTERS⎭┘
-     ┌        ⎧CONTAINS integer-3 CHARACTERS                                     ⎫┐
-     │        ⎪IS <u>VARYING</u> IN SIZE [[FROM integer-4] [<u>TO</u> integer-5] CHARACTERS]⎪│
-     │<u>RECORD</u>  ⎨                                                                  ⎬│
-     │        ⎪    [<u>DEPENDING</u> ON data-name-1]                                  ⎪│
-     └        ⎩CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                        ⎭┘
-     ┌      ⎧<u>RECORD</u> IS  ⎫ ⎧<u>STANDARD</u>⎫┐
-     │<u>LABEL</u> ⎨           ⎬ ⎨        ⎬│
-     └      ⎩<u>RECORDS</u> ARE⎭ ⎩<u>OMITTED</u> ⎭┘
-     ┌         ⎧                      ⎧data-name-2⎫⎫     ┐
-     │<u>VALUE</u> <u>OF</u> ⎨implementor-name-1 IS ⎨           ⎬⎬ ... │
-     └         ⎩                      ⎩literal-1  ⎭⎭     ┘
-     ┌      ⎧<u>RECORD</u> IS  ⎫                  ┐
-     │<u>DATA</u>  ⎨           ⎬ {data-name-3} ...│ .
-     └      ⎩<u>RECORDS</u> ARE⎭                  ┘
+┌                                           ╭ <u>RECORDS</u>    ╮ ┐
+│ <u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├ │
+└                                           ╰ CHARACTERS ╯ ┘
+
+┌        ╭ CONTAINS integer-3 CHARACTERS                                         ╮ ┐
+│        │                                                                       │ │
+│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ │
+│ <u>RECORD</u> ┤                                                                       ├ │
+│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │
+│        │                                                                       │ │
+└        ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                            ╯ ┘
+
+┌       ╭ <u>RECORD</u> IS   ╮ ╭ <u>STANDARD</u> ╮ ┐
+│ <u>LABEL</u> ┤             ├ ┤          ├ │
+└       ╰ <u>RECORDS</u> ARE ╯ ╰ <u>OMITTED</u>  ╯ ┘
+
+┌          ╭                       ╭ data-name-2 ╮ ╮   ┐
+│ <u>VALUE</u> <u>OF</u> ┤ implementor-name-1 IS ┤             ├ ├ … │
+└          ╰                       ╰ literal-1   ╯ ╯   ┘
+
+┌      ╭ <u>RECORD</u> IS   ╮                   ┐
+│ <u>DATA</u> ┤             ├ { data-name-3 } … │ .
+└      ╰ <u>RECORDS</u> ARE ╯                   ┘
 </pre>
 
 X-16
@@ -19631,8 +19590,8 @@ The EXTERNAL clause specifies that a data item or a file connector is external. 
 
 ### 4.5.2 General Format
 
-<pre>
-IS <u>EXTERNAL</u>
+<pre style="line-height:1">
+║ IS <u>EXTERNAL</u> ║
 </pre>
 
 ### 4.5.3 Syntax Rules
@@ -19667,8 +19626,8 @@ The GLOBAL clause specifies that a data-name, a file-name, or a report-name is a
 
 ### 4.6.2 General Format
 
-<pre>
-IS <u>GLOBAL</u>
+<pre style="line-height:1">
+║ IS <u>GLOBAL</u> ║
 </pre>
 
 ### 4.6.3 Syntax Rules
@@ -19699,8 +19658,8 @@ Inter-Program Communication - Procedure Division Header
 
 The Procedure Division is identified by, and must begin with, the following header:
 
-<pre>
-<u>PROCEDURE</u> <u>DIVISION</u>  [<u>USING</u>  {data-name-1} ... ].
+<pre style="line-height:1">
+<u>PROCEDURE</u> <u>DIVISION</u> [ <u>USING</u> { data-name-1 } … ] .
 </pre>
 
 The USING phrase is necessary only if the object program is to be invoked by a CALL statement and that statement includes a USING phrase.
@@ -19877,9 +19836,10 @@ The CANCEL statement ensures that the next time the referenced program is called
 
 ### 5.3.2 General Format
 
-<pre>
-<u>CANCEL</u> ⎧identifier-1⎫ ...
-       ⎩literal-1   ⎭
+<pre style="line-height:1">
+╔        ╭ identifier-1 ╮   ╗
+║ <u>CANCEL</u> ┤              ├ … ║
+╚        ╰ literal-1    ╯   ╝
 </pre>
 
 ### 5.3.3 Syntax Rules
@@ -20000,8 +19960,8 @@ Within the Inter-Program Communication module, the USE BEFORE REPORTING statemen
 
 ### 5.6.2 General Format
 
-<pre>
-<u>USE</u> [<u>GLOBAL</u>] <u>BEFORE</u> <u>REPORTING</u> identifier-1
+<pre style="line-height:1">
+║ <u>USE</u> [ <u>GLOBAL</u> ] <u>BEFORE</u> <u>REPORTING</u> identifier-1 ║
 </pre>
 
 ### 5.6.3 Syntax Rules
@@ -20864,8 +20824,8 @@ The REPLACE statement is used to replace source program text.
 
 <u>Format 1:</u>
 
-<pre>
-<u>REPLACE</u> {==pseudo-text-1== <u>BY</u> ==pseudo-text-2==} ...
+<pre style="line-height:1">
+║ <u>REPLACE</u> { ==pseudo-text-1== <u>BY</u> ==pseudo-text-2== } … ║
 </pre>
 
 <u>Format 2:</u>
@@ -21012,30 +20972,29 @@ The file control entry declares the relevant physical attributes of a report fil
 
 #### 2.3.2 General Format
 
-<pre>
-<u>SELECT</u>  [<u>OPTIONAL</u>]  file-name-1
+<pre style="line-height:1">
+<u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
 
-   <u>ASSIGN</u> TO ⎧implementor-name-1⎫ ...
-             ⎩literal-1         ⎭
+          ╭ implementor-name-1 ╮
+<u>ASSIGN</u> TO ┤                    ├ …
+          ╰ literal-1          ╯
 
-   ┌                    ┌     ┐┐
-   │<u>RESERVE</u> integer-1  │AREA ││
-   │                    │AREAS││
-   └                    └     ┘┘
+┌                   ┌ AREA  ┐ ┐
+│ <u>RESERVE</u> integer-1 │       │ │
+└                   └ AREAS ┘ ┘
 
-   [[<u>ORGANIZATION</u> IS]  <u>SEQUENTIAL</u>]
+[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ]
 
-   ┌                       ⎧data-name-1⎫┐
-   │<u>PADDING</u> CHARACTER IS  ⎨           ⎬│
-   └                       ⎩literal-2  ⎭┘
+┌                      ╭ data-name-1 ╮ ┐
+│ <u>PADDING</u> CHARACTER IS ┤             ├ │
+└                      ╰ literal-2   ╯ ┘
 
-   ┌                       ⎧<u>STANDARD-1</u>        ⎫┐
-   │<u>RECORD</u> <u>DELIMITER</u> IS   ⎨                  ⎬│
-   └                       ⎩implementor-name-2⎭┘
+┌                     ╭ <u>STANDARD-1</u>         ╮ ┐
+│ <u>RECORD</u> <u>DELIMITER</u> IS ┤                    ├ │
+└                     ╰ implementor-name-2 ╯ ┘
 
-   [<u>ACCESS</u> MODE IS <u>SEQUENTIAL</u>]
-
-   [FILE <u>STATUS</u> IS data-name-2]..
+[ <u>ACCESS</u> MODE IS <u>SEQUENTIAL</u> ]
+[ FILE <u>STATUS</u> IS data-name-2 ] ..
 </pre>
 
 #### 2.3.3 Syntax Rules
@@ -21147,27 +21106,30 @@ The file description entry furnishes information concerning the physical structu
 
 #### 3.2.2 General Format
 
-<pre>
-<u>FD</u>  file-name-1
+<pre style="line-height:1">
+<u>FD</u> file-name-1
 
-    ┌<u>BLOCK</u> CONTAINS  [integer-1 <u>TO</u>]  integer-2 ⎧<u>RECORDS</u>   ⎫┐
-    └                                          ⎩<u>CHARACTERS</u>⎭┘
+┌                                           ╭ <u>RECORDS</u>    ╮ ┐
+│ <u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├ │
+└                                           ╰ CHARACTERS ╯ ┘
 
-    ┌<u>RECORD</u> ⎧CONTAINS integer-3 CHARACTERS             ⎫┐
-    └       ⎩CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS⎭┘
+┌        ╭ CONTAINS integer-3 CHARACTERS              ╮ ┐
+│ <u>RECORD</u> ┤                                            ├ │
+└        ╰ CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS ╯ ┘
 
-    ┌<u>LABEL</u> ⎧<u>RECORD</u> IS  ⎫ ⎧<u>STANDARD</u>⎫┐
-    └      ⎩<u>RECORDS</u> ARE⎭ ⎩<u>OMITTED</u> ⎭┘
+┌       ╭ <u>RECORD</u> IS   ╮ ╭ <u>STANDARD</u> ╮ ┐
+│ <u>LABEL</u> ┤             ├ ┤          ├ │
+└       ╰ <u>RECORDS</u> ARE ╯ ╰ <u>OMITTED</u>  ╯ ┘
 
-    ┌         ⎧                      ⎧data-name-1⎫⎫     ┐
-    │<u>VALUE</u> <u>OF</u> ⎨implementor-name-1 IS ⎨           ⎬⎬ ... │
-    └         ⎩                      ⎩literal-1  ⎭⎭     ┘
+┌          ╭                       ╭ data-name-1 ╮ ╮   ┐
+│ <u>VALUE</u> <u>OF</u> ┤ implementor-name-1 IS ┤             ├ ├ … │
+└          ╰                       ╰ literal-1   ╯ ╯   ┘
 
-    [<u>CODE-SET</u> IS alphabet-name-1]
+[ <u>CODE-SET</u> IS alphabet-name-1 ]
 
-    ⎧<u>REPORT</u> IS  ⎫
-    ⎨           ⎬ {report-name-1} ...   .
-    ⎩<u>REPORTS</u> ARE⎭
+╭ <u>REPORT</u> IS   ╮
+┤             ├ { report-name-1 } … .
+╰ <u>REPORTS</u> ARE ╯
 </pre>
 
 #### 3.2.3 Syntax Rules
@@ -21576,33 +21538,48 @@ The report group description entry specifies the characteristics of a report gro
 
 <u>Format 1</u>:
 
-<pre>
-01  [data-name-1]
+<pre style="line-height:1">
+01 [ data-name-1 ]
 
-    ┌                ⎧integer-1   [ON <u>NEXT</u> <u>PAGE</u>]⎫┐
-    │<u>LINE</u> NUMBER IS ⎨                           ⎬│
-    └                ⎩<u>PLUS</u> integer-2              ⎭┘
+┌                ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮ ┐
+│ <u>LINE</u> NUMBER IS ┤                            ├ │
+└                ╰ <u>PLUS</u> integer-2             ╯ ┘
 
-    ┌                ⎧integer-3      ⎫┐
-    │<u>NEXT</u> <u>GROUP</u> IS  ⎨<u>PLUS</u> integer-4 ⎬│
-    └                ⎩<u>NEXT</u> <u>PAGE</u>      ⎭┘
+┌               ╭ integer-3      ╮ ┐
+│               │                │ │
+│ <u>NEXT</u> <u>GROUP</u> IS ┤ <u>PLUS</u> integer-4 ├ │
+│               │                │ │
+└               ╰ <u>NEXT</u> <u>PAGE</u>      ╯ ┘
 
-            ⎧⎧<u>REPORT</u> <u>HEADING</u>⎫               ⎫
-            ⎪⎩<u>RH</u>            ⎭               ⎪
-            ⎪⎧<u>PAGE</u> <u>HEADING</u>⎫                 ⎪
-            ⎪⎩<u>PH</u>          ⎭                 ⎪
-            ⎪⎧<u>CONTROL</u> <u>HEADING</u>⎫ ⎧data-name-2⎫⎪
-            ⎪⎩<u>CH</u>             ⎭ ⎩<u>FINAL</u>      ⎭⎪
-    <u>TYPE</u> IS ⎨⎧<u>DETAIL</u>⎫                       ⎬
-            ⎪⎩<u>DE</u>    ⎭                       ⎪
-            ⎪⎧<u>CONTROL</u> <u>FOOTING</u>⎫ ⎧data-name-3⎫⎪
-            ⎪⎩<u>CF</u>             ⎭ ⎩<u>FINAL</u>      ⎭⎪
-            ⎪⎧<u>PAGE</u> <u>FOOTING</u>⎫                 ⎪
-            ⎪⎩<u>PF</u>          ⎭                 ⎪
-            ⎪⎧<u>REPORT</u> <u>FOOTING</u>⎫               ⎪
-            ⎩⎩<u>RF</u>            ⎭               ⎭
+        ╭ ╭ <u>REPORT</u> <u>HEADING</u> ╮                  ╮
+        │ ┤                ├                  │
+        │ ╰ <u>RH</u>             ╯                  │
+        │                                     │
+        │ ╭ <u>PAGE</u> <u>HEADING</u> ╮                    │
+        │ ┤              ├                    │
+        │ ╰ <u>PH</u>           ╯                    │
+        │                                     │
+        │ ╭ <u>CONTROL</u> <u>HEADING</u> ╮ ╭ data-name-2 ╮ │
+        │ ┤                 ├ ┤             ├ │
+        │ ╰ <u>CH</u>              ╯ ╰ <u>FINAL</u>       ╯ │
+        │                                     │
+        ┤ ╭ <u>DETAIL</u> ╮                          │
+<u>TYPE</u> IS │ ┤        ├                          ├
+        │ ╰ <u>DE</u>     ╯                          │
+        │                                     │
+        │ ╭ <u>CONTROL</u> <u>FOOTING</u> ╮ ╭ data-name-3 ╮ │
+        │ ┤                 ├ ┤             ├ │
+        │ ╰ <u>CF</u>              ╯ ╰ <u>FINAL</u>       ╯ │
+        │                                     │
+        │ ╭ <u>PAGE</u> <u>FOOTING</u> ╮                    │
+        │ ┤              ├                    │
+        │ ╰ <u>PF</u>           ╯                    │
+        │                                     │
+        │ ╭ <u>REPORT</u> <u>FOOTING</u> ╮                  │
+        │ ┤                ├                  │
+        ╰ ╰ <u>RF</u>             ╯                  ╯
 
-    [[<u>USAGE</u> IS]  <u>DISPLAY</u>].
+[ [ <u>USAGE</u> IS ] <u>DISPLAY</u> ] .
 </pre>
 
 <u>Format 2</u>:
@@ -22834,27 +22811,21 @@ Report Writer - Procedure Division
 
 The Procedure Division contains declarative procedures when the USE BEFORE REPORTING statement from the Report Writer module is present in a COBOL source program. Shown below is the general format of the Procedure Division when the USE BEFORE REPORTING statement and/or USE AFTER STANDARD EXCEPTION PROCEDURE are present.
 
-<pre>
+<pre style="line-height:1">
 <u>PROCEDURE</u> <u>DIVISION</u>.
-
 <u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u>.
 
-{section-name <u>SECTION</u>.
+    ╭ AFTER STANDARD EXCEPTION PROCEDURE ╮
+USE ┤                                    ├ statement.
+    ╰ BEFORE REPORTING                   ╯
 
-    USE ⎧AFTER STANDARD EXCEPTION PROCEDURE⎫ statement.
-        ⎩BEFORE REPORTING                  ⎭
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
-
+[ paragraph-name.
+[ sentence ] … ] … } …
 <u>END</u> <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
+{ section-name <u>SECTION</u>.
+[ paragraph-name.
+[ sentence ] … ] … } …
 </pre>
 
 XIII-62
@@ -24013,10 +23984,12 @@ The DISABLE statement notifies the message control system (MCS) to inhibit data 
 
 ### 3.2.2 General Format
 
-<pre>
-          ⎧<u>INPUT</u> [<u>TERMINAL</u>]⎫              ┌          ⎧identifier-1⎫┐
-<u>DISABLE</u>   ⎨<u>I-O</u> <u>TERMINAL</u>    ⎬  cd-name-1   │WITH <u>KEY</u>  ⎨            ⎬│
-          ⎩<u>OUTPUT</u>          ⎭              └          ⎩literal-1   ⎭┘
+<pre style="line-height:1">
+╔         ╭ <u>INPUT</u> [ <u>TERMINAL</u> ] ╮                                         ╗
+║         │                    │           ┌          ╭ identifier-1 ╮ ┐ ║
+║ <u>DISABLE</u> ┤ <u>I-O</u> <u>TERMINAL</u>       ├ cd-name-1 │ WITH <u>KEY</u> ┤              ├ │ ║
+║         │                    │           └          ╰ literal-1    ╯ ┘ ║
+╚         ╰ <u>OUTPUT</u>             ╯                                         ╝
 </pre>
 
 ### 3.2.3 Syntax Rules
@@ -24073,10 +24046,12 @@ The ENABLE statement notifies the message control system (MCS) to allow data tra
 
 3.3.2 General Format
 
-<pre>
-       ⎧<u>INPUT</u> [<u>TERMINAL</u>]⎫               ┌             ⎧identifier-1⎫┐
-<u>ENABLE</u> ⎨<u>I-O</u> <u>TERMINAL</u>     ⎬  cd-name-1    │WITH <u>KEY</u>     ⎨            ⎬│
-       ⎩<u>OUTPUT</u>           ⎭               └             ⎩literal-1   ⎭┘
+<pre style="line-height:1">
+╔        ╭ <u>INPUT</u> [ <u>TERMINAL</u> ] ╮                                         ╗
+║        │                    │           ┌          ╭ identifier-1 ╮ ┐ ║
+║ <u>ENABLE</u> ┤ <u>I-O</u> <u>TERMINAL</u>       ├ cd-name-1 │ WITH <u>KEY</u> ┤              ├ │ ║
+║        │                    │           └          ╰ literal-1    ╯ ┘ ║
+╚        ╰ <u>OUTPUT</u>             ╯                                         ╝
 </pre>
 
 3.3.3 Syntax Rules
@@ -24155,15 +24130,13 @@ The RECEIVE statement makes available a message or a message segment and informa
 
 ### 3.5.2 General Format
 
-<pre>
-<u>RECEIVE</u> cd-name-1 ⎧ <u>MESSAGE</u> ⎫ <u>INTO</u> identifier-1
-                  ⎩ <u>SEGMENT</u> ⎭
-
-    [<u>NO</u> <u>DATA</u> imperative-statement-1]
-
-    [WITH <u>DATA</u> imperative-statement-2]
-
-    [<u>END-RECEIVE</u>]
+<pre style="line-height:1">
+                  ╭   <u>MESSAGE</u>   ╮
+<u>RECEIVE</u> cd-name-1 ┤             ├ <u>INTO</u> identifier-1
+                  ╰ ║ <u>SEGMENT</u> ║ ╯
+[ <u>NO</u> <u>DATA</u> imperative-statement-1 ]
+[ WITH <u>DATA</u> imperative-statement-2 ]
+[ <u>END-RECEIVE</u> ]
 </pre>
 
 ### 3.5.3 Syntax Rules
@@ -24244,8 +24217,8 @@ The SEND statement causes a message, a message segment, or a portion of a messag
 
 Format 1:
 
-<pre>
-<u>SEND</u> cd-name-1 <u>FROM</u> identifier-1
+<pre style="line-height:1">
+║ <u>SEND</u> cd-name-1 <u>FROM</u> identifier-1 ║
 </pre>
 
 Format 2:
@@ -24472,8 +24445,8 @@ The WITH DEBUGGING MODE clause indicates that all debugging sections are to be c
 
 #### 2.1.2 General Format
 
-<pre>
-<u>SOURCE-COMPUTER</u>.  [computer-name  [WITH <u>DEBUGGING</u> <u>MODE</u>].]
+<pre style="line-height:1">
+<u>SOURCE-COMPUTER</u>. [ computer-name [ WITH <u>DEBUGGING</u> <u>MODE</u> ] . ]
 </pre>
 
 #### 2.1.3 General Rules
@@ -24494,26 +24467,17 @@ Debug - Procedure Division
 
 The Procedure Division contains declarative procedures when the USE FOR DEBUGGING statement from the Debug module is present in a COBOL source program. Shown below is the general format of the Procedure Division when the USE FOR DEBUGGING statement is present.
 
-<pre>
- <u>PROCEDURE</u> <u>DIVISION</u>.
-
- <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-    USE FOR DEBUGGING statement.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
-
- <u>END</u> <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
+<pre style="line-height:1">
+<u>PROCEDURE</u> <u>DIVISION</u>.
+<u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u>.
+USE FOR DEBUGGING statement.
+[ paragraph-name.
+[ sentence ] … ] … } …
+<u>END</u> <u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u>.
+[ paragraph-name.
+[ sentence ] … ] … } …
 </pre>
 
 XV-4
@@ -24530,12 +24494,16 @@ The USE FOR DEBUGGING statement identifies the user items that are to be monitor
 
 ### 3.2.2 General Format
 
-<pre>
-                     ⎧ cd-name-1                        ⎫
-                     ⎪ [<u>ALL</u> REFERENCES OF] identifier-1 ⎪
-<u>USE</u> FOR <u>DEBUGGING</u> ON ⎨ file-name-1                      ⎬ ...
-                     ⎪ procedure-name-1                 ⎪
-                     ⎩ <u>ALL</u> <u>PROCEDURES</u>                   ⎭
+<pre style="line-height:1">
+                     ╭ ╔ cd-name-1                          ╗ ╮
+                     │ ║                                    ║ │
+                     │ ║ [ <u>ALL</u> REFERENCES OF ] identifier-1 ║ │
+                     │ ║                                    ║ │
+<u>USE</u> FOR <u>DEBUGGING</u> ON ┤ ╚ file-name-1                        ╝ ├ …
+                     │                                        │
+                     │   procedure-name-1                     │
+                     │                                        │
+                     ╰   <u>ALL</u> <u>PROCEDURES</u>                       ╯
 </pre>
 
 ### 3.2.3 Syntax Rules
@@ -24865,16 +24833,17 @@ The OBJECT-COMPUTER paragraph provides a means of describing the computer on whi
 
 #### 2.2.2 General Format
 
-<pre>
-<u>OBJECT-COMPUTER</u>.  [computer-name
-
-  ┌                       ⎧<u>WORDS</u>     ⎫┐
-  │<u>MEMORY</u> SIZE integer-1 ⎨<u>CHARACTERS</u>⎬│
-  └                       ⎩<u>MODULES</u>   ⎭┘
-
-  [PROGRAM COLLATING <u>SEQUENCE</u> IS alphabet-name-1]
-
-  [<u>SEGMENT-LIMIT</u> IS segment-number].]
+<pre style="line-height:1">
+╔ <u>OBJECT-COMPUTER</u>. [ computer-name                  ╗
+║                                                   ║
+║ ┌                       ╭ <u>WORDS</u>      ╮ ┐          ║
+║ │                       │            │ │          ║
+║ │ <u>MEMORY</u> SIZE integer-1 ┤ <u>CHARACTERS</u> ├ │          ║
+║ │                       │            │ │          ║
+║ └                       ╰ <u>MODULES</u>    ╯ ┘          ║
+║                                                   ║
+║ [ PROGRAM COLLATING <u>SEQUENCE</u> IS alphabet-name-1 ] ║
+╚ [ <u>SEGMENT-LIMIT</u> IS segment-number ] . ]           ╝
 </pre>
 
 #### 2.2.3 Syntax Rules
@@ -31132,8 +31101,8 @@ A function-identifier is a syntactically correct combination of character-string
 
 **4.3.8.3.2 General Format**
 
-<pre>
-<u>FUNCTION</u> function-name-1 [({argument-1} ... )] [reference-modifier]
+<pre style="line-height:1">
+<u>FUNCTION</u> function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]
 </pre>
 
 **4.3.8.3.3 Syntax Rules**
@@ -31280,8 +31249,8 @@ Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985
 
 <u>FUNCTION-IDENTIFIER</u>:
 
-<pre>
-<u>FUNCTION</u> function-name-1 [({argument-1} ... )] [reference-modifier]
+<pre style="line-height:1">
+<u>FUNCTION</u> function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]
 </pre>
 
 **V-38** Change the format for reference modification to read:
@@ -31302,7 +31271,7 @@ A-14
 
 Format 1:
 
-<pre>
+<pre style="line-height:1">
 function-identifier-1
 </pre>
 
@@ -31454,8 +31423,8 @@ A-18
 |---|---|
 | VII-6 (T) | Paragraph 2.1, in the Input-Output Section of the Sequential I-O module, delete the box around the general format: |
 
-<pre>
-[<u>I-O-CONTROL</u>. [input-output-control-entry]]
+<pre style="line-height:1">
+[ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ]
 </pre>
 
 | Page No. | Change to ANSI X3.23-1985 and ISO 1989-1985 |
@@ -31901,8 +31870,8 @@ The ACOS function returns a numeric value in radians that approximates the arcco
 
 ### 2.5.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ACOS</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ACOS</u> ( argument-1 )
 </pre>
 
 ### 2.5.3 Arguments
@@ -31929,8 +31898,8 @@ The ANNUITY function (annuity immediate) returns a numeric value that approximat
 
 ### 2.6.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ANNUITY</u> (argument-1 argument-2)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ANNUITY</u> ( argument-1 argument-2 )
 </pre>
 
 ### 2.6.3 Arguments
@@ -31965,8 +31934,8 @@ The ASIN function returns a numeric value in radians that approximates the arcsi
 
 ### 2.7.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ASIN</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ASIN</u> ( argument-1 )
 </pre>
 
 ### 2.7.3 Arguments
@@ -31993,8 +31962,8 @@ The ATAN function returns a numeric value in radians that approximates the arcta
 
 ### 2.8.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ATAN</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ATAN</u> ( argument-1 )
 </pre>
 
 ### 2.8.3 Arguments
@@ -32019,8 +31988,8 @@ The CHAR function returns a one-character alphanumeric value that is a character
 
 ### 2.9.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>CHAR</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>CHAR</u> ( argument-1 )
 </pre>
 
 ### 2.9.3 Arguments
@@ -32049,8 +32018,8 @@ The COS function returns a numeric value that approximates the cosine of an angl
 
 ### 2.10.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>COS</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>COS</u> ( argument-1 )
 </pre>
 
 ### 2.10.3 Arguments
@@ -32075,7 +32044,7 @@ The CURRENT-DATE function returns a 21-character alphanumeric value that represe
 
 ### 2.11.2 General Format
 
-<pre>
+<pre style="line-height:1">
 <u>FUNCTION</u> <u>CURRENT-DATE</u>
 </pre>
 
@@ -32123,8 +32092,8 @@ The DATE-OF-INTEGER function converts a date in the Gregorian calendar from inte
 
 ### 2.12.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>DATE-OF-INTEGER</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>DATE-OF-INTEGER</u> ( argument-1 )
 </pre>
 
 ### 2.12.3 Arguments
@@ -32151,8 +32120,8 @@ The DAY-OF-INTEGER function converts a date in the Gregorian calendar from integ
 
 ### 2.13.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>DAY-OF-INTEGER</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>DAY-OF-INTEGER</u> ( argument-1 )
 </pre>
 
 ### 2.13.3 Arguments
@@ -32179,8 +32148,8 @@ The FACTORIAL function returns an integer that is the factorial of argument-1. T
 
 ### 2.14.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>FACTORIAL</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>FACTORIAL</u> ( argument-1 )
 </pre>
 
 ### 2.14.3 Arguments
@@ -32207,8 +32176,8 @@ The INTEGER function returns the greatest integer value that is less than or equ
 
 ### 2.15.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>INTEGER</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>INTEGER</u> ( argument-1 )
 </pre>
 
 ### 2.15.3 Arguments
@@ -32233,8 +32202,8 @@ The INTEGER-OF-DATE function converts a date in the Gregorian calendar from stan
 
 ### 2.16.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>INTEGER-OF-DATE</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>INTEGER-OF-DATE</u> ( argument-1 )
 </pre>
 
 ### 2.16.3 Arguments
@@ -32265,8 +32234,8 @@ The INTEGER-OF-DAY function converts a date in the Gregorian calendar from Julia
 
 ### 2.17.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>INTEGER-OF-DAY</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>INTEGER-OF-DAY</u> ( argument-1 )
 </pre>
 
 ### 2.17.3 Arguments
@@ -32295,8 +32264,8 @@ The INTEGER-PART function returns an integer that is the integer portion of argu
 
 #### 2.18.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>INTEGER-PART</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>INTEGER-PART</u> ( argument-1 )
 </pre>
 
 #### 2.18.3 Arguments
@@ -32325,8 +32294,8 @@ The LENGTH function returns an integer equal to the length of the argument in ch
 
 ### 2.19.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>LENGTH</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>LENGTH</u> ( argument-1 )
 </pre>
 
 ### 2.19.3 Arguments
@@ -32357,8 +32326,8 @@ The LOG function returns a numeric value that approximates the logarithm to the 
 
 ### 2.20.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>LOG</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>LOG</u> ( argument-1 )
 </pre>
 
 ### 2.20.3 Arguments
@@ -32385,8 +32354,8 @@ The LOG10 function returns a numeric value that approximates the logarithm to th
 
 ### 2.21.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>LOG10</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>LOG10</u> ( argument-1 )
 </pre>
 
 ### 2.21.3 Arguments
@@ -32413,8 +32382,8 @@ The LOWER-CASE function returns a character string that is the same length as ar
 
 ### 2.22.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>LOWER-CASE</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>LOWER-CASE</u> ( argument-1 )
 </pre>
 
 ### 2.22.3 Arguments
@@ -32450,8 +32419,8 @@ The MAX function returns the content of the argument-1 that contains the maximum
 
 ### 2.23.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>MAX</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>MAX</u> ( { argument-1 } … )
 </pre>
 
 ### 2.23.3 Arguments
@@ -32480,8 +32449,8 @@ The MEAN function returns a numeric value that is the arithmetic mean (average) 
 
 ### 2.24.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>MEAN</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>MEAN</u> ( { argument-1 } … )
 </pre>
 
 ### 2.24.3 Arguments
@@ -32508,8 +32477,8 @@ The MEDIAN function returns the content of the argument whose value is the middl
 
 ### 2.25.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>MEDIAN</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>MEDIAN</u> ( { argument-1 } … )
 </pre>
 
 ### 2.25.3 Arguments
@@ -32538,8 +32507,8 @@ The MIDRANGE (middle range) function returns a numeric value that is the arithme
 
 ### 2.26.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>MIDRANGE</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>MIDRANGE</u> ( { argument-1 } … )
 </pre>
 
 ### 2.26.3 Arguments
@@ -32571,8 +32540,8 @@ The MIN function returns the content of the argument-1 that contains the minimum
 
 ### 2.27.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>MIN</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>MIN</u> ( { argument-1 } … )
 </pre>
 
 ### 2.27.3 Arguments
@@ -32601,8 +32570,8 @@ The MOD function returns an integer value that is argument-1 modulo argument-2. 
 
 ### 2.28.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>MOD</u> (argument-1 argument-2)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>MOD</u> ( argument-1 argument-2 )
 </pre>
 
 ### 2.28.3 Arguments
@@ -32640,8 +32609,8 @@ The NUMVAL function returns the numeric value represented by the character strin
 
 ### 2.29.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>NUMVAL</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>NUMVAL</u> ( argument-1 )
 </pre>
 
 ### 2.29.3 Arguments
@@ -32692,8 +32661,8 @@ The NUMVAL-C function ıeturns the numeric value represented by the character st
 
 ### 2.30.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>NUMVAL-C</u> (argument-1 [argument-2])
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>NUMVAL-C</u> ( argument-1 [ argument-2 ] )
 </pre>
 
 ### 2.30.3 Arguments
@@ -32746,8 +32715,8 @@ The ORD function returns an integer value that is the ordinal position of argume
 
 ### 2.31.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ORD</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ORD</u> ( argument-1 )
 </pre>
 
 ### 2.31.3 Arguments
@@ -32772,8 +32741,8 @@ The ORD-MAX function returns a value that is the ordinal number of the argument-
 
 ### 2.32.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ORD-MAX</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ORD-MAX</u> ( { argument-1 } … )
 </pre>
 
 ### 2.32.3 Arguments
@@ -32802,8 +32771,8 @@ The ORD-MIN function returns a value that is the ordinal number of the argument 
 
 ### 2.33.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>ORD-MIN</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ORD-MIN</u> ( { argument-1 } … )
 </pre>
 
 ### 2.33.3 Arguments
@@ -32832,8 +32801,8 @@ The PRESENT-VALUE function returns a value that approximates the present value o
 
 ### 2.34.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>PRESENT-VALUE</u> (argument-1 {argument-2} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>PRESENT-VALUE</u> ( argument-1 { argument-2 } … )
 </pre>
 
 ### 2.34.3 Arguments
@@ -32864,8 +32833,8 @@ The RANDOM function returns a numeric value that is a pseudo-random number from 
 
 ### 2.35.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>RANDOM</u> [(argument-1)]
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>RANDOM</u> [ ( argument-1 ) ]
 </pre>
 
 ### 2.35.3 Arguments
@@ -32905,8 +32874,8 @@ The RANGE function returns a value that is equal to the value of the maximum arg
 
 ### 2.36.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>RANGE</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>RANGE</u> ( { argument-1 } … )
 </pre>
 
 ### 2.36.3 Arguments
@@ -32931,8 +32900,8 @@ The REM function returns a numeric value that is the remainder of argument-1 div
 
 ### 2.37.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>REM</u> (argument-1 argument-2)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>REM</u> ( argument-1 argument-2 )
 </pre>
 
 ### 2.37.3 Arguments
@@ -32963,8 +32932,8 @@ The REVERSE function returns a character string of exactly the same length as ar
 
 ### 2.38.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>REVERSE</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>REVERSE</u> ( argument-1 )
 </pre>
 
 ### 2.38.3 Arguments
@@ -32989,8 +32958,8 @@ The SIN function returns a numeric value that approximates the sine of an angle 
 
 ### 2.39.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>SIN</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>SIN</u> ( argument-1 )
 </pre>
 
 ### 2.39.3 Arguments
@@ -33015,8 +32984,8 @@ The SQRT function returns a numeric value that approximates the square root of a
 
 ### 2.40.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>SQRT</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>SQRT</u> ( argument-1 )
 </pre>
 
 ### 2.40.3 Arguments
@@ -33043,8 +33012,8 @@ The STANDARD-DEVIATION function returns a numeric value that approximates the st
 
 ### 2.41.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>STANDARD-DEVIATION</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>STANDARD-DEVIATION</u> ( { argument-1 } … )
 </pre>
 
 ### 2.41.3 Arguments
@@ -33084,8 +33053,8 @@ The SUM function returns a value that is the sum of the arguments. The type of t
 
 ### 2.42.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>SUM</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>SUM</u> ( { argument-1 } … )
 </pre>
 
 ### 2.42.3 Arguments
@@ -33114,8 +33083,8 @@ The TAN function returns a numeric value that approximates the tangent of an ang
 
 ### 2.43.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>TAN</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>TAN</u> ( argument-1 )
 </pre>
 
 ### 2.43.3 Arguments
@@ -33140,8 +33109,8 @@ The UPPER-CASE function returns a character string that is the same length as ar
 
 #### 2.44.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>UPPER-CASE</u> (argument-1)
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>UPPER-CASE</u> ( argument-1 )
 </pre>
 
 #### 2.44.3 Arguments
@@ -33168,8 +33137,8 @@ The VARIANCE function returns a numeric value that approximates the variance of 
 
 ### 2.45.2 General Format
 
-<pre>
-<u>FUNCTION</u> <u>VARIANCE</u> ({argument-1} ... )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>VARIANCE</u> ( { argument-1 } … )
 </pre>
 
 ### 2.45.3 Arguments

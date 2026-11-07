@@ -1,0 +1,12 @@
+{
+ "page": 307,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>ALTER</u> {procedure-name-1 <u>TO</u>  [<u>PROCEED</u> <u>TO</u>]  procedure-name-2} ..."
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "<u>ALTER</u> { procedure-name-1 <u>TO</u> [ <u>PROCEED</u> <u>TO</u> ] procedure-name-2 } ║ … ║"
+ ],
+ "reason": "The printed page boxes the ALTER format's final ellipsis (level 2: a series of procedure-name pairs), which the batch lost and the measurer could not pair. Drawn from the page."
+}

@@ -1,0 +1,15 @@
+{
+ "page": 404,
+ "figure": 1,
+ "drawn_lines": [
+  "<u>RECORD</u> IS <u>VARYING</u> IN SIZE  [[FROM integer-2]  [<u>TO</u> integer-3]  CHARACTERS]",
+  "",
+  "   [<u>DEPENDING</u> ON data-name-1]"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "╔ <u>RECORD</u> IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] ╗",
+  "╚ [ <u>DEPENDING</u> ON data-name-1 ]                                                 ╝"
+ ],
+ "reason": "The printed page draws a level-2 box around exactly the span the regeneration boxes (checked on the rendered page and against the box pass's list of the page's boxes); the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment."
+}

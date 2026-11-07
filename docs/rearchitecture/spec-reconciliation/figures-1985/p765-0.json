@@ -1,0 +1,13 @@
+{
+ "page": 765,
+ "figure": 0,
+ "drawn_lines": [
+  "LINKAGE SECTION.",
+  "01  A  PIC X(10).",
+  "01  B  REDEFINES A  PIC 9(10).",
+  "",
+  "PROCEDURE DIVISION USING A, B."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is Appendix XVII (substantive changes potentially affecting existing programs): the block is an example program fragment or comparison of COBOL source in plain type, illustrating a change, not a general format."
+}

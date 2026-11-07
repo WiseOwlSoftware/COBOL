@@ -1,0 +1,17 @@
+{
+ "page": 407,
+ "figure": 0,
+ "drawn_lines": [
+  "         ⎧                      ⎧data-name-1⎫⎫",
+  "<u>VALUE</u> <u>OF</u> ⎨implementor-name-1 IS ⎨           ⎬⎬ ...",
+  "         ⎩                      ⎩literal-1  ⎭⎭"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "         ╭                       ╭ ║ data-name-1 ║ ╮",
+  "<u>VALUE</u> <u>OF</u> ┤ implementor-name-1 IS │                 ├ ╮ …",
+  "         │                       ┤                 │ ├",
+  "         ╰                       ╰   literal-1     ╯ ╯"
+ ],
+ "reason": "The printed page draws a level-2 box around exactly the span the regeneration boxes (checked on the rendered page and against the box pass's list of the page's boxes); the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment."
+}

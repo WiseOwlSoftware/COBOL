@@ -1,0 +1,15 @@
+{
+ "page": 187,
+ "figure": 0,
+ "drawn_lines": [
+  "Margin                      Margin  Margin            Margin              Margin",
+  "L                                C  A                      B                   R",
+  "| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | ...                   |",
+  " \\_________________________/ \\_/ \\______________/ \\__________________/",
+  "   Sequence Number Area       |       Area A             Area B",
+  "                              ↓",
+  "                        Indicator Area"
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page shows the reference-format diagram of a line (margins L, C, A, B, R and the character positions), not a general format."
+}

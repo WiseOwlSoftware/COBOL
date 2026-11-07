@@ -1,0 +1,12 @@
+{
+ "page": 580,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>REPLACE</u> {==pseudo-text-1== <u>BY</u> ==pseudo-text-2==} ..."
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "║ <u>REPLACE</u> { ==pseudo-text-1== <u>BY</u> ==pseudo-text-2== } … ║"
+ ],
+ "reason": "The printed page encloses the REPLACE clause, prose and format, in one level-2 box; the batch lost it, and the regeneration drew its sides as choice bars and lost the pseudo-text words. Drawn from the page."
+}
