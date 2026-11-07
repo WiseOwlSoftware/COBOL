@@ -16,6 +16,7 @@ governs. ISO sells the original; this is a working transcription, not a substitu
 | | |
 |---|---|
 | `ISO_COBOL_2023.md` | the transcription — 1,261 pages, every clause, general format and rule |
+| `ANSI_COBOL_1985.md` | the 1985 edition's transcription (ANSI X3.23-1985, with Amendments 1 and 2), assembled page by page from the model's raw pages by `scripts/spec/transcribe_pdf.py assemble` (kb/Work PB4816); its reconciliation against the scan is kb/Work PB4850, so it is NOT yet a checked text |
 | the source PDF | **not here.** It is licensed per copy and stays in a private submodule (`specs-private/`) |
 
 Tools that MEASURE the printed page — underlining, bracket and choice-indicator geometry — need the PDF and will
