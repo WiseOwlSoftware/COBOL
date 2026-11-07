@@ -769,7 +769,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// (X3.23-1985 USE FOR DEBUGGING general rule 15).</summary>
     public int DebugContentsWidth => ctx.Data.State.Implicit.DebugContentsWidth;
 
-    /// <summary>The description the DEBUG-SUB-n members share (general rule 10); null when no debugging section activated the register.</summary>
+    /// <summary>The three DEBUG-SUB-n items (general rule 10), each its own `DataItem` with its own profile; empty when no debugging section activated the register.</summary>
     public IReadOnlyList<DataItem> DebugSubRegisters => ctx.Data.State.Implicit.DebugSubRegisters;
 
     /// <summary>Whether <paramref name="section"/> is a debugging section. General rule 1: "Automatic execution of a debugging section is not

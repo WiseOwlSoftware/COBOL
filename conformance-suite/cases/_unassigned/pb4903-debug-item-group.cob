@@ -17,11 +17,14 @@
       *> the categories it names), and MOVE CORRESPONDING pairs the
       *> members with same-named items of the other group (the
       *> group-operand rule, 14.9.25.3 SR12, is met).
-      *> A: MOVE CORRESPONDING DEBUG-ITEM TO G, a numeric pair
-      *>    converts DEBUG-SUB-1 (+0002) to the receiver.
-      *> B: ADD CORRESPONDING DEBUG-ITEM TO G adds only the numeric
-      *>    pair, so DEBUG-NAME of G is unchanged.
-      *> C: MOVE CORRESPONDING G TO DEBUG-ITEM stores both members.
+      *> No user item can share a DEBUG-* name (reserved words at
+      *> COBOL-85, so the funnel refuses the declaration), hence no
+      *> pair exists between G (GN, GS) and DEBUG-ITEM; the legs
+      *> prove the statements are accepted and pair nothing.
+      *> A: MOVE CORRESPONDING DEBUG-ITEM TO G leaves G unchanged.
+      *> B: ADD CORRESPONDING DEBUG-ITEM TO G leaves G unchanged.
+      *> C: MOVE CORRESPONDING G TO DEBUG-ITEM leaves DEBUG-NAME (T)
+      *>    and DEBUG-SUB-1 (+0002) as they were.
       *> D: INITIALIZE DEBUG-ITEM REPLACING NUMERIC BY 3 sets the
       *>    three DEBUG-SUB-n and leaves DEBUG-NAME as it was.
       *> E: INITIALIZE DEBUG-ITEM sets DEBUG-NAME to spaces and the
@@ -44,8 +47,8 @@
        01 TB.
           02 T PIC X(2) OCCURS 3.
        01 G.
-          02 DEBUG-NAME PIC X(8).
-          02 DEBUG-SUB-1 PIC 9(3) VALUE 5.
+          02 GN PIC X(8) VALUE "KEEP".
+          02 GS PIC 9(3) VALUE 5.
        01 W PIC X(86).
        PROCEDURE DIVISION.
        DECLARATIVES.
@@ -56,8 +59,6 @@
            DISPLAY "A [" G "]".
            ADD CORRESPONDING DEBUG-ITEM TO G.
            DISPLAY "B [" G "]".
-           MOVE "WXYZ" TO DEBUG-NAME OF G.
-           MOVE 7 TO DEBUG-SUB-1 OF G.
            MOVE CORRESPONDING G TO DEBUG-ITEM.
            DISPLAY "C [" DEBUG-NAME (1:8) "] [" DEBUG-SUB-1 "]".
            INITIALIZE DEBUG-ITEM REPLACING NUMERIC BY 3.

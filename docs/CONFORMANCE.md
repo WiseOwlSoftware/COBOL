@@ -2310,8 +2310,8 @@ of an unsupported facility.
   **DEBUG-ITEM is a GROUP (kb/Work PB4903; the text decides, no latitude).** General rule 10 describes `01 DEBUG-ITEM` with the six members and the
   one-character FILLER entries between them, so the item is a group item whose entries are those eleven: a store into the whole item lands in the
   FILLER entries too (`DebugItem.StoreImage`), INITIALIZE walks the entries by category (ISO/IEC 1989:2023 §2023:14.9.20.4 GR4, GR5 and GR6: the
-  DEBUG-SUB-n entries become zero, the alphanumeric entries spaces, the FILLER entries are left alone), and MOVE CORRESPONDING pairs the members with
-  the same-named items of the other group (§2023:14.9.25.3 SR12 is met). This differs from GnuCOBOL 3.2, which models the register as one
+  DEBUG-SUB-n entries become zero, the alphanumeric entries spaces, the FILLER entries are left alone), and CORRESPONDING takes it as a group operand
+  (§2023:14.9.25.3 SR12 is met; no user item can share a member's name, DEBUG-* being reserved at COBOL-85, so no pair exists and the statement changes nothing). This differs from GnuCOBOL 3.2, which models the register as one
   alphanumeric item; the text controls (CLAUDE.md rule 1). Witness: `conformance:cases/_unassigned/pb4903-debug-item-group`
   (refused from 2002: `pb4903-debug-item-group-removed-2002`).
 
