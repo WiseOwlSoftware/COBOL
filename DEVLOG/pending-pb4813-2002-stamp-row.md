@@ -23,3 +23,5 @@ the number, the date and a name. 2002 still exits at its missing acknowledgment 
 
 **Self-review.** One mechanism, one table row per edition, no second copy of a shape list. No literal stamp text in any
 tracked file: the planted name and number are assembled from pieces.
+
+**Gate.** The first gate was RED: `test_transcribe_pdf.py` expected `stamp_patterns(2002)` to exit, which the row ends. That self-test now drops a planted 2002 stamp from a page and tests the exit on a table copy without 2002. Re-gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,467/22,467 · Unit 40,427/40,427 · Characterization 37/37 cases ran (skipped 0)` (run 000002-20261107T190931Z).
