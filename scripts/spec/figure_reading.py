@@ -19,7 +19,7 @@ The two drawings are TEXT: the generated one in the house style (box drawing, FI
 it chose (box drawing, the Miscellaneous Technical brace pieces, typed `[ ]`). `read` turns either into words, each with
 its row, its column, its underlined letters and the delimiters around it; `compare` pairs the two word lists and names
 every word on which they differ, and how. It reads, it never decides: a disagreement goes to a refuter who looks at the
-printed page.
+printed page. When the page bears the batch's drawing out, `restyle` redraws it in the house style, reading the same.
 
     python scripts/spec/figure_reading.py --self-test
 """
@@ -358,6 +358,120 @@ def compare(drawn: list[str], generated: list[str]) -> dict:
     return out
 
 
+#: The batch's Miscellaneous Technical delimiter pieces, which FIGURE-STYLE.md rule 2 forbids in a written figure (no
+#: monospace font carries them), and the box-drawing piece each is redrawn as (rules 3 and 6).
+BATCH_GLYPHS = {"⎧": "╭", "⎫": "╮", "⎩": "╰", "⎭": "╯", "⎨": "┤", "⎬": "├", "⎪": "│",
+                "⎡": "┌", "⎤": "┐", "⎣": "└", "⎦": "┘", "⎢": "│", "⎥": "│"}
+#: A delimiter's middle piece, by family and side, for a row `restyle` adds inside it.
+_EXTENSION = {("bracket", "L"): "│", ("bracket", "R"): "│", ("brace", "L"): "⎪", ("brace", "R"): "⎪",
+              ("paren", "L"): "│", ("paren", "R"): "│", ("bar", None): "│", ("box", "L"): BOX_SIDE,
+              ("box", "R"): BOX_SIDE, ("box", None): BOX_SIDE}
+_POINT_OF = {"L": "⎨", "R": "⎬"}
+_ONE_ROW_OF = {("bracket", "L"): "[", ("bracket", "R"): "]", ("brace", "L"): "{", ("brace", "R"): "}"}
+
+
+def emit_row(text: str, under: set) -> str:
+    """`plain_row` inverted: a row's text with its underlined columns wrapped in `<u>`, `<`, `>` and `&` written as
+    entities (a `<pre>` block is raw HTML: FIGURE-STYLE.md, lint_rendering's SWALLOWED)."""
+    out, inside = [], False
+    for c, ch in enumerate(text):
+        if (c in under) != inside:
+            out.append("<u>" if not inside else "</u>")
+            inside = not inside
+        out.append(html.escape(ch, quote=False))
+    if inside:
+        out.append("</u>")
+    return "".join(out)
+
+
+def restyle(lines: list[str]) -> list[str]:
+    """The batch's drawing of a format redrawn in the house style (FIGURE-STYLE.md), carrying the same words and the
+    same four things and boxes (`compare` is asserted empty): what a refuter writes when the printed page bears the
+    batch's drawing out (`sweep_figures` verdict `drawn`, kb/Work PB4849). The words keep their rows and columns; only
+    the notation changes:
+    - rule 5: a bracket or brace two rows tall gains a blank middle row, the delimiters crossing it extended through it
+      (a two-row brace's point goes there);
+    - rule 3: a brace's pieces become `╭ ┤ ╰` / `╮ ├ ╯`, a bracket's `┌ │ └` / `┐ │ ┘` (rule 2: the Miscellaneous
+      Technical pieces are in no monospace font), and a brace of three rows or more drawn without a point gets one on
+      its middle row, the piece that tells it from a parenthesis;
+    - rule 7: a multi-row piece standing on one row is the typed delimiter `[ ] { }`;
+    - the ellipsis is the house `…` (render_figure.TEXT_GLYPHS), its two spare columns kept as spaces so that every
+      later word keeps its column.
+    A full double-line box rectangle (rule 9 draws a box's sides only: its rules need rows of their own) and the
+    batch's other notation (arrows, broken bars) have no house form this can derive: ValueError, and a refuter draws
+    that figure by hand (verdict `neither`)."""
+    plain = [plain_row(line) for line in lines]
+    for text, _ in plain:
+        odd = sorted(set(text) & (RULE_GLYPHS | OTHER_NOTATION))
+        if odd:
+            raise ValueError(f"no house form for {''.join(odd)!r} (a box's rules, or other notation): draw it by hand")
+    grid, under = [list(t) for t, _ in plain], [set(u) for _, u in plain]
+
+    def cell(r, c):
+        return grid[r][c] if c < len(grid[r]) else " "
+
+    while True:                                   # rule 5, one two-row group at a time (rows shift after each)
+        runs = _columns(["".join(g) for g in grid])
+        short = [d for d in runs if d[0] in ("bracket", "brace") and d[4] - d[3] == 1]
+        if not short:
+            break
+        top = short[0][3]
+        width = max(len(g) for g in grid)
+        row = [" "] * width
+        for fam, side, c, r0, r1 in runs:
+            if r0 <= top < r1:
+                row[c] = _POINT_OF[side] if (fam == "brace" and r1 - r0 == 1 and not any(
+                    cell(r, c) in POINT for r in (r0, r1))) else _EXTENSION.get((fam, side), "│")
+        grid.insert(top + 1, row)
+        under.insert(top + 1, set())
+    def wordy(r, c):
+        ch = cell(r, c) if c >= 0 else " "
+        return ch != " " and ch not in COLUMN_GLYPHS and ch not in BATCH_GLYPHS and ch not in ONE_ROW and ch != BAR
+
+    def clear(fam_side_c_r0_r1) -> int | None:
+        """Where a blank column goes to set a multi-row delimiter one space clear of what it holds (the house layout,
+        and rule 4 for a choice bar beside a delimiter); None when it is clear, or when a column there would split a
+        word on some row (a word of another row's clause crossing the delimiter's column)."""
+        _, side, c, r0, r1 = fam_side_c_r0_r1
+        at = c + 1 if side == "L" else c
+        near = c + 1 if side == "L" else c - 1
+        if near < 0 or all(cell(r, near) == " " for r in range(r0, r1 + 1)):
+            return None
+        return None if any(wordy(r, at - 1) and wordy(r, at) for r in range(len(grid))) else at
+
+    moved = True
+    while moved:
+        moved = False
+        for d in _columns(["".join(g) for g in grid]):
+            at = clear(d) if d[1] in ("L", "R") else None
+            if at is not None:
+                for r in range(len(grid)):
+                    if at <= len(grid[r]):
+                        grid[r].insert(at, " ")
+                    under[r] = {x + 1 if x >= at else x for x in under[r]}
+                moved = True
+                break
+    for fam, side, c, r0, r1 in _columns(["".join(g) for g in grid]):
+        if fam == "brace" and r1 - r0 >= 2 and not any(cell(r, c) in POINT for r in range(r0, r1 + 1)):
+            grid[(r0 + r1) // 2][c] = _POINT_OF[side]  # a brace without its point would read as a parenthesis
+        if r0 == r1 and (fam, side) in _ONE_ROW_OF and cell(r0, c) in set(TOP) | set(BOTTOM):
+            grid[r0][c] = _ONE_ROW_OF[(fam, side)]
+    out = []
+    for g, u in zip(grid, under):
+        text = "".join(BATCH_GLYPHS.get(ch, ch) for ch in g).replace("...", "…  ")
+        keep = len(text.rstrip())
+        out.append(emit_row(text[:keep], {c for c in u if c < keep}))
+    diff = {t: v for t, v in compare(lines, out).items() if v}
+    if diff:
+        raise ValueError(f"the redrawn figure reads differently from the drawing: {diff}")
+    return out
+
+
+def foreign_glyphs(lines: list[str]) -> str:
+    """The delimiter pieces in `lines` that FIGURE-STYLE.md rule 2 forbids (the batch's Miscellaneous Technical ones)."""
+    return "".join(sorted({ch for line in lines for ch in line if ch in BATCH_GLYPHS}))
+
+
 def self_test() -> int:
     fails, ran = [], []
 
@@ -456,6 +570,34 @@ def self_test() -> int:
           ("...", 6), ("TO", 8)]], str(token_rows(["<u>ADD</u> x … TO"])))
     check("the spaces round a typed delimiter stay as drawn", token_rows(["{a} ... ] ..."]) == [[("{a}", 0), ("...", 4),
           ("]", 8), ("...", 10)]], str(token_rows(["{a} ... ] ..."])))
+    # restyle: the batch's drawing redrawn in the house style, reading the same (kb/Work PB4849).
+    got = restyle(batch)
+    check("restyle: a two-row brace gains its point row, the pieces become box drawing, the ellipsis is the house one",
+          got == ["<u>ADD</u> ╭ identifier-1╮ …     <u>TO</u> {identifier-2 [<u>ROUNDED</u>]} …",
+                  "    ┤             ├",
+                  "    ╰ literal-1   ╯",
+                  "",
+                  "    [ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]"], str(got))
+    check("restyle: the redrawn figure reads as the drawing", not any(compare(batch, got).values()))
+    check("restyle: no forbidden piece is left", foreign_glyphs(got) == "" and foreign_glyphs(batch) == "⎧⎩⎫⎭",
+          foreign_glyphs(batch))
+    pointless = ["⎧A⎫", "⎪B⎪", "⎩C⎭"]
+    check("restyle: a brace drawn without its point gets one on its middle row",
+          restyle(pointless) == ["╭ A ╮", "┤ B ├", "╰ C ╯"], str(restyle(pointless)))
+    check("restyle: a two-row bracket gains a middle row, a bar beside it set one space clear",
+          restyle(["┌│X│┐", "└│Y│┘"]) == ["┌ │X│ ┐", "│ │ │ │", "└ │Y│ ┘"], str(restyle(["┌│X│┐", "└│Y│┘"])))
+    check("restyle: a corner on one row is the typed delimiter", restyle(["┌ A ┐"]) == ["[ A ]"], str(restyle(["┌ A ┐"])))
+    crossed = ["⎧A⎫", "⎨B⎬", "⎩C⎭", "WORDWORD"]
+    check("restyle: no blank column is set through another row's word",
+          restyle(crossed) == ["╭A╮", "┤B├", "╰C╯", "WORDWORD"], str(restyle(crossed)))
+    try:
+        restyle(rectangle)
+        refused = False
+    except ValueError:
+        refused = True
+    check("restyle: a box's full rectangle has no derived house form", refused)
+    check("emit_row inverts plain_row", emit_row(*plain_row("&lt;<u>A</u>B<u>C</u>")) == "&lt;<u>A</u>B<u>C</u>",
+          emit_row(*plain_row("&lt;<u>A</u>B<u>C</u>")))
     total = len(ran)
     print(f"figure_reading self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))
     for f in fails:
