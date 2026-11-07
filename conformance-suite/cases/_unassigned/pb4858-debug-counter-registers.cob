@@ -34,7 +34,11 @@
       *> target runs no section; a planner that matches places alone
       *> never sees the reads, which are register nodes; a register
       *> with no DEBUG-CONTENTS image fills the section's DISPLAY with
-      *> the wrong digits.
+      *> the wrong digits. DB2 and DB3 also DISPLAY the first four bytes of
+      *> DEBUG-CONTENTS through a COMP view: the PAGE-COUNTER and
+      *> LINE-COUNTER image is their binary value (7 after the MOVE; the
+      *> first detail line is 2, FIRST DETAIL 2), so a display image
+      *> or spaces fails.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4858CT.
        ENVIRONMENT DIVISION.
@@ -52,6 +56,8 @@
        WORKING-STORAGE SECTION.
        01 N PIC 9(4).
        01 AMT PIC 9 VALUE 3.
+       01 W4 PIC X(4).
+       01 WN REDEFINES W4 PIC 9(8) COMP.
        REPORT SECTION.
        RD R1 PAGE LIMIT IS 20 LINES HEADING 1 FIRST DETAIL 2
            LAST DETAIL 18.
@@ -66,11 +72,13 @@
        DB2 SECTION.
            USE FOR DEBUGGING ON PAGE-COUNTER.
        DB2-B.
-           DISPLAY "  DB2 " DEBUG-NAME (1:12).
+           MOVE DEBUG-CONTENTS (1:4) TO W4.
+           DISPLAY "  DB2 " DEBUG-NAME (1:12) " " WN.
        DB3 SECTION.
            USE FOR DEBUGGING ON ALL REFERENCES OF LINE-COUNTER.
        DB3-B.
-           DISPLAY "  DB3 " DEBUG-NAME (1:12).
+           MOVE DEBUG-CONTENTS (1:4) TO W4.
+           DISPLAY "  DB3 " DEBUG-NAME (1:12) " " WN.
        END DECLARATIVES.
        MAIN SECTION.
        M1.
