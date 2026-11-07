@@ -31,7 +31,7 @@ single PC dispatcher; idiomatic/readable C# where the construct allows. **Uphold
 2. **Make the seam real: `ICodeGenBackend`.** `CSharpEmitter`+`RoslynBackend` become `RoslynBackend : ICodeGenBackend`;
    a future `CilBackend : ICodeGenBackend` (Mono.Cecil) is additive. The enabler is #3.
 3. **Backend-neutralize the bound tree and `Place`.** Today `Place.Read()/Write()` and several bound nodes carry
-   **pre-rendered C# strings** — a direct violation of the G4 invariant the design doc already states (§2023:3.3 note). The
+   **pre-rendered C# strings** — a direct violation of the G4 invariant the design doc already states (the design doc's §3.3 note). The
    target: `Place` becomes a **structural** description (accessor chain + subscript expression nodes + ref-mod span);
    the Roslyn backend owns a `PlaceRenderer` that turns structure→C#; the CIL backend lowers the *same* structure to
    load/store. No C# fragment survives in a bound node.

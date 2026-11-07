@@ -1160,7 +1160,7 @@ class NoteSites:
     declared: bool = False
     #: {path: the members its site blocks name in it} (kb/Work PB3670), for a path EVERY mention of which names its
     #: members: `path#Member`, or `path (`member`, `Type.Member`, …)` (a parenthesis right after the path that opens
-    #: with a code span; `(§8.7)` for a document's section). A path mentioned bare, with a `:line`, or with a prose
+    #: with a code span; `(§8.7)` for a document's section). A path mentioned bare, with a `:line`, or with a prose (citation-audit: example)
     #: parenthesis is the whole file and is absent here: the partition reads it whole (scripts/arch/source_units.py).
     members: dict[str, tuple[str, ...]] = dataclasses.field(default_factory=dict, hash=False)
     #: The GLOBS its site blocks name (`scripts/**/*.py`, kb/Work PB3721): a sweep over the tracked files they match,
@@ -1344,7 +1344,7 @@ _MEMBER_NAME = re.compile(r"~?(?:<[a-z]+>|[A-Za-z_][A-Za-z0-9_-]*)(?:\.(?:<own>|
 _FILE_NAME = re.compile(r"\.(?:cs|py|md|json|ps1|psm1|g4|js|ts|txt|ya?ml|sh|csproj|props|targets|sln)$", re.I)
 #: The files whose site mention must name its members or say why the whole file changes (kb/Work PB3797): the code the
 #: wave planner partitions by unit (source_units.READERS) and the code kinds a note names beside it. A Markdown file is
-#: named by a section number (`(§8.7)`) or the file whole, a data file (json, yml) by the file.
+#: named by a section number (`(§8.7)`) or the file whole, a data file (json, yml) by the file. (citation-audit: example)
 CODE_FILE = re.compile(r"\.(?:cs|py|ps1|psm1|js|g4|sh)$", re.I)
 _SECTION_REF = re.compile(r"§(\d+(?:\.\d+)*)")
 
@@ -1403,7 +1403,7 @@ SITES_RULE = ("an open note that names a cluster declares its sites: a `**Sites:
               "whole and holds every other group on it (kb/Work PB3670), and `check` refuses a code file (.py .cs .ps1 "
               ".js .g4 .sh) named so, unless the parenthesis says why the whole file changes, `(whole: why)` (a file "
               "the change creates needs neither); a Markdown section is named by its number outside backticks, "
-              "`(§8.7)`; or `**Sites:** none (why)` when it changes no code file")
+              "`(§8.7)`; or `**Sites:** none (why)` when it changes no code file")  # citation-audit: example
 
 
 def _undeclared_names(path: pathlib.Path, names: tuple[str, ...]) -> tuple[str, ...]:

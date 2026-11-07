@@ -125,7 +125,7 @@ CITE2 = {"clause": "14.9.4.3", "text": "Literal-1 shall be an alphanumeric or na
 
 
 def record_md(program=PROGRAM, title="**Title:** cobc 3.2 misbehaves on DEMO", env="`cobc -std=cobol2014 -x demo.cob`",
-              expected="§14.9.4.4 GR 3) f): the exception is set to exist.") -> str:
+              expected="§2023:14.9.4.4 GR 3) f): the exception is set to exist.") -> str:
     fence = "```"
     return NL.join([
         "# demo-family", "", "## Summary", "", "cobc 3.2 does something wrong.", "",
@@ -144,7 +144,7 @@ def verdict(sig="GNUCOBOL-SIDE:demo", family="demo-family", disposition="record"
           "citations": [CITE], "record": f"records/{family}.md", "repro": f"records/{family}.cob",
           "draft_title": "cobc 3.2 misbehaves on DEMO", "programs": ["fz00020", "fz00021"]}
     up.update(over)
-    return {"signature": sig, "count": 2, "verdict": "GNUCOBOL-SIDE", "harm": None, "rule": "§14.9.4.4 (checked)",
+    return {"signature": sig, "count": 2, "verdict": "GNUCOBOL-SIDE", "harm": None, "rule": "§2023:14.9.4.4 (checked)",
             "note": "n", "repro": up["repro"], "code_site": None, "upstream": up}
 
 
@@ -387,7 +387,7 @@ def arm_refute_and_filing(root: pathlib.Path, t: ft.Triage) -> None:
           "wrong_answer: true" in ft.render_note(f3.drafts[0], "PB9101", "d") and "crashes: false" in ft.render_note(f3.drafts[0], "PB9101", "d"))
 
     # the refuter found the more specific rule: the note's spec_refs are the refuter's checked clauses, not the adjudicator's
-    f3b = file_one({"refute_over": {"citations": [CITE2]}, "md": record_md(expected="§14.9.4.3 SR 2): the literal is not empty.")})
+    f3b = file_one({"refute_over": {"citations": [CITE2]}, "md": record_md(expected="§2023:14.9.4.3 SR 2): the literal is not empty.")})
     check("FILING: spec_refs come from the refutation line's citations of the corrected copy",
           f3b.drafts and f3b.drafts[0].spec_refs == ["14.9.4.3"] and not f3b.held, str(f3b.held))
 

@@ -2631,7 +2631,7 @@ added `MINUS`/`-` to the LINE and COLUMN clauses, the `END OF LINE` / `END OF SC
 ⛔ **The ACCEPT/DISPLAY exception phrases are the statement's own `conditionalPhrases`, independent of the
 positioning phrase as the printed formats bracket them (§2023:14.9.1.2 Format 3, §2023:14.9.11.2 Format 2), and §2023:14.5.3.3
 decides which statement a phrase belongs to** (kb/Work PB1528; `docs/rearchitecture/DESIGN-frontend-grammar.md`
-§2023:3.16). `ON EXCEPTION` / `NOT ON EXCEPTION` is spelled the same on a screen statement as on the statements that
+§3.16). `ON EXCEPTION` / `NOT ON EXCEPTION` is spelled the same on a screen statement as on the statements that
 already own one, and ACCEPT and DISPLAY sit inside every one of their imperative-statement slots, so an inner
 device statement must never take the enclosing statement's arm: in
 `DELETE FILE F ON EXCEPTION DISPLAY X NOT ON EXCEPTION DISPLAY "NOEXC" END-DELETE` the NOT arm is DELETE's. The

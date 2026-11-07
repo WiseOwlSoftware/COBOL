@@ -7,11 +7,11 @@ WHY THIS EXISTS. Rule 1 requires the exact §/GR for any semantics question, and
 inventing a citation — it is INHERITING one. A fix-queue entry or design doc carries "§8.4.1.2 GR2", the text
 it quotes really does say what it claims, and the clause NUMBER is never re-derived; it then propagates into
 code comments, goldens and DEVLOG entries as though it had been checked. Two of the CA10 citations were wrong
-this way (the real clauses are §8.4.2.3.4 GR2 and §13.18.38.4 GR7) and nothing would have caught them.
+this way (the real clauses are §2023:8.4.2.3.4 GR2 and §2023:13.18.38.4 GR7) and nothing would have caught them.
 
 ⛔ IT READS THE MARKDOWN, NOT `spec-rule-catalog.json`. The catalog is derived and has two properties that make
 it the wrong oracle here: it has no block at all for a clause whose rules are normative PROSE with lettered
-items (§14.8.2.3.3 is one — checking against the catalog reports a real citation as false), and its `ordinal`
+items (§2023:14.8.2.3.3 is one — checking against the catalog reports a real citation as false), and its `ordinal`
 is a per-block count that does NOT track the printed rule number once a rule has sub-letters (the abs rule
 prints as 6)d)2.b) and the catalog calls it 2). Both produce confident wrong answers.
 
@@ -83,12 +83,12 @@ def rule_path(lines, at, start):
     Two lines are not what their position suggests, and each used to report a sub-item it is not in (PB308):
       · an editorial note on a correction belongs to the line above it, so it takes that line's path;
       · an UNLETTERED paragraph at the sub-items' own indentation (or shallower) is a trailing paragraph of the
-        PARENT rule — §14.7.7 rule 2's "The composite of operands is a hypothetical data item…" follows its
+        PARENT rule — §2023:14.7.7 rule 2's "The composite of operands is a hypothetical data item…" follows its
         sub-items a) and b) at their indent and is neither — so it reports the bare rule, not the last letter.
     A paragraph INSIDE a sub-item sits deeper than its label, which is how the two are told apart.
 
     ⛔ A LABEL ABOVE IS AN ANCESTOR ONLY IF IT IS SHALLOWER THAN EVERYTHING ACCEPTED SO FAR (kb/Work PB55 review
-    R1-1). A nested `N.` list is transcribed at the SAME indentation as the lettered items around it (§7.2.3.4 9)
+    R1-1). A nested `N.` list is transcribed at the SAME indentation as the lettered items around it (§2023:7.2.3.4 9)
     c) 1.–6. sits at the indent of a)–f)), so the nearest `N.` above `d)` belongs to the EARLIER letter `c)`, and
     taking it reported the impossible `9) 6. d)`. Each label's depth is (indentation, style level): a deeper
     indent nests, and at one indent `N)` < `x)` < `N.`. Walking back, a label whose depth is not strictly below

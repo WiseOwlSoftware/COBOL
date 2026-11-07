@@ -798,7 +798,7 @@ than three run one after another. The review's bound for three overlapped gates 
 **What the gate runs now** (`scripts/gate.py`; §3.14.1–3.14.3): the inert lane runs the audits alone (§3.18); every other
 change builds once and runs the three populations whole, three hosts at once, the audits beside them, the population
 checked by name (§3.14.4). Ordering is the one lever left (§3.14.2): the classes red at the previous run first, then
-longest first by the committed weights file. The growth trigger of PB4323 §2023:3.4 (step 10, kb/Work PB4333) reads the
+longest first by the committed weights file. The growth trigger of kb/Work/PB4323.md §3.4 (step 10, kb/Work PB4333) reads the
 `timings.tests_s` of every GREEN code-lane gate, kept beyond its worktree (§3.14.13).
 
 ### 3.14 THE WHOLE-POPULATION GATE, WHOLE-SUITE SPEED AND THE GATE CAP (kb/Work PB1708, PB4328)

@@ -31,14 +31,14 @@ One note = one mechanism a single Delete / Unify / Move / Extract wave can take.
                       seam and edited files are step 1's (its Sites stay the census finding's, and the finding's whole
                       target list stays behind its census_ids back-link), and it names the later steps by note id
                       only, so no extraction is claimed twice.
-                      A record's `removes` (or a step's) names the §8.1 tolerated rows that note removes. A step's
+                      A record's `removes` (or a step's) names the DESIGN-architecture-review §8.1 tolerated rows that note removes. A step's
                       `moves` names what it moves or changes (`Ns.Type.Member`, or a type): the note renders it as
                       its `**Moves or changes:**` line, from which scripts/arch/member_index.py computes the callers
                       the wave edits (PB2118 Draft 8, J2); a step without it falls back to every type its Sites
                       declare. Every path a step's `files` or a designed record's `sites` names must exist (or be
                       marked `(new)`), or nothing is filed.
 The --targets file also carries `designed` records: waves §8 designs that no census finding names (each tolerated
-row's removal in §8.1's edges file, a grammar regroup, a re-model). Each is one note keyed by its `key`.
+row's removal in DESIGN-architecture-review §8.1's edges file, a grammar regroup, a re-model). Each is one note keyed by its `key`.
 
 Targets file (schema 2):
   {"schema": 2, "census": "<sha>", "source": "...",
@@ -51,7 +51,7 @@ Targets file (schema 2):
                  "order_text": "...", "blocked_by": [...], "note": "...", "model": "...", "claims": [{"file": "...", "kinds": [...]}]}]}
   A blocked_by entry is a note id (PBnnnn, Rnn), a step reference (`R0-nnnn` = step 1, `R0-nnnn#k`, `R0-nnnn#last`)
   or a designed key; references resolve to note ids when the notes are rendered. A designed record's `claims` names
-  (file, finding kinds) it already covers (BoundTree.cs's family split claims the §8.2 rule 2-3 findings that kb/Work
+  (file, finding kinds) it already covers (BoundTree.cs's family split claims the DESIGN-architecture-review §8.2 rule 2-3 findings that kb/Work
   PB2351 makes the census report); a finding of a claimed kind on a claimed file is skipped (`claimed-by-design`).
 
 Never filed: test-only-family / test-only-type ("only tests use it" is a judgment, reported as NEEDS-OPUS), and
@@ -597,7 +597,7 @@ R2_PREFIX = {"extract": "Extract:", "unify": "Unify:", "move-and-rename": "Move/
 R2_MODEL = {"extract": EXTRACT_MODEL, "unify": EXTRACT_MODEL, "data-ize": EXTRACT_MODEL,
             "move-and-rename": "Sonnet (a rewriter-driven wave, R69 §4); a judgment it meets returns NEEDS-OPUS",
             "delete": "Sonnet (a measured deletion, R69 §4); a judgment it meets returns NEEDS-OPUS",
-            "modernize": "Sonnet (one analyzer rule with its code fix, §5.5; R69 §4)",
+            "modernize": "Sonnet (one analyzer rule with its code fix, DESIGN-architecture-review §5.5; R69 §4)",
             work.FIX_LANE_WAVE: "the fix lane's routing (`model_rules.json`)"}
 # Critical stays MAJOR: the register reserves BLOCKER for an adjudicated severe wrong answer (4 notes of 2,137),
 # and the fix lane ranks a defect by its harm flags first; the landing adjudication re-ranks it.
@@ -708,7 +708,8 @@ def render_r2(rec, nid, pin, areas):
         measured += " Analyzer rule: `%s`." % rec["analyzer_rule"]
     body += ["**Measured how:** " + measured, ""]
     if clauses:
-        body += ["**Spec:** " + "; ".join("§%s \"%s\" (`cite.py --check` passed at collection)" % (r["clause"], r["text"])
+        # A spec_ref's clause is a clause of the 2023 standard (r2_collect validates it so): the edition form.
+        body += ["**Spec:** " + "; ".join(f'§2023:{r["clause"]} "{r["text"]}" (`cite.py --check` passed at collection)'
                                           for r in rec["spec_refs"]), ""]
     if rec.get("corrections_applied"):
         body += ["**Skeptics' corrections applied:** " + " | ".join(
@@ -828,7 +829,7 @@ def file_r2(collected_path, id_pool, notes_dir, dry_run, path_root=REPO, areas=N
 def self_test_r2():
     def rec(i, **kw):
         r = {"id": "s1--architecture--f1#%d" % i, "pair": "s1--architecture", "shard": "s1", "dimension": "architecture",
-             "kind": "finding", "title": "split T", "rule": "§5.1 single responsibility", "scenario": "two reasons",
+             "kind": "finding", "title": "split T", "rule": "§5.1 single responsibility", "scenario": "two reasons",  # citation-audit: example
              "target": "T and U", "files": ["src/T.cs"], "sites": ["src/T.cs:10-90 (N.T.F)"], "members": ["N.T.F"],
              "census_ids": ["R0-0001"], "design_ref": "§8.3", "wave_kind": "extract", "severity": "Warning",
              "existing_note": "", "owner_question": "", "votes": {"rule": "upheld", "scenario": "upheld", "site": "refuted"},

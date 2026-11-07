@@ -182,8 +182,8 @@ KINDS = {
     "general rule": "GR",
     "argument rule": "AR", "argument": "AR",
     "returned value rule": "RV", "returned value": "RV",
-    "editing rule": "GR",       # §13.18.40.5 — typed by §5.3.3, not a new kind
-    "precedence rule": "SR",    # §13.18.40.6 — typed by §5.3.2, not a new kind
+    "editing rule": "GR",       # §2023:13.18.40.5 — typed by §2023:5.3.3, not a new kind
+    "precedence rule": "SR",    # §2023:13.18.40.6 — typed by §2023:5.3.2, not a new kind
 }
 
 #: Heading titles that name a rule block in some spelling. Anything matching this and NOT resolving through
@@ -195,24 +195,24 @@ RULE_SHAPED = re.compile(r"\brules?\b", re.IGNORECASE)
 #: cry-wolf failure §0 names for line-number code-locations — so a decided exclusion is recorded HERE rather than
 #: left to reappear as a warning forever. Anything NOT in this dict still fails loudly.
 EXCLUDED_BLOCKS = {
-    "5.3": "defines the rule taxonomy itself (§5.3.1–5.3.3 is prose about what syntax and general rules ARE) "
-           "and carries no numbered rules of its own — it is the clause that CLASSIFIES §13.18.40.5/.6, which "
+    "5.3": "defines the rule taxonomy itself (§2023:5.3.1–5.3.3 is prose about what syntax and general rules ARE) "
+           "and carries no numbered rules of its own — it is the clause that CLASSIFIES §2023:13.18.40.5/.6, which "
            "is why those two are in KINDS. Owner decision 2026-07-30.",
 }
 
 #: Recognised rule blocks that legitimately yield ZERO numbered rules, so "0 rules" is the correct answer rather
 #: than a parse failure. Same cry-wolf argument as EXCLUDED_BLOCKS.
 KNOWN_EMPTY_BLOCKS = {
-    "15.4": "its numbered rules live in the SUB-CLAUSE §15.4.1 'Numeric and integer functions', whose prose "
+    "15.4": "its numbered rules live in the SUB-CLAUSE §2023:15.4.1 'Numeric and integer functions', whose prose "
             "heading KINDS does not recognise — so this heading resolves to RV and correctly yields nothing of "
             "its own. ⛔ THIS WAS AN UNOWNED PARSE GAP FOR MONTHS and the content-keyed scan explained it "
-            "(fix-queue PB29, 2026-08-04): the same defect class as §8.8.1, one level down. §15.4.1 is now "
+            "(fix-queue PB29, 2026-08-04): the same defect class as §2023:8.8.1, one level down. §2023:15.4.1 is now "
             "ADMITTED in spec-unharvested-rule-blocks.json and contributes its 6 RV rules — including r1, 'the "
             "returned value shall equal the value of the equivalent arithmetic expression', which PB38 and the "
             "D3 correction both turn on. Declared here rather than left as a warning forever.",
     "13.18.40.6": "the PICTURE precedence rules are UNNUMBERED prose plus Table 10 and Table 11 — the normative "
                   "content IS the two precedence matrices, which have no per-rule ordinal to extract. Typed SR "
-                  "by §5.3.2 so the heading resolves; it contributes no rows. Owner decision 2026-07-30.",
+                  "by §2023:5.3.2 so the heading resolves; it contributes no rows. Owner decision 2026-07-30.",
 }
 
 
@@ -226,7 +226,7 @@ def canonical_title(title: str) -> str:
     t = title.strip().lower().rstrip(".")
     t = re.sub(r"\brules\b", "rule", t)
     t = re.sub(r"\barguments\b", "argument", t)
-    t = re.sub(r"\bvalues\b", "value", t)      # §15.69.4 "Returned values rules" — a THIRD pluralisation axis
+    t = re.sub(r"\bvalues\b", "value", t)      # §2023:15.69.4 "Returned values rules" — a THIRD pluralisation axis
     return t
 
 
@@ -245,7 +245,7 @@ INTRO_TITLE = re.compile(r"general\.?", re.IGNORECASE)
 def is_unrecognised_general(title: str) -> bool:
     """Does this heading OPEN with the word "General" and still name no block the extractor knows?
 
-    ⛔ THE GUARD THAT WOULD HAVE SEEN §14.9.7.2 (kb/Work PB284). Every guard before it asked "did a recognised
+    ⛔ THE GUARD THAT WOULD HAVE SEEN §2023:14.9.7.2 (kb/Work PB284). Every guard before it asked "did a recognised
     block yield nothing" or "does a rule-shaped heading resolve", and a block heading spelt a way nobody listed is
     neither: it is never recognised, so it is never counted, so the denominator is short and every check is
     green. The only block-introducing titles the standard opens with "General" are the intro clause ("General"),
@@ -263,14 +263,14 @@ def unharvested_rule_blocks(lines: list[str], titles: dict[str, str]) -> dict[st
 
     ⛔ THE THIRD INSTANCE OF ONE DEFECT CLASS, AND THE FIRST DETECTOR THAT CAN SEE IT (fix-queue PB29).
     The denominator has been short twice — 3,790 → 3,846 (heading spellings the literal map did not know) →
-    3,861 (§13.18.40.5/.6, typed by §5.3) — and both fixes extended a HEADING-keyed guard. ``RULE_SHAPED``
+    3,861 (§2023:13.18.40.5/.6, typed by §2023:5.3) — and both fixes extended a HEADING-keyed guard. ``RULE_SHAPED``
     reports a heading containing the word "rule" that ``KINDS`` cannot resolve, which is exactly why it cannot
-    see this one: §8.8.1.2 is headed *"Native, standard-binary, and standard-decimal arithmetic"* and its seven
+    see this one: §2023:8.8.1.2 is headed *"Native, standard-binary, and standard-decimal arithmetic"* and its seven
     numbered rules sit under ordinary prose. A guard keyed on what a block is CALLED can never find a block that
     is called something else, so this one is keyed on what a block CONTAINS.
 
     ⚠ THE RESULT IS AN UPPER BOUND, NOT A DEFECT COUNT, AND IT MUST NOT BE ADDED TO THE DENOMINATOR WHOLESALE.
-    The standard numbers ordinary prose enumerations the same way it numbers rules — §8.3.2.2 "User-defined
+    The standard numbers ordinary prose enumerations the same way it numbers rules — §2023:8.3.2.2 "User-defined
     words" lists the KINDS of user-defined word, not fifteen requirements. Admitting all of them would be the
     mirror of the short denominator, and the denominator defines v1.0 (D13). So each clause is adjudicated and
     recorded in the committed manifest beside this script; this function only MEASURES.
@@ -345,8 +345,8 @@ SENTENCE_END = re.compile(r"[.:;?!]\s*$")
 def prose_paragraphs(lines: list[str], at: int) -> list[str]:
     """The normative PARAGRAPHS of the clause whose heading is `lines[at]` — the row unit of a PROSE concept clause.
 
-    ⛔ WHY A CLAUSE WITH NO NUMBERED RULES STILL HAS ROWS (kb/Work PB284 part 3, PB479). §9.1.16 (record locking),
-    §9.1.17 (logical unit of work) and §9.1.18 (commit and rollback) state the facility's meaning as running
+    ⛔ WHY A CLAUSE WITH NO NUMBERED RULES STILL HAS ROWS (kb/Work PB284 part 3, PB479). §2023:9.1.16 (record locking),
+    §2023:9.1.17 (logical unit of work) and §2023:9.1.18 (commit and rollback) state the facility's meaning as running
     prose: no `N)` marker, no "General rules" heading, so the numbered-rule scan never opened them and the
     denominator the burn-down is measured against did not hold the clause that SETS EC-FLOW-APPLY. A rule with no
     row can never be a GAP and can never be closed. The paragraph is the unit the standard's own prose has, so one
@@ -684,18 +684,18 @@ def main() -> int:
         kind = info.get("kind")
         at = heading_at.get(sec)
         if kind not in ("SR", "GR"):
-            paragraph_defects.append(f"§{sec}: kind {kind!r} is not SR or GR (§5.3.1: rules are syntax rules and general rules)")
+            paragraph_defects.append(f"§2023:{sec}: kind {kind!r} is not SR or GR (§2023:5.3.1: rules are syntax rules and general rules)")
         elif at is None:
-            paragraph_defects.append(f"§{sec}: no such numbered heading in the transcription")
+            paragraph_defects.append(f"§2023:{sec}: no such numbered heading in the transcription")
         elif kind_of(titles[sec]) or sec in admitted:
-            paragraph_defects.append(f"§{sec}: already a numbered rule block ({titles[sec]!r}) — its rows would count twice")
+            paragraph_defects.append(f"§2023:{sec}: already a numbered rule block ({titles[sec]!r}) — its rows would count twice")
         else:
             paras = prose_paragraphs(lines, at)
             overrides = info.get("kinds", {})
             if not paras:
-                paragraph_defects.append(f"§{sec}: admitted as prose but carries no paragraph")
+                paragraph_defects.append(f"§2023:{sec}: admitted as prose but carries no paragraph")
             if unknown := sorted(set(overrides) - {str(i) for i in range(1, len(paras) + 1)}):
-                paragraph_defects.append(f"§{sec}: per-paragraph kind for paragraph(s) {unknown} the clause does not have")
+                paragraph_defects.append(f"§2023:{sec}: per-paragraph kind for paragraph(s) {unknown} the clause does not have")
             for n, text in enumerate(paras, start=1):
                 k = overrides.get(str(n), kind)
                 rules.append({
@@ -725,7 +725,7 @@ def main() -> int:
     # and they are told apart structurally rather than by a list of section numbers:
     #   · a PARENT clause — its next numbered heading is its own sub-clause (§2023:5.2 → §2023:5.2.1): the clause is a
     #     topic, not a construct's format. Skipped, and printed, so the exclusion is an observation.
-    #   · a LEAF whose diagram the TRANSCRIPTION LOST (§15.78.2 REVERSE printed its format as bare text until
+    #   · a LEAF whose diagram the TRANSCRIPTION LOST (§2023:15.78.2 REVERSE printed its format as bare text until
     #     wave 60): still a row — dropping it would shrink the denominator silently — and a LOUD self-check
     #     failure (`--check` exits 1), because the grammar cannot be verified against a diagram that is not there.
     # `CatalogCoverageDriftTests.EveryFmtRow_CarriesADiagramOrAFormatLabel` holds the same bar over the written
@@ -1050,7 +1050,7 @@ def main() -> int:
     if unrecognised_general:
         print(f"\n⛔ {len(unrecognised_general)} heading(s) open with 'General' and name no block this extractor knows —")
         print("   a spelling variant of 'General format(s)' or 'General rules' is ABSENT FROM THE DENOMINATOR, and absent")
-        print("   silently (kb/Work PB284: §14.9.7.2 'General forms' was exactly this). Resolve each in spec_headings.GENERAL_FORMAT_TITLE")
+        print("   silently (kb/Work PB284: §2023:14.9.7.2 'General forms' was exactly this). Resolve each in spec_headings.GENERAL_FORMAT_TITLE")
         print("   or KINDS, or correct the transcription:")
         for num, title in unrecognised_general:
             print(f"      §{num}  '{title}'")

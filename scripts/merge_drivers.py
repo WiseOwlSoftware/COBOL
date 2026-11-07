@@ -821,11 +821,11 @@ def self_test() -> int:
            and keyed(base, obj(m("a", "85")), obj(m("a", "85"), m("c", "2014"))) is None)
     expect("keyed: a text that is not shaped as the layout says is None, never a guess",
            keyed(base, "not json" + NL, theirs) is None)
-    mixed = obj(f'  {{{NL}   "id": "e",{NL}   "expect": "ISO §14.9 (a)"{NL}  }}',
+    mixed = obj(f'  {{{NL}   "id": "e",{NL}   "expect": "ISO §2023:14.9 (a)"{NL}  }}',
                 f'  {{{NL}   "id": "f",{NL}   "expect": "ISO \\u00a714.9 (b)"{NL}  }}')
     expect("keyed: a raw § and a \\u00a7 spelling in one file are kept as written (no re-serialization)",
            keyed(mixed, mixed.replace('"f"', '"f2"'), mixed) is not None
-           and "§14.9 (a)" in keyed(mixed, mixed.replace('"f"', '"f2"'), mixed)
+           and "§2023:14.9 (a)" in keyed(mixed, mixed.replace('"f"', '"f2"'), mixed)
            and "\\u00a714.9 (b)" in keyed(mixed, mixed.replace('"f"', '"f2"'), mixed))
 
     rows = lambda *ids: "[" + NL + (("," + NL).join(f' {{{NL}  "rule-id": "{i}",{NL}  "verdict": "GAP"{NL} }}' for i in ids)) + NL + "]" + NL    # noqa: E731

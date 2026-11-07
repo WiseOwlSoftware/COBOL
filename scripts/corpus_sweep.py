@@ -6,7 +6,7 @@
 **two files**, because the 1,323 GnuCOBOL programs live as `AT_DATA` heredocs inside 36 `.at` autotest wrappers.
 Two waves therefore shipped new bind-time REJECTIONS on a blast radius stated as empty, and the very next
 differential found both shapes in the corpus the sweep was named after — one of them in a case whose title is
-literally "REDEFINES: with OCCURS" (§13.18.44.3 SR5 s.1 → COBOL1701; §13.18.63.3 SR13 s.2 → COBOL1702).
+literally "REDEFINES: with OCCURS" (§2023:13.18.44.3 SR5 s.1 → COBOL1701; §2023:13.18.63.3 SR13 s.2 → COBOL1702).
 
 Three rules follow from that, and they are the design:
 

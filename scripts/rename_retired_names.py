@@ -11,7 +11,7 @@ executable `cobol`), and the code takes its name. The names of the two earlier p
 written as and the legacy byte engine it replaced — are RETIRED outside history: the projects, assemblies, solution and
 root namespace are WiseOwl.Cobol (`src/WiseOwl.Cobol.*`, `tests/WiseOwl.Cobol.Tests.*`, `WiseOwl.Cobol.sln`, namespace
 `WiseOwl.Cobol.*`), an identifier that carried the old name carries `WiseOwlCobol`, the implementor's environment
-variables are WISEOWL_COBOL_* (never COBOL_*: `SwitchStore.Prefix` is COBOL_, the external-switch family of §12.3.7.4 GR2, so
+variables are WISEOWL_COBOL_* (never COBOL_*: `SwitchStore.Prefix` is COBOL_, the external-switch family of §2023:12.3.7.4 GR2, so
 an implementor variable there would be a switch a program can name), the design documents drop the old prefix
 (`docs/DESIGN.md`, `docs/REARCHITECTURE_PLAN.md`, …), and prose names the product WiseOwl COBOL.
 

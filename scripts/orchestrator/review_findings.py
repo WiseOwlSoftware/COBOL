@@ -978,7 +978,7 @@ def self_test() -> int:
         start(ia, 1, "bI", "a1a1a1a", "w9i-review-r1")
         finding(ia, 1, high)
         sound = ia.read_bytes()
-        cutoff = json.dumps({"kind": "finding", "round": 1, "summary": "§14.9 half written"}, ensure_ascii=False).encode()
+        cutoff = json.dumps({"kind": "finding", "round": 1, "summary": "§14.9 half written"}, ensure_ascii=False).encode()  # citation-audit: example
         ia.write_bytes(sound + cutoff[:cutoff.index("§".encode()) + 1])   # killed inside a multi-byte character
         check("arm: a read of the interrupted file is TORN, never a verdict, and `rounds` reads none",
               last_verdict(ia)["verdict"] == "TORN" and rounds(ia) is None)
@@ -999,7 +999,7 @@ def self_test() -> int:
         mb = tmp / "utf8" / "review-w9-u.jsonl"
         start(mb, 1, "bU", "a1a1a1a", "w9u-review-r1")
         intact = mb.read_bytes()
-        cut = json.dumps({"kind": "finding", "round": 1, "summary": "§14.9 wrong"}, ensure_ascii=False).encode()
+        cut = json.dumps({"kind": "finding", "round": 1, "summary": "§14.9 wrong"}, ensure_ascii=False).encode()  # citation-audit: example
         mb.write_bytes(intact + cut[:cut.index("§".encode()) + 1])
         got = unanswered(findings_files(tmp / "utf8"))
         check(f"arm: a file torn inside a multi-byte character is still found, and reads TORN, not UTF-8: {got}",
@@ -1160,7 +1160,7 @@ def self_test() -> int:
         start(pf, 1, br, "a1a1a1a", "w9p-review-r1")
         verdict(pf, 1)
         start(pf, 2, br, "b2b2b2b", "w9p-review-r2")
-        finding(pf, 2, json.dumps({"file": "x.py", "line": 1, "category": "c", "summary": "§14.9 wrong",
+        finding(pf, 2, json.dumps({"file": "x.py", "line": 1, "category": "c", "summary": "§14.9 wrong",  # citation-audit: example
                                    "severity": "high", "failure_scenario": "x"}, ensure_ascii=False))
         verdict(pf, 2)
         start(pf, 3, br, "c3c3c3c", "w9p-review-r3")

@@ -2,8 +2,8 @@
 """Cross-reference MEASURED underlining and bracketing against the grammar, to find optional words we require and
 required words we let be omitted or repeated.
 
-THE DEFECT CLASS. ISO §5.2.3: an uppercase word printed WITHOUT an underline is an OPTIONAL WORD — it may be
-written or omitted with no change of meaning. §5.2.2: an underlined one is REQUIRED. That distinction is carried
+THE DEFECT CLASS. ISO §2023:5.2.3: an uppercase word printed WITHOUT an underline is an OPTIONAL WORD — it may be
+written or omitted with no change of meaning. §2023:5.2.2: an underlined one is REQUIRED. That distinction is carried
 ENTIRELY by typography, it is the first thing a transcription loses, and a grammar written from a transcription
 that lost it will reject legal COBOL.
 
@@ -48,10 +48,10 @@ the other way, finds it ACCEPTING what no format prints — which no audit asked
 underlined ON), PB756 (`ALTERNATE RECORD?`) and PB1183 (`unstringIntoPhrase+` beside one printed INTO) were each
 found by hand:
   * `required-word` — a word an alternative lets be LEFT OUT that the format demands wherever a word the
-    alternative demands is written: underlined (§5.2.2), in sequence with it, and held apart by no bracket
-    (§5.2.6.2) or choice indicator (§5.2.6.4);
+    alternative demands is written: underlined (§2023:5.2.2), in sequence with it, and held apart by no bracket
+    (§2023:5.2.6.2) or choice indicator (§2023:5.2.6.4);
   * `repeated-word` — a word an alternative lets be WRITTEN AGAIN that the format prints outside every portion an
-    ellipsis repeats (§5.2.7) and every group of choice indicators.
+    ellipsis repeats (§2023:5.2.7) and every group of choice indicators.
 Underlining cannot decide either alone: the bracket structure of each printed format comes from
 `figure_options.read`, and `--show-layout` prints it for adjudication. A later phase that refuses the omission or
 repetition is named in the rule by an `audit:required-word` / `audit:repeated-word` line (`DECIDED_BY`).
@@ -117,7 +117,7 @@ class Format(NamedTuple):
 
     @property
     def directive(self) -> bool:
-        """A compiler directive (§7.3, "IF directive", "EVALUATE directive"): the preprocessor reads it, never the
+        """A compiler directive (§2023:7.3, "IF directive", "EVALUATE directive"): the preprocessor reads it, never the
         parser grammar, so a parser rule that shares its keyword (`ifStatement`) is not its spelling."""
         return self.title.endswith(" directive")
 
@@ -125,8 +125,8 @@ class Format(NamedTuple):
 def declared_formats(md_text: str) -> list[Format]:
     """Every general format the transcription declares, in document order — this tool's expected population.
 
-    A general format is a LEAF clause. §5.2 is titled "General formats" too, but it is the clause that DEFINES
-    the notation (§5.2.1 General … §5.2.10 Meta-terms live under it) and prints no diagram of its own; the
+    A general format is a LEAF clause. §2023:5.2 is titled "General formats" too, but it is the clause that DEFINES
+    the notation (§2023:5.2.1 General … §2023:5.2.10 Meta-terms live under it) and prints no diagram of its own; the
     has-no-sub-clauses test excludes it structurally, which is one clause out of 321 and needs no hand list.
     """
     titles: dict[str, str] = {}
@@ -143,7 +143,7 @@ def declared_formats(md_text: str) -> list[Format]:
             continue
         seen.add(clause)
         if any(c.startswith(clause + ".") for c in titles):
-            continue                                # a container clause, not a printed diagram — see §5.2
+            continue                                # a container clause, not a printed diagram — see §2023:5.2
         parent = ".".join(clause.split(".")[:-1])
         title = titles.get(parent, "")
         a = ANCHOR.match(title)
@@ -356,7 +356,7 @@ def _flat_spellings(alt: tuple[Elem, ...], drop: int | None = None) -> set[tuple
 def demanded(alts: tuple[tuple[Elem, ...], ...], omittable: bool) -> list[frozenset[str]]:
     """Per alternative of ONE spelling unit (a rule body, or a group's body): the tokens it DEMANDS once present.
 
-    ⛔ THIS IS THE ONE TEST, applied at every nesting level (kb/Work PB715). §8.3.2.4.3 asks of each word whether it
+    ⛔ THIS IS THE ONE TEST, applied at every nesting level (kb/Work PB715). §2023:8.3.2.4.3 asks of each word whether it
     may be omitted WHILE ITS PHRASE IS PRESENT, so a group is judged as a unit of its own and never written off:
     `(FOR (ALPHANUMERIC | NATIONAL))?` may be omitted whole, but once written it demands FOR, and the audit that
     marked every token of an optional group omittable could never report that FOR.
@@ -378,7 +378,7 @@ def demanded(alts: tuple[tuple[Elem, ...], ...], omittable: bool) -> list[frozen
     * the unit is FLAT — every alternative only tokens, each written once or optional — and every spelling of the
       alternative with the word deleted is a spelling the UNIT accepts (`_flat_spellings`). That is the exact
       question, asked of the unit's whole language rather than of mandatory sequences, so it sees what they drop:
-      `(LIMIT IS? | IS | LIMITS ARE? | ARE)?` (§13.18.39.2's all-plain `[ LIMIT IS | LIMITS ARE ]`, kb/Work
+      `(LIMIT IS? | IS | LIMITS ARE? | ARE)?` (§2023:13.18.39.2's all-plain `[ LIMIT IS | LIMITS ARE ]`, kb/Work
       PB3751) demands nothing, because `LIMIT` without LIMIT is the group omitted and `LIMIT IS` without it is the
       `IS` arm — while `(LIMIT IS?)?` still demands LIMIT, since `IS` alone is no spelling it accepts.
     """
@@ -472,7 +472,7 @@ def _arm(alt: tuple[Elem, ...], demands: frozenset[str], written: dict[str, froz
 
     Only an element MARKED optional omits a word. A word `demanded` drops because a sibling alternative spells the
     rest is not one: that comparison sees tokens alone, so `FUNCTION functionName+ INTRINSIC` beside `FUNCTION
-    functionName …` would read INTRINSIC as omissible, while the sibling is another specifier entirely (§12.3.8.2).
+    functionName …` would read INTRINSIC as omissible, while the sibling is another specifier entirely (§2023:12.3.8.2).
     What an element omits or repeats is what IT writes (`written`, one rule deep); what the arm writes regardless
     reaches through every required reference (`through`)."""
     omits: set[str] = set()
@@ -659,7 +659,7 @@ ANCHORINGS = ("demanding", "named", "enclosing")
 
 def keyword_tokens(keyword: str, keywords: dict[str, set[str]], token_names: set[str]) -> frozenset[str]:
     """The lexer tokens that spell a construct's anchor keyword: the token of that NAME, and every token whose
-    literals SPELL it — §13.18.40's PICTURE is the token PIC (`'PIC' | 'PICTURE'`), named after neither."""
+    literals SPELL it — §2023:13.18.40's PICTURE is the token PIC (`'PIC' | 'PICTURE'`), named after neither."""
     word = keyword.replace("-", "_")
     return frozenset({t for t, sp in keywords.items() if word in sp} | ({word} & token_names))
 
@@ -675,7 +675,7 @@ def examine(gm: GrammarModel, keywords: dict[str, set[str]], keyword: str, plain
     the format's words with the delimiters that hold them (`figure_options.read`).
 
     ⛔ THE CLOSURE MATCHES ON ONE TOKEN, AND ONE TOKEN IS NOT A CONSTRUCT. The anchor set is "every rule
-    demanding the clause title's leading word", so the FILE STATUS clause (§12.4.5.8.2, whose `[FILE]` is
+    demanding the clause title's leading word", so the FILE STATUS clause (§2023:12.4.5.8.2, whose `[FILE]` is
     un-underlined) drew in `deleteFileStatement`, `fileSection`, `multipleFileClause`, `readStatement`,
     `rewriteStatement`, `writeStatement` and `valueOfClause` — seven rules that merely also demand a FILE, and all
     seven were reported against a page none of them is printed on. So a spelling counts only when every COBOL WORD
@@ -686,7 +686,7 @@ def examine(gm: GrammarModel, keywords: dict[str, set[str]], keyword: str, plain
     ⛔ THE TEST IS PER ALTERNATIVE, NOT PER RULE (kb/Work PB715). An alternative is one way of writing the
     construct, and a rule is several: `useStatement` carries the USE FOR DEBUGGING arm the 2023 format no longer
     prints, so the whole-rule test disqualified the USE statement's own rule and the audit examined NOTHING of
-    §14.9.49.2 while reporting a clean run. The same test judges each group before its words are reported, so an
+    §2023:14.9.49.2 while reporting a clean run. The same test judges each group before its words are reported, so an
     extension phrase nobody prints cannot raise a candidate from a word it happens to share.
 
     ⛔ AN EMPTY ANCHOR SET IS NOT A CLEAN CONSTRUCT. Before PB715 the anchor was "a rule DEMANDING the keyword", so

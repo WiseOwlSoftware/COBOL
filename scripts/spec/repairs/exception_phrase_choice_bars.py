@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Restore the §5.2.6.4 CHOICE INDICATOR bars to the eight exception-phrase figures that lost them.
+"""Restore the §2023:5.2.6.4 CHOICE INDICATOR bars to the eight exception-phrase figures that lost them.
 
 THE DEFECT, and why it is normative. Every COBOL statement that can fail prints its handler pair inside ONE tall
 bracket carrying a pair of vertical bars:
@@ -7,8 +7,8 @@ bracket carrying a pair of vertical bars:
     ⎡|  ON SIZE ERROR imperative-statement-1      |⎤
     ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦
 
-Per §5.2.6.4 those bars mean ZERO OR MORE of the enclosed alternatives, each at most once, in any order — so one
-statement may carry BOTH handlers. Per §5.2.6.2 a bracket WITHOUT bars means at most one. Dropping the bars
+Per §2023:5.2.6.4 those bars mean ZERO OR MORE of the enclosed alternatives, each at most once, in any order — so one
+statement may carry BOTH handlers. Per §2023:5.2.6.2 a bracket WITHOUT bars means at most one. Dropping the bars
 therefore forbids `COMPUTE ... ON SIZE ERROR ... NOT ON SIZE ERROR ... END-COMPUTE`, which is legal COBOL that
 every real program writes. This is the falsely-restrictive direction, and a grammar written from the figure
 inherits the restriction.

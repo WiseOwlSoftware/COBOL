@@ -77,19 +77,38 @@ def code_files() -> list[pathlib.Path]:
 
 def declaration_files() -> list[pathlib.Path]:
     """The files whose comments follow the DEFINITION-HEADER convention — "name the construct, then cite its
-    clause": the ANTLR grammars (`// MOVE (§14.9.25)` above `moveStatement`) and the golden program headers
-    (`*> ISO §14.7.4 + §14.9.2 — ROUNDED MODE on ADD CORRESPONDING`).
+    clause": the ANTLR grammars (`// MOVE (§2023:14.9.25)` above `moveStatement`) and the golden program headers
+    (`*> ISO §2023:14.7.4 + §2023:14.9.2 — ROUNDED MODE on ADD CORRESPONDING`).
 
     ⛔ C# IS DELIBERATELY NOT HERE, AND IT WAS MEASURED, NOT ASSUMED. Running the construct-vs-clause check over
     `src/**/*.cs` reported 1224 candidates, and the sample was almost entirely correct citations: a doc-comment
     cites a clause to SUPPORT a rule rather than to LABEL a construct, so the construct's name is legitimately
-    absent ("as though it were moved to an alphanumeric data item (§14.9.25.4 GR6)" names no MOVE). A check that
+    absent ("as though it were moved to an alphanumeric data item (§2023:14.9.25.4 GR6)" names no MOVE). A check that
     is wrong 95% of the time cannot gate anything, and gating on it would train the reader to skip it.
     C# doc-comments are still covered — by `audit_doc_citations.py`, whose quoted-fragment rule works there, and
     by this file's PHANTOM check, which needs no convention at all."""
     out = sorted(REPO.joinpath("src").rglob("*.g4"))
     out += sorted(REPO.joinpath("conformance-suite").rglob("*.cob"))   # the suite's tests: cases/, wiseowl/cases/
     return [p for p in out if _keep(p)]
+
+
+#: The repository's TOOLING trees, and the text files in them a citation can stand in (kb/Work PB4911).
+TOOLING = ("scripts/", "tools/", ".github/", ".claude/")
+TOOLING_SUFFIXES = frozenset({".py", ".ps1", ".psm1", ".js", ".mjs", ".sh", ".yml", ".yaml", ".md", ".json", ".cs",
+                              ".csproj", ".toml", ".txt"})
+
+
+def tooling(rel: str) -> bool:
+    """Whether the repository path `rel` (posix, relative) is a tooling text file `tooling_files` audits."""
+    return rel.startswith(TOOLING) and pathlib.PurePosixPath(rel).suffix in TOOLING_SUFFIXES
+
+
+def tooling_files() -> list[pathlib.Path]:
+    """The scripts, tools, workflows and skills, their string literals included: a citation a script PRINTS reaches a
+    published page (`gen_ledger.py`'s conformance ledger) or an agent's brief, so the BARE, PHANTOM and CITATION
+    checks read them (kb/Work PB4911: after the one-time rewrite of kb/Work PB4887 left the tooling's literals, about
+    330 bare citations stood there unrefused). The checks that need a comment convention or a quote do not run here."""
+    return sorted(p for p in repository_files() if tooling(p.relative_to(REPO).as_posix()) and _keep(p))
 
 
 def all_files() -> list[pathlib.Path]:

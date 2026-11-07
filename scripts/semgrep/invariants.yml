@@ -25,7 +25,7 @@
 # prefix does not model: an interpolated string holding a quote inside its braces, a raw string, a literal spanning lines.
 #
 # SUPPRESSION: use semgrep's built-in `// nosemgrep: <rule-id>` on the line (or the line above), WITH a reason:
-#     byte[] _scratch = ...;  // nosemgrep: wiseowl-cobol-no-persistent-byte-storage - CODE-SET file boundary, §9.1
+#     byte[] _scratch = ...;  // nosemgrep: wiseowl-cobol-no-persistent-byte-storage - CODE-SET file boundary, §2023:9.1
 # Do NOT invent a project-local suppression convention. An earlier draft used a `pattern-not-inside` on a
 # `// semgrep-ok(...)` comment; comments are not matchable context, and the construct SILENTLY DISABLED the whole
 # rule — it reported zero findings and looked green. Every rule below is verified against a deliberate violation
@@ -34,7 +34,7 @@
 rules:
   # ── Locked invariant 2: numerics are native ────────────────────────────────────────────────────────────────
   # Scope: the RUNTIME value/storage model. Invariant 2 governs how COBOL data is REPRESENTED at run time, not how
-  # the compiler folds a constant at bind time — a compile-time evaluator (§7.3.6.3 expressions, HIGHEST/LOWEST-
+  # the compiler folds a constant at bind time — a compile-time evaluator (§2023:7.3.6.3 expressions, HIGHEST/LOWEST-
   # ALGEBRAIC folding over a 16-byte container, where (1 << 128) - 1 genuinely exceeds Int128) legitimately needs
   # wider arithmetic to compute a literal it then renders as text.
   - id: wiseowl-cobol-no-decimal
@@ -60,7 +60,7 @@ rules:
     severity: ERROR
     message: >-
       DESIGN §1.2 invariant 2 — `BigInteger` is banned in the runtime value model. 19-38 digit fixed-point
-      uses Int128. If a value genuinely exceeds Int128, that is a spec question (§8.8.1 arithmetic bounds) to answer
+      uses Int128. If a value genuinely exceeds Int128, that is a spec question (§2023:8.8.1 arithmetic bounds) to answer
       with a citation, not a wider type. ONE file is exempt, by the owner's decision of 2026-11-04 (kb/Work PB4592,
       "Exact, lift the ban"): CobolBig.cs, the arbitrary-precision form of the exact native intermediate past the 256-bit
       CobolWide, reached only through CobolExact.

@@ -2,7 +2,7 @@
 (kb/Work PB4453; was the Conformance test VcrDriftTests and scripts/gen-vcr.ps1, which ran it with an environment variable).
 
 Four rules: every `<!-- gate:CONSTRUCT-ID -->` anchor names a construct constructs.json holds (forward coverage); every
-`§2023:clause` and every `§2023:clause `quoted text`` the document writes resolves in specs/ISO_COBOL_2023.md (the standard's text is
+`§2023:<clause>` and every `§2023:<clause> `quoted text`` the document writes resolves in specs/ISO_COBOL_2023.md (the standard's text is
 read HERE, never by a compiler test); the document cites no spec LINE number (it does not survive a spec edit); and the
 generated gating status index between the GEN:VCR-STATUS markers is what the anchors and constructs.json render.
 `python scripts/doc_audits.py --write-vcr` regenerates the index.
@@ -183,8 +183,8 @@ def self_test() -> list[str]:
         ("a resolving citation is clean", citation_findings(["§2023:14.9.1 `quick BROWN fox`"], clause_regions(spec)), []),
         ("the edition form resolves the same way", citation_findings(["§2023:14.9.1 `quick BROWN fox`"], clause_regions(spec)), []),
         ("the edition form's quote is checked", len(citation_findings(["§2023:14.9.2 `quick brown`"], clause_regions(spec))), 1),
-        ("a malformed citation is a finding", len(citation_findings(["see §5000: there"], clause_regions(spec))), 1),
-        ("an unknown clause is a finding", len(citation_findings(["see §2023:99.9"], clause_regions(spec))), 1),
+        ("a malformed citation is a finding", len(citation_findings(["see §5000: there"], clause_regions(spec))), 1),  # citation-audit: example
+        ("an unknown clause is a finding", len(citation_findings(["see §2023:99.9"], clause_regions(spec))), 1),  # citation-audit: example
         ("a quote the clause lacks is a finding", len(citation_findings(["§2023:14.9.2 `quick brown`"], clause_regions(spec))), 1),
         ("a spec line number is a finding", len(line_number_findings(["see @1234 - 1300"])), 1),
         ("an edition marker is not a line number", line_number_findings(["added @2023 and @2014"]), []),

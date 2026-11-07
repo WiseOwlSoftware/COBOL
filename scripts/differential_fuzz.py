@@ -239,8 +239,8 @@ RESERVED_ITEM = re.compile(r"^- ([A-Z][A-Z0-9-]*)\s*$")
 
 
 def reserved_words(text: str) -> set[str]:
-    """The reserved words of §8.9 ("The following is the list of reserved words:", one `- WORD` item per line), which
-    §8.3.2.4.1 says "shall not be used as system-names or user-defined words". The prompt names only the ones the
+    """The reserved words of §2023:8.9 ("The following is the list of reserved words:", one `- WORD` item per line), which
+    §2023:8.3.2.4.1 says "shall not be used as system-names or user-defined words". The prompt names only the ones the
     2026-10-21 run misused (`MISUSED_RESERVED_WORDS`); this list is what the self-test holds those names to."""
     words: set[str] = set()
     inside = False
@@ -297,7 +297,7 @@ DISPOSITION_ROW = re.compile(r"^\| (A\.4\.\d+) \| ([^|]+?) \| ([^|]+?) \|")
 
 def declined_modules(conformance_text: str) -> dict[str, str]:
     """{Annex A.4 number: module name} for every optional module docs/CONFORMANCE.md §5 records as Not claimed: the
-    conformance claim's one statement of what WiseOwl declines (§4.2.7), read, never restated here."""
+    conformance claim's one statement of what WiseOwl declines (§2023:4.2.7), read, never restated here."""
     return {m.group(1): m.group(2).strip() for line in conformance_text.splitlines()
             if (m := DISPOSITION_ROW.match(line)) and m.group(3).strip("* ").startswith("Not claimed")}
 
@@ -750,8 +750,8 @@ def seed_text(number: str, title: str, body: str, budget: int = CLAUSE_BUDGET) -
     the spec's order; a cut part ends with CUT_MARK and an omitted one is named at the end.
 
     The general formats it sends ARE the printed page's: `scripts/spec/sweep_figures.py` generates the general formats in
-    specs/ISO_COBOL_2023.md from the PDF (`render_figure.py`); the ones it leaves are §12.3.6.2's, which carries the Addendum's
-    correction C3, and §13.18.35.2 Format 1, re-drawn by hand from the rendered page (kb/Work PB1221). So the OCR's lossy
+    specs/ISO_COBOL_2023.md from the PDF (`render_figure.py`); the ones it leaves are §2023:12.3.6.2's, which carries the Addendum's
+    correction C3, and §2023:13.18.35.2 Format 1, re-drawn by hand from the rendered page (kb/Work PB1221). So the OCR's lossy
     diagrams never reach the model, and no PDF is read here (review R1-3)."""
     head = f"Clause {number} {title}\n\n"
     whole = clean_spec_text(body)
@@ -1757,7 +1757,7 @@ def self_test() -> int:
     check("signature: a THEY_REJECT groups by clause", signature("THEY_REJECT", "15.42", ok_run) == "THEY_REJECT:15.42")
     cascade = "\n".join([f"x.cob:{k}: error: syntax error, unexpected Identifier" for k in range(3, 20)] + ["x.cob:1: note: hint"])
     refused = "\n".join(f"LINE-{k}" for k in range(1, 30))
-    ask = repair_request(cascade, "y.cob(4,1): error COBOL2993: the unary operator — ISO §8.7.1\ny.cob(5,1): error COBOL1625: VALUE", refused)
+    ask = repair_request(cascade, "y.cob(4,1): error COBOL2993: the unary operator — ISO §2023:8.7.1\ny.cob(5,1): error COBOL1625: VALUE", refused)
     check("repair: the correction quotes GnuCOBOL's first errors only (the cascade is cut) and WiseOwl's cited errors, and keeps the clause under test",
           ask.count("unexpected Identifier") == REPAIR_GNU_LINES and "note: hint" not in ask and "COBOL2993" in ask
           and "ISO/IEC 1989" in ask and "do not drop the clause under test" in ask, ask)
@@ -1765,7 +1765,7 @@ def self_test() -> int:
           "second standard-conforming compiler" not in repair_request("x.cob:3: error: bad", "", refused))
     check("repair: each diagnostic is followed by the source line it names, GnuCOBOL's file:line and WiseOwl's file(line,column) alike; a line past the program or no line quotes nothing (kb/Work PB3523 item 2)",
           "x.cob:3: error: syntax error, unexpected Identifier\n    > line 3: LINE-3" in ask and "    > line 8: LINE-8" in ask
-          and "    > line 9: LINE-9" not in ask and "COBOL2993: the unary operator — ISO §8.7.1\n    > line 4: LINE-4" in ask
+          and "    > line 9: LINE-9" not in ask and "COBOL2993: the unary operator — ISO §2023:8.7.1\n    > line 4: LINE-4" in ask
           and "COBOL1625: VALUE\n    > line 5: LINE-5" in ask and "smallest change" in ask
           and with_source(["x.cob:99: error: past the end", "error: no line"], refused) == "x.cob:99: error: past the end\nerror: no line"
           and diagnostic_line("fz00609.cob(24,4): error COBOL2072: x") == 24 and diagnostic_line("fz00609.cob:18: error: x") == 18
@@ -1852,11 +1852,11 @@ def self_test() -> int:
           declined_seed_titles(fixture_spec, fixture_claim) == {"BLINK clause", "COMMIT statement"}
           and declined_modules(fixture_claim) == {"A.4.2": "Screens", "A.4.3": "Commit"},
           declined_seed_titles(fixture_spec, fixture_claim))
-    check("edition: Annex E.2 item 25 names the sixteen words 2023 reserved, the last one (XOR) without its list marker, and §8.9 lists each",
+    check("edition: Annex E.2 item 25 names the sixteen words 2023 reserved, the last one (XOR) without its list marker, and §2023:8.9 lists each",
           added_words == ["B-SHIFT-L", "B-SHIFT-LC", "B-SHIFT-R", "B-SHIFT-RC", "COMMIT", "EDITING", "END-RECEIVE", "END-SEND",
                           "EXCLUSIVE-OR", "FINALLY", "LOCATION", "MESSAGE-TAG", "RECEIVE", "ROLLBACK", "SEND", "XOR"]
           and set(added_words) <= reserved, added_words)
-    check("prompt: every reserved word the prompt names as misused is in §8.9's list (the list has hundreds), and every family's prompt names them, the 2023 words, its own example and nothing unfilled",
+    check("prompt: every reserved word the prompt names as misused is in §2023:8.9's list (the list has hundreds), and every family's prompt names them, the 2023 words, its own example and nothing unfilled",
           set(MISUSED_RESERVED_WORDS) <= reserved and len(reserved) > 300
           and all(", ".join(MISUSED_RESERVED_WORDS) in p and "the words B-SHIFT-L" in p and "XOR" in p and EXAMPLES[f] in p
                   and not re.search(r"\{[a-z]+\}", p) for f, p in prompts.items()),

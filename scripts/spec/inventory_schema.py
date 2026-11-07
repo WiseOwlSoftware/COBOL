@@ -306,9 +306,9 @@ def section_matches(prefix: str, section: str) -> bool:
     """Does `section` fall under `prefix`, COMPONENT-WISE?
 
     ⛔ THIS IS THE ONE RULE THAT MUST NOT BE A RAW `startswith`, AND IT IS WHY THIS FUNCTION EXISTS AT ALL.
-    A clause number is a dotted PATH, not a string: §13.18.30 is not inside §13.18.3, and §13.18.40 (PICTURE) is
-    not inside §13.18.4 (BACKGROUND-COLOR). A raw prefix test says otherwise. Measured on the A.4.2 screen
-    selector, whose clause arm names §13.18.3, §13.18.4, §13.18.6, §13.18.7 and §13.18.9 among others: the raw
+    A clause number is a dotted PATH, not a string: §2023:13.18.30 is not inside §2023:13.18.3, and §2023:13.18.40 (PICTURE) is
+    not inside §2023:13.18.4 (BACKGROUND-COLOR). A raw prefix test says otherwise. Measured on the A.4.2 screen
+    selector, whose clause arm names §2023:13.18.3, §2023:13.18.4, §2023:13.18.6, §2023:13.18.7 and §2023:13.18.9 among others: the raw
     test selects 538 rules where the component-wise test selects 149 — 389 extra, 33 of them already adjudicated
     (32 CONFORMS, 1 DOCUMENTED-NON-SUPPORT), i.e. a silent flip of thirty-two verified rows to non-support.
 
@@ -474,11 +474,11 @@ class DerivedSelector:
     present must hold; a rule is selected when ANY arm holds and NO global `excludes-patterns` entry matches its
     text. Four modules of the 2026-09-02 landing needed four different scoping mechanisms and the flat
     requires-sections/requires-pattern pair could express only two of them:
-      · `sections`       the rule's OWN clause (§8.8.1.4 is titled for the declined mode — PB198's lesson)
+      · `sections`       the rule's OWN clause (§2023:8.8.1.4 is titled for the declined mode — PB198's lesson)
       · `pattern`        the rule's TEXT
-      · `sections` + `pattern` together — an AND-gate. `file-name-1` is STATEMENT-LOCAL: in §13.4.5.4 it is the
+      · `sections` + `pattern` together — an AND-gate. `file-name-1` is STATEMENT-LOCAL: in §2023:13.4.5.4 it is the
         file description entry's own subject, so A.4.13's text arm ungated selects 176 rules instead of 12. The
-        same gate is what reaches a rule scoped by OPERAND NAME — §12.3.7.3's data-name-1/-2 are the CURSOR and
+        same gate is what reaches a rule scoped by OPERAND NAME — §2023:12.3.7.3's data-name-1/-2 are the CURSOR and
         CRT STATUS operands and nothing else, and neither a clause arm nor a bare text arm can see them.
       · `xref-sections`  a clause citation inside the rule's text — how an Annex A.1 documentation obligation
         names the clause that creates it. Derived from the clause numbers, so adding a module clause extends the
@@ -507,7 +507,7 @@ class DerivedSelector:
         has been determined about it yet, and a MISSING determination is not a NEGATIVE one
         (`feedback_verdict_evidence_invariant`).
       · `lead-in`       the sentence that INTRODUCES the printed list a rule is an item of — how the standard
-        scopes a list's items when the items themselves carry no vocabulary. §9.3.6's exact-match criteria
+        scopes a list's items when the items themselves carry no vocabulary. §2023:9.3.6's exact-match criteria
         (GR-9.3.6-L4.1 … L4.3) say only "the same class and category", "the same … PICTURE … clauses"; what makes
         them exact-match criteria is the sentence ending GR-9.3.6-L3.7, "the following criteria are considered an
         exact match:". A list's lead-in is the catalog rule immediately BEFORE its first item (the catalog keeps
@@ -520,7 +520,7 @@ class DerivedSelector:
         validation ones, and the rules under them often say nothing that names the module ('General rule 18
         applies.'). SOLELY: a rule is selected only when every format its band names is one the arm names, since a
         rule under 'FORMATS 1 AND 2' also holds for format 1. The numbers are the CLAUSE's own, so an arm that
-        names `formats` without `sections` is refused. Operand names stay a separate mechanism (§14.9.1.3 prints no
+        names `formats` without `sections` is refused. Operand names stay a separate mechanism (§2023:14.9.1.3 prints no
         band at all): neither subsumes the other.
 
     ⛔ EVERY TEXT AXIS READS THE NORMATIVE TEXT — the rule with its NOTEs cut off (`NOTE_MARK`). See there.
@@ -892,7 +892,7 @@ class Schema:
 
         ⛔ Written ONCE per language and read by everything that needs it (`state_for` here,
         `record_verdicts.validate`, and `AnchorFor` on the C# side). The anchor is a function of the row, so a
-        determination cannot be filed under the wrong item the way kb/Work A11 recorded: the §15.3.3.2
+        determination cannot be filed under the wrong item the way kb/Work A11 recorded: the §2023:15.3.3.2
         fractional-seconds determination sat under item 87, whose obligation is FORMATTED-CURRENT-DATE's
         accuracy, because the number was inherited and never re-derived.
         """

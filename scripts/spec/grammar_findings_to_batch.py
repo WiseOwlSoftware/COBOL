@@ -13,7 +13,7 @@ efforts means auditing ~1,670 rules twice. This converter makes ONE pass emit bo
 workflow already writes, and an inventory batch.
 
 ⛔ AND WHY IT REFUSES TO EXPAND. A grammar finding is about a CONSTRUCT; an inventory row is about a RULE. It
-would be trivial — and wrong — to take one finding for §14.9.1 and stamp it across all 19 of that clause's
+would be trivial — and wrong — to take one finding for §2023:14.9.1 and stamp it across all 19 of that clause's
 rules. Nineteen rules would acquire a verdict from one observation, which is manufacturing coverage, and the
 inventory would then read as adjudicated territory nobody examined. So a finding must name the `rule_ids` it
 actually checked, and rules it did not name STAY A GAP. `--coverage` prints exactly what was left, because a

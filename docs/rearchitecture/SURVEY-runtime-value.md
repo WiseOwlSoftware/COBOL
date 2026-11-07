@@ -171,7 +171,7 @@ for consolidation but **omits these three numeric parsers** (see gap check §8).
 2. **[MED, deferred-by-design] `CobolTable.At<T>` group scratch NRE.** As documented at `CobolTable.cs:18-20`, a
    group-typed out-of-range element hands back a zeroed struct with null string members; group-level use then throws.
    The fix is trivially available (`CobolDynTable`'s seed pattern) — see reorg §8.
-3. **[MED, concurrency] the `ref`-returning static scratch (§2023:5.4)** is a data race the moment concurrent run units are
+3. **[MED, concurrency] the `ref`-returning static scratch (SURVEY-runtime-value §5.4)** is a data race the moment concurrent run units are
    enabled. Not a bug today (single run unit per process), latent under the stated roadmap direction.
 4. **[LOW] `CobolFloat.ToScaled` saturation constant `1.7014118e38` (`:39`)** is a hand-written approximation of
    `Int128.MaxValue`. Correct in spirit (guards the undefined out-of-range `(Int128)double` cast) but a magic literal;
@@ -199,7 +199,7 @@ for consolidation but **omits these three numeric parsers** (see gap check §8).
 ### 8.2 One out-of-range scratch policy (singular pattern)
 Give `CobolTable.At<T>` a seed like `CobolDynTable` — either an injected `Func<T>` element initializer or a shared
 `CobolScratch` helper — so the fixed and dynamic tables share ONE benign-continuation policy and the group-NRE risk
-(§2023:7.2) disappears. This also lets §8.3 remove the static.
+(SURVEY-runtime-value §7.2) disappears. This also lets §8.3 remove the static.
 
 ### 8.3 Kill the process-global `ref` scratch (concurrency)
 Move `CobolTable.Scratch<T>.Slot` off the process-global static (onto `RunUnit`, or thread it like `CobolDynTable`'s

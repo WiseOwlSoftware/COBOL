@@ -20,7 +20,7 @@ on:
     # only queued pull requests (the ruleset binds administrators, kb/Work PB3024), so the one push this trigger sees
     # is the merge-queue commit main advances to, which its `merge_group` run below already tested.
     branches: [ main ]
-  # ── THE MERGE QUEUE (kb/Work PB3024; DESIGN-test-build-ci.md §3.17.2 steps 4–5, §3.17.6). A pull request runs the
+  # ── THE MERGE QUEUE (kb/Work PB3024; DESIGN-test-build-ci.md §3.17.6, and DESIGN-test-build-ci.md §3.17.2 steps 4–5). A pull request runs the
   # REQUIRED CHECK only (`changes`, `ci-gate`; the audits run once, in the merge group, kb/Work PB4330), so twenty queued PRs never put twenty full matrices behind the
   # organization's 60-concurrent-job limit (GitHub Team, 2026-10-25; the Free plan's was 20); the MERGE GROUP (several queued PRs on top of main) runs the matrix and is the
   # one whole-population run each change gets. `ci-gate` is the required check on both; on the group it is the full

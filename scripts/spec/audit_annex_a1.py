@@ -6,7 +6,7 @@
     python scripts/spec/audit_annex_a1.py --json      # + one machine-readable `JSON {...}` line
     python scripts/spec/audit_annex_a1.py --self-test # prove every check can fail, for its own reason
 
-⛔ WHY THIS EXISTS. ISO §4.2.5 requires the implementor to SPECIFY every A.1 element identified as *required*
+⛔ WHY THIS EXISTS. ISO §2023:4.2.5 requires the implementor to SPECIFY every A.1 element identified as *required*
 and to DOCUMENT every element identified as *requiring user documentation*; owner decision D13 makes those part
 of the definition of v1.0. `docs/CONFORMANCE.md` §7 is that register. Its rows are keyed by A.1 ITEM NUMBER,
 and nothing checked those numbers — so an entry could sit under the wrong obligation indefinitely, which
@@ -21,7 +21,7 @@ of `DOC-A.1-<n>` TOKENS in the whole file equals the set of §7 row keys, so a p
 as a filed determination; and each row's `Pinned by` cell AGREES with the inventory row's own spec-derived
 `test-ref`, so a determination and its evidence are one artifact instead of two that drift apart.
 
-⭐ IT FOUND ONE ON ITS FIRST RUN. The determination for the maximum fractional-seconds precision (§15.3.3.2)
+⭐ IT FOUND ONE ON ITS FIRST RUN. The determination for the maximum fractional-seconds precision (§2023:15.3.3.2)
 was filed as **item 87**; item 87 is *FORMATTED-CURRENT-DATE (accuracy of returned time)* — a different, still
 undocumented obligation. The determination belongs to **item 202**, "Time formats and corresponding function
 values (maximum precision not less than nine fractional digits)". That is the INHERITED-CITATION failure mode
@@ -124,13 +124,13 @@ TOKEN_RX = re.compile(r'\bDOC-A\.1-\d+[a-z]?\b')
 def unreachable_items() -> dict[int, str]:
     """A.1 items that CANNOT ARISE, because the feature they document is one we decline.
 
-    ⛔ THE STANDARD SAYS SO ITSELF, in Annex A.1's own preamble — this is not an inference from §4.2.7:
+    ⛔ THE STANDARD SAYS SO ITSELF, in Annex A.1's own preamble — this is not an inference from §2023:4.2.7:
 
         "Required: The element shall be provided by the implementor. When the element is part of a feature
          that is optional or processor-dependent, the item is not required if the optional or
          processor-dependent feature is not implemented."   (cite.py --check A.1 → OK)
 
-    §4.2.5 ¶1 and A.4.1's closing line say the same from the other side ("The provisions of this clause apply
+    §2023:4.2.5 ¶1 and A.4.1's closing line say the same from the other side ("The provisions of this clause apply
     to required normative elements … and to optional language elements for which an implementor claims
     support"). So DOC-A.1-84's own sentence "This item is required" is answered head-on: it is required only
     while the FORMAT clause is claimed, and it is not.
@@ -197,30 +197,30 @@ def self_test() -> int:
     worse, because it reads as working. Each case below breaks exactly one rule.
     """
     register = load_register()
-    good = '| DOC-A.1-2 | ACCEPT statement device used when FROM is unspecified, §14.9.1 GR5 | det | — |'
+    good = '| DOC-A.1-2 | ACCEPT statement device used when FROM is unspecified, §2023:14.9.1 GR5 | det | — |'
     cases = [
         ('control: a correct row passes', good, None),
         ('a wrong item number is caught',
          '| DOC-A.1-87 | **Maximum digit positions in the decimal fraction of the seconds subfield**, '
-         '§15.3.3.2 | det | — |',
+         '§2023:15.3.3.2 | det | — |',
          'do not correspond'),
         # ⛔ THE MISFILING THAT SHIPPED, replayed verbatim (landed under item 209 until 2026-09-03). It shares
         # TWO words with its own item — `usage`, `representation` — so the old absolute "≥ 2 shared words"
         # threshold printed `ok` for it. It shares THREE with items 205/208/210/211/215, and that is the
         # finding: a row must fit its own item at least as well as it fits any other.
         ('a SIBLING-FAMILY misfiling (2 shared words, another item fits better) is caught',
-         '| DOC-A.1-209 | **USAGE BIT clause — alignment and representation of data**, §13.18.60.4 GR5 + '
-         '§8.5.1.6.3 | det | — |',
+         '| DOC-A.1-209 | **USAGE BIT clause — alignment and representation of data**, §2023:13.18.60.4 GR5 + '
+         '§2023:8.5.1.6.3 | det | — |',
          'do not correspond'),
         ('an item number outside A.1 is caught',
-         '| DOC-A.1-999 | Something, §14.9.1 | det | — |', 'not an A.1 item number'),
+         '| DOC-A.1-999 | Something, §2023:14.9.1 | det | — |', 'not an A.1 item number'),
         ('an unnumbered row is caught',
-         '| — (§15.4.1) | Something voluntary | det | — |', 'carry no A.1 item number'),
+         '| — (§2023:15.4.1) | Something voluntary | det | — |', 'carry no A.1 item number'),
         # ⚙ THE KEY FORM ITSELF. A bare number was the key until 2026-09-02 and is no longer a row key at all:
         # it cannot be an anchor (`#7` matched the digit 7 anywhere in the file), so a row still spelling it
         # discharges nothing and must be reported rather than silently skipped.
         ('the OLD bare-number key form is caught',
-         '| 2 | ACCEPT statement device used when FROM is unspecified, §14.9.1 GR5 | det | — |',
+         '| 2 | ACCEPT statement device used when FROM is unspecified, §2023:14.9.1 GR5 | det | — |',
          'carry no A.1 item number'),
         # ⛔ THE TOKEN SET: a `DOC-A.1-<n>` token anywhere but a row key would resolve as a filed determination
         # under the C# gate's word search over the whole file.
@@ -543,7 +543,7 @@ def check_pins(pinned: dict[int, list[str]], inventory: list[dict], schema) -> l
 
     ⛔ WHY THIS IS THE HALF THE COMPUTED ANCHOR DOES NOT COVER. The anchor makes a mis-filed DETERMINATION
     unspellable; it does nothing about mis-filed EVIDENCE, and that is the half kb/Work A11 actually cost. The
-    first back-fill closed item 87 (FORMATTED-CURRENT-DATE accuracy, §15.38.4) on
+    first back-fill closed item 87 (FORMATTED-CURRENT-DATE accuracy, §2023:15.38.4) on
     `SecondsPastMidnight_PinnedClock_ExactTicks` — item 171's test, which never calls the function — and both
     C# checks were structurally blind to it: `UnresolvedTestRefs` asks only that the method be declared, and
     `IsSpecDerived` only that the form and name qualify. Naming the pin in the DETERMINATION and requiring the
@@ -670,11 +670,11 @@ GROUND_HEAD = 80
 
 
 def inherited_ground_findings(label: str, text: str, a1_item: bool = False) -> list[str]:
-    """Every §4.2.7 mention that is a ground for an Annex A.1 item is a finding (kb/Work PB593).
+    """Every §2023:4.2.7 mention that is a ground for an Annex A.1 item is a finding (kb/Work PB593).
 
-    ⛔ WHY THIS IS A CHECK AND NOT A SWEEP. §4.2.7's first sentence — "Language elements that an implementor may,
+    ⛔ WHY THIS IS A CHECK AND NOT A SWEEP. §2023:4.2.7's first sentence — "Language elements that an implementor may,
     but need not, implement are listed in A.4, Optional language element list" — scopes the clause to Annex **A.4**.
-    The governing clause for an Annex **A.1** item is §4.2.5, whose ¶1 applies it "to optional language elements for
+    The governing clause for an Annex **A.1** item is §2023:4.2.5, whose ¶1 applies it "to optional language elements for
     which an implementor claims support". The two clauses sit side by side and both carry a sentence about
     "optional" elements and user documentation, so a ground written for one gets quoted for the other, and the
     quoted sentence IS in the standard — `cite.py --check 4.2.7 "<the sentence>"` answers OK. The clause NUMBER is
@@ -682,13 +682,13 @@ def inherited_ground_findings(label: str, text: str, a1_item: bool = False) -> l
     failure mode): the inventory schema's DOCUMENTED-NON-SUPPORT `meaning` named it, DOC-A.1-127 / -206 copied it
     ("which this verdict's own `meaning` already names"), and it travelled into GR rows and the §7 preamble.
 
-    The rule, as a predicate over a text: a §4.2.7 mention must have Annex A.4 named within GROUND_WINDOW
+    The rule, as a predicate over a text: a §2023:4.2.7 mention must have Annex A.4 named within GROUND_WINDOW
     characters (or in the text's first GROUND_HEAD characters, where a row names its module). A text about an A.1
     item — `a1_item`, a DOC inventory row — must satisfy it for EVERY mention; any other text must satisfy it only
     where it ALSO names Annex A.1 beside the mention, since a mention far from A.1 is ordinary A.4 documentation
     (the §4 / §5 facility rows, the diagnostics' PostureClause). A row withdrawn through an A.4 module (items 84,
-    85, 86, 173) names `Annex A.4.8` and passes; the A.1 optional-not-provided items name §4.2.5 and carry no
-    §4.2.7 at all.
+    85, 86, 173) names `Annex A.4.8` and passes; the A.1 optional-not-provided items name §2023:4.2.5 and carry no
+    §2023:4.2.7 at all.
 
     ⚠ IT IS A PROXIMITY RULE, deliberately: it reads prose, and prose has no machine-readable "ground". An unrelated
     `A.4` naming inside the window would let a wrong ground through; the window is kept narrow (200 characters) so
@@ -702,8 +702,8 @@ def inherited_ground_findings(label: str, text: str, a1_item: bool = False) -> l
             continue
         if a1_item or A1_NAMED_RX.search(window):
             context = ' '.join(window.split())
-            findings.append(f'{label} grounds an Annex A.1 element on §4.2.7, which 4.2.7\'s own first sentence scopes '
-                            f'to Annex A.4 — the governing clause for an A.1 item is §4.2.5 (kb/Work PB593): '
+            findings.append(f'{label} grounds an Annex A.1 element on §2023:4.2.7, which 4.2.7\'s own first sentence scopes '
+                            f'to Annex A.4 — the governing clause for an A.1 item is §2023:4.2.5 (kb/Work PB593): '
                             f'"…{context[:160]}…"')
     return findings
 
@@ -761,33 +761,33 @@ def sweep_inherited_grounds(conformance: str, inventory: list[dict], schema_json
 
 
 def self_test_grounds() -> int:
-    """Prove the §4.2.7 ground check can fail, and for its own reason (feedback_green_gates_arent_evidence)."""
+    """Prove the §2023:4.2.7 ground check can fail, and for its own reason (feedback_green_gates_arent_evidence)."""
     far = 'x' * (GROUND_WINDOW + GROUND_HEAD + 20)
     cases = [
         ('control: an A.4 module row citing 4.2.7 passes',
-         inherited_ground_findings('r', 'Annex A.4.8 (items 1 FORMAT clause) is an OPTIONAL element (§4.2.7)', True), False),
+         inherited_ground_findings('r', 'Annex A.4.8 (items 1 FORMAT clause) is an OPTIONAL element (§2023:4.2.7)', True), False),
         ('a DOC row grounded on 4.2.7 with no A.4 beside it is caught',
-         inherited_ground_findings('r', 'A.1 item 150 is optional, and §4.2.7 obliges the implementor to identify '
+         inherited_ground_findings('r', 'A.1 item 150 is optional, and §2023:4.2.7 obliges the implementor to identify '
                                    'what is claimed.', True), True),
         ('a non-DOC text naming A.1 beside 4.2.7 with no A.4 is caught',
-         inherited_ground_findings('r', 'GR4 by Annex A.1 item 150 and §4.2.7)'), True),
+         inherited_ground_findings('r', 'GR4 by Annex A.1 item 150 and §2023:4.2.7)'), True),
         ('a non-DOC text that names no A.1 beside 4.2.7 is ordinary A.4 documentation and passes',
-         inherited_ground_findings('r', 'the screen module is documented per §4.2.7'), False),
+         inherited_ground_findings('r', 'the screen module is documented per §2023:4.2.7'), False),
         ('a row that BEGINS with its A.4 module passes however long it runs',
-         inherited_ground_findings('r', '| A.4.8 | FORMAT |' + far + ' §4.2.7 user documentation of A.1 item 84'), False),
+         inherited_ground_findings('r', '| A.4.8 | FORMAT |' + far + ' §2023:4.2.7 user documentation of A.1 item 84'), False),
         ('an A.4 naming far from the mention, outside the head, does not rescue it',
-         inherited_ground_findings('r', far + ' A.4.8 ' + far + far + ' A.1 item 150 and §4.2.7 ' + far), True),
+         inherited_ground_findings('r', far + ' A.4.8 ' + far + far + ' A.1 item 150 and §2023:4.2.7 ' + far), True),
         ('a longer clause number ending 4.2.7 is not a mention',
-         inherited_ground_findings('r', 'A.1 item 99 per §8.8.4.2.7 and 15.4.2.7', True), False),
+         inherited_ground_findings('r', 'A.1 item 99 per §2023:8.8.4.2.7 and 15.4.2.7', True), False),
         ('a sentence wrapped across two blockquote lines is read whole (A.1 on one line, 4.2.7 on the next)',
-         sweep_inherited_grounds('> A.1 conditions the duty on provision, and\n> §4.2.7 obliges us to identify it', [], {}), True),
+         sweep_inherited_grounds('> A.1 conditions the duty on provision, and\n> §2023:4.2.7 obliges us to identify it', [], {}), True),
         ('a table row beside a paragraph naming A.4 is its own unit',
-         sweep_inherited_grounds('A.4.8 is declined.\n| x | A.1 item 9, §4.2.7 |', [], {}), True),
+         sweep_inherited_grounds('A.4.8 is declined.\n| x | A.1 item 9, §2023:4.2.7 |', [], {}), True),
         ('the schema walk joins a list of lines into one text',
-         [f for p, t in schema_texts({'k': ['A.1 item 150', 'and §4.2.7']}) for f in inherited_ground_findings(p, t)], True),
+         [f for p, t in schema_texts({'k': ['A.1 item 150', 'and §2023:4.2.7']}) for f in inherited_ground_findings(p, t)], True),
     ]
     rc = 0
-    print('=== audit_annex_a1 --self-test (the §4.2.7 ground check) ===')
+    print('=== audit_annex_a1 --self-test (the §2023:4.2.7 ground check) ===')
     for name, findings, want in cases:
         if bool(findings) == want:
             print(f'  ok: {name}')

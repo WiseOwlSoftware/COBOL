@@ -3,7 +3,7 @@
 
 WHY THESE EIGHT. The transcription renders 514 general formats as fenced ASCII figures and eight as LaTeX. That
 inconsistency is not cosmetic: the ASCII figures carry `Figure notes` blocks recording which words are underlined
-and what the delimiters mean, and the LaTeX ones do not — so the notation that §5.2.2/§5.2.3 and §5.2.6 attach
+and what the delimiters mean, and the LaTeX ones do not — so the notation that §2023:5.2.2/§2023:5.2.3 and §2023:5.2.6 attach
 meaning to was being carried in a form nothing checks. ACCEPT Format 3 (page 607) was one of them, and it turned
 out to have lost its choice indicators AND to have mis-stated underlining in two places.
 
@@ -12,7 +12,7 @@ underline rectangles to individual words; `figure_geometry.py` reports the brack
 fell out that no sweep agent had reported:
 
   * **page 606, ACCEPT Format 2** — `YYYYMMDD` and `YYYYDDD` are UNDERLINED on the printed page (measured at
-    y=571.5 x=242.1 and y=588.8 x=235.7). The LaTeX left them plain, which per §5.2.3 would make them optional
+    y=571.5 x=242.1 and y=588.8 x=235.7). The LaTeX left them plain, which per §2023:5.2.3 would make them optional
     words that may be omitted — i.e. it implied `ACCEPT x FROM DATE [ ]` is meaningful.
 
   * **page 653, EXIT Format 2** — in the `LAST EXCEPTION` alternative, `LAST` is underlined and `EXCEPTION` is

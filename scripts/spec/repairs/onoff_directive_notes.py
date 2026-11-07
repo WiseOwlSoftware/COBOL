@@ -2,7 +2,7 @@
 """Correct the seven ON/OFF compiler-directive figure notes so they state the printed glyphs accurately.
 
 THE DEFECT. These notes are the transcription's own editorial matter, and they misdescribe the printed page in a
-FALSELY RESTRICTIVE direction. Per §5.2.2 an underlined uppercase word is REQUIRED; per §5.2.3 a non-underlined
+FALSELY RESTRICTIVE direction. Per §2023:5.2.2 an underlined uppercase word is REQUIRED; per §2023:5.2.3 a non-underlined
 one is an OPTIONAL word that may be written or omitted. Claiming a word is underlined when it is not turns a legal
 omission into an apparent syntax error — and a grammar written from the note inherits that.
 
@@ -19,10 +19,10 @@ would leave the contradiction, merely relocated.
 
 ⛔ PROPAGATE CARRIES AN INVENTED RULE: "In the compiler-directive formats the underlined alternative marks the
 default." No such rule exists in the standard. It is falsified by LISTING — OFF is the underlined alternative
-there, yet §7.3.18.3 GR2 makes >>LISTING ON the default — and contradicted by the transcription's own POP note.
+there, yet §2023:7.3.18.3 GR2 makes >>LISTING ON the default — and contradicted by the transcription's own POP note.
 It is deleted rather than reworded.
 
-WHAT THE NOTES NOW SAY: the glyph facts as printed, plus the §5.2.3 consequence, plus a pointer to the general
+WHAT THE NOTES NOW SAY: the glyph facts as printed, plus the §2023:5.2.3 consequence, plus a pointer to the general
 rules that presuppose an implied ON. Where the standard's own typesetting is doubtful the note SAYS SO rather
 than resolving it silently in either direction — recording ISO's defects is the standing rule, not coding around
 them.

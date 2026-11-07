@@ -479,7 +479,7 @@ def self_test() -> int:
     check("emitted-nested", "src/B/Emit.cs" in resolve(idx, ["N.Binder"])[0], True)
     check("emitted-member", "tests/T.cs" in resolve(idx, ["N.Sym.Flag"])[0], True)
     # the target paragraph (K1 (1)): a member of a subject type the target names joins the hand-listed line
-    text = ("**Sites:**" + chr(10) + "- `src/A/Sym.cs`" + chr(10) + chr(10) + "**This note's target (§8.3), step 1 of 2:** the scoped Flag moves; Unused "
+    text = ("**Sites:**" + chr(10) + "- `src/A/Sym.cs`" + chr(10) + chr(10) + "**This note's target (§8.3), step 1 of 2:** the scoped Flag moves; Unused "  # citation-audit: example
             "stays; Pending is another type's" + chr(10) + "**Moves or changes:** `N.Sym.Go`")
     check("target", note_names(text, idx), (["N.Sym.Flag", "N.Sym.Go", "N.Sym.Unused"], "declared and its target"))
     # folder sites expand on the current tree (K1 (3)): a file added under a site folder after the index joins

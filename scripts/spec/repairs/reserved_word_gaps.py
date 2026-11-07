@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Split the three run-together lines in §8.9, and gate the list against the printed page.
+"""Split the three run-together lines in §2023:8.9, and gate the list against the printed page.
 
 WHAT WAS WRONG. Eighteen reserved words — OCCURS, OF, THAN, TALLYING, TERMINATE, TEST, TABLE, SYSTEM-DEFAULT,
 NUMERIC-EDITED, OBJECT/-COMPUTER/-REFERENCE and six END-* verbs — were not on lines of their own. They sat
@@ -124,9 +124,9 @@ def main() -> int:
         cur = set(items(lines))
         bad = (want - cur) | (cur - want)
         if bad or n:
-            print(f"\nCHECK FAILED — §8.9 differs from the printed page ({len(bad)} words, {n} run-together lines)")
+            print(f"\nCHECK FAILED — §2023:8.9 differs from the printed page ({len(bad)} words, {n} run-together lines)")
             return 1
-        print("\nCHECK: clean — §8.9 carries exactly the printed reserved words, one per entry")
+        print("\nCHECK: clean — §2023:8.9 carries exactly the printed reserved words, one per entry")
         return 0
     if not n:
         print("nothing to split")

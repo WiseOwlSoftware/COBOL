@@ -21,7 +21,7 @@
 #                                               WiseOwl.Cobol.Frontend and the whole greenfield compiler. Must not
 #                                               overlap phase 1. It first proves its verdicts still MEAN what
 #                                               they say (its self-tests, scripts/guard-verify.sh's evidence-rule
-#                                               witnesses among them: §3.10 corollary 3, kb/Work/PB473).
+#                                               witnesses among them: DESIGN-test-build-ci.md §3.10 corollary 3, kb/Work/PB473).
 #                                               ⛔ SINCE kb/Work/PB750 THIS LEG MEASURES WiseOwl COBOL. It used to
 #                                               drive the legacy byte engine's CLI, so `guard NIST: 353 MATCH`
 #                                               was a statement about the oracle and battery #58's NC215A wrong
@@ -198,7 +198,7 @@ if [ "${SKIP_TESTS:-0}" != "1" ]; then
 fi
 
 if [ "${SKIP_GUARD:-0}" != "1" ]; then
-    # ⛔ THE INSTRUMENT IS PROVED BEFORE IT IS BELIEVED (§3.10 corollary 3): guard-fast.sh runs its own self-tests
+    # ⛔ THE INSTRUMENT IS PROVED BEFORE IT IS BELIEVED (DESIGN-test-build-ci.md §3.10 corollary 3): guard-fast.sh runs its own self-tests
     # first (scripts/guard-verify.sh's evidence-rule witnesses and the compiler-identity watchdog among them) and is
     # not ALL GREEN unless they are. Battery #43 spent a whole run — and hours of attribution — on a
     # `DIFF — REGRESSION!` that meant "the harness could not compare" (kb/Work/PB473).

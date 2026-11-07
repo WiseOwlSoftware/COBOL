@@ -40,7 +40,7 @@ be inverted (the logger escapes no backslash), so two listed names it maps to on
 names, never a silent merge; an xunit string argument holding the literal text `\\ud834` is listed as `\\\\ud834` and
 stays distinct from the character.
 
-⛔ THE SCRUB (§3.14.3). Three channels can make a whole-assembly `dotnet test` run a PART of its assembly while
+⛔ THE SCRUB (DESIGN-test-build-ci.md §3.14.3). Three channels can make a whole-assembly `dotnet test` run a PART of its assembly while
 exiting 0, and every one of them is an ENVIRONMENT variable:
   WISEOWL_COBOL_GATE_*     the gate's own channel to a test host (`WISEOWL_COBOL_GATE_FIRST`, the classes its orderer
                            runs first; scripts/gate.py `FIRST_CLASSES`): only the gate may hand it to a host;

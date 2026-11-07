@@ -9,7 +9,7 @@ known compiler defects, kb/Work PB2911), each with its notes ready / waiting / b
 LOUD flags for a GAP holder outside the GAP campaign, an open compiler note no lane plans and a GAP row nobody claims,
 and an estimate per bucket from named, measured inputs (UNMEASURED where one is missing); then the conformance lane
 (hero, tiles, the GAP burn-down with the register's defect series beside it), the external repository's slices, the
-conformance detail (what is proven green, how the rows stand, burn-down by clause, the §4.2.16 posture), and pacing.
+conformance detail (what is proven green, how the rows stand, burn-down by clause, the §2023:4.2.16 posture), and pacing.
 The plan half is MEASURED in `ledger_plan.py` (buckets, lanes, estimate inputs, its own `--self-test`) and RENDERED
 here. Finished and held work (the legacy retirement, the architecture review's phases, the adjudication and A.1
 documentation veins) is not on the page: the held work is one row of WHAT REMAINS.
@@ -107,6 +107,7 @@ REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "orchestrator"))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+import citation  # noqa: E402  (the one citation format, kb/Work PB4887)
 import coord  # noqa: E402  (names the coordination directory)
 import git_batch  # noqa: E402  (scripts/: one git process for many objects)
 import inventory_store  # noqa: E402  (the one reader of the inventory: the tree and a commit's own)
@@ -680,8 +681,9 @@ def clause_rows(buckets: dict) -> str:
         segs = "".join(f'<span class="{c}" style="flex:{b[k]}"></span>'
                        for c, k in (("c1", "closed"), ("c2", "adjopen"), ("c3", "unadj")) if b[k])
         width = 100.0 * b["n"] / biggest
+        # A clause of the 2023 standard, printed in the edition form (kb/Work PB4887, PB4911): `§2023:14`, never `§14`.
         out.append(
-            f'<tr><td class="mono">§{e(key)}{sub}</td>'
+            f'<tr><td class="mono">{e(citation.render(citation.Citation(2023, key)))}{sub}</td>'
             f'<td class="r num">{n(b["n"])}</td>'
             f'<td class="r num">{n(b["adjudicated"])}</td>'
             f'<td class="r num">{n(b["gap"])}</td>'
@@ -913,7 +915,7 @@ def render_remaining(rem: dict, est: dict, cp: dict, inputs: dict) -> str:
         estimate_row("The rest of v1.0", None, "no planner input sizes these gates until their notes are filed"),
         estimate_row("Held work, once released", est["held"]),
     ])
-    return f"""<p>v1.0 is zero GAP (D13), P15 Cut 3 and the §4.2.16 user documentation; the owner put the compiler and zero GAP first (2026-10-10, <span class="mono">{e(ledger_plan.DECISION)}</span>). One row per bucket, counted from the register and the inventory; a note can count in more than one bucket (a defect that holds a GAP row). <em>Planned by</em> is the lane that plans each note: the fix lane (<span class="mono">.agent-fleet.json</span>'s population), a campaign lane, held, or none.</p>
+    return f"""<p>v1.0 is zero GAP (D13), P15 Cut 3 and the §2023:4.2.16 user documentation; the owner put the compiler and zero GAP first (2026-10-10, <span class="mono">{e(ledger_plan.DECISION)}</span>). One row per bucket, counted from the register and the inventory; a note can count in more than one bucket (a defect that holds a GAP row). <em>Planned by</em> is the lane that plans each note: the fix lane (<span class="mono">.agent-fleet.json</span>'s population), a campaign lane, held, or none.</p>
   {alerts(rem)}
   <div class="tablecard">
     <table>
@@ -940,7 +942,7 @@ def render_external(plan: dict) -> str:
         f'<tr><td class="r num">{num}</td><td class="mono">{e(nid)}</td><td>{e(title.split(": ", 1)[-1])}</td>'
         f'<td>{status_pill(s)}</td></tr>' for num, nid, s, title in plan["slices"])
     c = plan["counts"]
-    return (f'<p>The owner-approved §8.13 external-repository design, landed slice by slice (campaign '
+    return (f'<p>The owner-approved §2023:8.13 external-repository design, landed slice by slice (campaign '
             f'<span class="mono">PB1086</span>). <strong class="num">{n(c["external_landed"])}</strong> of '
             f'{n(c["external_total"])} slices landed.</p>\n'
             f'  <div class="tablecard"><table>\n'
@@ -1093,7 +1095,7 @@ TEMPLATE = """<title>{title}</title>
   <p class="eyebrow">What remains to v1.0 · kb/Work PB2911 · ISO/IEC 1989:2023 · Four editions</p>
   <h1>{title}</h1>
   <p class="asof">As of <b>{head_date}</b> · measured tree <b class="mono">{head_sha}</b> · last comprehensive battery <b>#{bat_n}</b> on <b class="mono">{bat_sha}</b> — <b>{bat_since} commits back</b>, {bat_since_code} of them touching <span class="mono">src/</span> or <span class="mono">tests/</span></p>
-  <p class="mission">v1.0 is <strong>a conforming implementation of the whole of ISO/IEC 1989 in each of its four editions</strong> (85 / 2002 / 2014 / 2023), as §4.2.1 defines conformance, measured by one instrument: every normative rule as a row of the traceability inventory, at <strong>zero GAP</strong>, with P15 Cut 3 and the §4.2.16 user documentation. The owner put the compiler and zero GAP first (2026-10-10, kb/Work PB2911): the known compiler defects and the notes that hold GAP rows run in the loop; the Delete program and the architecture review wait until both reach zero. This page measures what remains from the register, the inventory and the loop's own measurements.</p>
+  <p class="mission">v1.0 is <strong>a conforming implementation of the whole of ISO/IEC 1989 in each of its four editions</strong> (85 / 2002 / 2014 / 2023), as §2023:4.2.1 defines conformance, measured by one instrument: every normative rule as a row of the traceability inventory, at <strong>zero GAP</strong>, with P15 Cut 3 and the §2023:4.2.16 user documentation. The owner put the compiler and zero GAP first (2026-10-10, kb/Work PB2911): the known compiler defects and the notes that hold GAP rows run in the loop; the Delete program and the architecture review wait until both reach zero. This page measures what remains from the register, the inventory and the loop's own measurements.</p>
 </header>
 
 <section aria-label="Headline">
@@ -1233,14 +1235,14 @@ TEMPLATE = """<title>{title}</title>
 </section>
 
 <section aria-label="Documentation posture">
-  <h2>Conformance detail · the §4.2.16 documentation posture</h2>
+  <h2>Conformance detail · the §2023:4.2.16 documentation posture</h2>
   <div class="tablecard">
     <table>
       <thead><tr><th>Register</th><th>Standing</th></tr></thead>
       <tbody>
         <tr><td>Annex A.3 — processor-dependent ({a3_rows} rows)</td><td class="dim"><span class="num">{a3_claimed}</span> claimed · <span class="num">{a3_partial}</span> partial · <span class="num">{a3_not}</span> not claimed · <span class="num">{a3_na}</span> n/a</td></tr>
         <tr><td>Annex A.4 — optional modules ({a4_rows})</td><td class="dim"><span class="num">{a4_claimed}</span> claimed — {a4_claimed_list} · <span class="num">{a4_partial}</span> partial — {a4_partial_list} · <span class="num">{a4_not}</span> not claimed — {a4_not_list}</td></tr>
-        <tr><td>Documented non-support ({facilities_n} facilities)</td><td class="dim">{facilities} — each named by a compile-time diagnostic (a warning, or an error where the facility is refused): the mechanism §4.2.6 ¶3 requires for processor-dependent elements (A.3), the posture §4.2.7's user documentation states for optional modules (A.4); D13 permits both</td></tr>
+        <tr><td>Documented non-support ({facilities_n} facilities)</td><td class="dim">{facilities} — each named by a compile-time diagnostic (a warning, or an error where the facility is refused): the mechanism §2023:4.2.6 ¶3 requires for processor-dependent elements (A.3), the posture §2023:4.2.7's user documentation states for optional modules (A.4); D13 permits both</td></tr>
         <tr><td>Annex A.1 — implementor-defined register</td><td>{a1_state}</td></tr>
         <tr><td>Version-change ledger anchors</td><td class="dim"><span class="num">{vcr_done}</span> of {vcr_total} dispositioned ({vcr_pct}%): {vcr_gated} gated · {vcr_ref} ref-only · {vcr_pin} pinned-to-spec · <span class="num">{vcr_todo}</span> todo; the matrix registry stands at {constructs} constructs</td></tr>
       </tbody>

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Remove the duplicated printed-page-546 block stranded inside the page-575 slice.
 
-THE DEFECT. The body of printed page 546 (the object-destruction NOTE, §14.6.11 items 5-7, all of §14.6.12
-Abnormal run unit termination, and §14.6.13 / .1 / .1.1) is emitted TWICE: once stranded at the end of the
+THE DEFECT. The body of printed page 546 (the object-destruction NOTE, §2023:14.6.11 items 5-7, all of §2023:14.6.12
+Abnormal run unit termination, and §2023:14.6.13 / .1 / .1.1) is emitted TWICE: once stranded at the end of the
 page-575 slice, introduced by a stray horizontal rule and a stray running-header H1, and again in its proper place
 under the `page-576` anchor. Four section anchors are therefore emitted twice, and because the stray copy comes
 FIRST in file order, every intra-document link and every heading-derived TOC entry resolves to the copy that sits

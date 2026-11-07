@@ -1162,7 +1162,7 @@ def execute(sc: Scenario) -> Outcome:
                 break
         if not fatal:
             fault.boundary()
-            a.commit()                                 # normal termination: the implicit COMMIT (§14.6.11)
+            a.commit()                                 # normal termination: the implicit COMMIT (§2023:14.6.11)
         h.kill(a)                                      # the run unit ends: its locks and handles go
     except Died:
         died = True

@@ -4,7 +4,7 @@
 `extract_rule_catalog.py` builds THE DENOMINATOR of the P14 traceability inventory. Its completeness critics all
 ask "did every rule-block heading yield SOMETHING?" — a block that yields 16 of its 42 rules passes every one of
 them, because 16 is not zero. PB689 is exactly that shape: `specs/ISO_COBOL_2023.md` rendered the in-clause group label
-`SEQUENTIAL FILES` as `## SEQUENTIAL FILES` inside §14.9.51.4's general rules, the extractor's block scan closes a
+`SEQUENTIAL FILES` as `## SEQUENTIAL FILES` inside §2023:14.9.51.4's general rules, the extractor's block scan closes a
 block at ANY heading, and GR17–GR42 of the WRITE statement — twenty-six normative rules, GR23's '71' among them —
 never reached the catalog. The published GAP was therefore computed against a denominator that was silently short.
 

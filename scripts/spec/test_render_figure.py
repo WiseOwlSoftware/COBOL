@@ -9,7 +9,7 @@ and compares the drawing with the one verified against the printed page. A layou
 figures fails here without the PDF; `sweep_figures.py --check` remains the whole-standard net where the PDF is.
 
 THE SHAPES (FIGURE-STYLE.md, "Layout rules, for the generator"; kb/Work PB3530):
-  SIBLING_BRACE_BESIDE_A_TALLER_ONE          — §13.18.35.2 Format 1: `LINE NUMBER IS` / `LINES ARE` are alternatives
+  SIBLING_BRACE_BESIDE_A_TALLER_ONE          — §2023:13.18.35.2 Format 1: `LINE NUMBER IS` / `LINES ARE` are alternatives
                                                of the three-way brace beside a taller one, never labels to snap.
   HELD_WORD_CLUSTERED_ACROSS_ITS_HOOK        — `FOR ALPHANUMERIC` clusters with `CODE-SET` onto a row whose average
                                                lies above its own brace's hook; the WHOLE row moves inside, so
