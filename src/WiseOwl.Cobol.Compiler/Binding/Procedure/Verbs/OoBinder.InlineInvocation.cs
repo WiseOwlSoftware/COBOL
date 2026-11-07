@@ -287,6 +287,35 @@ internal sealed partial class OoBinder
         return new BoundNumRef(place);
     }
 
+    /// <summary>⛔ THE DIAGNOSTIC-FREE ANSWER TO "WHAT DOES THIS INLINE METHOD INVOCATION RETURN" (§8.4.3.4.4 GR1 b): the temporary takes the
+    /// description of the invoked method's RETURNING item). Nothing is bound and nothing is reported, so a statement-level question may ask it
+    /// (<c>StatementBinder.NamesGatedMessageTag</c>, kb/Work PB4868), as <see cref="IntrinsicBinder.ReturningItemOf(Core.FunctionCallContext)"/>
+    /// answers it for a function. It follows the chain of segments from a receiver that is a data item of a named class
+    /// (<see cref="ObjectRefKind.ObjectClass"/>) and each segment's returned object reference; a receiver it cannot resolve without binding (a universal,
+    /// interface or ACTIVE-CLASS reference, SELF, an object view, a computed receiver) or a method the class does not
+    /// have answers null, and the binder's own refusals speak when the invocation is bound.</summary>
+    internal DataItem? InlineInvocationReturningItem(Core.InlineMethodInvocationContext imi)
+    {
+        if (imi.objectReferenceAtom().objectReferenceTerm()?.dataReference() is not { } receiver
+            || ctx.Refs.Probe(receiver) is not { } probed) return null;
+        DataItem? returning = null;
+        var holder = probed.Item;
+        foreach (var seg in imi.inlineInvocationSegment())
+        {
+            if (holder.Pic?.ObjectRef is not { Kind: ObjectRefKind.ObjectClass, Name: { } className } rdesc
+                || host.OoClasses?.Find(className) is not { } cls) return null;
+            string? written = seg.cobolWord() is { } methodWord
+                ? host.Expr.LiteralAliasOf(methodWord) is { } alias ? OoMethodNameOf(alias) : null
+                : OoMethodNameOf(seg.literal());
+            if (written is not { Length: > 0 } methodName) return null;
+            methodName = WiseOwl.Cobol.Runtime.ExternalizedNames.Form(methodName);
+            var method = rdesc.Factory ? cls.FindFactoryMethod(methodName) : cls.FindMethod(methodName);
+            if (method?.Binding?.Returning is not { } result) return null;
+            returning = holder = result;
+        }
+        return returning;
+    }
+
     /// <summary>The universal half of §8.4.3.4.3 SR2 — "Identifier-1 shall be of class object; neither the predefined
     /// object reference NULL nor a universal object reference shall be specified" — asked of ONE receiver, the
     /// written first one or a chained segment's temporary alike (kb/Work PB1429), so the two can never disagree.
