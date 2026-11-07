@@ -219,7 +219,7 @@ internal static class LevelNumberRules
         CobolParserCore.DataDescriptionEntryContext e => e.dataName()?.GetText() ?? "FILLER",
         CobolParserCore.ReportGroupEntryContext r => r.dataName()?.GetText() ?? "FILLER",
         CobolParserCore.ConstantEntryContext c => c.dataName()?.GetText() ?? "FILLER",
-        CobolParserCore.ScreenDescriptionEntryContext s => s.screenName()?.GetText() ?? "FILLER",
+        CobolParserCore.ScreenDescriptionEntryContext s => s.dataName()?.GetText() ?? "FILLER",
         _ => "FILLER",
     };
 }
