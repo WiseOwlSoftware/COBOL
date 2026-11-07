@@ -196,6 +196,10 @@ internal static class RuntimeApi
     public static string FunctionFieldOfFloat(string value) =>
         $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfFloat)}({value})";
 
+    /// <summary>A binary64 the program computed, which is no approximation: ordered by its exact value lifted in <paramref name="mode"/>.</summary>
+    public static string FunctionFieldOfBinary64(string value, string mode) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfBinary64)}({value}, {mode})";
+
     /// <summary>A floating-point item argument: its exact value as the one SDIDI lift gives it, its profile (the bytes the copy has), and the
     /// image its own DISPLAY writes, and the item's <paramref name="bytes"/>.</summary>
     public static string FunctionFieldOfFloatItem(string exactValue, string profile, string image, int bytes) =>

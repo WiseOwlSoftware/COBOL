@@ -159,8 +159,6 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // arbitrary-precision argument temporary by CLAUDE.md rule 1).
         else if (RenderWide(ic) is { } wideExact)
             return wideExact;
-        else if (AnyDecRaw(ic) && RenderDec(ic) is { } decNative)
-            return decNative;
         // ⛔ A CROSS-ALIGNING ARM WHOSE ALIGNED ARGUMENTS PROVABLY CANNOT STAY IN THE Int128 CARRIER TAKES THE SDIDI
         // (kb/Work PB621; the Int128 half of the boundary PB252 made honest). SUM / RANGE / MEDIAN / MIDRANGE (MEAN left them with PB3860, below)
         // align every argument to the LIST's maximum scale, and alignment multiplies: ±1.7e30 beside a
@@ -179,9 +177,16 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // SDIDI body's 34 digits (SumDec …) round a 35-to-38-digit value the Int128 body, the arithmetic expression and the receiver's
         // single rounding (§14.7.4.3) would have kept whole, so SUM (A B) ROUNDED stored .01 where A + B stored .00. A standard mode
         // keeps the SDIDI body: there the 34-digit SDIDI value IS the returned value (§15.4.1 1)).
-        if (IntrinsicCarrierRules.CrossAligningFunctions.Contains(sig.Name) && AlignmentMayLeaveCarrier(ic)
-            && (num.StandardDecimal ? RenderDec(ic) : RenderWholeAligned(ic)) is { } wideAligned)
+        // ⛔ THIS ARM PRECEDES THE SDIDI-ARGUMENT ARM BELOW IT (kb/Work PB4860): a whole-value argument (NumX.Exact, a nested call of
+        // this family) lowers to its 34-digit image and reads as an SDIDI operand, and SUM (SUM (A B) Z) took SumExact, whose 34 digits rounded
+        // the 35-digit value this arm keeps whole. AlignedOperands reads that argument unlowered. A genuine SDIDI or binary64 operand still
+        // answers null there, so those lists keep the SDIDI and float bodies. Under a standard mode RenderDec has already returned (the
+        // family is always-SDIDI there), so this arm is the native one.
+        else if (IntrinsicCarrierRules.CrossAligningFunctions.Contains(sig.Name) && AlignmentMayLeaveCarrier(ic)
+            && RenderWholeAligned(ic) is { } wideAligned)
             return wideAligned;
+        else if (AnyDecRaw(ic) && RenderDec(ic) is { } decNative)
+            return decNative;
         // ⛔ MEAN'S VALUE IS THE SDIDI QUOTIENT UNDER NATIVE ARITHMETIC TOO (kb/Work PB3860). §15.60.4 r1's equivalent arithmetic
         // expression ends in a division; under a standard mode the value is that expression's SDIDI value (§15.4.1 r1) and
         // under native arithmetic §15.4.1 leaves "an implementor-defined approximation". The approximation this arm used to
@@ -1068,6 +1073,24 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         ArgArray(ic, 0, RuntimeApi.ExactType, a => ExactValueOf(ic, a))
         ?? string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => ExactValueArg(ic, i)));
 
+    /// <summary>Each argument's binary64-ness, in order, as a <c>bool[]</c> expression parallel to <see cref="ExactValueArgList"/> (a
+    /// table(ALL) element is enumerated by the same walk): what the exact value cannot say, because a float ITEM's content is its exact
+    /// expansion (kb/Work PB4859, <c>CobolIntrinsics.MedianBinary64Exact</c>).</summary>
+    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand's binary64 carrier flag.</remarks>
+    private string Binary64FlagList(BoundIntrinsicCall ic) =>
+        ArgArray(ic, 0, "bool", a => Binary64FlagOf(ic, a))
+        ?? $"new bool[] {{ {string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => Flag(RawArg(ic, i))))} }}";
+
+    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand's binary64 carrier flag.</remarks>
+    private string Binary64FlagOf(BoundIntrinsicCall ic, BoundOperand a)
+    {
+        for (int i = 0; i < ic.Args.Count; i++)
+            if (ReferenceEquals(ic.Args[i], a)) return Flag(RawArg(ic, i));
+        return Flag(num.AsNum(a, num.Receiver));
+    }
+
+    private static string Flag(NumX x) => x.Real ? "true" : "false";
+
     /// <summary>One operand as its exact value: a written argument through <see cref="ExactValueArg"/> (its own position's intake),
     /// an element of a table(ALL) argument directly.</summary>
     /// <remarks>INTAKE(EXACT) — the per-operand form of <see cref="ExactValueArg"/> — same contract.</remarks>
@@ -1169,10 +1192,17 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand: its carrier flags and its digit bound.</remarks>
     private List<IntrinsicCarrierRules.AlignedOperand?> AlignedOperands(BoundIntrinsicCall ic) =>
-        Operands(ic)
-            .Select((x, i) => x.Dec || x.Real
-                ? (IntrinsicCarrierRules.AlignedOperand?)null
-                : new IntrinsicCarrierRules.AlignedOperand(x.Digits, x.Scale, ic.Args[i] is BoundFieldOperand { Place: TableAllPlace }))
+        Enumerable.Range(0, ic.Args.Count)
+            .Select(i => RawWideArg(ic, i))
+            .Select((w, i) => w.Exact
+                // ⛔ A WHOLE-VALUE ARGUMENT (a nested SUM / RANGE / MEDIAN / MIDRANGE over a list that left the carrier, an expression in which a
+                // wide value met an SDIDI operand) IS NOT AN SDIDI OPERAND (kb/Work PB4860): RawArg lowers it to its 34-digit image, which
+                // read here as the SDIDI's and sent SUM (SUM (A B) Z) to SumExact, whose 34 digits rounded the 35-digit value the whole
+                // lane keeps. It is an operand of unknown bound and run-time scale, which the rule reads as shifting.
+                ? new IntrinsicCarrierRules.AlignedOperand(0, 0, false, RunTimeScaled: true)
+                : NumericRenderer.LowerWide(w) is { Dec: false, Real: false } x
+                    ? new IntrinsicCarrierRules.AlignedOperand(x.Digits, x.Scale, ic.Args[i] is BoundFieldOperand { Place: TableAllPlace })
+                    : (IntrinsicCarrierRules.AlignedOperand?)null)
             .ToList();
 
     /// <summary>⛔ A NATIVE CROSS-ALIGNING LIST THAT LEAVES THE Int128 CARRIER IS EVALUATED ON THE EXACT FAMILY'S WHOLE VALUE (kb/Work PB4792,
@@ -1374,14 +1404,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "SumScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SumExact", $"{mode}, {ExactValueArgList(ic)}")),
             "RangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RangeExact", $"{mode}, {ExactValueArgList(ic)}")),
             "MeanScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MeanExact", $"{mode}, {ExactValueArgList(ic)}")),
-            // ⛔ AN ALL-BINARY64 MEDIAN WHOSE COUNT IS A RUN-TIME FACT DECIDES ITS PARITY AT RUN TIME (kb/Work PB4827). An odd count selects
-            // (§15.61.4 1), the exact lane keeps the selected argument's own kind); an even count is the mean of the two middle values
-            // (§15.61.4 2)), a new value that beside binary64 arguments is the binary64 mean, as the float lane forms it for a count the
-            // binder knows (IntrinsicCarrierRules.ReturnsMeanOfMiddlePair). The exact lane reaches here for two kinds of binary64
-            // (SelectionNeedsExactLane), so the body takes the exact values and forms the binary64 mean itself.
-            "MedianScaled" when !num.StandardDecimal
-                && IntrinsicCarrierRules.MedianParityIsRunTime(ic.Sig.Name, ic.Args) && AllRealArguments(ic)
-                => Exact("MedianBinary64Exact", ExactValueArgList(ic), null),
+            // ⛔ A MEDIAN WITH A BINARY64 ARGUMENT DECIDES ITS PARITY AND ITS MIDDLE PAIR AT RUN TIME (kb/Work PB4827, PB4859). An odd count
+            // selects (§15.61.4 1), the exact lane keeps the selected argument's own kind); an even count is the mean of the two middle values
+            // (§15.61.4 2)), a new value that is the binary64 mean when a MIDDLE value is binary64 (DOC-A.1-92b), as the float lane forms it for
+            // a count the binder knows (IntrinsicCarrierRules.ReturnsMeanOfMiddlePair), and the exact mean when both are fixed-point. The exact
+            // lane reaches here for a binary64 beside a fixed-point item, of two kinds, or over a run-time count (SelectionNeedsExactLane), and
+            // which values are the middle pair is a run-time fact, so the body takes each argument's binary64-ness beside its exact value.
+            "MedianScaled" when !num.StandardDecimal && AnyRealArgument(ic)
+                => Exact("MedianBinary64Exact", $"{mode}, {Binary64FlagList(ic)}, {ExactValueArgList(ic)}", null),
             "MedianScaled" when !num.StandardDecimal => Exact("MedianExact", $"{mode}, {ExactValueArgList(ic)}", null),
             "MidrangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MidrangeExact", $"{mode}, {ExactValueArgList(ic)}")),
             "Variance" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("VarianceExact", $"{mode}, {ExactValueArgList(ic)}")),

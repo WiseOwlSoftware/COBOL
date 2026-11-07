@@ -76,8 +76,10 @@ public sealed class FloatItemSdidiLiftDriftTests
     public void TheRuntime_HasNoShortestDecimalConversionOfADataItem()
     {
         // The data-item conversions of the runtime: DATE seconds (a range check) lifts by the exact value; the
-        // floating-point numeric-edited sender by the exact value as a round-to-odd significand.
-        var exact = Callers("WiseOwl.Cobol.Runtime", "CobolDec.FromBinary64(", "CobolDate.cs");
+        // floating-point numeric-edited sender by the exact value as a round-to-odd significand; a computed binary64 argument of MAX,
+        // MIN and MEDIAN (FunctionValueField.OfBinary64, kb/Work PB4859 review R2-1) by its exact value in the mode the renderer states,
+        // as DecOperandExact lifts it on COMPUTE.
+        var exact = Callers("WiseOwl.Cobol.Runtime", "CobolDec.FromBinary64(", "CobolDate.cs", "FunctionValueField.cs");
         Assert.True(exact.Count == 0, "A new runtime caller of CobolDec.FromBinary64 states its INTERMEDIATE ROUNDING mode itself: " + string.Join("; ", exact));
         var odd = Callers("WiseOwl.Cobol.Runtime", "CobolDec.FromBinary64ToOdd(", "CobolEdit.Float.cs", "CallAbi.cs");
         Assert.True(odd.Count == 0, "FromBinary64ToOdd is the floating-point numeric-edited sender's form only: " + string.Join("; ", odd));
