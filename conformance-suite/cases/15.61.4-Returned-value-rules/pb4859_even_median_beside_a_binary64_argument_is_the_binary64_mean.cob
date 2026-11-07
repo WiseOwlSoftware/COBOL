@@ -19,6 +19,10 @@
       *>   C1  DISPLAY MEDIAN (F M)   (0.1 + 0.5) / 2 = 0.3 (the exact mean of the lifts, .30000000000000000277..., is the wrong value)
       *>   C2  COMPUTE R = MEDIAN (F M) into 9V9(20): the double 0.3 is 0.299999999999999988897769753748..., so 0.29999999999999998889
       *>   C3  COMPUTE D = MEDIAN (F M) into a FLOAT-LONG item, DISPLAY D: the double 0.3, shown 0.3
+      *>   X1  DISPLAY MEDIAN ((F + 0) M): an arithmetic expression over a binary64 item is binary64, so its middle is a binary64 one: 0.3
+      *>   X2  COMPUTE R = MEDIAN ((F + 0) M) into 9V9(20): 0.29999999999999998889, the value X1 shows (review R1-1: DISPLAY described the
+      *>       expression by its SDIDI lift and showed the exact mean)
+      *>   X3  DISPLAY MEDIAN ((F + 0) (G + 0)): 0.15000000000000002 as B1
       *>   E1  DISPLAY MEDIAN (F M N) with N = 0.7: an odd count SELECTS the middle value M, whole: 0.50000000000000000000
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4859MED.
@@ -39,6 +43,10 @@
            DISPLAY "C2 " R
            COMPUTE D = FUNCTION MEDIAN (F M)
            DISPLAY "C3 " D
+           DISPLAY "X1 " FUNCTION MEDIAN ((F + 0) M)
+           COMPUTE R = FUNCTION MEDIAN ((F + 0) M)
+           DISPLAY "X2 " R
+           DISPLAY "X3 " FUNCTION MEDIAN ((F + 0) (G + 0))
            DISPLAY "E1 " FUNCTION MEDIAN (F M N)
            STOP RUN.
        END PROGRAM PB4859MED.

@@ -16,5 +16,9 @@ are fixed-point: the exact mean was owed and the double lost it. So the decision
 each argument's binary64-ness beside its exact value (a float item's expansion carries no mark), and `FunctionValueField.Median` reads the
 `Float` shape of the two middles.
 
+Review round 1 (R1-1): `FunctionDeviceText.Field`'s default arm described a binary64 arithmetic-expression argument (`(F + 0)`) through the SDIDI lift, so `DISPLAY MEDIAN ((F + 0) M)` showed the exact mean `.30000000000000000277` while COMPUTE stored the binary64 mean `0.29999999999999998889`: the `Float`-shape test could not see an expression. The arm now describes a `NumX.Real` value as a binary64 temporary, as `ValueField` already did for a nested function; the golden gained X1-X3 (DISPLAY, COMPUTE, two expression middles). Open lead, not fixed (a run-time fact the exact lane carries no mark for): a nested mixed selection as a middle, `MEDIAN (FUNCTION MAX (F M2) M)`, shows the binary64 mean on DISPLAY and the exact mean on COMPUTE.
+
+Self-review: architecture (one reader of binary64-ness per channel, no C# in a bound node), full code (15.61.4 2), 15.4.1 and DOC-A.1-92b read, not paraphrased), performance (one small `bool[]` per native MEDIAN with a real argument), duplication (the double conversion in two channel bodies, both over `FloatResultant.FromExact`).
+
 Goldens: `pb4860_a_whole_value_argument_keeps_its_value_in_a_list_that_leaves_the_carrier` (+ `_85` refusal),
 `pb4859_even_median_beside_a_binary64_argument_is_the_binary64_mean` (+ `_below_2002` refusal). Rows closed: none (leads, no inventory row).
