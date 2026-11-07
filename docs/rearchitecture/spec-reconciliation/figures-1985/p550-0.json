@@ -1,0 +1,20 @@
+{
+ "page": 550,
+ "figure": 0,
+ "drawn_lines": [
+  "                                                          ⎧{file-name-1} ...⎫",
+  "                                                          ⎪<u>INPUT</u>            ⎪",
+  "<u>USE</u> [<u>GLOBAL</u>] <u>AFTER</u> STANDARD ⎧<u>EXCEPTION</u>⎫ <u>PROCEDURE</u> ON ⎨<u>OUTPUT</u>           ⎬",
+  "                             ⎩<u>ERROR</u>    ⎭              ⎪<u>I-O</u>              ⎪",
+  "                                                          ⎩<u>EXTEND</u>           ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔                                                         ╭ { file-name-1 } … ╮ ╗",
+  "║                              ╭ <u>EXCEPTION</u> ╮              │ <u>INPUT</u>             │ ║",
+  "║<u>USE</u> [ <u>GLOBAL</u> ] <u>AFTER</u> STANDARD ┤           ├ <u>PROCEDURE</u> ON ┤ <u>OUTPUT</u>            ├ ║",
+  "║                              ╰ <u>ERROR</u>     ╯              │ <u>I-O</u>               │ ║",
+  "╚                                                         ╰ <u>EXTEND</u>            ╯ ╝"
+ ],
+ "reason": "The printed page sets USE [GLOBAL] AFTER STANDARD {EXCEPTION / ERROR} PROCEDURE ON {{file-name-1} ... / INPUT / OUTPUT / I-O / EXTEND} inside the page-wide level-2 box round the USE statement; the batch set its braces a column off and lost the box. Drawn from the page."
+}

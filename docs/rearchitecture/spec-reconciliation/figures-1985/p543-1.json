@@ -1,0 +1,27 @@
+{
+ "page": 543,
+ "figure": 1,
+ "drawn_lines": [
+  "<u>CALL</u> ⎧identifier-1⎫ ┌<u>USING</u> ⎧[BY <u>REFERENCE</u>] {identifier-2} ...⎫ ... ┐",
+  "     ⎩literal-1   ⎭ └      ⎩BY <u>CONTENT</u>    {identifier-2} ...⎭     ┘",
+  "",
+  "  [ON <u>EXCEPTION</u> imperative-statement-1]",
+  "",
+  "  [<u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2]",
+  "",
+  "  [<u>END-CALL</u>]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "     ╭ ║ identifier-1 ║ ╮ ┌       ╭ ║ [ BY <u>REFERENCE</u> ] ║ { identifier-2 } …   ╮   ┐",
+  "<u>CALL</u> ┤                  ├ │ <u>USING</u> ┤                                           ├ … │",
+  "     ╰ literal-1        ╯ └       ╰ ║ BY <u>CONTENT</u> { identifier-2 } … ║         ╯   ┘",
+  "",
+  "  ╔ [ ON <u>EXCEPTION</u> imperative-statement-1 ]     ╗",
+  "  ║                                             ║",
+  "  ╚ [ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 ] ╝",
+  "",
+  "  [ <u>END-CALL</u> ]"
+ ],
+ "reason": "The printed page sets CALL Format 2 with level-2 boxes round identifier-1, round [BY REFERENCE], round the BY CONTENT alternative, and one round the ON EXCEPTION and NOT ON EXCEPTION phrases together, which the batch lost; its USING brace's closers were a column off. Drawn from the page."
+}
