@@ -132,6 +132,10 @@ public sealed class ImplicitRegisters
     public DebugRegisterPlace? DebugPlaceOf(DataItem item) =>
         _debugRegisters.Values.Where(r => ReferenceEquals(r.Item1, item)).Select(r => new DebugRegisterPlace(r.Item1, r.Item2)).FirstOrDefault();
 
+    /// <summary>Whether <paramref name="item"/> is the DEBUG-ITEM group or one of its named members (the item a reference to the register
+    /// carries; a FILLER entry has no register and no reference reaches it).</summary>
+    public bool IsDebugRegister(DataItem item) => DebugPlaceOf(item) is not null;
+
     private DataItem[] _debugSubRegisters = [];
 
     /// <summary>The three DEBUG-SUB-n members (general rule 10: <c>PICTURE S9999 SIGN IS LEADING SEPARATE</c>), empty until

@@ -151,8 +151,6 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 + "{OUTPUT PROCEDURE | GIVING} (ISO §2023:14.9.40.2 general format)");   // PB236
             return BoundRejected.Reported(ctx.Edition);
         }
-        if (SortRecordCarriesSlots(file) && (usingFiles.Count > 0 || givingFiles.Count > 0))
-            return new BoundUnsupported(SlotRecordFileTransferReason(file, "SORT"));
         if (!ScreenSameClauses(file, usingFiles, givingFiles, merge: false)) return BoundRejected.Reported(ctx.Edition);   // SR10
         if (!ScreenIndexedGivingKey(keys, givingFiles, merge: false)) return BoundRejected.Reported(ctx.Edition);         // SR9
         if (!ScreenTransferRecordSizes(file, usingFiles, givingFiles, merge: false)) return BoundRejected.Reported(ctx.Edition);   // SR5, SR11
@@ -396,8 +394,6 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);   // reported by SortAddFileKeys (PB236, PB1030)
         if (SortRecordOf(file) is null)   // after the keys, for the reason BindSort gives (kb/Work PB1173)
             return new BoundUnsupported($"MERGE '{file.CobolName}' without a usable SD record (Tier-C byte island, deferred)");
-        if (SortRecordCarriesSlots(file))   // a MERGE always has USING files (§2023:14.9.24.2): the transfer a slot record cannot take
-            return new BoundUnsupported(SlotRecordFileTransferReason(file, "MERGE"));
 
         var (collating, collErr) = SortBindCollating(m.sortCollatingPhrase(), merge: true);
         if (collErr is { } ce) return ce;
@@ -586,17 +582,12 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// carrier the managed slots of D-SLOT (DOC-A.1-210) ride in everywhere else. Two record descriptions would share one area by the
     /// synthesized REDEFINES a strong group may not take part in (§2023:13.18.44.3 SR14), a SAME RECORD AREA peer would need the
     /// released record stored into it as characters, and a variable-length FILE (<see cref="FileModel.RecordSizeVaries"/>: RECORD VARYING or the implied variable format) releases a size the leaf-vector path ignores, so none
-    /// of the three is admitted.</summary>
+    /// of the three is admitted. A USING, GIVING or MERGE file transfers the record as the file carries it, each pointer or
+    /// message-tag leaf as its 8-position token (kb/Work PB4838): USING decodes it into the SD record
+    /// (<c>SortEmitter.EmitInputFile</c>) and GIVING writes the stored image, which is that token.</summary>
     private static bool SortRecordCarriesSlots(FileModel file) =>
         file.Records.Count == 1 && !file.SameRecordAreaPeers.Any() && !file.RecordSizeVaries
         && ActivationCrossing.LeafCarried(file.Records[0]) && file.Records[0].TransferImageCapable;
-
-    /// <summary>The deferral of a SORT/MERGE over a slot-holding SD record with a USING or GIVING file: a FILE record is a
-    /// byte string with no managed-slot half (<c>GateFileRecordByteSurfacePass</c>), so the implicit transfer would
-    /// carry the slot leaves' placeholder bytes in and out and give the record area a message tag or pointer nothing set.</summary>
-    private static string SlotRecordFileTransferReason(FileModel file, string verb) =>
-        $"{verb} USING/GIVING over SD record '{file.Records[0].CobolName}' with a message-tag/object/pointer leaf — a file record has no "
-        + "managed-slot half (the file record codec's own Tier-C byte island), deferred; DESIGN §4.2";
 
     /// <summary>Bind one ASC/DESC key phrase's data-names into <paramref name="keys"/> (ISO §2023:14.9.40 GR1 — the
     /// direction word is transitive across the phrase's data-names; each <c>sortKeyPhrase</c>/<c>mergeKeyPhrase</c>

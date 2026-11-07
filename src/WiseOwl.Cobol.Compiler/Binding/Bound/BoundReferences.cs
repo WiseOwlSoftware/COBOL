@@ -29,23 +29,23 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// </summary>
 internal static class BoundReferences
 {
-    /// <summary>The places <paramref name="statement"/> WRITES a reference to itself, in source order (an operand a node names in
+    /// <summary>What <paramref name="statement"/> WRITES a reference to itself, in source order (an operand a node names in
     /// <see cref="IBoundImplicitOperands"/> is one the program did not write, and is left out); <paramref name="except"/> (nodes the statement
     /// holds, compared by reference) are left out too — the planner takes READ INTO's move and each conditional phrase apart itself.</summary>
-    public static IReadOnlyList<Place> Of(BoundStatement statement, IEnumerable<object?>? except = null) => Collect(statement, except ?? []);
+    public static Reach Of(BoundStatement statement, IEnumerable<object?>? except = null) => Collect(statement, except ?? []);
 
-    /// <summary>The places an operand tree <paramref name="node"/> (a condition, an expression, a set target, a bound operand)
+    /// <summary>What an operand tree <paramref name="node"/> (a condition, an expression, a set target, a bound operand)
     /// references, in source order.</summary>
-    public static IReadOnlyList<Place> OfOperand(object node) => Collect(node, []);
+    public static Reach OfOperand(object node) => Collect(node, []);
 
-    private static List<Place> Collect(object root, IEnumerable<object?> except)
+    private static Reach Collect(object root, IEnumerable<object?> except)
     {
-        var found = new List<Place>();
+        var found = new Reach.Builder();
         var skip = new HashSet<object>(ReferenceEqualityComparer.Instance);
         foreach (var part in except)
             if (part is not null) skip.Add(part);   // a part of the statement the caller plans on its own (READ INTO's move, a conditional phrase)
         Visit(root, found, skip, yieldPlace: true, statementsAreDirect: true);
-        return found;
+        return found.Build();
     }
 
     /// <summary>The wrappers that are not a statement of their own but a layer of the statement they carry.</summary>
@@ -60,7 +60,7 @@ internal static class BoundReferences
         || typeof(Position).IsAssignableFrom(t) || t == typeof(OffsetTerm)
         || typeof(WindowCoding).IsAssignableFrom(t) || typeof(AllCount).IsAssignableFrom(t);
 
-    private static void Visit(object? node, List<Place> found, HashSet<object> skip, bool yieldPlace, bool statementsAreDirect)
+    private static void Visit(object? node, Reach.Builder found, HashSet<object> skip, bool yieldPlace, bool statementsAreDirect)
     {
         if (node is null) return;
         if (skip.Contains(node))
@@ -88,10 +88,13 @@ internal static class BoundReferences
         switch (node)
         {
             case PositionItemRead read:
-                found.Add(new MemberPlace(read.Path, read.Item));   // a subscript or window position that reads an item references it
+                found.AddPlace(new MemberPlace(read.Path, read.Item));   // a subscript or window position that reads an item references it
+                return;
+            case BoundLinageCounterRef or BoundReportCounterRef:
+                found.AddRegister((BoundExpr)node);   // a runtime-sourced register no place stands for, referenced where it is read
                 return;
             case Place place:
-                if (yieldPlace) found.Add(place);
+                if (yieldPlace) found.AddPlace(place);
                 // Inside a place only the positions it computes are references (T (I) references I); a wrapped place is the
                 // same reference, never a second one.
                 VisitFields(node, found, skip, yieldPlace: false, statementsAreDirect: false);
@@ -108,7 +111,7 @@ internal static class BoundReferences
 
     /// <summary>Every field a record stores — the compiler-generated backing fields of its properties included, which a computed
     /// property has none of, so the walk reads state and never derived answers — over the whole base chain.</summary>
-    private static void VisitFields(object node, List<Place> found, HashSet<object> skip, bool yieldPlace, bool statementsAreDirect)
+    private static void VisitFields(object node, Reach.Builder found, HashSet<object> skip, bool yieldPlace, bool statementsAreDirect)
     {
         for (var c = node.GetType(); c is not null && c != typeof(object); c = c.BaseType)
             foreach (var field in c.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
@@ -118,5 +121,30 @@ internal static class BoundReferences
                 // part of the verb's own statement, whose operands the verb explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5 a).
                 Visit(field.GetValue(node), found, skip, yieldPlace, statementsAreDirect || field.FieldType == typeof(BoundMove));
             }
+    }
+}
+
+/// <summary>⛔ THE REFERENCES A BOUND STATEMENT OR OPERAND MAKES, of the two kinds a USE FOR DEBUGGING identifier-1 can be (X3.23-1985 USE FOR DEBUGGING
+/// general rule 5): a <see cref="Place"/> (every data item, special register and sum counter that has one) and a REGISTER — the runtime-sourced
+/// LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER (ISO/IEC 1989:2023 §2023:8.4.3.14, §2023:8.4.3.15), read as a <see cref="BoundLinageCounterRef"/> or
+/// <see cref="BoundReportCounterRef"/> because the report writer and the I-O control system own their storage (kb/Work PB4858).</summary>
+/// <param name="Places">The places, in source order.</param>
+/// <param name="Registers">The register reads, in source order.</param>
+internal sealed record Reach(IReadOnlyList<Place> Places, IReadOnlyList<BoundExpr> Registers)
+{
+    /// <summary>The accumulator a walk fills; handed down as a parameter so the walk itself holds no state.</summary>
+    internal sealed class Builder
+    {
+        private readonly List<Place> _places = [];
+        private readonly List<BoundExpr> _registers = [];
+
+        /// <summary>Record a place reference.</summary>
+        public void AddPlace(Place place) => _places.Add(place);
+
+        /// <summary>Record a counter-register reference.</summary>
+        public void AddRegister(BoundExpr register) => _registers.Add(register);
+
+        /// <summary>The finished reach.</summary>
+        public Reach Build() => new(_places, _registers);
     }
 }

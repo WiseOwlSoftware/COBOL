@@ -1,0 +1,24 @@
+{
+ "page": 216,
+ "figure": 8,
+ "drawn_lines": [
+  "<u>INSPECT</u> identifier-1 <u>TALLYING</u>",
+  "⎧                 ⎧ <u>CHARACTERS</u> ┌⎧<u>BEFORE</u>⎫ INITIAL ⎧identifier-4⎫┐ ...                     ⎫     ⎫",
+  "⎪                 ⎪            └⎩<u>AFTER</u> ⎭         ⎩literal-2   ⎭┘                         ⎪     ⎪",
+  "⎨identifier-2 <u>FOR</u> ⎨                                                                      ⎬ ... ⎬ ...",
+  "⎪                 ⎪ ⎧<u>ALL</u>    ⎫ ⎧⎧identifier-3⎫ ┌⎧<u>BEFORE</u>⎫ INITIAL ⎧identifier-4⎫┐ ...⎫ ... ⎪     ⎪",
+  "⎩                 ⎩ ⎩<u>LEADING</u>⎭ ⎩⎩literal-1   ⎭ └⎩<u>AFTER</u> ⎭         ⎩literal-2   ⎭┘    ⎭     ⎭     ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>INSPECT</u> identifier-1 <u>TALLYING</u>",
+  "╭                 ╭ <u>CHARACTERS</u>  ┌ ╭<u>BEFORE</u>╮ INITIAL  ╭identifier-4╮ ┐  …                          ╮     ╮",
+  "│                 │             │ ┤      ├          ┤            ├ │                             │     │",
+  "│                 │             └ ╰<u>AFTER</u> ╯          ╰literal-2   ╯ ┘                             │     │",
+  "┤identifier-2 <u>FOR</u> ┤                                                                              ├ …   ├ …",
+  "│                 │ ╭<u>ALL</u>    ╮ ╭ ╭ identifier-3╮ ┌╭ <u>BEFORE</u>╮ INITIAL  ╭ identifier-4 ╮ ┐ …   ╮ …   │     │",
+  "│                 │ ┤       ├ ┤ ┤             ├ │┤       ├          ┤              ├ │     ├     │     │",
+  "╰                 ╰ ╰<u>LEADING</u>╯ ╰ ╰ literal-1   ╯ └╰ <u>AFTER</u> ╯          ╰ literal-2    ╯ ┘     ╯     ╯     ╯"
+ ],
+ "reason": "The printed page sets INSPECT TALLYING as the batch drew it: identifier-2 FOR, the CHARACTERS and ALL/LEADING alternatives in one brace, each BEFORE/AFTER INITIAL bracket followed by its ellipsis, the identifier-3 group closed with its own brace and ellipsis, and two ellipses after the outer braces. Drawn in the house style (figure_reading.restyle)."
+}

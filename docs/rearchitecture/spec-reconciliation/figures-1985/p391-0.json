@@ -1,0 +1,22 @@
+{
+ "page": 391,
+ "figure": 0,
+ "drawn_lines": [
+  "                                      ⎧ ⎧ [<u>END</u> OF] ⎧<u>REEL</u>⎫   ⎫                 ⎫",
+  "                                      ⎪ ⎨          ⎩<u>UNIT</u>⎭   ⎬ OF file-name-2  ⎪",
+  "<u>RERUN</u> ┌<u>ON</u> ⎧file-name-1       ⎫┐ EVERY ⎨ ⎩ integer-1 <u>RECORDS</u> ⎭                 ⎬",
+  "      └   ⎩implementor-name-1⎭┘       ⎪ integer-2 <u>CLOCK-UNITS</u>                 ⎪",
+  "                                      ⎩ condition-name-1                      ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "                                          ╭ ╭ [<u>END</u> OF] ╭<u>REEL</u>╮   ╮                 ╮",
+  "                                          │ │          ┤    ├   │                 │",
+  "                                          │ ┤          ╰<u>UNIT</u>╯   ├ OF file-name-2  │",
+  "<u>RERUN</u> ┌ <u>ON</u> ╭ file-name-1        ╮ ┐ EVERY ┤ ╰ integer-1 <u>RECORDS</u> ╯                 ├",
+  "      │    ┤                    ├ │       │                                       │",
+  "      └    ╰ implementor-name-1 ╯ ┘       │ integer-2 <u>CLOCK-UNITS</u>                 │",
+  "                                          ╰ condition-name-1                      ╯"
+ ],
+ "reason": "The printed page sets RERUN [ON {file-name-1 / implementor-name-1}] EVERY {{[END OF] {REEL / UNIT} / integer-1 RECORDS} OF file-name-2 / integer-2 CLOCK-UNITS / condition-name-1}, as the batch drew it. Redrawn in the house style."
+}

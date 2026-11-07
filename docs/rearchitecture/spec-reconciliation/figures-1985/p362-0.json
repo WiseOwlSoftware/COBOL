@@ -1,0 +1,15 @@
+{
+ "page": 362,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>STOP</u> ⎧<u>RUN</u>      ⎫",
+  "     ⎩literal-1⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>STOP</u> ╭ <u>RUN</u>       ╮",
+  "     ┤           ├",
+  "     ╰ literal-1 ╯"
+ ],
+ "reason": "The printed page sets STOP {RUN / literal-1}, STOP and RUN underlined, as the batch drew it; the measurer did not locate it. Redrawn in the house style."
+}

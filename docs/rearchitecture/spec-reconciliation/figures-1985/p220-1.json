@@ -1,0 +1,28 @@
+{
+ "page": 220,
+ "figure": 1,
+ "drawn_lines": [
+  "                  ⎧<u>MESSAGE</u>⎫",
+  "  <u>RECEIVE</u> cd-name-1 ⎨       ⎬ <u>INTO</u> identifier-1",
+  "                  ⎩<u>SEGMENT</u>⎭",
+  "",
+  "     [<u>NO</u> <u>DATA</u> imperative-statement-1]",
+  "",
+  "     [WITH <u>DATA</u> imperative-statement-2]",
+  "",
+  "     [<u>END-RECEIVE</u>]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                    ╭ <u>MESSAGE</u> ╮",
+  "  <u>RECEIVE</u> cd-name-1 ┤         ├ <u>INTO</u> identifier-1",
+  "                    ╰ <u>SEGMENT</u> ╯",
+  "",
+  "     [ <u>NO</u> <u>DATA</u> imperative-statement-1 ]",
+  "",
+  "     [ WITH <u>DATA</u> imperative-statement-2 ]",
+  "",
+  "     [ <u>END-RECEIVE</u> ]"
+ ],
+ "reason": "The printed page (the composite skeleton) sets RECEIVE cd-name-1 {MESSAGE/SEGMENT} INTO identifier-1 and its three optional phrases; the batch typed the brace's corners. The block is one of the six the batch had set, with the page's running head and title, in a single pre (split one format per block). Hand-drawn from the page in the house style."
+}

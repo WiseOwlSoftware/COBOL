@@ -576,6 +576,20 @@ internal static class PlaceRenderer
     public static string WriteFullGroupImage(Place group, string image, string context) =>
         group is OdoGroupPlace o ? WriteFullGroupImage(o.Inner, image, context) : WriteGroupImage(group, image, context);
 
+    /// <summary>⛔ THE FULL-IMAGE STORE OF A FILE RECORD AREA (kb/Work PB4838) - <see cref="WriteFullGroupImage"/> where the record
+    /// holds a pointer or message-tag leaf: such a group has no two-way CHARACTER image (<see cref="Place.ImageCapable"/>), but the
+    /// file carried the leaf's 8-position TOKEN and the struct's generated <c>FromImage</c> decodes it back to the reference
+    /// (<see cref="Place.RecordImageCapable"/>; <c>GroupImageCodec.EmitMemberFromImage</c>). Every other record is
+    /// <see cref="WriteFullGroupImage"/>'s: the arms before its guard (a Tier-B view, a level-66 alias) cannot be strongly typed, so
+    /// none of them holds a token leaf.</summary>
+    public static string WriteRecordAreaImage(Place record, string image, string context) => record switch
+    {
+        OdoGroupPlace o => WriteRecordAreaImage(o.Inner, image, context),
+        not (RedefViewPlace or RenamesPlace) when !record.ImageCapable && record.RecordImageCapable =>
+            $"{GroupTarget(record)}.FromImage({image});",
+        _ => WriteGroupImage(record, image, context),
+    };
+
     /// <summary>The LEAF VECTOR of a strongly-typed group that has no character image — the activation-boundary carrier
     /// <c>ActivationCrossing.LeafCarried</c> selects (kb/Work PB1116): its record struct's generated <c>AsLeaves()</c>.
     /// <para>⛔ A GROUP THAT LIVES IN A STORAGE CELL HAS NO RECORD STRUCT (kb/Work PB2087): an area formal, or a group the

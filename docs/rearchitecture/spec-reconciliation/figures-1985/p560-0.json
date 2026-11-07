@@ -1,0 +1,35 @@
+{
+ "page": 560,
+ "figure": 0,
+ "drawn_lines": [
+  "                  ⎧    ⎧<u>ASCENDING</u> ⎫                       ⎫",
+  "<u>MERGE</u> file-name-1 ⎨ ON ⎨          ⎬ KEY {data-name-1} ... ⎬ ...",
+  "                  ⎩    ⎩<u>DESCENDING</u>⎭                       ⎭",
+  "",
+  "   [COLLATING <u>SEQUENCE</u> IS alphabet-name-1]",
+  "",
+  "   <u>USING</u> file-name-2  {file-name-3} ...",
+  "",
+  "   ⎧                                     ┌⎧<u>THROUGH</u>⎫                  ┐⎫",
+  "   ⎪<u>OUTPUT</u> <u>PROCEDURE</u> IS procedure-name-1 │⎨       ⎬ procedure-name-2 │⎪",
+  "   ⎨                                     └⎩<u>THRU</u>   ⎭                  ┘⎬",
+  "   ⎩<u>GIVING</u> {file-name-4} ...                                           ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                  ╭    ╭ <u>ASCENDING</u>  ╮                     ╮",
+  "<u>MERGE</u> file-name-1 ┤ ON ┤            ├ KEY {data-name-1} … ├ …",
+  "                  ╰    ╰ <u>DESCENDING</u> ╯                     ╯",
+  "",
+  "   [ COLLATING <u>SEQUENCE</u> IS alphabet-name-1 ]",
+  "",
+  "   <u>USING</u> file-name-2 {file-name-3} …",
+  "",
+  "   ╭                                      ┌ ╭ <u>THROUGH</u> ╮                  ┐ ╮",
+  "   │ <u>OUTPUT</u> <u>PROCEDURE</u> IS procedure-name-1 │ ┤         ├ procedure-name-2 │ │",
+  "   ┤                                      └ ╰ <u>THRU</u>    ╯                  ┘ ├",
+  "   │                                                                       │",
+  "   ╰ <u>GIVING</u> {file-name-4} …                                                ╯"
+ ],
+ "reason": "The printed page sets MERGE (4.1.2): the ON {ASCENDING/DESCENDING} KEY {data-name-1} ... brace and its ellipsis, [COLLATING SEQUENCE IS alphabet-name-1], USING file-name-2 {file-name-3} ..., and the OUTPUT PROCEDURE / GIVING brace with its THROUGH/THRU bracket; the batch typed that brace's last corner. Hand-drawn from the page in the house style."
+}

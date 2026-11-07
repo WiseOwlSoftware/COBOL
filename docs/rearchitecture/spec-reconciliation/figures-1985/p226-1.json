@@ -1,0 +1,12 @@
+{
+ "page": 226,
+ "figure": 1,
+ "drawn_lines": [
+  "<u>REPLACE</u>  {==pseudo-text-1==  <u>BY</u>  ==pseudo-text-2==} ..."
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>REPLACE</u>  {==pseudo-text-1==  <u>BY</u>  ==pseudo-text-2==} …"
+ ],
+ "reason": "The printed page sets REPLACE {==pseudo-text-1== BY ==pseudo-text-2==} ... as the batch drew it. Drawn in the house style (figure_reading.restyle)."
+}

@@ -1,0 +1,38 @@
+{
+ "page": 463,
+ "figure": 0,
+ "drawn_lines": [
+  "                         ┌     ⎧IS <u>EQUAL</u> TO                   ⎫              ┐",
+  "                         │     │IS =                          │              │",
+  "                         │     │IS <u>GREATER</u> THAN              │              │",
+  "                         │     │IS &gt;                          │              │",
+  "<u>START</u> file-name-1       │ <u>KEY</u> ⎨IS <u>NOT</u> <u>LESS</u> THAN             ⎬ data-name-1  │",
+  "                         │     │IS <u>NOT</u> &lt;                      │              │",
+  "                         │     │IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO    │              │",
+  "                         └     ⎩IS &gt;=                         ⎭              ┘",
+  "",
+  "   [<u>INVALID</u> KEY imperative-statement-1]",
+  "",
+  "   [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-2]",
+  "",
+  "   [<u>END-START</u>]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔                  ┌     ╭ IS <u>EQUAL</u> TO                 ╮             ┐ ╗",
+  "║                  │     │ IS =                        │             │ ║",
+  "║                  │     │ IS <u>GREATER</u> THAN             │             │ ║",
+  "║                  │     │ IS &gt;                        │             │ ║",
+  "║<u>START</u> file-name-1 │ <u>KEY</u> ┤ IS <u>NOT</u> <u>LESS</u> THAN            ├ data-name-1 │ ║",
+  "║                  │     │ IS <u>NOT</u> &lt;                    │             │ ║",
+  "║                  │     │ IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO │             │ ║",
+  "║                  └     ╰ IS &gt;=                       ╯             ┘ ║",
+  "║                                                                      ║",
+  "║   [ <u>INVALID</u> KEY imperative-statement-1 ]                             ║",
+  "║                                                                      ║",
+  "║   [ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-2 ]                         ║",
+  "║                                                                      ║",
+  "╚   [ <u>END-START</u> ]                                                      ╝"
+ ],
+ "reason": "The printed page sets START file-name-1 [KEY {IS EQUAL TO / IS = / IS GREATER THAN / IS > / IS NOT LESS THAN / IS NOT < / IS GREATER THAN OR EQUAL TO / IS >=} data-name-1] and its INVALID KEY and END-START phrases inside the page-wide level-2 box round the START statement. The batch set its closers a column off and lost the box. Drawn from the page."
+}

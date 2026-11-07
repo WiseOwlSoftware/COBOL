@@ -1,0 +1,15 @@
+{
+ "page": 218,
+ "figure": 4,
+ "drawn_lines": [
+  "W <u>OPEN</u> ⎧<u>OUTPUT</u> {file-name-1 [WITH <u>NO</u> <u>REWIND</u>]} ... ⎫ ...",
+  "       ⎩<u>EXTEND</u> {file-name-2} ...                    ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "       ╭ <u>OUTPUT</u> {file-name-1 [ WITH <u>NO</u> <u>REWIND</u> ] } … ╮",
+  "W <u>OPEN</u> ┤                                            ├ …",
+  "       ╰ <u>EXTEND</u> {file-name-2} …                     ╯"
+ ],
+ "reason": "The printed page sets W OPEN as the batch drew it: OUTPUT {file-name-1 [WITH NO REWIND]} ... and EXTEND {file-name-2} ... in one brace, then the ellipsis; the batch's closing brace was set in the wrong rows, so it is hand-drawn in the house style."
+}

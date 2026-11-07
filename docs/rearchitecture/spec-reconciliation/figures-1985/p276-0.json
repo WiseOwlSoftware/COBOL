@@ -1,0 +1,15 @@
+{
+ "page": 276,
+ "figure": 0,
+ "drawn_lines": [
+  "⎧<u>SYNCHRONIZED</u>⎫  ┌<u>LEFT</u> ┐",
+  "⎩<u>SYNC</u>        ⎭  └<u>RIGHT</u>┘"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "╭ <u>SYNCHRONIZED</u> ╮  ┌ <u>LEFT</u>  ┐",
+  "┤              ├  │       │",
+  "╰ <u>SYNC</u>         ╯  └ <u>RIGHT</u> ┘"
+ ],
+ "reason": "The printed page sets {SYNCHRONIZED / SYNC} [LEFT / RIGHT] with every keyword underlined, as the batch drew it; the measurer did not locate it. Redrawn in the house style."
+}

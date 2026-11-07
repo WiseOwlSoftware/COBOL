@@ -1,0 +1,17 @@
+{
+ "page": 167,
+ "figure": 0,
+ "drawn_lines": [
+  "                         ⎧integer-1                      ⎫",
+  "⎧condition-name-1⎫    (  ⎨data-name-2 [{±} integer-2]    ⎬ ... )",
+  "⎩data-name-1     ⎭       ⎩index-name-1 [{±} integer-3]   ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "                           ╭ integer-1                      ╮",
+  "╭ condition-name-1 ╮    (  ┤ data-name-2 [{±} integer-2]    ├ …   )",
+  "┤                  ├       │                                │",
+  "╰ data-name-1      ╯       ╰ index-name-1 [{±} integer-3]   ╯"
+ ],
+ "reason": "The printed page bears the batch's drawing out: {condition-name-1 / data-name-1} ( {integer-1 / data-name-2 [{±} integer-2] / index-name-1 [{±} integer-3]} ... ); the measurer did not locate it. Redrawn in the house style."
+}

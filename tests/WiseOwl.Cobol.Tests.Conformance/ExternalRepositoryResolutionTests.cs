@@ -275,6 +275,49 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
+    /// <summary>kb/Work PB4822: a REFERENCE to a function whose <c>AS literal-5</c> was refused (§2023:12.3.8.3 SR2) is the cascade
+    /// of that refusal, which was reported where it is written: no COBOL1505 ("declared but no prototype") and no internal-error
+    /// COBOL2362 follows it, in the explicit-FUNCTION form, through a function-pointer restricted to the word, and in a
+    /// contained program that inherits the container's REPOSITORY.</summary>
+    [Fact]
+    public void AReferenceToAFunctionWhoseLiteral5IsRefused_AddsNoCascade()
+    {
+        WithDirectory("repo-literal5-refused-reference", dir =>
+        {
+            const string source = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. R4822C.
+                ENVIRONMENT DIVISION.
+                CONFIGURATION SECTION.
+                REPOSITORY.
+                    FUNCTION R4822F AS "".
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 FP USAGE FUNCTION-POINTER TO R4822F.
+                01 R PIC 9(4).
+                PROCEDURE DIVISION.
+                    COMPUTE R = FUNCTION R4822F(1)
+                    COMPUTE R = FP(1)
+                    GOBACK.
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. R4822N.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 R PIC 9(4).
+                PROCEDURE DIVISION.
+                    COMPUTE R = FUNCTION R4822F(2)
+                    GOBACK.
+                END PROGRAM R4822N.
+                END PROGRAM R4822C.
+                """;
+            var r = Compile(dir, "R4822C", source);
+            Assert.False(r.Success);
+            Assert.Single(r.Errors, e => e.Contains("COBOL1761", StringComparison.Ordinal) && e.Contains("literal-5", StringComparison.Ordinal));
+            Assert.DoesNotContain("COBOL1505", Codes(r), StringComparison.Ordinal);
+            Assert.DoesNotContain("COBOL2362", Codes(r), StringComparison.Ordinal);
+        });
+    }
+
     [Fact]   // §2023:9.3: a --repository directory is searched instead of the output directory, and a --reference file after it.
     public void TheNamedDirectoriesAndReferences_AreTheSearchSpace()
     {

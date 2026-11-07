@@ -1,0 +1,16 @@
+{
+ "page": 889,
+ "figure": 1,
+ "drawn_lines": [
+  "        ┌+┐                     ⎧digit [, digit] ... [. [digit]]⎫",
+  "[space] │ │ [space] [cs] [space] ⎨                               ⎬ [space]",
+  "        └-┘                     ⎩. digit                        ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "        ┌ + ┐                      ╭ digit [, digit] … [. [digit]] ╮",
+  "[space] │   │ [space] [cs] [space] ┤                               ├ [space]",
+  "        └ - ┘                      ╰ . digit                       ╯"
+ ],
+ "reason": "The printed page (NUMVAL-C argument-1 first format) sets [space] [+/-] [space] [cs] [space] {digit [, digit] ... [. [digit]] / . digit} [space]; the batch typed the brace's corners. Drawn from the page in the house style."
+}

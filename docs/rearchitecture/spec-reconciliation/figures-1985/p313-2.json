@@ -1,0 +1,35 @@
+{
+ "page": 313,
+ "figure": 2,
+ "drawn_lines": [
+  "<u>Format 5</u>:",
+  "",
+  "<u>DIVIDE</u> ⎧identifier-1⎫ <u>BY</u> ⎧identifier-2⎫ <u>GIVING</u> identifier-3 [<u>ROUNDED</u>]",
+  "       ⎩literal-1   ⎭    ⎩literal-2   ⎭",
+  "",
+  "    <u>REMAINDER</u> identifier-4",
+  "",
+  "    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]",
+  "",
+  "    [<u>END-DIVIDE</u>]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔<u>Format 5</u>:                                                             ╗",
+  "║                                                                      ║",
+  "║<u>DIVIDE</u> ╭identifier-1╮ <u>BY</u> ╭identifier-2╮ <u>GIVING</u> identifier-3 [<u>ROUNDED</u>] ║",
+  "║       ┤            ├    ┤            ├                               ║",
+  "║       ╰literal-1   ╯    ╰literal-2   ╯                               ║",
+  "║                                                                      ║",
+  "║    <u>REMAINDER</u> identifier-4                                            ║",
+  "║                                                                      ║",
+  "║    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]                            ║",
+  "║                                                                      ║",
+  "║    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]                        ║",
+  "║                                                                      ║",
+  "╚    [<u>END-DIVIDE</u>]                                                      ╝"
+ ],
+ "reason": "The printed page encloses DIVIDE Format 5, its label included, in a level-2 box; the words, underlines and groups are as the batch drew them, and the batch lost the box. Drawn as the batch's drawing with the box's two sides round it."
+}

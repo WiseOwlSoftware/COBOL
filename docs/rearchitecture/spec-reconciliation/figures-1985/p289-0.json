@@ -1,0 +1,22 @@
+{
+ "page": 289,
+ "figure": 0,
+ "drawn_lines": [
+  "                         ⎧ <u>NUMERIC</u>          ⎫",
+  "                         ⎪ <u>ALPHABETIC</u>       ⎪",
+  "identifier-1 IS [<u>NOT</u>]   ⎨ <u>ALPHABETIC-LOWER</u> ⎬",
+  "                         ⎪ <u>ALPHABETIC-UPPER</u> ⎪",
+  "                         ⎩ class-name-1     ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "                         ╭ <u>NUMERIC</u>          ╮",
+  "                         ┤                  ├",
+  "                         │ <u>ALPHABETIC</u>       │",
+  "identifier-1 IS [<u>NOT</u>]   ┤ <u>ALPHABETIC-LOWER</u> ├",
+  "                         │ <u>ALPHABETIC-UPPER</u> │",
+  "                         ┤                  ├",
+  "                         ╰ class-name-1     ╯"
+ ],
+ "reason": "The printed page sets identifier-1 IS [NOT] {NUMERIC / ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER / class-name-1}, the four class words and NOT underlined, as the batch drew it. Redrawn in the house style."
+}

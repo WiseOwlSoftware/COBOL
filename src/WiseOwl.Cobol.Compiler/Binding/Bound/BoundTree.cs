@@ -81,7 +81,11 @@ public enum DebugTargetKind
 /// it runs (X3.23-1985 debug module general rules 2, 5, 6 and 8; docs/CONTROL_FLOW_DESIGN.md D20). <paramref name="Name"/> is what
 /// DEBUG-NAME holds (general rule 13): the name as written, its qualifiers joined by OF or IN. Exactly one of
 /// <paramref name="Item"/> (the data item), <paramref name="CdKey"/> (the communication description's key) and <paramref name="File"/>
-/// (the file) is set, by <paramref name="Kind"/>. The section runs over the bounded pc range [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>].</summary>
+/// (the file) is set, by <paramref name="Kind"/>. The section runs over the bounded pc range [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>].
+/// <paramref name="Register"/> is set when identifier-1 is a runtime-sourced counter register (LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER), which is
+/// no <see cref="Place"/>: the <see cref="BoundLinageCounterRef"/> or <see cref="BoundReportCounterRef"/> a statement's read of that register binds to
+/// (<see cref="BoundReferences"/> yields it as a register reference), the identity the planner matches and DEBUG-CONTENTS reads. A PAGE-COUNTER target
+/// also carries <paramref name="Item"/>, the report's counter item, which the receiving <see cref="ReportPageCounterPlace"/> of a store names.</summary>
 public sealed record BoundDebugTarget(
     DebugTargetKind Kind,
     string Name,
@@ -89,7 +93,18 @@ public sealed record BoundDebugTarget(
     string? CdKey,
     int SectionStartPc,
     int SectionEndPc,
-    FileModel? File = null);
+    FileModel? File = null,
+    BoundExpr? Register = null)
+{
+    /// <summary>Whether <paramref name="read"/> is a read of the counter register this target names: the same file's LINAGE-COUNTER, or the same
+    /// report's LINE-COUNTER or PAGE-COUNTER.</summary>
+    public bool NamesRegister(BoundExpr read) => (Register, read) switch
+    {
+        (BoundLinageCounterRef mine, BoundLinageCounterRef theirs) => ReferenceEquals(mine.File, theirs.File),
+        (BoundReportCounterRef mine, BoundReportCounterRef theirs) => ReferenceEquals(mine.Report, theirs.Report) && mine.IsPage == theirs.IsPage,
+        _ => false,
+    };
+}
 
 /// <summary>When a <see cref="DebugFire"/> runs relative to the statement it was planned for (X3.23-1985 USE FOR DEBUGGING general
 /// rules 5, 6 and 8).</summary>
@@ -132,6 +147,9 @@ public enum DebugContents
     FileRecord,
     /// <summary>Spaces: "For all other references to file-name-1, DEBUG-CONTENTS contains spaces" (rule 23 d).</summary>
     Spaces,
+    /// <summary>The storage image of a counter register (<see cref="BoundDebugTarget.Register"/>): "the content of the data item referenced by
+    /// identifier-1" (rule 24 c), which no place stands for.</summary>
+    Register,
 }
 
 /// <summary>⛔ A STATEMENT THAT CAUSES DEBUGGING SECTIONS TO RUN (X3.23-1985 USE FOR DEBUGGING general rules 5-8; docs/CONTROL_FLOW_DESIGN.md

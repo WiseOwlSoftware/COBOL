@@ -1,0 +1,16 @@
+{
+ "page": 291,
+ "figure": 1,
+ "drawn_lines": [
+  "              ⎧⎧ <u>AND</u> ⎫              ⎫",
+  "condition-1   ⎨⎨     ⎬  condition-2 ⎬ ...",
+  "              ⎩⎩ <u>OR</u>  ⎭              ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔              ╭ ╭ <u>AND</u> ╮              ╮   ╗",
+  "║condition-1   ┤ ┤     ├  condition-2 ├ … ║",
+  "╚              ╰ ╰ <u>OR</u>  ╯              ╯   ╝"
+ ],
+ "reason": "The printed page sets condition-1 {{AND/OR} condition-2} ... with AND and OR underlined, as the batch drew it, inside the page-wide level-2 box round the whole combined-condition clause (the batch lost the box). Drawn as the batch's drawing with the box's two sides round it."
+}

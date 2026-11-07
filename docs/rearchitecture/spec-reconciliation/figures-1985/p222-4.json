@@ -1,0 +1,38 @@
+{
+ "page": 222,
+ "figure": 4,
+ "drawn_lines": [
+  "                  ┌     ⎧IS <u>EQUAL</u> TO                ⎫             ┐",
+  "                  │     ⎪IS =                       ⎪             │",
+  "                  │     ⎪IS <u>GREATER</u> THAN            ⎪             │",
+  "<u>START</u> file-name-1 │ <u>KEY</u> ⎨IS &gt;                       ⎬ data-name-1 │",
+  "                  │     ⎪IS <u>NOT</u> <u>LESS</u> THAN           ⎪             │",
+  "                  │     ⎪IS <u>NOT</u> &lt;                   ⎪             │",
+  "                  │     ⎪IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO⎪             │",
+  "                  └     ⎩IS &gt;=                      ⎭             ┘",
+  "",
+  "    [<u>INVALID</u> KEY imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-2]",
+  "",
+  "    [<u>END-START</u>]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "                  ┌     ╭IS <u>EQUAL</u> TO                 ╮             ┐",
+  "                  │     │IS =                        │             │",
+  "                  │     │IS <u>GREATER</u> THAN             │             │",
+  "<u>START</u> file-name-1 │ <u>KEY</u> ┤IS &gt;                        ├ data-name-1 │",
+  "                  │     │IS <u>NOT</u> <u>LESS</u> THAN            │             │",
+  "                  │     │IS <u>NOT</u> &lt;                    │             │",
+  "                  │     │IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO │             │",
+  "                  └     ╰IS &gt;=                       ╯             ┘",
+  "",
+  "    [<u>INVALID</u> KEY imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-2]",
+  "",
+  "    [<u>END-START</u>]"
+ ],
+ "reason": "The printed page sets START as the batch drew it: the KEY bracket round the eight relational alternatives (IS EQUAL TO ... IS >=) and data-name-1, and the three optional phrases. Drawn in the house style (figure_reading.restyle)."
+}

@@ -15,10 +15,10 @@ build_links, validate_doc), which had a retired checkout's paths, a retired mode
     python scripts/spec/transcribe_pdf.py assemble --edition 1985 --state DIR           # the pages -> specs/<edition>.md
     python scripts/spec/test_transcribe_pdf.py                                          # its self-test: planted PDF, fake client, no API call
 
-RESTARTABLE WITH MINIMAL LOSS. Every subcommand can be re-run at any time. The state file (`state.json`) is written
-atomically (a temporary file, then a rename) BEFORE a batch is created (the intent: when, which pages) and AFTER (the
-batch's id), so a crash between the two is reconciled from the server's batch list on the next run (`adopt_pending`); a
-page is written once (`pages/pNNNN.md`, atomically) and never overwritten except by an explicit `pages ... --replace`,
+RESTARTABLE WITH MINIMAL LOSS. Every subcommand can be re-run at any time. The state file (`state.json`) is
+message_batches.BatchRun's, THE restartable batch state the edition audit's judge (audit_batch.py) shares: written
+atomically BEFORE a batch is created (the intent: when, which pages) and AFTER (the batch's id), so a crash between the
+two is reconciled from the server's batch list on the next run (`adopt_pending`); a page is written once (`pages/pNNNN.md`, atomically) and never overwritten except by an explicit `pages ... --replace`,
 which first keeps the old text in `orig/`. `collect` takes each batch as soon as it has ENDED; `retry` resubmits the pages
 that errored, expired, were cut off (a `stop_reason` other than `end_turn`) or are missing. The SDK client retries network
 errors (`CLIENT_RETRIES`). A run that already exists (state.json, local.json, pages/) is ADOPTED as it stands: no page it
@@ -68,25 +68,16 @@ from typing import Any, Callable, Iterable
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import spec_pdf  # noqa: E402  (the one edition table, kb/Work PB4815)
 import verify_publishable  # noqa: E402  (the stamp shapes of each edition)
+from message_batches import DEFAULT_MODEL, BatchRun, make_client, reply_text, usd, write_atomic  # noqa: E402  (THE batch state)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/
-from api_key import ACCOUNT_HELP, ApiKey, read_run_key  # noqa: E402  (THE reader of an API key file, kb/Work PB4816, PB4916)
+from api_key import ACCOUNT_HELP  # noqa: E402  (THE help text of --api-account, kb/Work PB4916)
 from standard_streams import ensure_utf8  # noqa: E402
 
-#: The model the pilot chose (2026-11-06): Sonnet 5.5 got the words right but drew general formats wrongly.
-DEFAULT_MODEL = "claude-opus-5-5"
-#: Standard (non-batch) US dollars per million tokens, (input, output), by model; a batch costs half.
-STANDARD_PRICE_PER_MTOK: dict[str, tuple[float, float]] = {"claude-opus-5-5": (4.0, 20.0)}
-BATCH_DISCOUNT = 0.5
 #: Measured on the 1985 pilot: input tokens of one page image (2,576 px long edge, grayscale PNG), and the mean output.
 PAGE_INPUT_TOKENS = 5240
 PAGE_OUTPUT_TOKENS = 1050
 IMAGE_LONG_EDGE = 2576
 MAX_OUTPUT_TOKENS = 32000
-#: One batch is capped at 256 MB by the API; the converter splits under this budget.
-BATCH_BYTES = 180 * 1024 * 1024
-#: The SDK retries a network error or a 5xx this many times, and waits this long for one reply.
-CLIENT_RETRIES = 8
-CLIENT_TIMEOUT_SECONDS = 900
 OLLAMA = "http://127.0.0.1:11434"
 #: A local request that fails (a model still loading, a memory error: HTTP 500, a dropped connection, a timeout) is tried this
 #: many times in all, with this pause between tries; a page that fails them all is recorded in local.json and the run goes on.
@@ -186,31 +177,16 @@ def clean_page(text: str, edition: int) -> tuple[str, int]:
     return "".join(kept), len(text.splitlines(keepends=True)) - len(kept)
 
 
-def write_atomic(path: pathlib.Path, text: str) -> None:
-    """LF text, a temporary file then a rename: a crash never leaves half a file."""
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(text, encoding="utf-8", newline="\n")
-    tmp.replace(path)
-
-
 class Run:
-    """One run's directory: state.json (batches), local.json (provenance of locally converted pages), pages/, orig/."""
+    """One run's directory: state.json (the batches, message_batches.BatchRun: a batch's members are its page numbers),
+    local.json (provenance of locally converted pages), pages/, orig/."""
 
     def __init__(self, directory: pathlib.Path, edition: int):
         self.dir, self.edition = directory, edition
         self.pages_dir, self.orig_dir = directory / "pages", directory / "orig"
         self.state_file, self.local_file = directory / "state.json", directory / "local.json"
+        self.batches: BatchRun[int] = BatchRun(self.state_file, "pages", lambda cid: int(cid[1:]), page_name, "transcribe_pdf")
         self.pages_dir.mkdir(parents=True, exist_ok=True)
-
-    def load(self, pdf_pages: int | None = None, model: str = DEFAULT_MODEL) -> dict[str, Any]:
-        if self.state_file.exists():
-            return json.loads(self.state_file.read_text(encoding="utf-8"))
-        if pdf_pages is None:
-            return {"model": model, "pages": 0, "batches": [], "pending": None}
-        return {"model": model, "pages": pdf_pages, "batches": [], "pending": None}
-
-    def save(self, st: dict[str, Any]) -> None:
-        write_atomic(self.state_file, json.dumps(st, indent=1))
 
     def page_file(self, pno: int) -> pathlib.Path:
         return self.pages_dir / f"{page_name(pno)}.md"
@@ -244,23 +220,7 @@ class Run:
         return True
 
 
-# -- the Message Batches API --------------------------------------------------------------------------------------------
-
-def load_key(key_file: str, account: str | None, run: Run, st: dict[str, Any]) -> ApiKey:
-    """The key of `account` in `key_file`, kept to the account `st` records (`read_run_key`), which it then records; a file
-    with no such key, or another account than the state's, exits naming the path (never a key)."""
-    try:
-        chosen = read_run_key(key_file, account, st.get("api_account"), run.state_file)
-        st["api_account"] = chosen.account
-        return chosen
-    except RuntimeError as e:
-        raise SystemExit(f"transcribe_pdf: {e}") from None
-
-
-def make_client(key: str) -> Any:
-    import anthropic  # noqa: PLC0415  (only the network commands need the SDK)
-    return anthropic.Anthropic(api_key=key, max_retries=CLIENT_RETRIES, timeout=CLIENT_TIMEOUT_SECONDS)
-
+# -- the Message Batches API (the batch state is message_batches.BatchRun) ----------------------------------------------
 
 def render_png(pdf: pathlib.Path, pno: int) -> bytes:
     import pymupdf  # noqa: PLC0415
@@ -290,88 +250,21 @@ def batch_request(pdf: pathlib.Path, pno: int, model: str, edition: int) -> dict
 
 
 def estimate_usd(pages: int, model: str) -> float:
-    price_in, price_out = STANDARD_PRICE_PER_MTOK[model]
-    return pages * (PAGE_INPUT_TOKENS * price_in + PAGE_OUTPUT_TOKENS * price_out) / 1e6 * BATCH_DISCOUNT
-
-
-def covered(st: dict[str, Any]) -> set[int]:
-    return {p for b in st["batches"] for p in b["pages"]}
-
-
-def adopt_pending(run: Run, st: dict[str, Any], client: Any) -> None:
-    """A crash between `create` and the state write: find the batch the server accepted (the same request count, created
-    after the recorded intent, and not yet in the state) and record it; the intent is then cleared."""
-    pend = st.get("pending")
-    if not pend:
-        return
-    known = {b["id"] for b in st["batches"]}
-    for b in client.messages.batches.list(limit=50):
-        rc = b.request_counts
-        total = rc.processing + rc.succeeded + rc.errored + rc.canceled + rc.expired
-        if b.id not in known and total == len(pend["pages"]) and b.created_at.timestamp() >= pend["t"] - 60:
-            st["batches"].append({"id": b.id, "pages": pend["pages"], "replace": pend.get("replace", False)})
-            print("adopted", b.id, "from an interrupted submit", flush=True)
-            break
-    st["pending"] = None
-    run.save(st)
+    return pages * usd(model, PAGE_INPUT_TOKENS, PAGE_OUTPUT_TOKENS)
 
 
 def submit_pages(run: Run, st: dict[str, Any], client: Any, pdf: pathlib.Path, pages: list[int], replace: bool = False) -> None:
-    """Batches of at most BATCH_BYTES, each recorded as an intent before it is created and as a batch after."""
-    chunk: list[dict[str, Any]] = []
-    size = 0
-
-    def flush() -> None:
-        nonlocal chunk, size
-        if not chunk:
-            return
-        ids = [int(r["custom_id"][1:]) for r in chunk]
-        st["pending"] = {"t": time.time(), "pages": ids, "replace": replace}
-        run.save(st)
-        b = client.messages.batches.create(requests=chunk)
-        st["batches"].append({"id": b.id, "pages": ids, "replace": replace})
-        st["pending"] = None
-        run.save(st)
-        print("submitted", b.id, f"{page_name(ids[0])}-{page_name(ids[-1])}", len(ids), f"{size / 1e6:.0f} MB", flush=True)
-        chunk, size = [], 0
-
-    for p in pages:
-        req = batch_request(pdf, p, st["model"], run.edition)
-        n = len(json.dumps(req))
-        if size + n > BATCH_BYTES:
-            flush()
-        chunk.append(req)
-        size += n
-    flush()
+    """The pages' requests, rendered one batch at a time, through the one batch state (message_batches.BatchRun.submit)."""
+    run.batches.submit(st, client, (batch_request(pdf, p, st["model"], run.edition) for p in pages), replace=replace)
 
 
 def collect_batches(run: Run, st: dict[str, Any], client: Any) -> None:
     """Take every batch that has ENDED and is not yet collected; write each succeeded page once."""
-    for b in st["batches"]:
-        bb = client.messages.batches.retrieve(b["id"])
-        b["status"] = bb.processing_status
-        print(b["id"], f"{page_name(b['pages'][0])}-{page_name(b['pages'][-1])}", bb.processing_status, flush=True)
-        if bb.processing_status != "ended" or b.get("collected"):
-            continue
-        bad: list[list[str]] = []
-        for res in client.messages.batches.results(b["id"]):
-            if res.result.type != "succeeded":
-                bad.append([res.custom_id, res.result.type])
-                continue
-            m = res.result.message
-            if m.stop_reason != "end_turn":
-                bad.append([res.custom_id, m.stop_reason])
-                continue
-            text = "".join(c.text for c in m.content if c.type == "text")
-            pno = int(res.custom_id[1:])
-            if not run.put(pno, text, replace=bool(b.get("replace"))) and not run.page_file(pno).exists():
-                bad.append([res.custom_id, "stamp-or-empty"])
-                continue
-            st.setdefault("usage", {})[res.custom_id] = [m.usage.input_tokens, m.usage.output_tokens]
-        b["bad"], b["collected"] = bad, True
-        run.save(st)
-        print("  collected; bad:", bad[:10], flush=True)
-    run.save(st)
+    def take(pno: int, message: Any, batch: dict[str, Any]) -> str | None:
+        if not run.put(pno, reply_text(message), replace=bool(batch.get("replace"))) and not run.page_file(pno).exists():
+            return "stamp-or-empty"
+        return None
+    run.batches.collect(st, client, take)
 
 
 def retry_pages(st: dict[str, Any], run: Run) -> list[int]:
@@ -381,17 +274,12 @@ def retry_pages(st: dict[str, Any], run: Run) -> list[int]:
             if not run.page_file(p).exists() and not any(p in b["pages"] for b in pending)]
 
 
-def cost_so_far(st: dict[str, Any]) -> float:
-    price_in, price_out = STANDARD_PRICE_PER_MTOK[st["model"]]
-    return sum(i * price_in + o * price_out for i, o in st.get("usage", {}).values()) / 1e6 * BATCH_DISCOUNT
-
-
 def print_status(run: Run, st: dict[str, Any]) -> None:
     count = st["pages"]
     missing = [p for p in range(1, count + 1) if not run.page_file(p).exists()]
     log = run.local_log()
     failed = run.local_failed()
-    print(f"pages written {count - len(missing)}/{count}; local {len(log) - len(failed)}; cost so far ${cost_so_far(st):.2f}; missing {len(missing)} {missing[:20]}",
+    print(f"pages written {count - len(missing)}/{count}; local {len(log) - len(failed)}; cost so far ${run.batches.cost_so_far(st):.2f}; missing {len(missing)} {missing[:20]}",
           flush=True)
     if st.get("batches"):
         print(f"batches billed to the account {st.get('api_account') or '(one unlabeled key)'}", flush=True)
@@ -578,7 +466,7 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
     pdf = pdf_override or (spec_pdf.require(a.edition) if needs_pdf else None)
     model = getattr(a, "model", DEFAULT_MODEL)
     if a.cmd in ("check", "assemble"):
-        st = run.load()
+        st = run.batches.load(pages=0)
         count = st["pages"] or pdf_page_count(pdf or spec_pdf.require(a.edition))
         if a.cmd == "check":
             check_pages(run, pdf, parse_pages(a.pages, count))
@@ -593,7 +481,7 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         write_atomic(out, text)
         print(f"=== TRANSCRIBE ASSEMBLE: {count} pages -> {out} ===")
         return 0
-    st = run.load(pdf_page_count(pdf) if pdf else None, model)
+    st = run.batches.load(model=model, pages=pdf_page_count(pdf) if pdf else 0)
     if a.cmd == "pages" and a.local:
         return 1 if local_pages(run, pdf, a.local, parse_pages(a.pages, st["pages"]), a.replace) else 0
     if a.api_account and not a.api_key_file:
@@ -603,10 +491,11 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         return 0
     if not a.api_key_file:
         raise SystemExit(f"transcribe_pdf: {a.cmd} calls the API and needs --api-key-file")
-    client = client_factory(load_key(a.api_key_file, a.api_account, run, st).key)
-    adopt_pending(run, st, client)
+    client = client_factory(run.batches.load_key(a.api_key_file, a.api_account, st).key)
+    run.batches.adopt_pending(st, client)
     if a.cmd == "submit":
-        todo = [p for p in range(1, st["pages"] + 1) if p not in covered(st) and not run.page_file(p).exists()]
+        covered = run.batches.covered(st)
+        todo = [p for p in range(1, st["pages"] + 1) if p not in covered and not run.page_file(p).exists()]
         estimate = estimate_usd(len(todo), st["model"])
         print(f"{len(todo)} page(s) not yet submitted; estimate ${estimate:.2f}", flush=True)
         if a.max_usd is not None and estimate > a.max_usd:

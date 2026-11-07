@@ -1,0 +1,20 @@
+{
+ "page": 889,
+ "figure": 2,
+ "drawn_lines": [
+  "                                                               ┌+  ┐",
+  "                     ⎧digit [, digit] ... [. [digit]]⎫         │-  │",
+  "[space] [cs] [space] ⎨                               ⎬ [space] │   │ [space]",
+  "                     ⎩. digit                        ⎭         │<u>CR</u> │",
+  "                                                               └<u>DB</u> ┘"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "                                                                 ┌ +  ┐",
+  "                     ╭ digit [, digit] …   [. [digit]] ╮         │ -  │",
+  "[space] [cs] [space] ┤                                 ├ [space] │    │ [space]",
+  "                     ╰ . digit                         ╯         │ <u>CR</u> │",
+  "                                                                 └ <u>DB</u> ┘"
+ ],
+ "reason": "The printed page (NUMVAL-C argument-1 second format) sets [space] [cs] [space] {digit [, digit] ... [. [digit]] / . digit} [space] [+ / - / CR / DB] [space] as the batch drew it. Drawn in the house style (figure_reading.restyle)."
+}

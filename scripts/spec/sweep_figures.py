@@ -545,6 +545,7 @@ def load_verdicts(directory: pathlib.Path) -> dict[tuple[int, int], Verdict]:
     """Every verdict file in `directory`, keyed by (page, figure). A malformed file or two files naming one figure is
     FATAL: a verdict that is silently dropped puts the batch's or the measurer's reading in the file unchecked."""
     import json
+    import figure_reading
     out = {}
     for f in sorted(directory.glob("*.json")) if directory.is_dir() else []:
         try:
@@ -563,6 +564,17 @@ def load_verdicts(directory: pathlib.Path) -> dict[tuple[int, int], Verdict]:
                      else "needs `figure_lines`, the decided figure's lines"))
         if not v.reason.strip():
             sys.exit(f"FATAL: {f}: a verdict states its `reason` (what the printed page shows)")
+        # The decided figure is written as it stands, so it is held to the house style here: FIGURE-STYLE.md rule 2's
+        # forbidden pieces never reach the file, and a `drawn` verdict IS the batch's drawing, redrawn
+        # (`figure_reading.restyle`): a figure that reads differently from it is the refuter's own, `neither`.
+        if figure_reading.foreign_glyphs(v.lines):
+            sys.exit(f"FATAL: {f}: `figure_lines` carry {figure_reading.foreign_glyphs(v.lines)!r}, which FIGURE-STYLE.md "
+                     "rule 2 forbids; redraw them in box drawing (`figure_reading.restyle`)")
+        if v.decided == "drawn":
+            diff = {t: x for t, x in figure_reading.compare(list(v.drawn), list(v.lines)).items() if x}
+            if diff:
+                sys.exit(f"FATAL: {f}: a `drawn` verdict's figure reads differently from the batch's drawing ({diff}); "
+                         "write the batch's drawing redrawn (`figure_reading.restyle`), or decide `neither`")
         if (v.page, v.figure) in out:
             sys.exit(f"FATAL: {f} and another verdict both decide figure {v.figure} of page {v.page}")
         out[(v.page, v.figure)] = v
@@ -768,9 +780,55 @@ def self_test() -> int:
                 ("a decided verdict without its figure is fatal", dict(good, figure=1, figure_lines=[]), "needs `figure_lines`"),
                 ("a verdict without its reason is fatal", dict(good, figure=1, reason=" "), "states its `reason`"),
                 ("a verdict without the block's drawn lines is fatal", dict(good, figure=1, drawn_lines=[]),
-                 "`drawn_lines` must be the block's lines")):
+                 "`drawn_lines` must be the block's lines"),
+                ("a decided figure in FIGURE-STYLE.md rule 2's forbidden pieces is fatal",
+                 dict(good, figure=1, figure_lines=["<u>ADD</u> ⎧x⎫", "    ⎩y⎭"]), "rule 2 forbids"),
+                ("a `drawn` verdict whose figure is not the batch's drawing is fatal",
+                 dict(good, figure=1, decided="drawn"), "reads differently from the batch's drawing")):
             second.write_text(json.dumps(body), encoding="utf-8", newline="")
             check(name, says in (exits(lambda: load_verdicts(root)) or ""))
+        import figure_reading
+        batch = ["<u>ADD</u> ⎧x⎫", "    ⎩y⎭"]
+        second.write_text(json.dumps(dict(good, figure=1, decided="drawn", drawn_lines=batch,
+                                          figure_lines=figure_reading.restyle(batch))), encoding="utf-8", newline="")
+        check("a `drawn` verdict carrying the batch's drawing, restyled, loads", len(load_verdicts(root)) == 2)
+
+    # ---- the scan's coverage (kb/Work PB4849): the vector audits refuse a scan naming `spec_pdf.scan_check`, so that
+    # check must judge EVERY `<pre>` block of a scanned edition: each is written in its decided form, or the check fails.
+    import types
+    saved = (raster_sweep, regenerated, spec_pdf.require, sys.modules.get("pymupdf"), sys.argv)
+    calls: list[tuple] = []
+    try:
+        globals()["raster_sweep"] = lambda *a: calls.append((a[0], a[6])) or 0
+        spec_pdf.require = lambda edition: pathlib.Path("planted.pdf")
+        sys.modules["pymupdf"] = types.SimpleNamespace(open=lambda path: None)
+        scans = [e for e in sorted(spec_pdf.EDITIONS) if spec_pdf.geometry(e) == "raster"]
+        for e in scans:
+            sys.argv = ["sweep_figures.py"] + spec_pdf.scan_check(e).split()[2:]
+            main()
+        check("spec_pdf.scan_check of every scanned edition runs the raster sweep's --check",
+              bool(scans) and calls == [(e, "check") for e in scans], str(calls))
+        globals()["raster_sweep"] = saved[0]
+        md = ["## Page 9001", "### 6.6.2 General Format", "<pre>", "<u>ADD</u> x", "</pre>", "<pre>", "<u>ADD</u> y", "</pre>",
+              "### 6.7 EXAMPLES", "<pre>", "ADD A TO B.", "</pre>"]
+        blocks = drawn_figures(md, page_furniture(1985))
+        made = {"<u>ADD</u> x": ["<u>ADD</u> x"], "<u>ADD</u> y": ["<u>ADD</u> <u>y</u>"], "ADD A TO B.": ["ADD A TO B."]}
+        globals()["regenerated"] = lambda edition, doc, drawn, R: [(d, made[d.rows[0]], [], []) for d in drawn]
+        R = types.SimpleNamespace(PRE_OPEN="<pre>")
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            rc = raster_sweep(1985, None, md, R, (9001, 9001), None, "check", 10, pathlib.Path("planted.md"))
+        said = out.getvalue()
+        check("--check judges every block of a scan: one agreed, a disagreeing format and an example await a verdict, "
+              "and the check fails", [d.general_format for d in blocks] == [True, True, False] and rc == 1
+              and "agreed (written regenerated)   : 1" in said and "2 await a verdict" in said, said)
+    finally:
+        globals()["raster_sweep"], globals()["regenerated"], spec_pdf.require = saved[:3]
+        if saved[3] is None:
+            sys.modules.pop("pymupdf", None)
+        else:
+            sys.modules["pymupdf"] = saved[3]
+        sys.argv = saved[4]
 
     total = len(ran)
     print(f"sweep_figures self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))

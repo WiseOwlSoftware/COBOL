@@ -1,0 +1,17 @@
+{
+ "page": 388,
+ "figure": 0,
+ "drawn_lines": [
+  "                      ┌       ┐",
+  "<u>RESERVE</u> integer-1    │ AREA  │",
+  "                      │ AREAS │",
+  "                      └       ┘"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔                    ┌ AREA  ┐ ╗",
+  "║<u>RESERVE</u> integer-1   │       │ ║",
+  "╚                    └ AREAS ┘ ╝"
+ ],
+ "reason": "The printed page sets RESERVE integer-1 [AREA / AREAS] (RESERVE alone underlined) inside the page-wide level-2 box round the whole RESERVE clause. The batch drew the bracket's choices as a bar and lost the box. Drawn from the page."
+}

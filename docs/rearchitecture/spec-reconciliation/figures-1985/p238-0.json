@@ -1,0 +1,38 @@
+{
+ "page": 238,
+ "figure": 0,
+ "drawn_lines": [
+  " <u>IDENTIFICATION</u> <u>DIVISION</u>.",
+  "",
+  " <u>PROGRAM-ID</u>.  program-name.",
+  "",
+  "[<u>AUTHOR</u>. [comment-entry] ... ]",
+  "",
+  "[<u>INSTALLATION</u>.  [comment-entry] ... ]",
+  "",
+  "[<u>DATE-WRITTEN</u>.  [comment-entry] ... ]",
+  "",
+  "+----------------------------------------+",
+  "|[<u>DATE-COMPILED</u>.  [comment-entry] ... ]|",
+  "+----------------------------------------+",
+  "",
+  "[<u>SECURITY</u>.  [comment-entry] ...]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "<u>IDENTIFICATION</u> <u>DIVISION</u>.",
+  "",
+  "<u>PROGRAM-ID</u>. program-name.",
+  "",
+  "[ <u>AUTHOR</u>. [ comment-entry ] … ]",
+  "",
+  "[ <u>INSTALLATION</u>. [ comment-entry ] … ]",
+  "",
+  "[ <u>DATE-WRITTEN</u>. [ comment-entry ] … ]",
+  "",
+  "║ [ <u>DATE-COMPILED</u>. [ comment-entry ] … ] ║",
+  "",
+  "[ <u>SECURITY</u>. [ comment-entry ] … ]"
+ ],
+ "reason": "The printed page sets the Identification Division's paragraphs as the batch drew them, but encloses the DATE-COMPILED paragraph in a level-2 box, which the batch drew as an ASCII rectangle. Drawn from the page by FIGURE-STYLE.md rule 9 (the box's two sides)."
+}

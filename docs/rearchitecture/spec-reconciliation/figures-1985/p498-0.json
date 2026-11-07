@@ -1,0 +1,24 @@
+{
+ "page": 498,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>READ</u> file-name-1 [<u>NEXT</u>] RECORD  [<u>INTO</u> identifier-1]",
+  "",
+  "   [AT <u>END</u> imperative-statement-1]",
+  "",
+  "   [<u>NOT</u> AT <u>END</u> imperative-statement-2]",
+  "",
+  "   [<u>END-READ</u>]"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "<u>READ</u> file-name-1║[<u>NEXT</u>]║RECORD  [<u>INTO</u> identifier-1]",
+  "",
+  "   [AT <u>END</u> imperative-statement-1]",
+  "",
+  "   [<u>NOT</u> AT <u>END</u> imperative-statement-2]",
+  "",
+  "   [<u>END-READ</u>]"
+ ],
+ "reason": "The printed page sets READ Format 1 as the batch drew it, with [NEXT] in a level-2 box, which the batch lost. Drawn as the batch's drawing with the box's sides round [NEXT]."
+}

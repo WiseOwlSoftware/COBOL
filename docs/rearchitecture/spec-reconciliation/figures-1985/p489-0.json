@@ -1,0 +1,12 @@
+{
+ "page": 489,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>CLOSE</u>  {file-name-1  [WITH <u>LOCK</u>] } ..."
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "<u>CLOSE</u>  {file-name-1 ║[WITH <u>LOCK</u>]║} …"
+ ],
+ "reason": "The printed page sets CLOSE {file-name-1 [WITH LOCK]} ... with CLOSE and LOCK underlined and [WITH LOCK] in a level-2 box, which the batch lost. Drawn as the batch's drawing with the box's sides round [WITH LOCK]."
+}

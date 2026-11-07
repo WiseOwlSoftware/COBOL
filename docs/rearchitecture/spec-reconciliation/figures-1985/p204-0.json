@@ -1,0 +1,29 @@
+{
+ "page": 204,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>SD</u>  file-name-1",
+  "",
+  "    ┌        ⎧ CONTAINS integer-1 CHARACTERS                                   ⎫ ┐",
+  "    │ <u>RECORD</u> ⎨ IS <u>VARYING</u> IN SIZE [[FROM integer-2] [<u>TO</u> integer-3] CHARACTERS] ⎬ │",
+  "    │        ⎪     [<u>DEPENDING</u> ON data-name-1]                                  ⎪ │",
+  "    └        ⎩ CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS                      ⎭ ┘",
+  "",
+  "    ┌<u>DATA</u> ⎧<u>RECORD</u> IS  ⎫ {data-name-2} ...┐ .",
+  "    └     ⎩<u>RECORDS</u> ARE⎭                  ┘"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>SD</u>  file-name-1",
+  "",
+  "    ┌        ╭ CONTAINS integer-1 CHARACTERS                                   ╮ ┐",
+  "    │ <u>RECORD</u> ┤ IS <u>VARYING</u> IN SIZE [[FROM integer-2] [<u>TO</u> integer-3] CHARACTERS] ├ │",
+  "    │        │     [<u>DEPENDING</u> ON data-name-1]                                  │ │",
+  "    └        ╰ CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS                      ╯ ┘",
+  "",
+  "    ┌<u>DATA</u> ╭<u>RECORD</u> IS  ╮ {data-name-2} …  ┐ .",
+  "    │     ┤           ├                  │",
+  "    └     ╰<u>RECORDS</u> ARE╯                  ┘"
+ ],
+ "reason": "The printed page (the composite skeleton, SORT-MERGE FILE) sets the SD entry as the batch drew it: the RECORD bracket round the three-alternative brace, and the DATA RECORD(S) bracket, then the period. Drawn in the house style (figure_reading.restyle)."
+}

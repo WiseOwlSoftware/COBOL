@@ -1063,8 +1063,8 @@ internal static class RuntimeApi
         $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.IntegerArgExact)}({exact})";
 
     /// <summary>A result or argument the value alone describes, carried as an exact value (<c>FunctionValueField.OfExact</c>).</summary>
-    public static string FunctionFieldOfExact(string exact) =>
-        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfExact)}({exact})";
+    public static string FunctionFieldOfExact(string exact, string mode) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfExact)}({exact}, {mode})";
 
     /// <summary>The exact §2023:15.27.3 r3 FUNCTION E constant under a standard mode — <c>CobolDec.E</c> (kb/Work R18).</summary>
     public static string DecE => $"{nameof(CobolDec)}.{nameof(CobolDec.E)}";
@@ -2118,8 +2118,8 @@ internal static class RuntimeApi
     /// record had when READ and the sort-merge file's record range (the EC-SORT-MERGE-RELEASE test, §2023:14.9.40.4
     /// GR12 b) / §2023:14.9.24.4 GR7 b)), and the record's EXTENT TABLE when a variable-length group record is released
     /// (D-FRA (v); kb/Work PB1053).</summary>
-    public static string SortRelease(string sd, string image, string readSize, int min, int max, string? extents = null) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.Release)}({sd}, {image}, {readSize}, {min}, {max}{(extents is null ? "" : $", extents: {extents}")})";
+    public static string SortRelease(string sd, string image, string readSize, int min, int max, string? extents = null, string? slots = null) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Release)}({sd}, {image}, {readSize}, {min}, {max}{(extents is null ? "" : $", extents: {extents}")}{(slots is null ? "" : $", slots: {slots}")})";
 
     /// <summary>The SORT/MERGE statement's association of its own sort-merge file — <c>CobolSort.AssociationMade</c>
     /// (§2023:12.4.5.3 GR3 b); kb/Work PB1097). <paramref name="assign"/> is data-name-1's content.</summary>
@@ -2832,9 +2832,24 @@ internal static class RuntimeApi
     /// pointer member's reserved positions hold in a freshly seeded shared area (kb/Work PB1071).</summary>
     public static string PointerNullImage() => $"{nameof(PointerImage)}.{nameof(PointerImage.NullImage)}";
 
-    /// <summary>The storage image of a pointer VALUE expression — <c>PointerImage.Of</c> (data-, program- or
-    /// function-pointer by the expression's static type; DOC-A.1-216).</summary>
-    public static string PointerImageOf(string valueExpr) => $"{nameof(PointerImage)}.{nameof(PointerImage.Of)}({valueExpr})";
+    /// <summary>The storage image of the VALUE expression of the slot-carried item <paramref name="slot"/> (a
+    /// <see cref="SlotWindow.CarriesTokenImage"/> item): <c>MessageTagImage.Of</c> for a message tag, else <c>PointerImage.Of</c>
+    /// (data-, program- or function-pointer by the expression's static type; DOC-A.1-216, DOC-A.1-212).</summary>
+    public static string SlotImageOf(DataItem slot, string valueExpr) =>
+        slot.Pic!.Category is PicCategory.MessageTag
+            ? $"{nameof(MessageTagImage)}.{nameof(MessageTagImage.Of)}({valueExpr})"
+            : $"{nameof(PointerImage)}.{nameof(PointerImage.Of)}({valueExpr})";
+
+    /// <summary>The slot VALUE the eight positions <paramref name="imageExpr"/> stand for - the inverse of <see cref="SlotImageOf"/>
+    /// (kb/Work PB4838): the decoder of the slot-carried item's own category, as the file record codec's FromImage calls it.</summary>
+    public static string SlotFromImage(DataItem slot, string imageExpr) => slot.Pic!.Category switch
+    {
+        PicCategory.MessageTag => $"{nameof(MessageTagImage)}.{nameof(MessageTagImage.TagOf)}({imageExpr})",
+        PicCategory.Pointer => $"{nameof(PointerImage)}.{nameof(PointerImage.DataPointerOf)}({imageExpr})",
+        PicCategory.ProgramPointer => $"{nameof(PointerImage)}.{nameof(PointerImage.ProgramPointerOf)}({imageExpr})",
+        PicCategory.FunctionPointer => $"{nameof(PointerImage)}.{nameof(PointerImage.FunctionPointerOf)}({imageExpr})",
+        _ => throw new InvalidOperationException($"'{slot.CobolName}' is slot-carried with no token image (kb/Work PB4838)"),
+    };
 
     // ── A CELL-BACKED area's VARIABLE-LENGTH half (kb/Work PB1026, PB1042) — StorageCell's component slots ──────────
 

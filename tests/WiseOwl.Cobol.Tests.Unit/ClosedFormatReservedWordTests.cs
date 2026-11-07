@@ -627,6 +627,9 @@ public sealed class ClosedFormatReservedWordTests
     [Theory]
     [InlineData("01 W-A PIC X VALEU MAIN SECTION.\n" + Proc, "COBOL1941: unexpected 'VALEU'. 'VALEU' is not a clause of the data description entry for 'W-A'")]
     [InlineData("01 W-A PIC X VALEU 5 DIVISION.\n" + Proc, "COBOL1941: unexpected 'VALEU'. 'VALEU' is not a clause of the data description entry for 'W-A'")]
+    [InlineData("01 W-A PIC X VALEU\n       LINKAGE SECTION.\n" + Proc, "COBOL1941: unexpected 'VALEU'. 'VALEU' is not a clause of the data description entry for 'W-A'")]
+    [InlineData("01 W-A PIC X VALEU\n       FILE SECTION.\n" + Proc, "COBOL1941: unexpected 'VALEU'. 'VALEU' is not a clause of the data description entry for 'W-A'")]
+    [InlineData("01 W-A PIC X VALEU\n" + Proc, "COBOL1941: unexpected 'VALEU'. 'VALEU' is not a clause of the data description entry for 'W-A'")]
     public void AForeignRunEndedByAHeader_IsNamed(string rest, string diagnostic)
     {
         var errors = Compile(Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       " + rest, 2023);

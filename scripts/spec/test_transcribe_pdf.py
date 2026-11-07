@@ -11,7 +11,6 @@ adoption of a run that already exists; the check numbers; the assembly and its r
 """
 import base64
 import contextlib
-import datetime
 import io
 import http.client
 import json
@@ -19,10 +18,10 @@ import pathlib
 import sys
 import tempfile
 import urllib.error
-from types import SimpleNamespace
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import transcribe_pdf as T  # noqa: E402
+from fake_batches import Crash, FakeBatches, client, errored, succeeded  # noqa: E402  (THE fake client)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -38,49 +37,11 @@ def check(name: str, cond: bool) -> None:
     if not cond:
         failures.append(name)
 
-class Crash(Exception):
-    """A process death between the server accepting a batch and the state file recording it."""
+def page_ok(pno, text, stop="end_turn"):
+    return succeeded(T.page_name(pno), text, stop)
 
-class FakeBatches:
-    def __init__(self) -> None:
-        self.created: list[dict] = []      # server side: every accepted batch
-        self.results_by_id: dict[str, list] = {}
-        self.crash_after_create = False
-        self.ended: set[str] = set()
-
-    def create(self, requests):
-        bid = f"msgbatch_{len(self.created) + 1}"
-        self.created.append({"id": bid, "ids": [r["custom_id"] for r in requests], "requests": requests, "at": datetime.datetime.now(datetime.timezone.utc)})
-        if self.crash_after_create:
-            self.crash_after_create = False
-            raise Crash
-        return self._view(bid)
-
-    def _view(self, bid):
-        b = next(x for x in self.created if x["id"] == bid)
-        n = len(b["ids"])
-        ended = bid in self.ended
-        counts = SimpleNamespace(processing=0 if ended else n, succeeded=n if ended else 0, errored=0, canceled=0, expired=0)
-        return SimpleNamespace(id=bid, processing_status="ended" if ended else "in_progress", request_counts=counts, created_at=b["at"])
-
-    def retrieve(self, bid):
-        return self._view(bid)
-
-    def list(self, limit):
-        return [self._view(b["id"]) for b in reversed(self.created)][:limit]
-
-    def results(self, bid):
-        return iter(self.results_by_id[bid])
-
-def message(text, stop="end_turn"):
-    return SimpleNamespace(stop_reason=stop, content=[SimpleNamespace(type="text", text=text)],
-                           usage=SimpleNamespace(input_tokens=5000, output_tokens=900))
-
-def ok(pno, text, stop="end_turn"):
-    return SimpleNamespace(custom_id=T.page_name(pno), result=SimpleNamespace(type="succeeded", message=message(text, stop)))
-
-def errored(pno):
-    return SimpleNamespace(custom_id=T.page_name(pno), result=SimpleNamespace(type="errored"))
+def page_errored(pno):
+    return errored(T.page_name(pno))
 
 def plant_pdf(path: pathlib.Path, texts: list[str]) -> None:
     """A stand-in PDF: the three functions that open one (render, page count, text layer) are replaced, so the self-test
@@ -95,7 +56,7 @@ def run(argv, fake, pdf, parts=None, key_wanted=KEY):
     code = None
     with contextlib.redirect_stdout(out):
         try:
-            code = T.main(argv, client_factory=lambda key: SimpleNamespace(messages=SimpleNamespace(batches=fake)) if key == key_wanted else None,
+            code = T.main(argv, client_factory=lambda key: client(fake) if key == key_wanted else None,
                           pdf_override=pdf, parts=parts)
         except SystemExit as e:
             code = e.code
@@ -136,7 +97,7 @@ def main() -> int:
         code, out = run(["collect", *base, *key], fake, pdf)
         check("nothing is written while the batch runs", not list((state / "pages").glob("*.md")))
         fake.ended.add("msgbatch_1")
-        fake.results_by_id["msgbatch_1"] = [ok(1, "alpha beta gamma\n" + STAMP + "\n"), errored(2)]
+        fake.results_by_id["msgbatch_1"] = [page_ok(1, "alpha beta gamma\n" + STAMP + "\n"), page_errored(2)]
         code, out = run(["collect", *base, *key], fake, pdf)
         page1 = (state / "pages" / "p0001.md").read_text(encoding="utf-8")
         check("an ended batch's good page is written, the stamp line dropped", page1 == "alpha beta gamma\n")
@@ -144,7 +105,7 @@ def main() -> int:
         check("collect names the bad page and the cost", "p0002" in out and "pages written 1/2" in out)
         check("pages are LF", b"\r" not in (state / "pages" / "p0001.md").read_bytes())
         before = page1
-        fake.results_by_id["msgbatch_1"] = [ok(1, "CHANGED"), errored(2)]
+        fake.results_by_id["msgbatch_1"] = [page_ok(1, "CHANGED"), page_errored(2)]
         run(["collect", *base, *key], fake, pdf)
         check("a collected page is never overwritten by a re-run", (state / "pages" / "p0001.md").read_text(encoding="utf-8") == before)
 
@@ -152,13 +113,13 @@ def main() -> int:
         code, out = run(["retry", *base, *key], fake, pdf)
         check("retry resubmits only the missing page", len(fake.created) == 2 and fake.created[1]["ids"] == ["p0002"])
         fake.ended.add("msgbatch_2")
-        fake.results_by_id["msgbatch_2"] = [ok(2, "cut off text", stop="max_tokens")]
+        fake.results_by_id["msgbatch_2"] = [page_ok(2, "cut off text", stop="max_tokens")]
         run(["collect", *base, *key], fake, pdf)
         check("a cut-off reply is not written", not (state / "pages" / "p0002.md").exists())
         code, out = run(["retry", *base, *key], fake, pdf)
         check("a cut-off page is retried", len(fake.created) == 3 and fake.created[2]["ids"] == ["p0002"])
         fake.ended.add("msgbatch_3")
-        fake.results_by_id["msgbatch_3"] = [ok(2, "delta epsilon zeta\n")]
+        fake.results_by_id["msgbatch_3"] = [page_ok(2, "delta epsilon zeta\n")]
         run(["collect", *base, *key], fake, pdf)
         check("the retried page is written", (state / "pages" / "p0002.md").read_text(encoding="utf-8") == "delta epsilon zeta\n")
         code, out = run(["retry", *base, *key], fake, pdf)
@@ -170,7 +131,7 @@ def main() -> int:
         code, out = run(["pages", "1", "--replace", *base, *key], fake, pdf)
         check("--replace submits the named page", len(fake.created) == 4 and fake.created[3]["ids"] == ["p0001"])
         fake.ended.add("msgbatch_4")
-        fake.results_by_id["msgbatch_4"] = [ok(1, "alpha beta gamma, corrected\n")]
+        fake.results_by_id["msgbatch_4"] = [page_ok(1, "alpha beta gamma, corrected\n")]
         run(["collect", *base, *key], fake, pdf)
         check("the replaced page holds the new text", (state / "pages" / "p0001.md").read_text(encoding="utf-8") == "alpha beta gamma, corrected\n")
         check("the old text is kept in orig/", (state / "orig" / "p0001.md").read_text(encoding="utf-8") == before)
@@ -298,7 +259,7 @@ def main() -> int:
         check("the written pages keep their provenance", flog["p0001"]["digest"] == "abc123" and "error" not in flog["p0003"])
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            T.print_status(flk, flk.load(3))
+            T.print_status(flk, flk.batches.load(pages=3))
         check("status counts the written local pages and lists the failed one",
               "local 2;" in out.getvalue() and "local conversions failed 1: 2 (planted:1b: HTTPError" in out.getvalue())
         T.local_pages(flk, pdf3, "planted:2b", [2], False, post=post, sleep=sleeps.append)
@@ -356,11 +317,21 @@ def main() -> int:
             check("a page outside the document is refused", False)
         except SystemExit:
             check("a page outside the document is refused", True)
+        # 2002 reads its own stamp row (kb/Work PB4813): an invented stamp of its shape, assembled from pieces so the tree
+        # check never reads it whole, is dropped from a page and the page's text is kept.
+        stamp_2002 = ("Copyright by INCITS. Licensed to " + "Ann Example.  ANSI store order # X_" + "9876543. Downloaded "
+                      + "1/2/" + "2026.  Single user license only. Copying and networking prohibited.")
+        check("2002 drops its stamp line and keeps the page",
+              T.clean_page("Level numbers\n" + stamp_2002 + "\n", 2002) == ("Level numbers\n", 1))
+        saved = T.verify_publishable.FORBIDDEN
+        T.verify_publishable.FORBIDDEN = {e: rows for e, rows in saved.items() if e != 2002}
         try:
             T.stamp_patterns(2002)
             check("an edition without stamp shapes exits naming the table", False)
-        except SystemExit:
-            check("an edition without stamp shapes exits naming the table", True)
+        except SystemExit as ex:
+            check("an edition without stamp shapes exits naming the table", "verify_publishable.FORBIDDEN" in str(ex.code))
+        finally:
+            T.verify_publishable.FORBIDDEN = saved
 
     print(f"=== TRANSCRIBE_PDF SELF-TEST: {'GREEN' if not failures else 'RED - ' + ', '.join(failures)} ===")
     return 1 if failures else 0
