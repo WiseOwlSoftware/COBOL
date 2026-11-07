@@ -118,6 +118,16 @@ public static class RuntimeConfig
             "an absolute directory that exists and leaves room for the longest socket entry; unset, relative, missing or too long = /tmp",
             typeof(Mcs.McsSocketDirectory), "Mcs/McsSocketDirectory.cs"),
 
+        // ── the 2023 asynchronous messaging facility (Messaging/MessagingSettings.cs — DESIGN-message-control.md section 5.5; kb/Work PB4742) ──
+        new(Messaging.MessagingSettings.ServerVariable, "messaging",
+            "the server name this run unit serves (ISO/IEC 1989:2023 SEND and RECEIVE, the message control system): the run unit publishes a listener under that name when it begins, and RECEIVE FROM NULL takes the requests sent to it",
+            "a server name, compared without regard to case and with trailing spaces removed; unset or blank = this run unit serves no name",
+            typeof(Messaging.MessagingSettings), "Messaging/MessagingSettings.cs"),
+        new(Messaging.MessagingSettings.NotifyVariable, "messaging",
+            "the notify socket of the requestor that started this server (DESIGN-message-control.md section 5.4.5): the server connects to it once its listener is published, which tells the requestor its SEND can go on; set by the runtime that starts the server, not by a user",
+            "the path of a Unix domain socket the starter listens on; unset or blank = this server was not started by a requestor",
+            typeof(Messaging.MessagingSettings), "Messaging/MessagingSettings.cs"),
+
         // ── file I-O (IO/FileRegistry.cs — the §14.9.27.4 GR10 / A.1 item 129 key-check opt-out) ──
         new(FileRegistry.KeyCheckVariable, "files",
             "whether an INDEXED file's KEY TABLE is part of the §14.9.27.4 GR10 fixed-file-attribute set the OPEN statement validates (docs/CONFORMANCE.md DOC-A.1-129; GnuCOBOL's COB_KEYCHECK) — off means an OPEN whose declared keys disagree with the store header's succeeds instead of answering '39', and the organization, record type and record sizes are still validated",

@@ -88,14 +88,7 @@ public sealed class MessagingProtocolTests
         internal bool StepTransport()
         {
             if (!Transport.TryTake(out var transportEvent)) return false;
-            Post(transportEvent switch
-            {
-                FrameReceived f => new FrameArrived(f.Link, PeerFrameCodec.Decode(f.Kind, f.Payload)),
-                LinkLost l => new LinkEnded(l.Link),
-                LinkAccepted a => new LinkOpened(a.Link),
-                BellRung => new BellRang(),
-                _ => throw new InvalidOperationException(),
-            });
+            Post(MessagingPeer.Decode(transportEvent, Transport));
             return true;
         }
 

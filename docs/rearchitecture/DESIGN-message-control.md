@@ -655,14 +655,31 @@ EC-MCS-IMP. The requestor releases the lock, closes and deletes `n/<r>`, and con
 
 ### 5.5 The peer, its pumps and partner death
 
-`RunUnit.Messaging` is created at a run unit's first messaging statement, or when it begins if
-`MessagingSettings.ServedName` is set. `MessagingSettings` joins `RunUnit.HostConfiguration` beside `Clock` and
-`DebugMode`, so two run units of one process can differ (§7.2).
+`RunUnit.Messaging` is a cheap `MessagingPeer` shell that exists with every run unit; its socket directory, `SocketTransport`
+and `MessagingProtocol` are created at the run unit's first messaging statement, or when the run unit begins if
+`MessagingSettings.ServedName` is set (`RunUnit.Run` and `RunUnit.Begin` ask `StartAfter` to serve, and `StartAfter` calls `Messaging.StartServing()`;
+the ambient run unit, which `EndForHost` replaces and no program runs in, serves nothing until its first messaging statement), so a run unit that never
+messages creates no directory and reads no variable beyond that one. `MessagingSettings` joins `RunUnit.HostConfiguration`
+beside `Clock` and `DebugMode`, so two run units of one process can differ (§7.2); it reads `WISEOWL_COBOL_MCS_SERVER` and
+`WISEOWL_COBOL_MCS_NOTIFY` when a member is first asked and not set by the host, and carries `Time` (a `TimeProvider`) and
+the server `Definitions`. A start that fails (a socket directory the host refuses, a path too long for `AF_UNIX`, a notify
+socket that refuses) is never an exception: every statement of that run unit is EC-MCS-IMP with the reason (Q8). A notify path comes
+from outside the run unit and has no budget of its own, so `McsSocketDirectory.EndPointOf` refuses one the socket cannot hold. A `Publish` that
+fails at the start answers as §5.4 says (the first RECEIVE that needs a requestor is EC-MCS-IMP), and the server connects to no notify socket,
+because the connection says that the listener is published.
 
-The protocol stays single-threaded. Each `PeerLink` runs one thread-pool read pump that posts `FrameArrived` or
-`LinkEnded` to the peer's `Channel<PeerEvent>`; accept loops post `LinkOpened` and `BellRang`. Pumps touch no protocol
-state; only the run unit's thread runs the protocol and writes. The pumps keep a server's reply from blocking on a busy
-requestor, at the price that unreceived replies stay in the requestor's memory.
+The protocol stays single-threaded. Each `PeerLink` runs one thread-pool read pump, an awaited loop (`McsFrame.ReadAsync`)
+that holds no thread while its peer is silent, and posts a `FrameReceived` per frame and one `LinkLost` when the stream ends,
+to the transport's event queue; the accept loops post `LinkAccepted` and `BellRung`; every post signals the peer's wake. Pumps
+touch no protocol state; only the run unit's thread runs the protocol and writes. `MessagingPeer` runs a statement by starting
+it and then taking, in this order, the answers owed to its own actions, the transport's events (decoded by
+`MessagingPeer.Decode`, which closes a link whose frame does not decode) and the deadlines that have passed, until the
+protocol completes it; events that arrived between statements are taken before the next begins. The pumps keep a server's
+reply from blocking on a busy requestor, at the price that unreceived replies stay in the requestor's memory. A bell's accept
+loop reads one `Ring` from each connection on its own task with a five-second limit, so a stalled connection costs a pending
+read and never the accept loop. A run unit started by a requestor connects to `WISEOWL_COBOL_MCS_NOTIFY` after it has
+published its listener (`SocketTransport.Notify`); `Activate`, the requestor's side of §5.4.5, is slice S5 (PB4745), and until
+it lands the peer answers an `Activate` with `ActionFailed`, which no definition can ask for because none has a `start`.
 
 `LinkEnded` is a zero-byte read or any `SocketException`. `Socket.Receive` returns zero "only if zero bytes were requested
 or if no more bytes are available because the peer socket performed a graceful shutdown". That the OS closes a killed
@@ -740,6 +757,11 @@ to the enumeration. `MaxPathBytes` is pinned by S0.
   man7.org, read 2026-11-04) and macOS's is `char sun_path[104]` (`bsd/sys/un.h`, apple-oss-distributions/xnu main,
   read 2026-11-04), each counting the terminating NUL; "AF_UNIX comes to Windows" states no limit. §5.1 states the 2023 facility's longest entry (33 bytes) and
   its worst case per OS, and `DESIGN-communication-facility.md` §6 its bell's (21 bytes).
+- **The endpoint.** `McsSocketDirectory.EndPointOf(path)` is the one place the runtime forms an AF_UNIX endpoint, and `AfUnixEndPointDriftTests` holds it so. A path of no
+  bytes, over `MaxPathBytes` or holding a NUL is an `IOException` naming the path and the limit, where .NET's constructor would throw `ArgumentOutOfRangeException`.
+  `Fits(33)` keeps every entry of `<S>` within the limit; this answers what `Fits` does not cover (a notify path from `WISEOWL_COBOL_MCS_NOTIFY`), and it is asked before a
+  socket is made and, by `SocketTransport.Publish`, for the final name as well as the bind name. A test binds its sockets under `<S>` too, never under a scratch directory,
+  whose depth depends on the host (`MessagingPeerTests`, `SocketTransportTests`, `PlatformAssumptionTests`).
 - **The run id `<r>`**: `McsSocketDirectory.NewRunId()`, 16 random lower-case hex digits. Each facility draws its own.
 - **`McsFrame`**: `u32 length | u8 kind | payload`, little-endian, where `length` counts the payload only (not the kind byte), with a 2^31-byte guard (a payload of 2^31 bytes or more is refused,
   writing and reading). `Read` answers the kind and the caller compares it; a truncated frame, a kind byte no build knows, a `Ring` with a payload

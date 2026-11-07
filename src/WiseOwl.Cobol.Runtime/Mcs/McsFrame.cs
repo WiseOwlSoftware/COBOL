@@ -73,14 +73,36 @@ internal static class McsFrame
         int got = Fill(stream, header);
         if (got == 0) return null;
         if (got < HeaderBytes) throw new InvalidDataException("the stream ended inside a frame header");
+        var (kind, length) = ParseHeader(header);
+        var payload = new byte[length];
+        if (Fill(stream, payload) < payload.Length) throw new InvalidDataException("the stream ended inside a frame payload");
+        return (kind, payload);
+    }
+
+    /// <summary><see cref="Read"/> for a link's read pump, which must not hold a thread while its peer is silent: the same frame rules, awaited.</summary>
+    /// <exception cref="InvalidDataException">As <see cref="Read"/>.</exception>
+    internal static async ValueTask<(McsFrameKind Kind, byte[] Payload)?> ReadAsync(Stream stream, CancellationToken cancellation)
+    {
+        var header = new byte[HeaderBytes];
+        int got = await FillAsync(stream, header, cancellation).ConfigureAwait(false);
+        if (got == 0) return null;
+        if (got < HeaderBytes) throw new InvalidDataException("the stream ended inside a frame header");
+        var (kind, length) = ParseHeader(header);
+        var payload = new byte[length];
+        if (await FillAsync(stream, payload, cancellation).ConfigureAwait(false) < payload.Length)
+            throw new InvalidDataException("the stream ended inside a frame payload");
+        return (kind, payload);
+    }
+
+    /// <summary>The one statement of a header's rules: the length guard, the kind, and the kind's own payload rule.</summary>
+    private static (McsFrameKind Kind, int Length) ParseHeader(ReadOnlySpan<byte> header)
+    {
         uint length = BinaryPrimitives.ReadUInt32LittleEndian(header);
         if (length >= PayloadLimit) throw new InvalidDataException($"a frame announces {length} payload bytes, which reaches the {PayloadLimit}-byte guard");
         var kind = (McsFrameKind)header[4];
         if (!Enum.IsDefined(kind)) throw new InvalidDataException($"frame kind {header[4]} is none this build knows");
         CheckPayload(kind, (int)length);
-        var payload = new byte[length];
-        if (Fill(stream, payload) < payload.Length) throw new InvalidDataException("the stream ended inside a frame payload");
-        return (kind, payload);
+        return (kind, (int)length);
     }
 
     private static void CheckPayload(McsFrameKind kind, int payloadBytes)
@@ -95,6 +117,18 @@ internal static class McsFrame
         while (total < buffer.Length)
         {
             int n = stream.Read(buffer[total..]);
+            if (n == 0) break;
+            total += n;
+        }
+        return total;
+    }
+
+    private static async ValueTask<int> FillAsync(Stream stream, Memory<byte> buffer, CancellationToken cancellation)
+    {
+        int total = 0;
+        while (total < buffer.Length)
+        {
+            int n = await stream.ReadAsync(buffer[total..], cancellation).ConfigureAwait(false);
             if (n == 0) break;
             total += n;
         }

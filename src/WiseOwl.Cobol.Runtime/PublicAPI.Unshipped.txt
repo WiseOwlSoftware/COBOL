@@ -190,6 +190,16 @@ WiseOwl.Cobol.Runtime.MessageParty.Server = 1 -> WiseOwl.Cobol.Runtime.MessagePa
 WiseOwl.Cobol.Runtime.MessageTag
 WiseOwl.Cobol.Runtime.MessageTag.IsNull.get -> bool
 WiseOwl.Cobol.Runtime.MessageTag.MessageTag() -> void
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Directory.get -> string?
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Directory.init -> void
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.MessagingSettings() -> void
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.NotifyPath.get -> string?
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.NotifyPath.init -> void
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.ServedName.get -> string?
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.ServedName.init -> void
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Time.get -> System.TimeProvider!
+WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Time.init -> void
 WiseOwl.Cobol.Runtime.MoveSending.Approximate.get -> bool
 WiseOwl.Cobol.Runtime.MoveSending.Approximate.init -> void
 WiseOwl.Cobol.Runtime.MoveSending.Computed.get -> bool
@@ -677,6 +687,8 @@ WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.ObjectReference = 7 -> WiseOwl.
 WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.Packed = 2 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
 WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.Pointer = 10 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
 WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.ProgramPointer = 11 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.RunUnit.MessagingSettings.get -> WiseOwl.Cobol.Runtime.Messaging.MessagingSettings!
+WiseOwl.Cobol.Runtime.RunUnit.MessagingSettings.set -> void
 WiseOwl.Cobol.Runtime.RunUnitEndedException
 WiseOwl.Cobol.Runtime.RunUnitEndedException.Abnormal.get -> bool
 WiseOwl.Cobol.Runtime.RunUnitEndedException.ExitStatus.get -> long

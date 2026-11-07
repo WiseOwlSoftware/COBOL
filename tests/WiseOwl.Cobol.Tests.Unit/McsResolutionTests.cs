@@ -168,6 +168,26 @@ public sealed class McsResolutionTests : IDisposable
     }
 
     [Fact]
+    public void TheWindowsDirectoryOnATempPathTooLongLeavesNoRoomAndOneJustShortEnoughDoes()
+    {
+        string h = "0123456789abcdef";
+        const string Tail = "wiseowl-mcs\\0123456789abcdef\\";
+        string room = new('t', McsSocketDirectory.MaxPathBytes - McsSocketDirectory.LongestEntryBytes - Tail.Length - 1);
+        Assert.Equal(room + "\\" + Tail, McsSocketDirectory.WindowsDirectory(room + "\\", h));
+        Assert.True(McsSocketDirectory.Under(McsSocketDirectory.WindowsDirectory(room + "\\", h)).Fits(McsSocketDirectory.LongestEntryBytes));
+        Assert.False(McsSocketDirectory.Under(McsSocketDirectory.WindowsDirectory(room + "t\\", h)).Fits(McsSocketDirectory.LongestEntryBytes));
+    }
+
+    [Fact]
+    public void AnEndPointIsFormedUpToTheLimitInUtf8BytesAndAnythingElseIsAnIoFailure()
+    {
+        string exact = new('x', McsSocketDirectory.MaxPathBytes);
+        Assert.Equal(exact, McsSocketDirectory.EndPointOf(exact).ToString());
+        foreach (string refused in new[] { exact + "x", "", "a\0b", "\0abstract", new('\u00e9', McsSocketDirectory.MaxPathBytes / 2 + 1) })   // the last is under the limit in characters, over it in bytes
+            Assert.Contains("AF_UNIX", Assert.Throws<IOException>(() => McsSocketDirectory.EndPointOf(refused)).Message);
+    }
+
+    [Fact]
     public void ResolveCreatesTheDirectoryAndFitsAsksTheBudget()
     {
         string h = McsSocketDirectory.NewRunId();

@@ -162,6 +162,12 @@ internal static class HostRegionLocks
     /// through the endpoint on <c>mcs.store</c> like <see cref="StoreMutexByte"/>; no keyed store takes it.</summary>
     internal const long McsPresenceByte = RegionBase + 0x103;
 
+    /// <summary>⭐ "A requestor is activating this server name" (DESIGN-message-control.md 5.4.5): held exclusively, waiting, by the requestor of the 2023
+    /// facility that starts a server, through <see cref="Open"/> on the regular file <c>start/&lt;N&gt;.lock</c> of the socket directory, from before its
+    /// second enumeration until its server has connected to the notify socket, so two requestors racing to activate one name launch it once. Never
+    /// relies on a <c>FileShare.None</c> open, which on Unix is a <c>flock</c> .NET drops when the file system refuses it (design 5.4.5).</summary>
+    internal const long McsStartByte = RegionBase + 0x104;
+
     /// <summary>The endpoint the <see cref="EntryMutexByte"/> of the physical file at <paramref name="hostPath"/> is held through:
     /// a lock file in the file's lock directory, on every host, needing no handle on the file
     /// (<see cref="SidecarRegionLocks.ForPath"/>).</summary>
