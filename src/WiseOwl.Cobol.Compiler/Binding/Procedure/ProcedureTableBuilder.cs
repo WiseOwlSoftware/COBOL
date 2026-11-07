@@ -769,6 +769,12 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// (X3.23-1985 USE FOR DEBUGGING general rule 15).</summary>
     public int DebugContentsWidth => ctx.Data.State.Implicit.DebugContentsWidth;
 
+    /// <summary>Whether a debugging section activated the DEBUG-ITEM register family (the only programs in which DEBUG-ITEM names anything).</summary>
+    public bool HasDebugRegisters => ctx.Data.State.Implicit.DebugRegisters.Count > 0;
+
+    /// <summary>Whether <paramref name="item"/> is the description of DEBUG-ITEM or one of its members (X3.23-1985 USE FOR DEBUGGING syntax rule 11).</summary>
+    public bool IsDebugRegister(DataItem item) => ctx.Data.State.Implicit.IsDebugRegister(item);
+
     /// <summary>The description the DEBUG-SUB-n members share (general rule 10); null when no debugging section activated the register.</summary>
     public DataItem? DebugSubRegister => ctx.Data.State.Implicit.DebugSubRegister;
 
