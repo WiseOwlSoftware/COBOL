@@ -356,11 +356,21 @@ def main() -> int:
             check("a page outside the document is refused", False)
         except SystemExit:
             check("a page outside the document is refused", True)
+        # 2002 reads its own stamp row (kb/Work PB4813): an invented stamp of its shape, assembled from pieces so the tree
+        # check never reads it whole, is dropped from a page and the page's text is kept.
+        stamp_2002 = ("Copyright by INCITS. Licensed to " + "Ann Example.  ANSI store order # X_" + "9876543. Downloaded "
+                      + "1/2/" + "2026.  Single user license only. Copying and networking prohibited.")
+        check("2002 drops its stamp line and keeps the page",
+              T.clean_page("Level numbers\n" + stamp_2002 + "\n", 2002) == ("Level numbers\n", 1))
+        saved = T.verify_publishable.FORBIDDEN
+        T.verify_publishable.FORBIDDEN = {e: rows for e, rows in saved.items() if e != 2002}
         try:
             T.stamp_patterns(2002)
             check("an edition without stamp shapes exits naming the table", False)
-        except SystemExit:
-            check("an edition without stamp shapes exits naming the table", True)
+        except SystemExit as ex:
+            check("an edition without stamp shapes exits naming the table", "verify_publishable.FORBIDDEN" in str(ex.code))
+        finally:
+            T.verify_publishable.FORBIDDEN = saved
 
     print(f"=== TRANSCRIBE_PDF SELF-TEST: {'GREEN' if not failures else 'RED - ' + ', '.join(failures)} ===")
     return 1 if failures else 0
