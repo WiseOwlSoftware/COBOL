@@ -9533,17 +9533,17 @@ The Nucleus module provides a language capability for the internal processing of
 
 Nucleus level 1 provides limited capabilities for the SPECIAL-NAMES paragraph and the data description entry. Within the Procedure Division, the Nucleus level 1 provides limited capabilities for the ACCEPT, ADD, ALTER, DISPLAY, DIVIDE, IF, MOVE, MULTIPLY, PERFORM, and SUBTRACT statements and full capabilities for the CONTINUE, ENTER, EXIT, GO TO, and STOP statements. Nucleus level 1 does not provide full COBOL capabilities for qualification, data-name formation, and figurative constants. Nucleus level 1 provides a capability for accessing items in up to three-dimensional fixed length tables. Nucleus level 1 provides a debugging capability consisting of a compile time switch and debugging lines.
 
-Nucleus level 2 provides full capabilities for the SPECIAL-NAMES paragraph and the data description entry. Within the Procedure Division, the Nucleus level 2 provides full capabilities for the ACCEPT, ADD, ALTER, COMPUTE, DISPLAY, DIVIDE, EVALUATE, IF, INITIALIZE, INSPECT, MOVE, MULTIPLY, PERFORM, SEARCH, SET, STRING, SUBTRACT, and UNSTRING statements. Nucleus level 2 provides full capabilities for qualification, data-name formation, and figurative constants. Nucleus level 2 provides a capability for accessing items in up to seven-dimensional tables.
+║Nucleus level 2 provides full capabilities for the SPECIAL-NAMES paragraph and the data description entry. Within the Procedure Division, the Nucleus level 2 provides full capabilities for the ACCEPT, ADD, ALTER, COMPUTE, DISPLAY, DIVIDE, EVALUATE, IF, INITIALIZE, INSPECT, MOVE, MULTIPLY, PERFORM, SEARCH, SET, STRING, SUBTRACT, and UNSTRING statements. Nucleus level 2 provides full capabilities for qualification, data-name formation, and figurative constants. Nucleus level 2 provides a capability for accessing items in up to seven-dimensional tables.║
 
 ### 1.3 LEVEL RESTRICTIONS ON OVERALL LANGUAGE
 
 #### 1.3.1 Character Set
 
-The COBOL character colon (:) is not included in level 1. The COBOL character colon (:) is permitted in level 2.
+The COBOL character colon (:) is not included in level 1. ║The COBOL character colon (:) is permitted in level 2.║
 
 #### 1.3.2 Name Characteristics
 
-Qualification is not included in level 1. In level 1, all user-defined words except level-numbers and segment-numbers must be unique if referenced. 50 qualifiers are permitted in level 2. In level 2, user-defined words need not be unique.
+Qualification is not included in level 1. In level 1, all user-defined words except level-numbers and segment-numbers must be unique if referenced. ║50 qualifiers are permitted in level 2. In level 2, user-defined words need not be unique.║
 
 VI-1
 
@@ -9553,19 +9553,19 @@ Nucleus - Introduction
 
 ### 1.3.3 Figurative Constants
 
-The figurative constants that may be used in level 1 are: ZERO, ZEROS, ZEROES, SPACE, SPACES, HIGH-VALUE, HIGH-VALUES, LOW-VALUE, LOW-VALUES, QUOTE, and QUOTES. The figurative constants that may be used in level 2 are: ZERO, ZEROS, ZEROES, SPACE, SPACES, HIGH-VALUE, HIGH-VALUES, LOW-VALUE, LOW-VALUES, QUOTE, QUOTES, symbolic-character, ALL literal, ALL figurative constant, and ALL symbolic-character.
+The figurative constants that may be used in level 1 are: ZERO, ZEROS, ZEROES, SPACE, SPACES, HIGH-VALUE, HIGH-VALUES, LOW-VALUE, LOW-VALUES, QUOTE, and QUOTES. ║The figurative constants that may be used in level 2 are: ZERO, ZEROS, ZEROES, SPACE, SPACES, HIGH-VALUE, HIGH-VALUES, LOW-VALUE, LOW-VALUES, QUOTE, QUOTES, symbolic-character, ALL literal, ALL figurative constant, and ALL symbolic-character.║
 
 ### 1.3.4 Subscripts
 
-One, two or three subscripts are permitted in level 1. One through seven subscripts are permitted in level 2.
+One, two or three subscripts are permitted in level 1. ║One through seven subscripts are permitted in level 2.║
 
-### 1.3.5 Reference Modification
+### ║1.3.5 Reference Modification║
 
-Reference modification is permitted in level 2 only.
+║Reference modification is permitted in level 2 only.║
 
 ### 1.3.6 Reference Format
 
-In level 1 a word, numeric literal, or PICTURE character-string cannot be broken in such a way that part of it appears in a continuation line. In level 2 a word, numeric literal, or PICTURE character-string can be broken in such a way that part of it appears on a continuation line.
+In level 1 a word, numeric literal, or PICTURE character-string cannot be broken in such a way that part of it appears in a continuation line. ║In level 2 a word, numeric literal, or PICTURE character-string can be broken in such a way that part of it appears on a continuation line.║
 
 VI-2
 
@@ -9581,14 +9581,14 @@ A COBOL source program is a syntactically correct set of COBOL statements.
 
 ### 2.2 ORGANIZATION
 
-With the exception of COPY and REPLACE statements and the end program header, the statements, entries, paragraphs, and sections of a COBOL source program are grouped into four divisions which are sequenced in the following order:
+With the exception of COPY and REPLACE statements ║and the end program header,║ the statements, entries, paragraphs, and sections of a COBOL source program are grouped into four divisions which are sequenced in the following order:
 
 1. The Identification Division
 2. The Environment Division
 3. The Data Division
 4. The Procedure Division
 
-The end of a COBOL source program is indicated by either the end program header, if specified, or by the absence of additional source program lines.
+The end of a COBOL source program is indicated by ║either the end program header, if specified, or by║ the absence of additional source program lines.
 
 ### 2.3 STRUCTURE
 
@@ -9606,7 +9606,7 @@ identification-division
 
 #### 2.3.2 Syntax Rules
 
-(1) The generic terms identification-division, environment-division, data-division, procedure-division, and end-program-header represent a COBOL Identification Division, a COBOL Environment Division, a COBOL Data Division, a COBOL Procedure Division, and a COBOL end program header, respectively.
+(1) The generic terms identification-division, environment-division, data-division, procedure-division, ║and end-program-header║ represent a COBOL Identification Division, a COBOL Environment Division, a COBOL Data Division, a COBOL Procedure Division, ║and a COBOL end program header,║ respectively.
 
 #### 2.3.3 General Rules
 
@@ -9614,7 +9614,7 @@ identification-division
 
 a. The division header of a succeeding division in that program.
 
-b. The end program header.
+║b. The end program header.║
 
 VI-3
 
@@ -9624,7 +9624,7 @@ Nucleus - COBOL Source Program
 
 c. That physical position after which no more source program lines occur.
 
-| (2) All separately compiled source programs in a sequence of programs must be terminated by an end program header except for the last program in the sequence. |
+| ║(2) All separately compiled source programs in a sequence of programs must be terminated by an end program header except for the last program in the sequence.║ |
 |---|
 
 VI-4
@@ -9633,29 +9633,29 @@ VI-4
 
 Nucleus - End Program Header
 
-## 2.4 END PROGRAM HEADER
+## ║2.4 END PROGRAM HEADER║
 
-### 2.4.1 Function
+### ║2.4.1 Function║
 
-The end program header indicates the end of the named COBOL source program.
+║The end program header indicates the end of the named COBOL source program.║
 
-### 2.4.2 General Format
+### ║2.4.2 General Format║
 
 <pre style="line-height:1">
 <u>END</u> <u>PROGRAM</u> program-name.
 </pre>
 
-### 2.4.3 Syntax Rules
+### ║2.4.3 Syntax Rules║
 
-(1) The program-name must conform to the rules for forming a user-defined word.
+║(1) The program-name must conform to the rules for forming a user-defined word.║
 
-(2) The program-name must be identical to a program-name declared in a preceding PROGRAM-ID paragraph. (See page VI-7, The PROGRAM-ID Paragraph.)
+║(2) The program-name must be identical to a program-name declared in a preceding PROGRAM-ID paragraph. (See page VI-7, The PROGRAM-ID Paragraph.)║
 
-### 2.4.4 General Rules
+### ║2.4.4 General Rules║
 
-(1) The end program header indicates the end of the specified COBOL source program.
+║(1) The end program header indicates the end of the specified COBOL source program.║
 
-(2) If the next source statement after the program terminated by the end program header is a COBOL statement, it must be the Identification Division header of a program to be compiled separately from that program terminated by the end program header.
+║(2) If the next source statement after the program terminated by the end program header is a COBOL statement, it must be the Identification Division header of a program to be compiled separately from that program terminated by the end program header.║
 
 VI-5
 
@@ -9733,25 +9733,25 @@ VI-7
 
 Nucleus - DATE-COMPILED
 
-## 3.4 THE DATE-COMPILED PARAGRAPH
+## ║3.4 THE DATE-COMPILED PARAGRAPH║
 
-### 3.4.1 Function
+### ║3.4.1 Function║
 
-The DATE-COMPILED paragraph provides the compilation date in the Identification Division source program listing. The DATE-COMPILED paragraph is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
+║The DATE-COMPILED paragraph provides the compilation date in the Identification Division source program listing. The DATE-COMPILED paragraph is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.║
 
-### 3.4.2 General Format
+### ║3.4.2 General Format║
 
 <pre style="line-height:1">
 <u>DATE-COMPILED</u>. [ comment-entry ] …
 </pre>
 
-### 3.4.3 Syntax Rules
+### ║3.4.3 Syntax Rules║
 
-(1) The comment-entry may be any combination of the characters from the computer's character set. The continuation of the comment-entry by the use of the hyphen in the indicator area is not permitted; however, the comment-entry may be contained on one or more lines.
+║(1) The comment-entry may be any combination of the characters from the computer's character set. The continuation of the comment-entry by the use of the hyphen in the indicator area is not permitted; however, the comment-entry may be contained on one or more lines.║
 
-### 3.4.4 General Rules
+### ║3.4.4 General Rules║
 
-(1) The paragraph-name DATE-COMPILED causes the current date to be inserted during program compilation. If a DATE-COMPILED paragraph is present, it is replaced during compilation with a paragraph of the form:
+║(1) The paragraph-name DATE-COMPILED causes the current date to be inserted during program compilation. If a DATE-COMPILED paragraph is present, it is replaced during compilation with a paragraph of the form:║
 
 <pre style="line-height:1">
           DATE-COMPILED. current date.
@@ -9771,7 +9771,7 @@ The Environment Division specifies a standard method of expressing those aspects
 
 ### 4.2 CONFIGURATION SECTION
 
-The Configuration Section is located in the Environment Division of a source program. The Configuration Section deals with the characteristics of the source computer and the object computer. This section also provides a means for specifying the currency sign; choosing the decimal point; specifying symbolic-characters; relating implementor-names to user-specified mnemonic-names; relating alphabet-names to character sets or collating sequences; and relating class-names to sets of characters. The Configuration Section is optional in the Environment Division of a COBOL source program.
+The Configuration Section is located in the Environment Division of a source program. The Configuration Section deals with the characteristics of the source computer and the object computer. This section also provides a means for specifying the currency sign; choosing the decimal point; ║specifying symbolic-characters;║ relating implementor-names to user-specified mnemonic-names; relating alphabet-names to character sets or collating sequences; and relating class-names to sets of characters. The Configuration Section is optional in the Environment Division of a COBOL source program.
 
 The general format of the Configuration Section is shown below.
 
@@ -9895,7 +9895,7 @@ Nucleus - SPECIAL-NAMES
 
 ## 4.5.1 Function
 
-The SPECIAL-NAMES paragraph provides a means for specifying the currency sign; choosing the decimal point; specifying symbolic-characters; relating implementor-names to user-specified mnemonic-names; relating alphabet-names to character sets or collating sequences; and relating class-names to sets of characters.
+The SPECIAL-NAMES paragraph provides a means for specifying the currency sign; choosing the decimal point; ║specifying symbolic-characters;║ relating implementor-names to user-specified mnemonic-names; relating alphabet-names to character sets or collating sequences; and relating class-names to sets of characters.
 
 ## 4.5.2 General Format
 
@@ -9936,7 +9936,7 @@ The SPECIAL-NAMES paragraph provides a means for specifying the currency sign; c
 
 (2) If implementor-name-1 does not reference an external switch, the associated mnemonic-name may be specified only in the ACCEPT, DISPLAY, SEND, or WRITE statements. A condition-name cannot be associated with such an implementor-name.
 
-(3) If the literal phrase of the ALPHABET clause is specified, a given character must not be specified more than once in that clause.
+║(3) If the literal phrase of the ALPHABET clause is specified, a given character must not be specified more than once in that clause.║
 
 VI-13
 
@@ -9944,23 +9944,23 @@ VI-13
 
 Nucleus - SPECIAL-NAMES
 
-(4) The literals specified in the literal phrase of the ALPHABET clause:
+║(4) The literals specified in the literal phrase of the ALPHABET clause:║
 
-a. If numeric, must be unsigned integers and must have a value within the range of one through the maximum number of characters in the native character set.
+║a. If numeric, must be unsigned integers and must have a value within the range of one through the maximum number of characters in the native character set.║
 
-b. If nonnumeric and associated with a THROUGH or ALSO phrase, must each be one character in length.
+║b. If nonnumeric and associated with a THROUGH or ALSO phrase, must each be one character in length.║
 
-(5) Literal-1, literal-2, literal-3, literal-4, and literal-5 must not specify a symbolic-character figurative constant.
+║(5) Literal-1, literal-2, literal-3, literal-4, and literal-5 must not specify a symbolic-character figurative constant.║
 
-(6) The words THRU and THROUGH are equivalent.
+║(6) The words THRU and THROUGH are equivalent.║
 
-(7) The same symbolic-character-1 must appear only once in a SYMBOLIC CHARACTERS clause.
+║(7) The same symbolic-character-1 must appear only once in a SYMBOLIC CHARACTERS clause.║
 
-(8) The relationship between each symbolic-character-1 and the corresponding integer-1 is by position in the SYMBOLIC CHARACTERS clause. The first symbolic-character-1 is paired with the first integer-1; the second symbolic-character-1 is paired with the second integer-1; and so on.
+║(8) The relationship between each symbolic-character-1 and the corresponding integer-1 is by position in the SYMBOLIC CHARACTERS clause. The first symbolic-character-1 is paired with the first integer-1; the second symbolic-character-1 is paired with the second integer-1; and so on.║
 
-(9) There must be a one-to-one correspondence between occurrences of symbolic-characters-1 and occurrences of integer-1.
+║(9) There must be a one-to-one correspondence between occurrences of symbolic-characters-1 and occurrences of integer-1.║
 
-(10) The ordinal position specified by integer-1 must exist in the native character set. If the IN phrase is specified, the ordinal position must exist in the character set named by alphabet-name-2.
+║(10) The ordinal position specified by integer-1 must exist in the native character set. If the IN phrase is specified, the ordinal position must exist in the character set named by alphabet-name-2.║
 
 (11) The literals specified in the literal-4 phrase:
 
@@ -9986,7 +9986,7 @@ Nucleus - SPECIAL-NAMES
 
 The SET Statement). The implementor defines which external switches can be referenced by the SET statement.
 
-(4) The ALPHABET clause provides a means for relating a name to a specified character code set and/or collating sequence. When alphabet-name-1 is referenced in the PROGRAM COLLATING SEQUENCE clause (see page VI-11, The OBJECT-COMPUTER Paragraph) or the COLLATING SEQUENCE phrase of a SORT or MERGE statement (see page XI-8, The MERGE Statement, and page XI-16, The SORT Statement), the ALPHABET clause specifies a collating sequence. When alphabet-name-1 is referenced in the SYMBOLIC CHARACTERS clause or in a CODE-SET clause in a file description entry (see page VII-24, The CODE-SET Clause), the ALPHABET clause specifies a character code set.
+(4) The ALPHABET clause provides a means for relating a name to a specified character code set and/or collating sequence. When alphabet-name-1 is referenced in the PROGRAM COLLATING SEQUENCE clause (see page VI-11, The OBJECT-COMPUTER Paragraph) or the COLLATING SEQUENCE phrase of a SORT or MERGE statement (see page XI-8, The MERGE Statement, and page XI-16, The SORT Statement), the ALPHABET clause specifies a collating sequence. When alphabet-name-1 is referenced ║in the SYMBOLIC CHARACTERS clause or║ in a CODE-SET clause in a file description entry (see page VII-24, The CODE-SET Clause), the ALPHABET clause specifies a character code set.
 
 a. If the STANDARD-1 phrase is specified, the character code set or collating sequence identified is that defined in American National Standard X3.4-1977, Code for Information Interchange. If the STANDARD-2 phrase is specified, the character code set identified is the International Reference Version of the ISO 7-bit code defined in International Standard 646, 7-Bit Coded Character Set for Information Processing Interchange. Each character of the standard character set is associated with its corresponding character of the native character set. The implementor defines the correspondence between the characters of the standard character set and the characters of the native character set for which there is no correspondence otherwise specified.
 
@@ -9994,15 +9994,15 @@ b. If the NATIVE phrase is specified, the native character code set or native co
 
 c. If the implementor-name-2 phrase is specified, the character code set or collating sequence identified is that defined by the implementor. The implementor also defines the correspondence between characters of the character code set specified by implementor-name-2 and the characters of the native character code set.
 
-d. If the literal phrase is specified, the alphabet-name may not be referenced in a CODE-SET clause (see page VII-24, The CODE-SET Clause). The collating sequence identified is that defined according to the following rules:
+║d. If the literal phrase is specified, the alphabet-name may not be referenced in a CODE-SET clause (see page VII-24, The CODE-SET Clause). The collating sequence identified is that defined according to the following rules:║
 
-1\) The value of each literal specifies:
+║1\) The value of each literal specifies:║
 
-a) The ordinal number of a character within the native character set, if the literal is numeric. This value must not exceed the value which represents the number of characters in the native character set.
+║a) The ordinal number of a character within the native character set, if the literal is numeric. This value must not exceed the value which represents the number of characters in the native character set.║
 
-b) The actual character within the native character set, if the literal is nonnumeric. If the value of the nonnumeric literal contains multiple characters, each character in the literal, starting with the leftmost character, is assigned successive ascending positions in the collating sequence being specified.
+║b) The actual character within the native character set, if the literal is nonnumeric. If the value of the nonnumeric literal contains multiple characters, each character in the literal, starting with the leftmost character, is assigned successive ascending positions in the collating sequence being specified.║
 
-2\) The order in which the literals appear in the ALPHABET clause specifies, in ascending sequence, the ordinal number of the character within the collating sequence being specified.
+║2\) The order in which the literals appear in the ALPHABET clause specifies, in ascending sequence, the ordinal number of the character within the collating sequence being specified.║
 
 VI-15
 
@@ -10010,21 +10010,21 @@ VI-15
 
 Nucleus - SPECIAL-NAMES
 
-3\) Any characters within the native collating sequence, which are not explicitly specified in the literal phrase, assume a position, in the collating sequence being specified, greater than any of the explicitly specified characters. The relative order within the set of these unspecified characters is unchanged from the native collating sequence.
+║3\) Any characters within the native collating sequence, which are not explicitly specified in the literal phrase, assume a position, in the collating sequence being specified, greater than any of the explicitly specified characters. The relative order within the set of these unspecified characters is unchanged from the native collating sequence.║
 
-4\) If the THROUGH phrase is specified, the set of contiguous characters in the native character set beginning with the character specified by the value of literal-1, and ending with the character specified by the value of literal-2, is assigned a successive ascending position in the collating sequence being specified. In addition, the set of contiguous characters specified by a given THROUGH phrase may specify characters of the native character set in either ascending or descending sequence.
+║4\) If the THROUGH phrase is specified, the set of contiguous characters in the native character set beginning with the character specified by the value of literal-1, and ending with the character specified by the value of literal-2, is assigned a successive ascending position in the collating sequence being specified. In addition, the set of contiguous characters specified by a given THROUGH phrase may specify characters of the native character set in either ascending or descending sequence.║
 
-5\) If the ALSO phrase is specified, the characters of the native character set specified by the value of literal-1 and literal-3 are assigned to the same ordinal position in the collating sequence being specified or in the character code set that is used to represent the data, and if alphabet-name-1 is referenced in a SYMBOLIC CHARACTERS clause, only literal-1 is used to represent the character in the native character set.
+║5\) If the ALSO phrase is specified, the characters of the native character set specified by the value of literal-1 and literal-3 are assigned to the same ordinal position in the collating sequence being specified or in the character code set that is used to represent the data, and if alphabet-name-1 is referenced in a SYMBOLIC CHARACTERS clause, only literal-1 is used to represent the character in the native character set.║
 
-(5) The character that has the highest ordinal position in the program collating sequence is associated with the figurative constant HIGH-VALUE, except when this figurative constant is specified as a literal in the SPECIAL-NAMES paragraph. If more than one character has the highest position in the program collating sequence, the last character specified is associated with the figurative constant HIGH-VALUE.
+║(5) The character that has the highest ordinal position in the program collating sequence is associated with the figurative constant HIGH-VALUE, except when this figurative constant is specified as a literal in the SPECIAL-NAMES paragraph. If more than one character has the highest position in the program collating sequence, the last character specified is associated with the figurative constant HIGH-VALUE.║
 
-(6) The character that has the lowest ordinal position in the program collating sequence is associated with the figurative constant LOW-VALUE, except when this figurative constant is specified as a literal in the SPECIAL-NAMES paragraph. If more than one character has the lowest position in the program collating sequence, the first character specified is associated with the figurative constant LOW-VALUE.
+║(6) The character that has the lowest ordinal position in the program collating sequence is associated with the figurative constant LOW-VALUE, except when this figurative constant is specified as a literal in the SPECIAL-NAMES paragraph. If more than one character has the lowest position in the program collating sequence, the first character specified is associated with the figurative constant LOW-VALUE.║
 
-(7) When specified as literals in the SPECIAL-NAMES paragraph, the figurative constants HIGH-VALUE and LOW-VALUE are associated with those characters having the highest and lowest positions, respectively, in the native collating sequence.
+║(7) When specified as literals in the SPECIAL-NAMES paragraph, the figurative constants HIGH-VALUE and LOW-VALUE are associated with those characters having the highest and lowest positions, respectively, in the native collating sequence.║
 
-(8) If the IN phrase is not specified, symbolic-character-1 represents the character whose ordinal position in the native character set is specified by integer-1. If the IN phrase is specified, integer-1 specifies the ordinal position of the character that is represented in the character set named by alphabet-name-2.
+║(8) If the IN phrase is not specified, symbolic-character-1 represents the character whose ordinal position in the native character set is specified by integer-1. If the IN phrase is specified, integer-1 specifies the ordinal position of the character that is represented in the character set named by alphabet-name-2.║
 
-(9) The internal representation of symbolic-character-1 is the internal representation of the character that is represented in the native character set.
+║(9) The internal representation of symbolic-character-1 is the internal representation of the character that is represented in the native character set.║
 
 (10) The CLASS clause provides a means for relating a name to the specified set of characters listed in that clause. Class-name-1 can be referenced only in a class condition. The characters specified by the values of the literals in this clause define the exclusive set of characters of which this class-name-1 consists.
 
@@ -10211,15 +10211,15 @@ Nucleus - Data Description Entry
 
 (1) The clauses SYNCHRONIZED, PICTURE, JUSTIFIED, and BLANK WHEN ZERO must not be specified except for an elementary data item.
 
-(2) Format 3 is used for each condition-name. Each condition-name requires a separate entry with level-number 88. Format 3 contains the name of the condition and the value, values, or range of values associated with the condition-name. The condition-name entries for a particular conditional variable must immediately follow the entry describing the item with which the condition-name is associated. A condition-name can be associated with any data description entry which contains a level-number except the following:
+║(2) Format 3 is used for each condition-name. Each condition-name requires a separate entry with level-number 88. Format 3 contains the name of the condition and the value, values, or range of values associated with the condition-name. The condition-name entries for a particular conditional variable must immediately follow the entry describing the item with which the condition-name is associated. A condition-name can be associated with any data description entry which contains a level-number except the following:║
 
-a. Another condition-name.
+║a. Another condition-name.║
 
-b. A level 66 item.
+║b. A level 66 item.║
 
-c. A group containing items with descriptions including JUSTIFIED, SYNCHRONIZED, or USAGE (other than USAGE IS DISPLAY).
+║c. A group containing items with descriptions including JUSTIFIED, SYNCHRONIZED, or USAGE (other than USAGE IS DISPLAY).║
 
-d. An index data item.
+║d. An index data item.║
 
 (3) Multiple level 01 entries subordinate to any given level indicator other than the level indicator RD for a report description entry, represent implicit redefinitions of the same area.
 
@@ -10281,7 +10281,7 @@ A data-name specifies the name of the data item being described. The key word FI
 
 (1) If this clause is omitted, the data item being described is treated as though FILLER had been specified.
 
-(2) The key word FILLER may be used to name a data item. Under no circumstances can a FILLER item be referred to explicitly. However, the key word FILLER may be used to name a conditional variable because such use does not require explicit reference to the data item itself, but only to the value contained therein.
+(2) The key word FILLER may be used to name a data item. Under no circumstances can a FILLER item be referred to explicitly. ║However, the key word FILLER may be used to name a conditional variable because such use does not require explicit reference to the data item itself, but only to the value contained therein.║
 
 VI-23
 
@@ -10329,7 +10329,7 @@ Nucleus - Level-Number
 
 5.7.1 Function
 
-The level-number indicates the position of a data item within the hierarchical structure of a logical record. In addition, it is used to identify entries for working storage items, linkage items, condition-names, and the RENAMES clause.
+The level-number indicates the position of a data item within the hierarchical structure of a logical record. In addition, it is used to identify entries for working storage items, linkage items, ║condition-names, and the RENAMES clause.║
 
 5.7.2 General Format
 
@@ -10341,9 +10341,9 @@ level-number
 
 (1) A level-number is required as the first element in each data description entry.
 
-(2) Data description entries subordinate to a CD, FD, or SD entry must have level-numbers with the values 01 through, 49, 66, or 88.
+(2) Data description entries subordinate to a CD, FD, or SD entry must have level-numbers with the values 01 through, 49, ║66, or 88.║
 
-(3) Data description entries in the Working-Storage Section and Linkage Section must have level-numbers 01 through 49, 66, 77, or 88.
+(3) Data description entries in the Working-Storage Section and Linkage Section must have level-numbers 01 through 49, ║66,║ 77, ║or 88.║
 
 5.7.4 General Rules
 
@@ -10353,7 +10353,7 @@ level-number
 
 a. Level-number 77 is assigned to identify noncontiguous working storage data items, noncontiguous linkage data items, and can be used only as described by format 1 of the data description entry. (See page VI-20, The Data Description Entry.)
 
-b. Level-number 66 is assigned to identify RENAMES entries and can be used only as described by format 2 of the data description entry. (See page VI-20, The Data Description Entry.)
+║b. Level-number 66 is assigned to identify RENAMES entries and can be used only as described by format 2 of the data description entry. (See page VI-20, The Data Description Entry.)║
 
 c. Level-number 88 is assigned to entries which define condition-names associated with a conditional variable and can be used only as described by format 3 of the data description entry. (See page VI-20, The Data Description Entry.)
 
@@ -10403,17 +10403,17 @@ The OCCURS clause eliminates the need for separate entries for repeated data ite
 
 a. Has a level-number of 01, 66, 77, or 88, or
 
-b. Has a variable occurrence data item subordinate to it.
+║b. Has a variable occurrence data item subordinate to it.║
 
-(2) Data-name-1 and data-name-2 may be qualified.
+║(2) Data-name-1 and data-name-2 may be qualified.║
 
-(3) The first specification of data-name-2 must be the name of either the entry containing the OCCURS clause or an entry subordinate to the entry containing the OCCURS clause. Subsequent specification of data-name-2 must be subordinate to the entry containing the OCCURS clause.
+║(3) The first specification of data-name-2 must be the name of either the entry containing the OCCURS clause or an entry subordinate to the entry containing the OCCURS clause. Subsequent specification of data-name-2 must be subordinate to the entry containing the OCCURS clause.║
 
-(4) Data-name-2 must be specified without the subscripting normally required.
+║(4) Data-name-2 must be specified without the subscripting normally required.║
 
-(5) Where both integer-1 and integer-2 are used, integer-1 must be greater than or equal to zero and integer-2 must be greater than integer-1.
+║(5) Where both integer-1 and integer-2 are used, integer-1 must be greater than or equal to zero and integer-2 must be greater than integer-1.║
 
-(6) Data-name-1 must describe an integer.
+║(6) Data-name-1 must describe an integer.║
 
 VI-26
 
@@ -10421,17 +10421,17 @@ VI-26
 
 Nucleus - OCCURS
 
-(7) In format 2, the data item defined by data-name-1 must not occupy a character position within the range of the first character position defined by the data description entry containing the OCCURS clause and the last character position defined by the record description entry containing that OCCURS clause.
+║(7) In format 2, the data item defined by data-name-1 must not occupy a character position within the range of the first character position defined by the data description entry containing the OCCURS clause and the last character position defined by the record description entry containing that OCCURS clause.║
 
 (8) If the OCCURS clause is specified in a data description entry included in a record description entry containing the EXTERNAL clause, data-name-1, if specified, must reference a data item possessing the external attribute which is described in the same Data Division.
 
 (9) If the OCCURS clause is specified in a data description entry subordinate to one containing the GLOBAL clause, data-name-1, if specified, must be a global name and must reference a data item which is described in the same Data Division.
 
-(10) A data description entry that contains format 2 of the OCCURS clause may only be followed, within that record description, by data description entries which are subordinate to it.
+║(10) A data description entry that contains format 2 of the OCCURS clause may only be followed, within that record description, by data description entries which are subordinate to it.║
 
-(11) The data item identified by data-name-2 must not contain an OCCURS clause except when data-name-2 is the subject of the entry.
+║(11) The data item identified by data-name-2 must not contain an OCCURS clause except when data-name-2 is the subject of the entry.║
 
-(12) There must not be any entry that contains an OCCURS clause between the descriptions of the data items identified by the data-names in the KEY IS phrase and the subject of the entry.
+║(12) There must not be any entry that contains an OCCURS clause between the descriptions of the data items identified by the data-names in the KEY IS phrase and the subject of the entry.║
 
 (13) An INDEXED BY phrase is required if the subject of this entry, or an entry subordinate to this entry, is to be referenced by indexing. The index-name identified by this phrase is not defined` elsewhere since its allocation and format are dependent on the hardware and, not being data, cannot be associated with any data hierarchy.
 
@@ -10445,9 +10445,9 @@ Nucleus - OCCURS
 
 a. In format 1, the value of integer-2 represents the exact number of occurrences.
 
-b. In format 2, the current value of the data item referenced by data-name-1 represents the number of occurrences.
+║b. In format 2, the current value of the data item referenced by data-name-1 represents the number of occurrences.║
 
-This format specifies that the subject of this entry has a variable number of occurrences. The value of integer-2 represents the maximum number of occurrences and the value of integer-1 represents the minimum number of occurrences. This does not imply that the length of the subject of the entry is variable, but that the number of occurrences is variable.
+║This format specifies that the subject of this entry has a variable number of occurrences. The value of integer-2 represents the maximum number of occurrences and the value of integer-1 represents the minimum number of occurrences. This does not imply that the length of the subject of the entry is variable, but that the number of occurrences is variable.║
 
 VI-27
 
@@ -10455,17 +10455,17 @@ VI-27
 
 Nucleus - OCCURS
 
-At the time the subject of entry is referenced or any data item subordinate or superordinate to the subject of entry is referenced, the value of the data item referenced by data-name-1 must fall within the range integer-1 through integer-2. The contents of the data items whose occurrence numbers exceed the value of the data item referenced by data-name-1 are undefined.
+║At the time the subject of entry is referenced or any data item subordinate or superordinate to the subject of entry is referenced, the value of the data item referenced by data-name-1 must fall within the range integer-1 through integer-2. The contents of the data items whose occurrence numbers exceed the value of the data item referenced by data-name-1 are undefined.║
 
-(3) When a group data item, having subordinate to it an entry that specifies format 2 of the OCCURS clause, is referenced, the part of the table area used in the operation is determined as follows:
+║(3) When a group data item, having subordinate to it an entry that specifies format 2 of the OCCURS clause, is referenced, the part of the table area used in the operation is determined as follows:║
 
-a. If the data item referenced by data-name-1 is outside the group, only that part of the table area that is specified by the value of the data item referenced by data-name-1 at the start of the operation will be used.
+║a. If the data item referenced by data-name-1 is outside the group, only that part of the table area that is specified by the value of the data item referenced by data-name-1 at the start of the operation will be used.║
 
-b. If the data item referenced by data-name-1 is included in the same group and the group data item is referenced as a sending item, only that part of the table area that is specified by the value of the data item referenced by data-name-1 at the start of the operation will be used in the operation. If the group is a receiving item, the maximum length of the group will be used.
+║b. If the data item referenced by data-name-1 is included in the same group and the group data item is referenced as a sending item, only that part of the table area that is specified by the value of the data item referenced by data-name-1 at the start of the operation will be used in the operation. If the group is a receiving item, the maximum length of the group will be used.║
 
-(4) When the KEY IS phrase is specified, the repeated data must be arranged in ascending or descending order according to the values contained in data-name-2. The ascending or descending order is determined according to the rules for the comparison of operands. (See page VI-55, Comparison of Numeric Operands, and page VI-55, Comparison of Nonnumeric Operands.) The data-names are listed in their descending order of significance.
+║(4) When the KEY IS phrase is specified, the repeated data must be arranged in ascending or descending order according to the values contained in data-name-2. The ascending or descending order is determined according to the rules for the comparison of operands. (See page VI-55, Comparison of Numeric Operands, and page VI-55, Comparison of Nonnumeric Operands.) The data-names are listed in their descending order of significance.║
 
-(5) If format 2 is specified in a record description entry and the associated file description or sort-merge description entry contains the VARYING phrase of the RECORD clause, the records are variable length. If the DEPENDING ON phrase of the RECORD clause is not specified, the content of the data item referenced by data-name-1 of the OCCURS clause must be set to the number of occurrences to be written before the execution of any RELEASE, REWRITE, or WRITE statement.
+║(5) If format 2 is specified in a record description entry and the associated file description or sort-merge description entry contains the VARYING phrase of the RECORD clause, the records are variable length. If the DEPENDING ON phrase of the RECORD clause is not specified, the content of the data item referenced by data-name-1 of the OCCURS clause must be set to the number of occurrences to be written before the execution of any RELEASE, REWRITE, or WRITE statement.║
 
 VI-28
 
@@ -10497,7 +10497,7 @@ The PICTURE clause describes the general characteristics and editing requirement
 
 (4) The maximum number of characters allowed in the character-string is 30.
 
-(5) The PICTURE clause must be specified for every elementary item except an index data item or the subject of the RENAMES clause. In these cases the use of this clause is prohibited.
+(5) The PICTURE clause must be specified for every elementary item except an index data item ║or the subject of the RENAMES clause.║ In these cases the use of this clause is prohibited.
 
 (6) PIC is an abbreviation for PICTURE.
 
@@ -10787,17 +10787,17 @@ NOTE: Level-number, data-name-1, and FILLER are shown in the above format to imp
 
 (1) The REDEFINES clause, when specified, must immediately follow the subject of the entry.
 
-(2) The level-numbers of data-name-2 and the subject of the entry must be identical, but must not be 66 or 88.
+(2) The level-numbers of data-name-2 and the subject of the entry must be identical, ║but must not be 66 or 88.║
 
 (3) This clause must not be used in level 01 entries in the File Section.
 
 (4) This clause must not be used in level 01 entries in the Communication Section.
 
-(5) The data description entry for data-name-2 cannot contain an OCCURS clause. However, data-name-2 may be subordinate to an item whose data description entry contains an OCCURS clause. In this case, the reference to data-name-2 in the REDEFINES clause may not be subscripted. Neither the original definition nor the redefinition can include a variable occurrence data item.
+(5) The data description entry for data-name-2 cannot contain an OCCURS clause. ║However, data-name-2 may be subordinate to an item whose data description entry contains an OCCURS clause. In this case, the reference to data-name-2 in the REDEFINES clause may not be subscripted. Neither the original definition nor the redefinition can include a variable occurrence data item.║
 
 (6) If the data item referenced by data-name-2 is either declared to be an external data record or is specified with a level-number other than 01, the number of character positions it contains must be greater than or equal to the number of character positions in the data item referenced by the subject of this entry. If the data-name referenced by data-name-2 is specified with a level-number of 01 and is not declared to be an external data record, there is no such constraint.
 
-(7) Data-name-2 must not be qualified even if it is not unique since no ambiguity of reference exists in this case because of the required placement of the REDEFINES clause within the source program.
+║(7) Data-name-2 must not be qualified even if it is not unique since no ambiguity of reference exists in this case because of the required placement of the REDEFINES clause within the source program.║
 
 (8) Multiple redefinitions of the same character positions are permitted. Multiple redefinitions of the same character positions must all use the data-name of the entry that originally defined the area.
 
@@ -10813,7 +10813,7 @@ Nucleus - REDEFINES
 
 (11) The entries giving the new descriptions of the character positions must follow the entries defining the area of data-name-2, without intervening entries that define new character positions.
 
-(12) In level 1, data-name-2 cannot be subordinate to an entry which contains a REDEFINES clause. In level 2, data-name-2 may be subordinate to an entry which contains a REDEFINES clause.
+(12) In level 1, data-name-2 cannot be subordinate to an entry which contains a REDEFINES clause. ║In level 2, data-name-2 may be subordinate to an entry which contains a REDEFINES clause.║
 
 ### 5.10.4 General Rules
 
@@ -10827,13 +10827,13 @@ VI-39
 
 Nucleus - RENAMES
 
-## 5.11 THE RENAMES CLAUSE
+## ║5.11 THE RENAMES CLAUSE║
 
-### 5.11.1 Function
+### ║5.11.1 Function║
 
-The RENAMES clause permits alternative, possibly overlapping, groupings of elementary items.
+║The RENAMES clause permits alternative, possibly overlapping, groupings of elementary items.║
 
-### 5.11.2 General Format
+### ║5.11.2 General Format║
 
 <pre style="line-height:1">
 ╔                                    ┌ ╭ <u>THROUGH</u> ╮             ┐   ╗
@@ -10841,25 +10841,25 @@ The RENAMES clause permits alternative, possibly overlapping, groupings of eleme
 ╚                                    └ ╰ <u>THRU</u>    ╯             ┘   ╝
 </pre>
 
-NOTE: Level-number 66 and data-name-1 are shown in the above format to improve clarity. Level-number and data-name-1 are not part of the RENAMES clause.
+║NOTE: Level-number 66 and data-name-1 are shown in the above format to improve clarity. Level-number and data-name-1 are not part of the RENAMES clause.║
 
-### 5.11.3 Syntax Rules
+### ║5.11.3 Syntax Rules║
 
-(1) Any number of RENAMES entries may be written for a logical record.
+║(1) Any number of RENAMES entries may be written for a logical record.║
 
-(2) All RENAMES entries referring to data items within a given logical record must immediately follow the last data description entry of the associated record description entry.
+║(2) All RENAMES entries referring to data items within a given logical record must immediately follow the last data description entry of the associated record description entry.║
 
-(3) Data-name-1 cannot be used as a qualifier, and can only be qualified by the names of the associated level 01, FD, CD, or SD entries. Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry nor be subordinate to an item that has an OCCURS clause in its data description entry.
+║(3) Data-name-1 cannot be used as a qualifier, and can only be qualified by the names of the associated level 01, FD, CD, or SD entries. Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry nor be subordinate to an item that has an OCCURS clause in its data description entry.║
 
-(4) Data-name-2 and data-name-3 must be names of elementary items or groups of elementary items in the same logical record, and cannot be the same data-name. A 66 level entry cannot rename another 66 level entry nor can it rename a 77, 88, or 01 level entry.
+║(4) Data-name-2 and data-name-3 must be names of elementary items or groups of elementary items in the same logical record, and cannot be the same data-name. A 66 level entry cannot rename another 66 level entry nor can it rename a 77, 88, or 01 level entry.║
 
-(5) Data-name-2 and data-name-3 may be qualified.
+║(5) Data-name-2 and data-name-3 may be qualified.║
 
-(6) None of the items within the range, including data-name-2 and data-name-3, if specified, can be variable occurrence data items.
+║(6) None of the items within the range, including data-name-2 and data-name-3, if specified, can be variable occurrence data items.║
 
-(7) The words THROUGH and THRU are equivalent.
+║(7) The words THROUGH and THRU are equivalent.║
 
-(8) The beginning of the area described by data-name-3 must not be to the left of the beginning of the area described by data-name-2. The end of the area described by data-name-3 must be to the right of the end of the area described by data-name-2. Data-name-3, therefore, cannot be subordinate to data-name-2.
+║(8) The beginning of the area described by data-name-3 must not be to the left of the beginning of the area described by data-name-2. The end of the area described by data-name-3 must be to the right of the end of the area described by data-name-2. Data-name-3, therefore, cannot be subordinate to data-name-2.║
 
 VI-40
 
@@ -10867,11 +10867,11 @@ VI-40
 
 Nucleus - RENAMES
 
-## 5.11.4 General Rules
+## ║5.11.4 General Rules║
 
-(1) When data-name-3 is specified, data-name-1 is a group item which includes all elementary items starting with data-name-2 (if data-name-2 is an elementary item) or the first elementary item in data-name-2 (if data-name-2 is a group item), and concluding with data-name-3 (if data-name-3 is an elementary item) or the last elementary item in data-name-3 (if data-name-3 is a group item).
+║(1) When data-name-3 is specified, data-name-1 is a group item which includes all elementary items starting with data-name-2 (if data-name-2 is an elementary item) or the first elementary item in data-name-2 (if data-name-2 is a group item), and concluding with data-name-3 (if data-name-3 is an elementary item) or the last elementary item in data-name-3 (if data-name-3 is a group item).║
 
-(2) When data-name-3 is not specified, all of the data attributes of data-name-2 become the data attributes for data-name-1.
+║(2) When data-name-3 is not specified, all of the data attributes of data-name-2 become the data attributes for data-name-1.║
 
 VI-41
 
@@ -11030,7 +11030,7 @@ The USAGE clause specifies the format of a data item in the computer storage.
 
 #### 5.14.3 Syntax Rules
 
-(1) The USAGE clause may be written in any data description entry with a level-number other than 66 or 88.
+(1) The USAGE clause may be written in any data description entry ║with a level-number other than 66 or 88.║
 
 (2) If the USAGE clause is written in the data description entry for a group item, it may also be written in the data description entry for any subordinate elementary item or group item, but the same usage must be specified in both entries.
 
@@ -11080,7 +11080,7 @@ Nucleus - VALUE
 
 ### 5.15.1 Function
 
-The VALUE clause defines the initial value of Communication Section and Working-Storage Section data items, and the values associated with condition-names.
+The VALUE clause defines the initial value of Communication Section and Working-Storage Section data items, ║and the values associated with condition-names.║
 
 ### 5.15.2 General Format
 
@@ -11106,7 +11106,7 @@ The VALUE clause defines the initial value of Communication Section and Working-
 
 (3) All numeric literals in a VALUE clause of an item must have a value which is within the range of values indicated by the PICTURE clause, and must not have a value which would require truncation of nonzero digits. Nonnumeric literals in a VALUE clause of an item must not exceed the size indicated by the PICTURE clause.
 
-(4) The VALUE clause must not be specified in any entry which is part of the description or redefinition of an external data record. The VALUE clause may be specified for condition-name entries associated with such data description entries.
+(4) The VALUE clause must not be specified in any entry which is part of the description or redefinition of an external data record. ║The VALUE clause may be specified for condition-name entries associated with such data description entries.║
 
 ### 5.15.4 General Rules
 
@@ -11126,23 +11126,23 @@ the size of the data item but have no effect on initialization of the data item 
 
 c. Initialization is not affected by any BLANK WHEN ZERO or JUSTIFIED clause that may be specified.
 
-### 5.15.5 Condition-Name Rules
+### ║5.15.5 Condition-Name Rules║
 
-(1) In a condition-name entry, the VALUE clause is required. The VALUE clause and the condition-name itself are the only two clauses permitted in the entry. The characteristics of a condition-name are implicitly those of its conditional variable.
+║(1) In a condition-name entry, the VALUE clause is required. The VALUE clause and the condition-name itself are the only two clauses permitted in the entry. The characteristics of a condition-name are implicitly those of its conditional variable.║
 
-(2) Format 2 can be used only in connection with condition-names (see page IV-7, Condition-Name). Wherever the THRU phrase is used, literal-2 must be less than literal-3.
+║(2) Format 2 can be used only in connection with condition-names (see page IV-7, Condition-Name). Wherever the THRU phrase is used, literal-2 must be less than literal-3.║
 
 ### 5.15.6 Data Description Entries Other Than Condition-Names
 
 (1) Rules governing the use of the VALUE clause differ with the respective sections of the Data Division:
 
-a. In level 1, the VALUE clause cannot be used in the File Section. In the File Section, the VALUE clause may be used only in condition-name entries; therefore, the initial value of the data items in the File Section is undefined.
+a. In level 1, the VALUE clause cannot be used in the File Section. ║In the File Section, the VALUE clause may be used only in condition-name entries;║ therefore, the initial value of the data items in the File Section is undefined.
 
-b. In level 1, the VALUE clause cannot be used in the Linkage Section. In the Linkage Section, the VALUE clause may be used only in condition-name entries.
+b. In level 1, the VALUE clause cannot be used in the Linkage Section. ║In the Linkage Section, the VALUE clause may be used only in condition-name entries.║
 
-c. In the Working-Storage Section and Communication Section, the VALUE clause must be used in condition-name entries. VALUE clauses in the Working-Storage and Communication Sections of a program take effect only when the program is placed into its initial state. If the VALUE clause is used in the description of the data item, the data item is initialized to the defined value. If the VALUE clause is not associated with a data item, the initial value of that data item is undefined.
+c. ║In the Working-Storage Section and Communication Section, the VALUE clause must be used in condition-name entries.║ VALUE clauses in the Working-Storage and Communication Sections of a program take effect only when the program is placed into its initial state. If the VALUE clause is used in the description of the data item, the data item is initialized to the defined value. If the VALUE clause is not associated with a data item, the initial value of that data item is undefined.
 
-(2) The VALUE clause must not be stated in a data description entry that contains a REDEFINES clause, or in an entry that is subordinate to an entry containing a REDEFINES clause. This rule does not apply to condition-name entries.
+(2) The VALUE clause must not be stated in a data description entry that contains a REDEFINES clause, or in an entry that is subordinate to an entry containing a REDEFINES clause. ║This rule does not apply to condition-name entries.║
 
 (3) If the VALUE clause is used in an entry at the group level, the literal must be a figurative constant or a nonnumeric literal, and the group area is initialized without consideration for the individual elementary or group items contained within this group. The VALUE clause cannot be stated at the subordinate levels within this group.
 
@@ -11154,15 +11154,15 @@ VI-49
 
 Nucleus - VALUE
 
-(5) If a VALUE clause is specified in a data description entry of a data item which is associated with a variable occurrence data item, the initialization of the data item behaves as if the value of the data item referenced by the DEPENDING ON phrase in the OCCURS clause specified for the variable occurrence data item is set to the maximum number of occurrences as specified by that OCCURS clause. A data item is associated with a variable occurrence data item in any of the following cases:
+║(5) If a VALUE clause is specified in a data description entry of a data item which is associated with a variable occurrence data item, the initialization of the data item behaves as if the value of the data item referenced by the DEPENDING ON phrase in the OCCURS clause specified for the variable occurrence data item is set to the maximum number of occurrences as specified by that OCCURS clause. A data item is associated with a variable occurrence data item in any of the following cases:║
 
-a. It is a group data item which contains a variable occurrence data item.
+║a. It is a group data item which contains a variable occurrence data item.║
 
-b. It is a variable occurrence data item.
+║b. It is a variable occurrence data item.║
 
-c. It is a data item that is subordinate to a variable occurrence data item.
+║c. It is a data item that is subordinate to a variable occurrence data item.║
 
-If a VALUE clause is associated with the data item referenced by a DEPENDING ON phrase, that value is considered to be placed in the data item after the variable occurrence data item is initialized. (See page VI-26, The OCCURS Clause.)
+║If a VALUE clause is associated with the data item referenced by a DEPENDING ON phrase, that value is considered to be placed in the data item after the variable occurrence data item is initialized. (See page VI-26, The OCCURS Clause.)║
 
 (6) A format 1 VALUE clause specified in a data description entry that contains an OCCURS clause or in a entry that is subordinate to an OCCURS clause causes every occurrence of the associated data item to be assigned the specified value.
 
@@ -11197,13 +11197,13 @@ The general formats of the Procedure Division in the Nucleus are shown below.
 [ sentence ] … } …
 </pre>
 
-## 6.2 ARITHMETIC EXPRESSIONS
+## ║6.2 ARITHMETIC EXPRESSIONS║
 
-### 6.2.1 Definition of an Arithmetic Expression
+### ║6.2.1 Definition of an Arithmetic Expression║
 
-An arithmetic expression can be an identifier of a numeric elementary item, a numeric literal, the figurative constant ZERO (ZEROS, ZEROES), such identifiers, figurative constants, and literals separated by arithmetic operators, two arithmetic expressions separated by an arithmetic operator, or an arithmetic expression enclosed in parentheses. Any arithmetic expression may be preceded by a unary operator. The permissible combinations of identifiers, numeric literals, arithmetic operators, and parentheses are given in table 1, Combination of Symbols in Arithmetic Expressions, on page VI-53.
+║An arithmetic expression can be an identifier of a numeric elementary item, a numeric literal, the figurative constant ZERO (ZEROS, ZEROES), such identifiers, figurative constants, and literals separated by arithmetic operators, two arithmetic expressions separated by an arithmetic operator, or an arithmetic expression enclosed in parentheses. Any arithmetic expression may be preceded by a unary operator. The permissible combinations of identifiers, numeric literals, arithmetic operators, and parentheses are given in table 1, Combination of Symbols in Arithmetic Expressions, on page VI-53.║
 
-Those identifiers and literals appearing in an arithmetic expression must represent either numeric elementary items or numeric literals on which arithmetic may be performed.
+║Those identifiers and literals appearing in an arithmetic expression must represent either numeric elementary items or numeric literals on which arithmetic may be performed.║
 
 VI-51
 
@@ -11211,33 +11211,33 @@ VI-51
 
 Nucleus - Arithmetic Expressions
 
-### 6.2.2 Arithmetic Operators
+### ║6.2.2 Arithmetic Operators║
 
-There are five binary arithmetic operators and two unary arithmetic operators that may be used in arithmetic expressions. They are represented by specific characters that must be preceded by a space and followed by a space.
+║There are five binary arithmetic operators and two unary arithmetic operators that may be used in arithmetic expressions. They are represented by specific characters that must be preceded by a space and followed by a space.║
 
-| Binary Arithmetic Operator | Meaning |
+| ║Binary Arithmetic Operator | Meaning║ |
 |:---:|:---|
-| + | Addition |
-| - | Subtraction |
-| \* | Multiplication |
-| / | Division |
-| ** | Exponentiation |
+| ║+ | Addition║ |
+| ║- | Subtraction║ |
+| ║\* | Multiplication║ |
+| ║/ | Division║ |
+| ║** | Exponentiation║ |
 
-| Unary Arithmetic Operator | Meaning |
+| ║Unary Arithmetic Operator | Meaning║ |
 |:---:|:---|
-| + | The effect of multiplication by the numeric literal +1 |
-| - | The effect of multiplication by the numeric literal -1 |
+| ║+ | The effect of multiplication by the numeric literal +1║ |
+| ║- | The effect of multiplication by the numeric literal -1║ |
 
-### 6.2.3 Formation and Evaluation Rules
+### ║6.2.3 Formation and Evaluation Rules║
 
-(1) Parentheses may be used in arithmetic expressions to specify the order in which elements are to be evaluated. Expressions within parentheses are evaluated first, and, within nested parentheses, evaluation proceeds from the least inclusive set to the most inclusive set. When parentheses are not used, or parenthesized expressions are at the same level of inclusiveness, the following hierarchical order of execution is implied:
+║(1) Parentheses may be used in arithmetic expressions to specify the order in which elements are to be evaluated. Expressions within parentheses are evaluated first, and, within nested parentheses, evaluation proceeds from the least inclusive set to the most inclusive set. When parentheses are not used, or parenthesized expressions are at the same level of inclusiveness, the following hierarchical order of execution is implied:║
 
-1st - Unary plus and minus  
-2nd - Exponentiation  
-3rd - Multiplication and division  
-4th - Addition and subtraction
+║1st - Unary plus and minus║  
+║2nd - Exponentiation║  
+║3rd - Multiplication and division║  
+║4th - Addition and subtraction║
 
-(2) Parentheses are used either to eliminate ambiguities in logic where consecutive operations of the same hierarchical level appear, or to modify the normal hierarchical sequence of execution in expressions where it is necessary to have some deviation from the normal precedence. When the sequence of execution is not specified by parentheses, the order of execution of consecutive operations of the same hierarchical level is from left to right.
+║(2) Parentheses are used either to eliminate ambiguities in logic where consecutive operations of the same hierarchical level appear, or to modify the normal hierarchical sequence of execution in expressions where it is necessary to have some deviation from the normal precedence. When the sequence of execution is not specified by parentheses, the order of execution of consecutive operations of the same hierarchical level is from left to right.║
 
 VI-52
 
@@ -11245,48 +11245,48 @@ VI-52
 
 Nucleus - Arithmetic Expressions
 
-(3) The ways in which identifiers, literals, operators, and parentheses may be combined in an arithmetic expression are summarized in table 1, where:
+║(3) The ways in which identifiers, literals, operators, and parentheses may be combined in an arithmetic expression are summarized in table 1, where:║
 
-a. The letter 'P' indicates a permissible pair of symbols.
+║a. The letter 'P' indicates a permissible pair of symbols.║
 
-b. The character '-' indicates an invalid pair.
+║b. The character '-' indicates an invalid pair.║
 
 <table>
 <thead>
 <tr>
-<th rowspan="2">FIRST SYMBOL</th>
-<th colspan="5">SECOND SYMBOL</th>
+<th rowspan="2">║FIRST SYMBOL║</th>
+<th colspan="5">║SECOND SYMBOL║</th>
 </tr>
 <tr>
-<th>Identifier or Literal</th>
-<th>+ - * / **</th>
-<th>Unary + or -</th>
-<th>(</th>
-<th>)</th>
+<th>║Identifier or Literal║</th>
+<th>║+ - * / **║</th>
+<th>║Unary + or -║</th>
+<th>║(║</th>
+<th>║)║</th>
 </tr>
 </thead>
 <tbody>
-<tr><td>Identifier or Literal</td><td>-</td><td>P</td><td>-</td><td>-</td><td>P</td></tr>
-<tr><td>+ - * / **</td><td>P</td><td>-</td><td>P</td><td>P</td><td>-</td></tr>
-<tr><td>Unary + or -</td><td>P</td><td>-</td><td>-</td><td>P</td><td>-</td></tr>
-<tr><td>(</td><td>P</td><td>-</td><td>P</td><td>P</td><td>-</td></tr>
-<tr><td>)</td><td>-</td><td>P</td><td>-</td><td>-</td><td>P</td></tr>
+<tr><td>║Identifier or Literal</td><td>-</td><td>P</td><td>-</td><td>-</td><td>P║</td></tr>
+<tr><td>║+ - * / **</td><td>P</td><td>-</td><td>P</td><td>P</td><td>-║</td></tr>
+<tr><td>║Unary + or -</td><td>P</td><td>-</td><td>-</td><td>P</td><td>-║</td></tr>
+<tr><td>║(</td><td>P</td><td>-</td><td>P</td><td>P</td><td>-║</td></tr>
+<tr><td>║)</td><td>-</td><td>P</td><td>-</td><td>-</td><td>P║</td></tr>
 </tbody>
 </table>
 
-Table 1. Combination of Symbols in Arithmetic Expressions
+║Table 1. Combination of Symbols in Arithmetic Expressions║
 
-(4) An arithmetic expression may only begin with the symbol '(', '+', '-', an identifier, or a literal and may only end with a ')', an identifier, or a literal. There must be a one-to-one correspondence between left and right parentheses of an arithmetic expression such that each left parenthesis is to the left of its corresponding right parenthesis. If the first operator in an arithmetic expression is a unary operator, it must be immediately preceded by a left parenthesis if that arithmetic expression immediately follows an identifier or another arithmetic expression.
+║(4) An arithmetic expression may only begin with the symbol '(', '+', '-', an identifier, or a literal and may only end with a ')', an identifier, or a literal. There must be a one-to-one correspondence between left and right parentheses of an arithmetic expression such that each left parenthesis is to the left of its corresponding right parenthesis. If the first operator in an arithmetic expression is a unary operator, it must be immediately preceded by a left parenthesis if that arithmetic expression immediately follows an identifier or another arithmetic expression.║
 
-(5) The following rules apply to evaluation of exponentiation in an arithmetic expression:
+║(5) The following rules apply to evaluation of exponentiation in an arithmetic expression:║
 
-a. If the value of an expression to be raised to a power is zero, the exponent must have a value greater than zero. Otherwise, the size error condition exists. (See page VI-67, The ON SIZE ERROR Phrase.)
+║a. If the value of an expression to be raised to a power is zero, the exponent must have a value greater than zero. Otherwise, the size error condition exists. (See page VI-67, The ON SIZE ERROR Phrase.)║
 
-b. If the evaluation yields both a positive and a negative real number, the value returned as the result is the positive number.
+║b. If the evaluation yields both a positive and a negative real number, the value returned as the result is the positive number.║
 
-c. If no real number exists as the result of the evaluation, the size error condition exists.
+║c. If no real number exists as the result of the evaluation, the size error condition exists.║
 
-(6) Arithmetic expressions allow the user to combine arithmetic operations without the restrictions on composite of operands and/or receiving data items. Each implementor will indicate the techniques used in handling arithmetic expressions.
+║(6) Arithmetic expressions allow the user to combine arithmetic operations without the restrictions on composite of operands and/or receiving data items. Each implementor will indicate the techniques used in handling arithmetic expressions.║
 
 VI-53
 
@@ -11296,15 +11296,15 @@ Nucleus - Conditional Expressions
 
 ## 6.3 CONDITIONAL EXPRESSIONS
 
-Conditional expressions identify conditions that are tested to enable the object program to select between alternate paths of control depending upon the truth value of the condition. A conditional expression has a truth value represented by either true or false. Conditional expressions are specified in the EVALUATE, IF, PERFORM, and SEARCH statements. There are two categories of conditions associated with conditional expressions: simple conditions and complex conditions. Each may be enclosed within any number of paired parentheses, in which case its category is not changed.
+Conditional expressions identify conditions that are tested to enable the object program to select between alternate paths of control depending upon the truth value of the condition. A conditional expression has a truth value represented by either true or false. Conditional expressions are specified in the ║EVALUATE,║ IF, PERFORM, ║and SEARCH║ statements. There are two categories of conditions associated with conditional expressions: simple conditions ║and complex conditions.║ Each may be enclosed within any number of paired parentheses, in which case its category is not changed.
 
 ### 6.3.1 Simple Conditions
 
-The simple conditions are the relation, class, condition-name, switch-status, and sign conditions. A simple condition has a truth value of true or false. The inclusion in parentheses of simple conditions does not change the simple condition truth value.
+The simple conditions are the relation, class, ║condition-name,║ switch-status, ║and sign║ conditions. A simple condition has a truth value of true or false. The inclusion in parentheses of simple conditions does not change the simple condition truth value.
 
 #### 6.3.1.1 Relation Condition
 
-A relation condition causes a comparison of two operands, each of which may be the data item referenced by an identifier, a literal, the value resulting from an arithmetic expression, or an index-name. A relation condition has a truth value of true if the relation exists between the operands. Comparison of two numeric operands is permitted regardless of the formats specified in their respective USAGE clauses. However, for all other comparisons, the operands must have the same usage. If either of the operands is a group item, the nonnumeric comparison rules apply.
+A relation condition causes a comparison of two operands, each of which may be the data item referenced by an identifier, a literal, ║the value resulting from an arithmetic expression,║ or an index-name. A relation condition has a truth value of true if the relation exists between the operands. Comparison of two numeric operands is permitted regardless of the formats specified in their respective USAGE clauses. However, for all other comparisons, the operands must have the same usage. If either of the operands is a group item, the nonnumeric comparison rules apply.
 
 The format for a relation condition is as follows:
 
@@ -11321,7 +11321,7 @@ The format for a relation condition is as follows:
                                 ╰ IS &lt;=                       ╯
 </pre>
 
-The first operand (identifier-1, literal-1, arithmetic-expression-1, or index-name-1) is called the subject of the condition; the second operand (identifier-2, literal-2, arithmetic-expression-2, or index-name-2) is called the object of the condition. The relation condition must contain at least one reference to a variable.
+The first operand (identifier-1, literal-1, ║arithmetic-expression-1,║ or index-name-1) is called the subject of the condition; the second operand (identifier-2, literal-2, ║arithmetic-expression-2,║ or index-name-2) is called the object of the condition. The relation condition must contain at least one reference to a variable.
 
 The relational operators specify the type of comparison to be made in a relation condition. A space must precede and follow each reserved word comprising the relational operator. When used, NOT and the next key word or relation character are one relational operator that defines the comparison to be
 
@@ -11343,7 +11343,7 @@ executed for truth value. The following relational operators are equivalent: IS 
 
 ### 6.3.1.1.1 Comparison of Numeric Operands
 
-For operands whose class is numeric, a comparison is made with respect to the algebraic value of the operands. The length of the literal or arithmetic expression operands, in terms of the number of digits represented, is not significant. Zero is considered a unique value regardless of the sign.
+For operands whose class is numeric, a comparison is made with respect to the algebraic value of the operands. The length of the literal ║or arithmetic expression║ operands, in terms of the number of digits represented, is not significant. Zero is considered a unique value regardless of the sign.
 
 Comparison of these operands is permitted regardless of the manner in which their usage is described. Unsigned numeric operands are considered positive for purposes of comparison.
 
@@ -11435,19 +11435,19 @@ VI-57
 
 Nucleus - Condition-Name Condition
 
-#### 6.3.1.3 Condition-Name Condition (Conditional Variable)
+#### ║6.3.1.3 Condition-Name Condition (Conditional Variable)║
 
-In a condition-name condition, a conditional variable is tested to determine whether or not its value is equal to one of the values associated with condition-name-1. The general format for the condition-name condition is as follows:
+║In a condition-name condition, a conditional variable is tested to determine whether or not its value is equal to one of the values associated with condition-name-1. The general format for the condition-name condition is as follows:║
 
 <pre style="line-height:1">
 condition-name-1
 </pre>
 
-If condition-name-1 is associated with a range or ranges of values, then the conditional variable is tested to determine whether or not its value falls in this range, including the end values.
+║If condition-name-1 is associated with a range or ranges of values, then the conditional variable is tested to determine whether or not its value falls in this range, including the end values.║
 
-The rules for comparing a conditional variable with a condition-name value are the same as those specified for relation conditions.
+║The rules for comparing a conditional variable with a condition-name value are the same as those specified for relation conditions.║
 
-The result of the test is true if one of the values corresponding to condition-name-1 equals the value of its associated conditional variable.
+║The result of the test is true if one of the values corresponding to condition-name-1 equals the value of its associated conditional variable.║
 
 #### 6.3.1.4 Switch-Status Condition
 
@@ -11459,9 +11459,9 @@ condition-name-1
 
 The result of the test is true if the switch is set to the specified position corresponding to condition-name-1.
 
-#### 6.3.1.5 Sign Condition
+#### ║6.3.1.5 Sign Condition║
 
-The sign condition determines whether or not the algebraic value of an arithmetic expression is less than, greater than, or equal to zero. The general format for a sign condition is as follows:
+║The sign condition determines whether or not the algebraic value of an arithmetic expression is less than, greater than, or equal to zero. The general format for a sign condition is as follows:║
 
 <pre style="line-height:1">
 ╔                                    ╭ <u>POSITIVE</u> ╮ ╗
@@ -11471,7 +11471,7 @@ The sign condition determines whether or not the algebraic value of an arithmeti
 ╚                                    ╰ <u>ZERO</u>     ╯ ╝
 </pre>
 
-When used, NOT and the next key word specify one sign condition that defines the algebraic test to be executed for truth value; e.g., NOT ZERO is a truth test for a nonzero (positive or negative) value. An operand is positive, if its value is greater than zero, negative if its value is less than zero, and zero if its value is equal to zero. Arithmetic-expression-1 must contain at least one reference to a variable.
+║When used, NOT and the next key word specify one sign condition that defines the algebraic test to be executed for truth value; e.g., NOT ZERO is a truth test for a nonzero (positive or negative) value. An operand is positive, if its value is greater than zero, negative if its value is less than zero, and zero if its value is equal to zero. Arithmetic-expression-1 must contain at least one reference to a variable.║
 
 VI-58
 
@@ -11479,33 +11479,33 @@ VI-58
 
 Nucleus - Complex Conditions
 
-### 6.3.2 Complex Conditions
+### ║6.3.2 Complex Conditions║
 
-A complex condition is formed by combining simple conditions and/or complex conditions with logical connectors (logical operators 'AND' and 'OR') or by negating these conditions with logical negation (the logical operator 'NOT'). The truth value of a complex condition, whether parenthesized or not, is that truth value which results from the interaction of the stated logical operators on its constituent conditions.
+║A complex condition is formed by combining simple conditions and/or complex conditions with logical connectors (logical operators 'AND' and 'OR') or by negating these conditions with logical negation (the logical operator 'NOT'). The truth value of a complex condition, whether parenthesized or not, is that truth value which results from the interaction of the stated logical operators on its constituent conditions.║
 
-The logical operators and their meanings are:
+║The logical operators and their meanings are:║
 
-| <u>Logical Operator</u> | <u>Meaning</u> |
+| ║<u>Logical Operator</u> | <u>Meaning</u>║ |
 |---|---|
-| AND | Logical conjunction; the truth value is true if both of the conjoined conditions are true; false if one or both of the conjoined conditions is false. |
-| OR | Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false. |
-| NOT | Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true. |
+| ║AND | Logical conjunction; the truth value is true if both of the conjoined conditions are true; false if one or both of the conjoined conditions is false.║ |
+| ║OR | Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false.║ |
+| ║NOT | Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true.║ |
 
-The logical operators must be preceded by a space and followed by a space.
+║The logical operators must be preceded by a space and followed by a space.║
 
-#### 6.3.2.1 Negated Conditions
+#### ║6.3.2.1 Negated Conditions║
 
-A condition is negated by use of the logical operator 'NOT' which reverses the truth value of the condition to which it is applied. Thus, the truth value of a negated condition is true if and only if the truth value of the condition being negated is false; the truth value of a negated condition is false if and only if the truth value of the condition being negated is true. Including a negated condition in parentheses does not change its truth value.
+║A condition is negated by use of the logical operator 'NOT' which reverses the truth value of the condition to which it is applied. Thus, the truth value of a negated condition is true if and only if the truth value of the condition being negated is false; the truth value of a negated condition is false if and only if the truth value of the condition being negated is true. Including a negated condition in parentheses does not change its truth value.║
 
-The general format for a negated condition is:
+║The general format for a negated condition is:║
 
 <pre style="line-height:1">
 ║ <u>NOT</u> condition-1 ║
 </pre>
 
-#### 6.3.2.2 Combined Conditions
+#### ║6.3.2.2 Combined Conditions║
 
-A combined condition results from connecting conditions with one of the logical operators 'AND' or 'OR'. The general format of a combined condition is:
+║A combined condition results from connecting conditions with one of the logical operators 'AND' or 'OR'. The general format of a combined condition is:║
 
 <pre style="line-height:1">
 ╔              ╭ ╭ <u>AND</u> ╮              ╮   ╗
@@ -11519,31 +11519,31 @@ VI-59
 
 Nucleus - Abbreviated Combined Relation Conditions
 
-### 6.3.2.3 Precedence of Logical Operators and the Use of Parentheses
+### ║6.3.2.3 Precedence of Logical Operators and the Use of Parentheses║
 
-In the absence of the relevant parentheses in a complex condition, the precedence (i.e., binding power) of the logical operators determines the conditions to which the specified logical operators apply and implies the equivalent parentheses. The order of precedence is 'NOT', 'AND', 'OR'. Thus, specifying 'condition-1 OR NOT condition-2 AND condition-3' implies and is equivalent to specifying 'condition-1 OR ((NOT condition-2) AND condition-3)'.
+║In the absence of the relevant parentheses in a complex condition, the precedence (i.e., binding power) of the logical operators determines the conditions to which the specified logical operators apply and implies the equivalent parentheses. The order of precedence is 'NOT', 'AND', 'OR'. Thus, specifying 'condition-1 OR NOT condition-2 AND condition-3' implies and is equivalent to specifying 'condition-1 OR ((NOT condition-2) AND condition-3)'.║
 
-Where parentheses are used in a complex condition, they determine the binding of conditions to logical operators. Parentheses can, therefore, be used to depart from the normal precedence of logical operators as specified above. Thus, the example complex condition above can be given a different meaning by specifying it as '(condition-1 OR (NOT condition-2)) AND condition-3'. (See page VI-61, Order of Evaluation of Conditions.)
+║Where parentheses are used in a complex condition, they determine the binding of conditions to logical operators. Parentheses can, therefore, be used to depart from the normal precedence of logical operators as specified above. Thus, the example complex condition above can be given a different meaning by specifying it as '(condition-1 OR (NOT condition-2)) AND condition-3'. (See page VI-61, Order of Evaluation of Conditions.)║
 
-Table 1 indicates the ways in which conditions and logical operators may be combined and parenthesized. There must be a one-to-one correspondence between left and right parentheses such that each left parenthesis is to the left of its corresponding right parenthesis.
+║Table 1 indicates the ways in which conditions and logical operators may be combined and parenthesized. There must be a one-to-one correspondence between left and right parentheses such that each left parenthesis is to the left of its corresponding right parenthesis.║
 
-| Given the following element: | In a conditional expression: May element be first? | In a conditional expression: May element be last? | In a left-to-right sequence of elements: Element, when not first, may be immediately preceded by only: | In a left-to-right sequence of elements: Element, when not last, may be immediately followed by only: |
+| ║Given the following element: | In a conditional expression: May element be first? | In a conditional expression: May element be last? | In a left-to-right sequence of elements: Element, when not first, may be immediately preceded by only: | In a left-to-right sequence of elements: Element, when not last, may be immediately followed by only:║ |
 |---|---|---|---|---|
-| simple-condition | Yes | Yes | OR, NOT, AND, ( | OR, AND, ) |
-| OR or AND | No | No | simple-condition, ) | simple-condition, NOT, ( |
-| NOT | Yes | No | OR, AND, ( | simple-condition, ( |
-| ( | Yes | No | OR, NOT, AND, ( | simple-condition, NOT, ( |
-| ) | No | Yes | simple-condition, ) | OR, AND, ) |
+| ║simple-condition | Yes | Yes | OR, NOT, AND, ( | OR, AND, )║ |
+| ║OR or AND | No | No | simple-condition, ) | simple-condition, NOT, (║ |
+| ║NOT | Yes | No | OR, AND, ( | simple-condition, (║ |
+| ║( | Yes | No | OR, NOT, AND, ( | simple-condition, NOT, (║ |
+| ║) | No | Yes | simple-condition, ) | OR, AND, )║ |
 
-Table 1: Combinations of Conditions, Logical Operators, and Parentheses
+║Table 1: Combinations of Conditions, Logical Operators, and Parentheses║
 
-Thus, the element pair 'OR NOT' is permissible while the pair 'NOT OR' is not permissible; the pair 'NOT (' is permissible while the pair 'NOT NOT' is not permissible.
+║Thus, the element pair 'OR NOT' is permissible while the pair 'NOT OR' is not permissible; the pair 'NOT (' is permissible while the pair 'NOT NOT' is not permissible.║
 
-### 6.3.3 Abbreviated Combined Relation Conditions
+### ║6.3.3 Abbreviated Combined Relation Conditions║
 
-When simple or negated simple relation conditions are combined with logical connectives in a consecutive sequence such that a succeeding relation condition contains a subject or subject and relational operator that is common with the preceding relation condition, and no parentheses are used within such a consecutive sequence, any relation condition except the first may be abbreviated by:
+║When simple or negated simple relation conditions are combined with logical connectives in a consecutive sequence such that a succeeding relation condition contains a subject or subject and relational operator that is common with the preceding relation condition, and no parentheses are used within such a consecutive sequence, any relation condition except the first may be abbreviated by:║
 
-(1) The omission of the subject of the relation condition, or
+║(1) The omission of the subject of the relation condition, or║
 
 VI-60
 
@@ -11551,9 +11551,9 @@ VI-60
 
 Nucleus - Order of Evaluation of Conditions
 
-(2) The omission of the subject and relational operator of the relation condition.
+║(2) The omission of the subject and relational operator of the relation condition.║
 
-The format for an abbreviated combined relation condition is:
+║The format for an abbreviated combined relation condition is:║
 
 <pre style="line-height:1">
 ╔                   ╭ ╭ <u>AND</u> ╮                                    ╮   ╗
@@ -11561,27 +11561,27 @@ The format for an abbreviated combined relation condition is:
 ╚                   ╰ ╰ <u>OR</u>  ╯                                    ╯   ╝
 </pre>
 
-Within a sequence of relation conditions both of the above forms of abbreviation may be used. The effect of using such abbreviations is as if the last preceding stated subject were inserted in place of the omitted subject, and the last stated relational operator were inserted in place of the omitted relational operator. The result of such implied insertion must comply with the rules of table 1 on page VI-60. This insertion of an omitted subject and/or relational operator terminates once a complete simple condition is encountered within a complex condition.
+║Within a sequence of relation conditions both of the above forms of abbreviation may be used. The effect of using such abbreviations is as if the last preceding stated subject were inserted in place of the omitted subject, and the last stated relational operator were inserted in place of the omitted relational operator. The result of such implied insertion must comply with the rules of table 1 on page VI-60. This insertion of an omitted subject and/or relational operator terminates once a complete simple condition is encountered within a complex condition.║
 
-The interpretation applied to the use of the word NOT in an abbreviated combined relation condition is as follows:
+║The interpretation applied to the use of the word NOT in an abbreviated combined relation condition is as follows:║
 
-(1) If the word immediately following NOT is GREATER, &gt;, LESS, &lt;, EQUAL, =, then the NOT participates as part of the relational operator; otherwise,
+║(1) If the word immediately following NOT is GREATER, &gt;, LESS, &lt;, EQUAL, =, then the NOT participates as part of the relational operator; otherwise,║
 
-(2) The NOT is interpreted as a logical operator and, therefore, the implied insertion of subject or relational operator results in a negated relation condition.
+║(2) The NOT is interpreted as a logical operator and, therefore, the implied insertion of subject or relational operator results in a negated relation condition.║
 
-Some examples of abbreviated combined and negated combined relation conditions and expanded equivalents follow.
+║Some examples of abbreviated combined and negated combined relation conditions and expanded equivalents follow.║
 
-| Abbreviated Combined Relation Condition | Expanded Equivalent |
+| ║Abbreviated Combined Relation Condition | Expanded Equivalent║ |
 |---|---|
-| a &gt; b AND NOT &lt; c OR d | ((a &gt; b) AND (a NOT &lt; c)) OR (a NOT &lt; d) |
-| a NOT EQUAL b OR c | (a NOT EQUAL b) OR (a NOT EQUAL c) |
-| NOT a = b OR c | (NOT (a = b)) OR (a = c) |
-| NOT (a GREATER b OR &lt; c) | NOT ((a GREATER b) OR (a &lt; c)) |
-| NOT (a NOT &gt; b AND c AND NOT d) | NOT ((((a NOT &gt; b) AND (a NOT &gt; c))<br>AND (NOT (a NOT &gt; d)))) |
+| ║a &gt; b AND NOT &lt; c OR d | ((a &gt; b) AND (a NOT &lt; c)) OR (a NOT &lt; d)║ |
+| ║a NOT EQUAL b OR c | (a NOT EQUAL b) OR (a NOT EQUAL c)║ |
+| ║NOT a = b OR c | (NOT (a = b)) OR (a = c)║ |
+| ║NOT (a GREATER b OR &lt; c) | NOT ((a GREATER b) OR (a &lt; c))║ |
+| ║NOT (a NOT &gt; b AND c AND NOT d) | NOT ((((a NOT &gt; b) AND (a NOT &gt; c))<br>AND (NOT (a NOT &gt; d))))║ |
 
-### 6.3.4 Order of Evaluation of Conditions
+### ║6.3.4 Order of Evaluation of Conditions║
 
-Parentheses, both explicit and implicit, denote a level of inclusiveness within a complex condition. Two or more conditions connected by only the logical operator 'AND' or only the logical operator 'OR' at the same level of inclusiveness establish a hierarchical level within a complex condition. Thus, an entire complex condition may be considered to be a nested structure of hierarchical levels with the entire complex condition itself being the most
+║Parentheses, both explicit and implicit, denote a level of inclusiveness within a complex condition. Two or more conditions connected by only the logical operator 'AND' or only the logical operator 'OR' at the same level of inclusiveness establish a hierarchical level within a complex condition. Thus, an entire complex condition may be considered to be a nested structure of hierarchical levels with the entire complex condition itself being the most║
 
 VI-61
 
@@ -11589,13 +11589,13 @@ VI-61
 
 Nucleus - Order of Evaluation of Conditions
 
-inclusive hierarchical level. Within this context, the evaluation of the conditions within an entire complex condition begins at the left of the entire complex condition and proceeds according to the following rule recursively applied where necessary:
+║inclusive hierarchical level. Within this context, the evaluation of the conditions within an entire complex condition begins at the left of the entire complex condition and proceeds according to the following rule recursively applied where necessary:║
 
-(1) The constituent connected conditions within a hierarchical level are evaluated in order from left to right, and evaluation of that hierarchical level terminates as soon as a truth value for it is determined regardless of whether all the constituent connected conditions within that hierarchical level have been evaluated.
+║(1) The constituent connected conditions within a hierarchical level are evaluated in order from left to right, and evaluation of that hierarchical level terminates as soon as a truth value for it is determined regardless of whether all the constituent connected conditions within that hierarchical level have been evaluated.║
 
-Values are established for arithmetic expressions if and when the conditions containing them are evaluated. Similarly, negated conditions are evaluated if and when it is necessary to evaluate the complex condition that they represent. (See page VI-52, Formation and Evaluation Rules.)
+║Values are established for arithmetic expressions if and when the conditions containing them are evaluated. Similarly, negated conditions are evaluated if and when it is necessary to evaluate the complex condition that they represent. (See page VI-52, Formation and Evaluation Rules.)║
 
-Application of the above rules is shown in figures 1 through 4 located on the following pages. These figures are not intended to dictate implementation.
+║Application of the above rules is shown in figures 1 through 4 located on the following pages. These figures are not intended to dictate implementation.║
 
 VI-62
 
@@ -11778,7 +11778,7 @@ When the low-order integer positions in a resultant identifier are represented b
 
 The size error condition occurs under the following circumstances:
 
-(1) Violation of the rules for evaluation of exponentiation always terminates the arithmetic operation and always causes a size error condition. (See page VI-52, Formation and Evaluation Rules.)
+║(1) Violation of the rules for evaluation of exponentiation always terminates the arithmetic operation and always causes a size error condition. (See page VI-52, Formation and Evaluation Rules.)║
 
 (2) Division by zero always terminates the arithmetic operation and always causes a size error condition.
 
@@ -11796,21 +11796,21 @@ If the ON SIZE ERROR phrase is not specified and a size error condition exists a
 
 If the size error condition does not exist after the execution of the arithmetic operations specified by an arithmetic statement, the ON SIZE ERROR phrase, if specified, is ignored and control is transferred to the end of the arithmetic statement or to the imperative-statement specified in the NOT ON SIZE ERROR phrase if it is specified. In the latter case, execution continues according to the rules for each statement specified in that imperative-statement. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of the imperative-statement specified in the NOT ON SIZE ERROR phrase, control is transferred to the end of the arithmetic statement.
 
-For the ADD statement with the CORRESPONDING phrase and the SUBTRACT statement with the CORRESPONDING phrase, if any of the individual operations produces a size error condition, imperative-statement-1 in the ON SIZE ERROR phrase is not executed until all of the individual additions or subtractions are completed.
+║For the ADD statement with the CORRESPONDING phrase and the SUBTRACT statement with the CORRESPONDING phrase, if any of the individual operations produces a size error condition, imperative-statement-1 in the ON SIZE ERROR phrase is not executed until all of the individual additions or subtractions are completed.║
 
-### 6.4.3 The CORRESPONDING Phrase
+### ║6.4.3 The CORRESPONDING Phrase║
 
-For the purpose of this discussion, D1 and D2 must each be identifiers that refer to group items. A pair of data items, one from D1 and one from D2 correspond if the following conditions exist:
+║For the purpose of this discussion, D1 and D2 must each be identifiers that refer to group items. A pair of data items, one from D1 and one from D2 correspond if the following conditions exist:║
 
-(1) A data item in D1 and a data item in D2 are not designated by the key word FILLER and have the same data-name and the same qualifiers up to, but not including, D1 and D2.
+║(1) A data item in D1 and a data item in D2 are not designated by the key word FILLER and have the same data-name and the same qualifiers up to, but not including, D1 and D2.║
 
-(2) At least one of the data items is an elementary data item and the resulting move is legal according to the move rules in the case of a MOVE statement with the CORRESPONDING phrase; and both of the data items are elementary numeric data items in the case of the ADD statement with the CORRESPONDING phrase or the SUBTRACT statement with the CORRESPONDING phrase.
+║(2) At least one of the data items is an elementary data item and the resulting move is legal according to the move rules in the case of a MOVE statement with the CORRESPONDING phrase; and both of the data items are elementary numeric data items in the case of the ADD statement with the CORRESPONDING phrase or the SUBTRACT statement with the CORRESPONDING phrase.║
 
-(3) The description of D1 and D2 must not contain level-number 66, 77, or 88 or the USAGE IS INDEX clause.
+║(3) The description of D1 and D2 must not contain level-number 66, 77, or 88 or the USAGE IS INDEX clause.║
 
-(4) A data item that is subordinate to D1 or D2 and contains a REDEFINES, RENAMES, OCCURS, or USAGE IS INDEX clause is ignored, as well as those data items subordinate to the data item that contains the REDEFINES, OCCURS, or USAGE IS INDEX clause. Neither D1 nor D2 may be referenced modified.
+║(4) A data item that is subordinate to D1 or D2 and contains a REDEFINES, RENAMES, OCCURS, or USAGE IS INDEX clause is ignored, as well as those data items subordinate to the data item that contains the REDEFINES, OCCURS, or USAGE IS INDEX clause. Neither D1 nor D2 may be referenced modified.║
 
-(5) The name of each data item which satisfies the above conditions must be unique after application of the implied qualifiers.
+║(5) The name of each data item which satisfies the above conditions must be unique after application of the implied qualifiers.║
 
 VI-68
 
@@ -11820,7 +11820,7 @@ Nucleus - Options and Rules for Statements
 
 ### 6.4.4 The Arithmetic Statements
 
-The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements. They have several common features.
+The arithmetic statements are the ADD, ║COMPUTE,║ DIVIDE, MULTIPLY, and SUBTRACT statements. They have several common features.
 
 (1) The data descriptions of the operands need not be the same; any necessary conversion and decimal point alignment is supplied throughout the calculation.
 
@@ -11832,7 +11832,7 @@ When a sending and a receiving item in any statement share a part or all of thei
 
 ### 6.4.6 Multiple Results in Arithmetic Statements
 
-The ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements may have multiple results. Such statements behave as though they had been written in the following way:
+The ADD, ║COMPUTE,║ DIVIDE, MULTIPLY, and SUBTRACT statements may have multiple results. Such statements behave as though they had been written in the following way:
 
 (1) A statement whose execution accesses all data items that are part of the initial evaluation of the statement, performs any necessary arithmetic or combining of these data items and stores the result of this operation in a temporary location. See the individual statements for the rules indicating which items are part of the initial evaluation.
 
@@ -11913,7 +11913,7 @@ The ACCEPT statement causes low volume data to be made available to the specifie
 
 ### 6.5.3 Syntax Rules
 
-(1) Mnemonic-name-1 in format 1 must also be specified in the SPECIAL-NAMES paragraph of the Environment Division and must be associated with a hardware device.
+║(1) Mnemonic-name-1 in format 1 must also be specified in the SPECIAL-NAMES paragraph of the Environment Division and must be associated with a hardware device.║
 
 ### 6.5.4 General Rules
 
@@ -11927,7 +11927,7 @@ The ACCEPT statement causes low volume data to be made available to the specifie
 
 (4) If a hardware device is not capable of transferring data of the same size as the receiving data item, then:
 
-a. If the size of the receiving data item (or of the portion of the receiving data item not yet currently occupied by transferred data) exceeds the size of the transferred data, the transferred data is stored aligned to the left in the receiving data item (or the portion of the receiving data item not yet occupied), and additional data is requested. In level 1, only one transfer of data is provided.
+a. If the size of the receiving data item ║(or of the portion of the receiving data item not yet currently occupied by transferred data)║ exceeds the size of the transferred data, the transferred data is stored aligned to the left in the receiving data item ║(or the portion of the receiving data item not yet occupied), and additional data is requested.║ In level 1, only one transfer of data is provided.
 
 VI-71
 
@@ -11935,21 +11935,21 @@ VI-71
 
 Nucleus - ACCEPT
 
-b. If the size of the transferred data exceeds the size of the receiving data item (or the portion of the receiving data item not yet occupied by transferred data), only the leftmost characters of the transferred data are stored in the receiving data item (or in the portion remaining). The remaining characters of the transferred data which do not fit into the receiving data item are ignored.
+b. If the size of the transferred data exceeds the size of the receiving data item ║(or the portion of the receiving data item not yet occupied by transferred data),║ only the leftmost characters of the transferred data are stored in the receiving data item ║(or in the portion remaining).║ The remaining characters of the transferred data which do not fit into the receiving data item are ignored.
 
-(5) If the FROM option is not given, the device that the implementor specifies as standard is used.
+(5) ║If the FROM option is not given,║ the device that the implementor specifies as standard is used.
 
-<u>FORMAT 2</u>:
+<u>║FORMAT 2</u>:║
 
-(6) The ACCEPT statement causes the information requested to be transferred to the data item specified by identifier-2 according to the rules for the MOVE statement. (See page VI-103, The MOVE Statement.) DATE, DAY, DAY-OF-WEEK, and TIME are conceptual data items and, therefore, are not described in the COBOL program.
+║(6) The ACCEPT statement causes the information requested to be transferred to the data item specified by identifier-2 according to the rules for the MOVE statement. (See page VI-103, The MOVE Statement.) DATE, DAY, DAY-OF-WEEK, and TIME are conceptual data items and, therefore, are not described in the COBOL program.║
 
-(7) DATE is composed of the data elements year of century, month of year, and day of month. The sequence of the data element codes is from high order to low order (left to right), year of century, month of year, and day of month. Therefore, December 25, 1986, would be expressed as 861225. DATE, when accessed by a COBOL program, behaves as if it had been described in a COBOL program as an unsigned elementary numeric integer data item six digits in length.
+║(7) DATE is composed of the data elements year of century, month of year, and day of month. The sequence of the data element codes is from high order to low order (left to right), year of century, month of year, and day of month. Therefore, December 25, 1986, would be expressed as 861225. DATE, when accessed by a COBOL program, behaves as if it had been described in a COBOL program as an unsigned elementary numeric integer data item six digits in length.║
 
-(8) DAY is composed of the data elements year of century and day of year. The sequence of the data element codes is from high order to low order (left to right) year of century, day of year. Therefore, December 25, 1986, would be expressed as 86359. DAY, when accessed by a COBOL program, behaves as if it had been described in a COBOL program as an unsigned elementary numeric integer data item five digits in length.
+║(8) DAY is composed of the data elements year of century and day of year. The sequence of the data element codes is from high order to low order (left to right) year of century, day of year. Therefore, December 25, 1986, would be expressed as 86359. DAY, when accessed by a COBOL program, behaves as if it had been described in a COBOL program as an unsigned elementary numeric integer data item five digits in length.║
 
-(9) TIME is composed of the data elements hours, minutes, seconds, and hundredths of a second. TIME is based on elapsed time after midnight on a 24-hour clock basis - thus, 2:41 p. m. would be expressed as 14410000. TIME when accessed by a COBOL program behaves as if it had been described in a COBOL program as an unsigned elementary numeric integer data item eight digits in length. The minimum value of TIME is 00000000; the maximum value of TIME is 23595999. If the system does not have the facility to provide fractional parts of a second, the value zero is returned for those parts which cannot be determined.
+║(9) TIME is composed of the data elements hours, minutes, seconds, and hundredths of a second. TIME is based on elapsed time after midnight on a 24-hour clock basis - thus, 2:41 p. m. would be expressed as 14410000. TIME when accessed by a COBOL program behaves as if it had been described in a COBOL program as an unsigned elementary numeric integer data item eight digits in length. The minimum value of TIME is 00000000; the maximum value of TIME is 23595999. If the system does not have the facility to provide fractional parts of a second, the value zero is returned for those parts which cannot be determined.║
 
-(10) DAY-OF-WEEK is composed of a single data element whose content represents the day of the week. DAY-OF-WEEK, when accessed by a COBOL program, behaves as if it had been described in a COBOL program as an unsigned elementary numeric integer data item one digit in length. In DAY-OF-WEEK, the value 1 represents Monday, 2 represents Tuesday, ... , 7 represents Sunday.
+║(10) DAY-OF-WEEK is composed of a single data element whose content represents the day of the week. DAY-OF-WEEK, when accessed by a COBOL program, behaves as if it had been described in a COBOL program as an unsigned elementary numeric integer data item one digit in length. In DAY-OF-WEEK, the value 1 represents Monday, 2 represents Tuesday, ... , 7 represents Sunday.║
 
 VI-72
 
@@ -12004,7 +12004,7 @@ The ADD statement causes two or more numeric operands to be summed and the resul
 
 ### 6.6.3 Syntax Rules
 
-(1) In formats 1 and 2, each identifier must refer to an elementary numeric item, except that in format 2 each identifier following the word GIVING must refer to either an elementary numeric item or an elementary numeric edited item. In format 3, each identifier must refer to a group item.
+(1) In formats 1 and 2, each identifier must refer to an elementary numeric item, except that in format 2 each identifier following the word GIVING must refer to either an elementary numeric item or an elementary numeric edited item. ║In format 3, each identifier must refer to a group item.║
 
 VI-73
 
@@ -12020,9 +12020,9 @@ a. In format 1 the composite of operands is determined by using all of the opera
 
 b. In format 2 the composite of operands is determined by using all of the operands in a given statement excluding the data items that follow the word GIVING.
 
-c. In format 3 the composite of operands is determined separately for each pair of corresponding data items.
+║c. In format 3 the composite of operands is determined separately for each pair of corresponding data items.║
 
-(4) CORR is an abbreviation for CORRESPONDING.
+║(4) CORR is an abbreviation for CORRESPONDING.║
 
 ### 6.6.4 General Rules
 
@@ -12030,11 +12030,11 @@ c. In format 3 the composite of operands is determined separately for each pair 
 
 (2) If format 2 is used, the values of the operands preceding the word GIVING are added together, then the sum is stored as the new content of each data item referenced by identifier-3.
 
-(3) If format 3 is used, data items in identifier-1 are added to and stored in corresponding data items in identifier-2.
+║(3) If format 3 is used, data items in identifier-1 are added to and stored in corresponding data items in identifier-2.║
 
 (4) The compiler insures that enough places are carried so as not to lose any significant digits during execution.
 
-(5) Additional rules and explanations relative to this statement are given under the appropriate paragraphs. (See page IV-40, Scope of Statements; page VI-67, The ROUNDED Phrase; page VI-67, The ON SIZE ERROR Phrase; page VI-69, The Arithmetic Statements; page VI-69, Overlapping Operands; page VI-69, Multiple Results in Arithmetic Statements; page VI-68, The CORRESPONDING Phrase.)
+(5) Additional rules and explanations relative to this statement are given under the appropriate paragraphs. (See page IV-40, Scope of Statements; page VI-67, The ROUNDED Phrase; page VI-67, The ON SIZE ERROR Phrase; page VI-69, The Arithmetic Statements; page VI-69, Overlapping Operands; page VI-69, Multiple Results in Arithmetic Statements; ║page VI-68, The CORRESPONDING Phrase.)║
 
 VI-74
 
@@ -12074,13 +12074,13 @@ VI-75
 
 Nucleus - COMPUTE
 
-## 6.8 THE COMPUTE STATEMENT
+## ║6.8 THE COMPUTE STATEMENT║
 
-### 6.8.1 Function
+### ║6.8.1 Function║
 
-The COMPUTE statement assigns to one or more data items the value of an arithmetic expression.
+║The COMPUTE statement assigns to one or more data items the value of an arithmetic expression.║
 
-### 6.8.2 General Format
+### ║6.8.2 General Format║
 
 <pre style="line-height:1">
 ╔<u>COMPUTE</u> {identifier-1 [<u>ROUNDED</u>]} …    =  arithmetic-expression-1 ╗
@@ -12092,21 +12092,21 @@ The COMPUTE statement assigns to one or more data items the value of an arithmet
 ╚   [<u>END-COMPUTE</u>]                                                 ╝
 </pre>
 
-### 6.8.3 Syntax Rules
+### ║6.8.3 Syntax Rules║
 
-(1) Identifier-1 must reference either an elementary numeric item or an elementary numeric edited item.
+║(1) Identifier-1 must reference either an elementary numeric item or an elementary numeric edited item.║
 
-### 6.8.4 General Rules
+### ║6.8.4 General Rules║
 
-(1) An arithmetic expression consisting of a single identifier or literal provides a method of setting the value of the data item referenced by identifier-1 equal to the literal or the value of the data item referenced by the single identifier.
+║(1) An arithmetic expression consisting of a single identifier or literal provides a method of setting the value of the data item referenced by identifier-1 equal to the literal or the value of the data item referenced by the single identifier.║
 
-(2) If more than one identifier is specified for the result of the operation, that is preceding =, the value of the arithmetic expression is developed, and then this value is stored as the new value of each of the data items referenced by identifier-1.
+║(2) If more than one identifier is specified for the result of the operation, that is preceding =, the value of the arithmetic expression is developed, and then this value is stored as the new value of each of the data items referenced by identifier-1.║
 
-(3) The COMPUTE statement allows the user to combine arithmetic operations without the restrictions on composite of operands and/or receiving data items imposed by the arithmetic statements ADD, SUBTRACT, MULTIPLY, and DIVIDE.
+║(3) The COMPUTE statement allows the user to combine arithmetic operations without the restrictions on composite of operands and/or receiving data items imposed by the arithmetic statements ADD, SUBTRACT, MULTIPLY, and DIVIDE.║
 
-Thus, each implementor will indicate the techniques used in handling arithmetic expressions.
+║Thus, each implementor will indicate the techniques used in handling arithmetic expressions.║
 
-(4) Additional rules and explanations relative to this statement are given under the appropriate paragraphs. (See page IV-40, Scope of Statements; page VI-67, The ROUNDED Phrase; page VI-67, The ON SIZE ERROR Phrase; page VI-69, The Arithmetic Statements; page VI-69, Overlapping Operands; page VI-69, Multiple Results in Arithmetic Statements.)
+║(4) Additional rules and explanations relative to this statement are given under the appropriate paragraphs. (See page IV-40, Scope of Statements; page VI-67, The ROUNDED Phrase; page VI-67, The ON SIZE ERROR Phrase; page VI-69, The Arithmetic Statements; page VI-69, Overlapping Operands; page VI-69, Multiple Results in Arithmetic Statements.)║
 
 VI-76
 
@@ -12156,7 +12156,7 @@ The DISPLAY statement causes low volume data to be transferred to an appropriate
 
 ### 6.10.3 Syntax Rules
 
-(1) Mnemonic-name-1 is associated with a hardware device in the SPECIAL-NAMES paragraph in the Environment Division.
+║(1) Mnemonic-name-1 is associated with a hardware device in the SPECIAL-NAMES paragraph in the Environment Division.║
 
 (2) If literal-1 is numeric, then it must be an unsigned integer.
 
@@ -12172,7 +12172,7 @@ The DISPLAY statement causes low volume data to be transferred to an appropriate
 
 (5) If a hardware device is not capable of receiving data of the same size as the data item being transferred, then one of the following applies:
 
-a. If the size of the data item being transferred exceeds the size of the data that the hardware device is capable of receiving in a single transfer, the data beginning with the leftmost character is stored aligned to the left in the receiving hardware device, and the remaining data is then transferred according to general rules 4 and 5 until all the data has been transferred. In level 1, only one transfer of data is provided.
+a. If the size of the data item being transferred exceeds the size of the data that the hardware device is capable of receiving in a single transfer, the data beginning with the leftmost character is stored aligned to the left in the receiving hardware device, ║and the remaining data is then transferred according to general rules 4 and 5 until all the data has been transferred.║ In level 1, only one transfer of data is provided.
 
 b. If the size of the data item that the hardware device is capable of receiving exceeds the size of the data being transferred, the transferred data is stored aligned to the left in the receiving hardware device.
 
@@ -12184,11 +12184,11 @@ VI-78
 
 Nucleus - DISPLAY
 
-(7) If the UPON phrase is not specified, the implementor's standard display device is used.
+(7) ║If the UPON phrase is not specified,║ the implementor's standard display device is used.
 
-(8) If the WITH NO ADVANCING phrase is specified, then the positioning of the hardware device will not be reset to the next line or changed in any other way following the display of the last operand. If the hardware device is capable of positioning to a specific character position, it will remain positioned at the character position immediately following the last character of the last operand displayed. If the hardware device is not capable of positioning to a specific character position, only the vertical position, if applicable, is affected. This may cause overprinting if the hardware device supports overprinting.
+║(8) If the WITH NO ADVANCING phrase is specified, then the positioning of the hardware device will not be reset to the next line or changed in any other way following the display of the last operand. If the hardware device is capable of positioning to a specific character position, it will remain positioned at the character position immediately following the last character of the last operand displayed. If the hardware device is not capable of positioning to a specific character position, only the vertical position, if applicable, is affected. This may cause overprinting if the hardware device supports overprinting.║
 
-(9) If the WITH NO ADVANCING phrase is not specified, then after the last operand has been transferred to the hardware device, the positioning of the hardware device will be reset to the leftmost position of the next line of the device.
+(9) ║If the WITH NO ADVANCING phrase is not specified,║ then after the last operand has been transferred to the hardware device, the positioning of the hardware device will be reset to the leftmost position of the next line of the device.
 
 (10) If vertical positioning is not applicable on the hardware device, the operating system will ignore the vertical positioning specified or implied.
 
@@ -12204,7 +12204,7 @@ Nucleus - DIVIDE
 
 #### 6.11.1 Function
 
-The DIVIDE statement divides one numeric data item into others and sets the values of data items equal to the quotient and remainder.
+The DIVIDE statement divides one numeric data item into others and sets the values of data items equal to the quotient ║and remainder.║
 
 #### 6.11.2 General Format
 
@@ -12291,7 +12291,7 @@ Nucleus - DIVIDE
 
 ### 6.11.3 Syntax Rules
 
-(1) Each identifier must refer to an elementary numeric item, except that any identifier associated with the GIVING or REMAINDER phrase must refer to either an elementary numeric item or an elementary numeric edited item.
+(1) Each identifier must refer to an elementary numeric item, except that any identifier associated with the GIVING ║or REMAINDER║ phrase must refer to either an elementary numeric item or an elementary numeric edited item.
 
 (2) Each literal must be a numeric literal.
 
@@ -12311,21 +12311,21 @@ Nucleus - DIVIDE
 
 (3) When format 3 is used, literal-1 or the value of the data item referenced by identifier-1 is divided by literal-2 or the value of the data item referenced by identifier-2 and the result is stored in each data item referenced by identifier-3.
 
-(4) When format 4 is used, literal-1 or the value of the data item referenced by identifier-1 is divided into literal-2 or the value of the data item referenced by identifier-2 and the result is stored in the data item referenced by identifier-3. The remainder is then calculated and the result is stored in the data item referenced by identifier-4. If identifier-4 is subscripted, the subscript is evaluated immediately before the remainder is stored in the data item referenced by identifier-4.
+║(4) When format 4 is used, literal-1 or the value of the data item referenced by identifier-1 is divided into literal-2 or the value of the data item referenced by identifier-2 and the result is stored in the data item referenced by identifier-3. The remainder is then calculated and the result is stored in the data item referenced by identifier-4. If identifier-4 is subscripted, the subscript is evaluated immediately before the remainder is stored in the data item referenced by identifier-4.║
 
-(5) When format 5 is used, literal-1 or the value of the data item referenced by identifier-1 is divided by literal-2 or the value of the data item referenced by identifier-2 and the division operation continues as specified for format 4 above.
+║(5) When format 5 is used, literal-1 or the value of the data item referenced by identifier-1 is divided by literal-2 or the value of the data item referenced by identifier-2 and the division operation continues as specified for format 4 above.║
 
-(6) Formats 4 and 5 are used when a remainder from the division operation is desired, namely identifier-4. The remainder in COBOL is defined as the result of subtracting the product of the quotient (identifier-3) and the divisor from the dividend. If identifier-3 is defined as a numeric edited item, the quotient used to calculate the remainder is an intermediate field which contains the unedited quotient. If ROUNDED is specified, the quotient used to calculate the remainder is an intermediate field which contains the quotient of the DIVIDE statement, truncated rather than rounded. This intermediate field is defined as a numeric field which contains the same number of digits, the same decimal point location, and the same presence or absence of a sign as the quotient (identifier-3).
+║(6) Formats 4 and 5 are used when a remainder from the division operation is desired, namely identifier-4. The remainder in COBOL is defined as the result of subtracting the product of the quotient (identifier-3) and the divisor from the dividend. If identifier-3 is defined as a numeric edited item, the quotient used to calculate the remainder is an intermediate field which contains the unedited quotient. If ROUNDED is specified, the quotient used to calculate the remainder is an intermediate field which contains the quotient of the DIVIDE statement, truncated rather than rounded. This intermediate field is defined as a numeric field which contains the same number of digits, the same decimal point location, and the same presence or absence of a sign as the quotient (identifier-3).║
 
-(7) In formats 4 and 5, the accuracy of the REMAINDER data item (identifier-4) is defined by the calculation described above. Appropriate decimal alignment and truncation (not rounding) will be performed for the value of the data item referenced by identifier-4, as needed.
+║(7) In formats 4 and 5, the accuracy of the REMAINDER data item (identifier-4) is defined by the calculation described above. Appropriate decimal alignment and truncation (not rounding) will be performed for the value of the data item referenced by identifier-4, as needed.║
 
-(8) When the ON SIZE ERROR phrase is used in formats 4 and 5, the following rules pertain:
+║(8) When the ON SIZE ERROR phrase is used in formats 4 and 5, the following rules pertain:║
 
-a. If the size error occurs on the quotient, no remainder calculation is meaningful. Thus, the contents of the data items referenced by both identifier-3 and identifier-4 will remain unchanged.
+║a. If the size error occurs on the quotient, no remainder calculation is meaningful. Thus, the contents of the data items referenced by both identifier-3 and identifier-4 will remain unchanged.║
 
-b. If the size error occurs in the remainder, the content of the data item referenced by identifier-4 remains unchanged. However, as with other instances of multiple results of arithmetic statements, the user will have to do his own analysis to recognize which situation has actually occurred.
+║b. If the size error occurs in the remainder, the content of the data item referenced by identifier-4 remains unchanged. However, as with other instances of multiple results of arithmetic statements, the user will have to do his own analysis to recognize which situation has actually occurred.║
 
-(9) Additional rules and explanations relative to this statement are given under the appropriate paragraphs. (See page IV-40, Scope of Statements; page VI-67, The ROUNDED Phrase; page VI-67, The ON SIZE ERROR Phrase; page VI-69, The Arithmetic Statements; page VI-69, Overlapping Operands; page VI-69, Multiple Results in Arithmetic Statements. See also general rules 6 through 8 for a presentation of the ROUNDED phrase and the ON SIZE ERROR phrase as they pertain to formats 4 and 5.)
+(9) Additional rules and explanations relative to this statement are given under the appropriate paragraphs. (See page IV-40, Scope of Statements; page VI-67, The ROUNDED Phrase; page VI-67, The ON SIZE ERROR Phrase; page VI-69, The Arithmetic Statements; page VI-69, Overlapping Operands; page VI-69, Multiple Results in Arithmetic Statements. ║See also general rules 6 through 8 for a presentation of the ROUNDED phrase and the ON SIZE ERROR phrase as they pertain to formats 4 and 5.)║
 
 VI-82
 
@@ -12367,13 +12367,13 @@ VI-83
 
 Nucleus - EVALUATE
 
-## 6.13 THE EVALUATE STATEMENT
+## ║6.13 THE EVALUATE STATEMENT║
 
-### 6.13.1 Function
+### ║6.13.1 Function║
 
-The EVALUATE statement describes a multi-branch, multi-join structure. It can cause multiple conditions to be evaluated. The subsequent action of the object program depends on the results of these evaluations.
+║The EVALUATE statement describes a multi-branch, multi-join structure. It can cause multiple conditions to be evaluated. The subsequent action of the object program depends on the results of these evaluations.║
 
-### 6.13.2 General Format
+### ║6.13.2 General Format║
 
 <pre style="line-height:1">
 ╔            ╭identifier-1╮ ┌      ╭identifier-2╮ ┐                                             ╗
@@ -12411,15 +12411,15 @@ The EVALUATE statement describes a multi-branch, multi-join structure. It can ca
 ╚  [<u>END-EVALUATE</u>]                                                                               ╝
 </pre>
 
-### 6.13.3 Syntax Rules
+### ║6.13.3 Syntax Rules║
 
-(1) The operands or the words TRUE and FALSE which appear before the first WHEN phrase of the EVALUATE statement are referred to individually as selection subjects and collectively, for all those specified, as the set of selection subjects.
+║(1) The operands or the words TRUE and FALSE which appear before the first WHEN phrase of the EVALUATE statement are referred to individually as selection subjects and collectively, for all those specified, as the set of selection subjects.║
 
-(2) The operands or the words TRUE, FALSE, and ANY which appear in a WHEN phrase of an EVALUATE statement are referred to individually as selection objects and collectively, for all those specified in a single WHEN phrase, as the set of selection objects.
+║(2) The operands or the words TRUE, FALSE, and ANY which appear in a WHEN phrase of an EVALUATE statement are referred to individually as selection objects and collectively, for all those specified in a single WHEN phrase, as the set of selection objects.║
 
-(3) The words THROUGH and THRU are equivalent.
+║(3) The words THROUGH and THRU are equivalent.║
 
-(4) Two operands connected by a THROUGH phrase must be of the same class. The two operands thus connected constitute a single selection object.
+║(4) Two operands connected by a THROUGH phrase must be of the same class. The two operands thus connected constitute a single selection object.║
 
 VI-84
 
@@ -12427,31 +12427,31 @@ VI-84
 
 Nucleus - EVALUATE
 
-(5) The number of selection objects within each set of selection objects must be equal to the number of selection subjects.
+║(5) The number of selection objects within each set of selection objects must be equal to the number of selection subjects.║
 
-(6) Each selection object within a set of selection objects must correspond to the selection subject having the same ordinal position within the set of selection subjects according to the following rules:
+║(6) Each selection object within a set of selection objects must correspond to the selection subject having the same ordinal position within the set of selection subjects according to the following rules:║
 
-a. Identifiers, literals, or arithmetic expressions appearing within a selection object must be valid operands for comparison to the corresponding operand in the set of selection subjects. (See page VI-54, Relation Condition.)
+║a. Identifiers, literals, or arithmetic expressions appearing within a selection object must be valid operands for comparison to the corresponding operand in the set of selection subjects. (See page VI-54, Relation Condition.)║
 
-b. Condition-1, condition-2, or the words TRUE or FALSE appearing as a selection object must correspond to a conditional expression or the words TRUE or FALSE in the set of selection subjects.
+║b. Condition-1, condition-2, or the words TRUE or FALSE appearing as a selection object must correspond to a conditional expression or the words TRUE or FALSE in the set of selection subjects.║
 
-c. The word ANY may correspond to a selection subject of any type.
+║c. The word ANY may correspond to a selection subject of any type.║
 
-### 6.13.4 General Rules
+### ║6.13.4 General Rules║
 
-(1) The execution of the EVALUATE statement operates as if each selection subject and selection object were evaluated and assigned a numeric or nonnumeric value, a range of numeric or nonnumeric values, or a truth value. These values are determined as follows:
+║(1) The execution of the EVALUATE statement operates as if each selection subject and selection object were evaluated and assigned a numeric or nonnumeric value, a range of numeric or nonnumeric values, or a truth value. These values are determined as follows:║
 
-a. Any selection subject specified by identifier-1, identifier-2, and any selection object specified by identifier-3, identifier-5, without either the NOT or the THROUGH phrases, are assigned the value and class of the data item referenced by the identifier.
+║a. Any selection subject specified by identifier-1, identifier-2, and any selection object specified by identifier-3, identifier-5, without either the NOT or the THROUGH phrases, are assigned the value and class of the data item referenced by the identifier.║
 
-b. Any selection subject specified by literal-1, literal-2, and any selection object specified by literal-3, literal-5, without either the NOT or the THROUGH phrases, are assigned the value and class of the specified literal. If literal-3, literal-5, is the figurative constant ZERO, it is assigned the class of the corresponding selection subject.
+║b. Any selection subject specified by literal-1, literal-2, and any selection object specified by literal-3, literal-5, without either the NOT or the THROUGH phrases, are assigned the value and class of the specified literal. If literal-3, literal-5, is the figurative constant ZERO, it is assigned the class of the corresponding selection subject.║
 
-c. Any selection subject in which expression-1, expression-2, is specified as an arithmetic expression and any selection object, without either the NOT or the THROUGH phrases, in which arithmetic-expression-1, arithmetic-expression-3, is specified are assigned a numeric value according to the rules for evaluating an arithmetic expression. (See page VI-51, Arithmetic Expressions.)
+║c. Any selection subject in which expression-1, expression-2, is specified as an arithmetic expression and any selection object, without either the NOT or the THROUGH phrases, in which arithmetic-expression-1, arithmetic-expression-3, is specified are assigned a numeric value according to the rules for evaluating an arithmetic expression. (See page VI-51, Arithmetic Expressions.)║
 
-d. Any selection subject in which expression-1, expression-2, is specified as a conditional expression and any selection object in which condition-1, condition-2, is specified are assigned a truth value according to the rules for evaluating conditional expressions. (See page VI-54, Conditional Expressions.)
+║d. Any selection subject in which expression-1, expression-2, is specified as a conditional expression and any selection object in which condition-1, condition-2, is specified are assigned a truth value according to the rules for evaluating conditional expressions. (See page VI-54, Conditional Expressions.)║
 
-e. Any selection subject or any selection object specified by the words TRUE or FALSE is assigned a truth value. The truth value 'true' is assigned to those items specified with the word TRUE, and the truth value 'false' is assigned to those items specified with the word FALSE.
+║e. Any selection subject or any selection object specified by the words TRUE or FALSE is assigned a truth value. The truth value 'true' is assigned to those items specified with the word TRUE, and the truth value 'false' is assigned to those items specified with the word FALSE.║
 
-f. Any selection object specified by the word ANY is not further evaluated.
+║f. Any selection object specified by the word ANY is not further evaluated.║
 
 VI-85
 
@@ -12459,29 +12459,29 @@ VI-85
 
 Nucleus - EVALUATE
 
-g. If the THROUGH phrase is specified for a selection object, without the NOT phrase, the range of values includes all permissible values of the selection subject that are greater than or equal to the first operand and less than or equal to the second operand according to the rules for comparison. (See page VI-54, Relation Condition.)
+║g. If the THROUGH phrase is specified for a selection object, without the NOT phrase, the range of values includes all permissible values of the selection subject that are greater than or equal to the first operand and less than or equal to the second operand according to the rules for comparison. (See page VI-54, Relation Condition.)║
 
-h. If the NOT phrase is specified for a selection object, the values assigned to that item are all permissible values of the selection subject not equal to the value, or not included in the range of values, that would have been assigned to the item had the NOT phrase not been specified.
+║h. If the NOT phrase is specified for a selection object, the values assigned to that item are all permissible values of the selection subject not equal to the value, or not included in the range of values, that would have been assigned to the item had the NOT phrase not been specified.║
 
-(2) The execution of the EVALUATE statement then proceeds as if the values assigned to the selection subjects and selection objects were compared to determine if any WHEN phrase satisfies the set of selection subjects. This comparison proceeds as follows:
+║(2) The execution of the EVALUATE statement then proceeds as if the values assigned to the selection subjects and selection objects were compared to determine if any WHEN phrase satisfies the set of selection subjects. This comparison proceeds as follows:║
 
-a. Each selection object within the set of selection objects for the first WHEN phrase is compared to the selection subject having the same ordinal position within the set of selection subjects. One of the following conditions must be satisfied if the comparison is to be satisfied:
+║a. Each selection object within the set of selection objects for the first WHEN phrase is compared to the selection subject having the same ordinal position within the set of selection subjects. One of the following conditions must be satisfied if the comparison is to be satisfied:║
 
-1\) If the items being compared are assigned numeric or nonnumeric values, or a range of numeric or nonnumeric values, the comparison is satisfied if the value, or one of the range of values, assigned to the selection object is equal to the value assigned to the selection subject according to the rules for comparison. (See page VI-54, Relation Condition.)
+║1\) If the items being compared are assigned numeric or nonnumeric values, or a range of numeric or nonnumeric values, the comparison is satisfied if the value, or one of the range of values, assigned to the selection object is equal to the value assigned to the selection subject according to the rules for comparison. (See page VI-54, Relation Condition.)║
 
-2\) If the items being compared are assigned truth values, the comparison is satisfied if the items are assigned the identical truth value.
+║2\) If the items being compared are assigned truth values, the comparison is satisfied if the items are assigned the identical truth value.║
 
-3\) If the selection object being compared is specified by the word ANY, the comparison is always satisfied regardless of the value of the selection subject.
+║3\) If the selection object being compared is specified by the word ANY, the comparison is always satisfied regardless of the value of the selection subject.║
 
-b. If the above comparison is satisfied for every selection object within the set of selection objects being compared, the WHEN phrase containing that set of selection objects is selected as the one satisfying the set of selection subjects.
+║b. If the above comparison is satisfied for every selection object within the set of selection objects being compared, the WHEN phrase containing that set of selection objects is selected as the one satisfying the set of selection subjects.║
 
-c. If the above comparison is not satisfied for one or more selection object within the set of selection objects being compared, that set of selection objects does not satisfy the set of selection subjects.
+║c. If the above comparison is not satisfied for one or more selection object within the set of selection objects being compared, that set of selection objects does not satisfy the set of selection subjects.║
 
-d. This procedure is repeated for subsequent sets of selection objects, in the order of their appearance in the source program, until either a WHEN phrase satisfying the set of selection subjects is selected or until all sets of selection objects are exhausted.
+║d. This procedure is repeated for subsequent sets of selection objects, in the order of their appearance in the source program, until either a WHEN phrase satisfying the set of selection subjects is selected or until all sets of selection objects are exhausted.║
 
-(3) After the comparison operation is completed, execution of the EVALUATE statement proceeds as follows:
+║(3) After the comparison operation is completed, execution of the EVALUATE statement proceeds as follows:║
 
-a. If a WHEN phrase is selected, execution continues with the first imperative-statement-1 following the selected WHEN phrase.
+║a. If a WHEN phrase is selected, execution continues with the first imperative-statement-1 following the selected WHEN phrase.║
 
 VI-86
 
@@ -12489,9 +12489,9 @@ VI-86
 
 Nucleus - EVALUATE
 
-b. If no WHEN phrase is selected and a WHEN OTHER phrase is specified, execution continues with imperative-statement-2.
+║b. If no WHEN phrase is selected and a WHEN OTHER phrase is specified, execution continues with imperative-statement-2.║
 
-c. The scope of execution of the EVALUATE statement is terminated when execution reaches the end of imperative-statement-1 of the selected WHEN phrase or the end of imperative-statement-2, or when no WHEN phrase is selected and no WHEN OTHER phrase is specified. (See page IV-40, Scope of Statements.)
+║c. The scope of execution of the EVALUATE statement is terminated when execution reaches the end of imperative-statement-1 of the selected WHEN phrase or the end of imperative-statement-2, or when no WHEN phrase is selected and no WHEN OTHER phrase is specified. (See page IV-40, Scope of Statements.)║
 
 VI-87
 
@@ -12551,7 +12551,7 @@ The GO TO statement causes control to be transferred from one part of the Proced
 
 (2) When a paragraph is referenced by an ALTER statement, that paragraph can consist only of a paragraph header followed by a format 1 GO TO statement.
 
-(3) A format 1 GO TO statement, without procedure-name-1, can only appear in a single statement paragraph.
+║(3) A format 1 GO TO statement, without procedure-name-1, can only appear in a single statement paragraph.║
 
 (4) If a GO TO statement represented by format 1 appears in a consecutive sequence of imperative statements within a sentence, it must appear as the last statement in that sequence.
 
@@ -12559,7 +12559,7 @@ The GO TO statement causes control to be transferred from one part of the Proced
 
 (1) When a GO TO statement represented by format 1 is executed, control is transferred to procedure-name-1.
 
-(2) If procedure-name-1 is not specified in format 1, an ALTER statement, referring to this GO TO statement, must be executed prior to the execution of this GO TO statement.
+║(2) If procedure-name-1 is not specified in format 1, an ALTER statement, referring to this GO TO statement, must be executed prior to the execution of this GO TO statement.║
 
 (3) When a GO TO statement represented by format 2 is executed, control is transferred to procedure-name-1, etc., depending on the value of identifier-1 being 1, 2, ... , n. If the value of identifier-1 is anything other than the positive or unsigned integers 1, 2, ... , n, then no transfer occurs and control passes to the next statement in the normal sequence for execution.
 
@@ -12586,7 +12586,7 @@ The IF statement causes a condition (see page VI-54, Conditional Expressions) to
 
 ### 6.16.3 Syntax Rules
 
-(1) Statement-1 and statement-2 represent either an imperative statement or a conditional statement optionally preceded by an imperative statement. A further description of the rules governing statement-1 and statement-2 is given elsewhere. (See page IV-40, Scope of Statements.)
+(1) Statement-1 and statement-2 represent ║either║ an imperative statement ║or a conditional statement optionally preceded by an imperative statement.║ A further description of the rules governing statement-1 and statement-2 is given elsewhere. (See page IV-40, Scope of Statements.)
 
 (2) The ELSE NEXT SENTENCE phrase may be omitted if it immediately precedes the terminal period of the sentence.
 
@@ -12600,13 +12600,13 @@ a. An END-IF phrase at the same level of nesting.
 
 b. A separator period.
 
-c. If nested, by an ELSE phrase associated with an IF statement at a higher level of nesting.
+║c. If nested, by an ELSE phrase associated with an IF statement at a higher level of nesting.║
 
 (See page IV-40, Scope of Statements.)
 
 (2) When an IF statement is executed, the following transfers of control occur:
 
-a. If the condition is true and statement-1 is specified, control is transferred to the first statement of statement-1 and execution continues according to the rules for each statement specified in statement-1. If a procedure branching or conditional statement is executed which causes an explicit transfer of control, control is explicitly transferred in accordance with the rules of that statement. Upon completion of the execution of statement-1, the ELSE phrase, if specified, is ignored and control passes to the end of the IF statement.
+a. If the condition is true and statement-1 is specified, control is transferred to the first statement of statement-1 and execution continues according to the rules for each statement specified in statement-1. If a procedure branching ║or conditional║ statement is executed which causes an explicit transfer of control, control is explicitly transferred in accordance with the rules of that statement. Upon completion of the execution of statement-1, the ELSE phrase, if specified, is ignored and control passes to the end of the IF statement.
 
 VI-90
 
@@ -12616,7 +12616,7 @@ Nucleus - IF
 
 b. If the condition is true and the NEXT SENTENCE phrase is specified instead of statement-1, the ELSE phrase, if specified, is ignored and control passes to the next executable sentence.
 
-c. If the condition is false and statement-2 is specified, statement-1 or its surrogate NEXT SENTENCE is ignored, control is transferred to the first statement of statement-2, and execution continues according to the rules for each statement specified in statement-2. If a procedure branching or conditional statement is executed which causes an explicit transfer of control, control is explicitly transferred in accordance with the rules of that statement. Upon completion of the execution of statement-2, control passes to the end of the IF statement.
+c. If the condition is false and statement-2 is specified, statement-1 or its surrogate NEXT SENTENCE is ignored, control is transferred to the first statement of statement-2, and execution continues according to the rules for each statement specified in statement-2. If a procedure branching ║or conditional statement║ is executed which causes an explicit transfer of control, control is explicitly transferred in accordance with the rules of that statement. Upon completion of the execution of statement-2, control passes to the end of the IF statement.
 
 d. If the condition is false and the ELSE phrase is not specified, statement-1 is ignored and control passes to the end of the IF statement.
 
@@ -12632,13 +12632,13 @@ VI-91
 
 Nucleus - INITIALIZE
 
-## 6.17 THE INITIALIZE STATEMENT
+## ║6.17 THE INITIALIZE STATEMENT║
 
-### 6.17.1 Function
+### ║6.17.1 Function║
 
-The INITIALIZE statement provides the ability to set selected types of data fields to predetermined values, e.g., numeric data to zeros or alphanumeric data to spaces.
+║The INITIALIZE statement provides the ability to set selected types of data fields to predetermined values, e.g., numeric data to zeros or alphanumeric data to spaces.║
 
-### 6.17.2 General Format
+### ║6.17.2 General Format║
 
 <pre style="line-height:1">
 ╔<u>INITIALIZE</u> {identifier-1} …                                            ╗
@@ -12650,25 +12650,25 @@ The INITIALIZE statement provides the ability to set selected types of data fiel
 ╚  └           ╰ ╰ <u>NUMERIC-EDITED</u>      ╯                          ╯   ┘ ╝
 </pre>
 
-### 6.17.3 Syntax Rules
+### ║6.17.3 Syntax Rules║
 
-(1) Literal-1 and the data item referenced by identifier-2 represent the sending area; the data item referenced by identifier-1 represents the receiving area.
+║(1) Literal-1 and the data item referenced by identifier-2 represent the sending area; the data item referenced by identifier-1 represents the receiving area.║
 
-(2) Each category stated in the REPLACING phrase must be a permissible category as a receiving operand in a MOVE statement where the corresponding data item referenced by identifier-2 or literal-1 is used as the sending operand. (See page VI-103, The MOVE Statement.)
+║(2) Each category stated in the REPLACING phrase must be a permissible category as a receiving operand in a MOVE statement where the corresponding data item referenced by identifier-2 or literal-1 is used as the sending operand. (See page VI-103, The MOVE Statement.)║
 
-(3) The same category cannot be repeated in a REPLACING phrase.
+║(3) The same category cannot be repeated in a REPLACING phrase.║
 
-(4) The description of the data item referenced by identifier-1 or any items subordinate to identifier-1 may not contain the DEPENDING phrase of the OCCURS clause.
+║(4) The description of the data item referenced by identifier-1 or any items subordinate to identifier-1 may not contain the DEPENDING phrase of the OCCURS clause.║
 
-(5) An index data item may not appear as an operand of an INITIALIZE statement.
+║(5) An index data item may not appear as an operand of an INITIALIZE statement.║
 
-(6) The data description entry for the data item referenced by identifier-1 must not contain a RENAMES clause.
+║(6) The data description entry for the data item referenced by identifier-1 must not contain a RENAMES clause.║
 
-### 6.17.4 General Rules
+### ║6.17.4 General Rules║
 
-(1) The key word following the word REPLACING corresponds to a category of data as defined elsewhere in this document. (See page IV-15, Concept of Classes of Data.)
+║(1) The key word following the word REPLACING corresponds to a category of data as defined elsewhere in this document. (See page IV-15, Concept of Classes of Data.)║
 
-(2) Whether identifier-1 references an elementary item or a group item, all operations are performed as if a series of MOVE statements had been written, each of which has an elementary item as its receiving field, subject to the following rules:
+║(2) Whether identifier-1 references an elementary item or a group item, all operations are performed as if a series of MOVE statements had been written, each of which has an elementary item as its receiving field, subject to the following rules:║
 
 VI-92
 
@@ -12676,25 +12676,25 @@ VI-92
 
 Nucleus - INITIALIZE
 
-If the REPLACING phrase is specified:
+║If the REPLACING phrase is specified:║
 
-a. If identifier-1 references a group item, any elementary item within the data item referenced by identifier-1 is initialized only if it belongs to the category specified in the REPLACING phrase.
+║a. If identifier-1 references a group item, any elementary item within the data item referenced by identifier-1 is initialized only if it belongs to the category specified in the REPLACING phrase.║
 
-b. If identifier-1 references an elementary item, that item is initialized only if it belongs to the category specified in the REPLACING phrase.
+║b. If identifier-1 references an elementary item, that item is initialized only if it belongs to the category specified in the REPLACING phrase.║
 
-This initialization takes place as follows: The data item referenced by identifier-2 or literal-1 acts as the sending operand in an implicit MOVE statement to the identified item.
+║This initialization takes place as follows: The data item referenced by identifier-2 or literal-1 acts as the sending operand in an implicit MOVE statement to the identified item.║
 
-All such elementary receiving fields, including all occurrences of table items within the group, are affected; the only exceptions are those fields specified in general rules 3 and 4.
+║All such elementary receiving fields, including all occurrences of table items within the group, are affected; the only exceptions are those fields specified in general rules 3 and 4.║
 
-(3) Index data items and elementary FILLER data items are not affected by the execution of an INITIALIZE statement.
+║(3) Index data items and elementary FILLER data items are not affected by the execution of an INITIALIZE statement.║
 
-(4) Any item that is subordinate to a receiving area identifier and which contains the REDEFINES clause or any item that is subordinate to such an item is excluded from this operation. However, a receiving area identifier may itself have a REDEFINES clause or be subordinate to a data item with a REDEFINES clause.
+║(4) Any item that is subordinate to a receiving area identifier and which contains the REDEFINES clause or any item that is subordinate to such an item is excluded from this operation. However, a receiving area identifier may itself have a REDEFINES clause or be subordinate to a data item with a REDEFINES clause.║
 
-(5) When the statement is written without the REPLACING phrase, data items of the categories alphabetic, alphanumeric, and alphanumeric edited are set to spaces; data items of the categories numeric and numeric edited are set to zeros. In this case, the operation is as if each affected data item is the receiving area in an elementary MOVE statement with the indicated source literal (i.e., spaces or zeros).
+║(5) When the statement is written without the REPLACING phrase, data items of the categories alphabetic, alphanumeric, and alphanumeric edited are set to spaces; data items of the categories numeric and numeric edited are set to zeros. In this case, the operation is as if each affected data item is the receiving area in an elementary MOVE statement with the indicated source literal (i.e., spaces or zeros).║
 
-(6) In all cases, the content of the data item referenced by identifier-1 is set to the indicated value in the order (left to right) of the appearance of identifier-1 in the INITIALIZE statement. Within this sequence, where identifier-1 references a group item, affected elementary items are initialized in the sequence of their definition within the group.
+║(6) In all cases, the content of the data item referenced by identifier-1 is set to the indicated value in the order (left to right) of the appearance of identifier-1 in the INITIALIZE statement. Within this sequence, where identifier-1 references a group item, affected elementary items are initialized in the sequence of their definition within the group.║
 
-(7) If identifier-1 occupies the same storage area as identifier-2, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)
+║(7) If identifier-1 occupies the same storage area as identifier-2, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)║
 
 VI-93
 
@@ -12706,7 +12706,7 @@ Nucleus - INSPECT
 
 #### 6.18.1 Function
 
-The INSPECT statement provides the ability to tally or replace occurrences of single characters or groups of characters in a data item.
+The INSPECT statement provides the ability to tally or replace occurrences of single characters ║or groups of characters║ in a data item.
 
 #### 6.18.2 General Format
 
@@ -12785,9 +12785,9 @@ Nucleus - INSPECT
 
 (3) Each literal must be a nonnumeric literal and must not be a figurative constant that begins with the word ALL. If literal-1, literal-2, or literal-4 is a figurative constant, it refers to an implicit one character data item.
 
-(4) No more than one BEFORE phrase and one AFTER phrase can be specified for any one ALL, LEADING, CHARACTERS, FIRST, or CONVERTING phrase.
+║(4) No more than one BEFORE phrase and one AFTER phrase can be specified for any one ALL, LEADING, CHARACTERS, FIRST, or CONVERTING phrase.║
 
-(5) In level 1, literal-1, literal-2, and literal-3, and the data items referenced by identifier-3, identifier-4, and identifier-5 must be one character in length. Except as specifically noted in syntax and general rules, this restriction on length does not apply to level 2.
+(5) In level 1, literal-1, literal-2, and literal-3, and the data items referenced by identifier-3, identifier-4, and identifier-5 must be one character in length. ║Except as specifically noted in syntax and general rules, this restriction on length does not apply to level 2.║
 
 <u>FORMATS 1 AND 3</u>:
 
@@ -12799,9 +12799,9 @@ Nucleus - INSPECT
 
 (8) When the CHARACTERS phrase is used, literal-2, literal-3, or the size of the data item referenced by identifier-4, identifier-5 must be one character in length.
 
-<u>FORMAT 4</u>:
+<u>║FORMAT 4</u>:║
 
-(9) The size of literal-5 or the data item referenced by identifier-7 must be equal to the size of literal-4 or the data item referenced by identifier-6. When a figurative constant is used as literal-5, the size of the figurative constant is equal to the size of literal-4 or the size of the data item referenced by identifier-6.
+║(9) The size of literal-5 or the data item referenced by identifier-7 must be equal to the size of literal-4 or the data item referenced by identifier-6. When a figurative constant is used as literal-5, the size of the figurative constant is equal to the size of literal-4 or the size of the data item referenced by identifier-6.║
 
 VI-95
 
@@ -12809,7 +12809,7 @@ VI-95
 
 Nucleus - INSPECT
 
-| (10) The same character must not appear more than once either in literal-4 or in the data item referenced by identifier-6. |
+| ║(10) The same character must not appear more than once either in literal-4 or in the data item referenced by identifier-6.║ |
 |---|
 
 ### 6.18.4 General Rules
@@ -12916,9 +12916,9 @@ d. When the adjective FIRST is specified, the leftmost occurrence of literal-1 m
 
 (15) A format 3 INSPECT statement is interpreted and executed as though two successive INSPECT statements specifying the same identifier-1 had been written with one statement being a format 1 statement with TALLYING phrases identical to those specified in the format 3 statement, and the other statement being a format 2 statement with REPLACING phrases identical to those specified in the format 3 statement. The general rules given for matching and counting apply to the format 1 statement and the general rules given for matching and replacing apply to the format 2 statement. Subscripting associated with any identifier in the format 2 statement is evaluated only once before executing the format 1 statement.
 
-<u>FORMAT 4</u>:
+<u>║FORMAT 4</u>:║
 
-(16) A format 4 INSPECT statement is interpreted and executed as though a format 2 INSPECT statement specifying the same identifier-1 had been written with a series of ALL phrases, one for each character of literal-4. The effect is as if each of these ALL phrases referenced, as literal-1, a single character
+║(16) A format 4 INSPECT statement is interpreted and executed as though a format 2 INSPECT statement specifying the same identifier-1 had been written with a series of ALL phrases, one for each character of literal-4. The effect is as if each of these ALL phrases referenced, as literal-1, a single character║
 
 VI-99
 
@@ -12926,9 +12926,9 @@ VI-99
 
 Nucleus - INSPECT
 
-of literal-4 and referenced, as literal-3, the corresponding single character of literal-5. Correspondence between the characters of literal-4 and the characters of literal-5 is by ordinal position within the data item.
+║of literal-4 and referenced, as literal-3, the corresponding single character of literal-5. Correspondence between the characters of literal-4 and the characters of literal-5 is by ordinal position within the data item.║
 
-(17) If identifier-4, identifier-6, or identifier-7 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)
+║(17) If identifier-4, identifier-6, or identifier-7 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)║
 
 ### 6.18.5 Examples
 
@@ -13091,17 +13091,17 @@ The MOVE statement transfers data, in accordance with the rules of editing, to o
 
 (1) Literal-1 or the data item referenced by identifier-1 represents the sending area. The data item referenced by identifier-2 represents the receiving area.
 
-(2) CORR is an abbreviation for CORRESPONDING.
+║(2) CORR is an abbreviation for CORRESPONDING.║
 
-(3) When the CORRESPONDING phrase is used, all identifiers must be group items.
+║(3) When the CORRESPONDING phrase is used, all identifiers must be group items.║
 
 (4) An index data item must not appear as an operand of a MOVE statement.
 
 ### 6.19.4 General Rules
 
-(1) If the CORRESPONDING phrase is used, selected items within identifier-1 are moved to selected items within identifier-2, according to the rules specified under the appropriate paragraph. (See page VI-68, The CORRESPONDING Phrase.) The results are the same as if the user had referred to each pair of corresponding identifiers in separate MOVE statements.
+║(1) If the CORRESPONDING phrase is used, selected items within identifier-1 are moved to selected items within identifier-2, according to the rules specified under the appropriate paragraph. (See page VI-68, The CORRESPONDING Phrase.) The results are the same as if the user had referred to each pair of corresponding identifiers in separate MOVE statements.║
 
-(2) Literal-1 or the content of the data item referenced by identifier-1 is moved to the data item referenced by each identifier-2 in the order in which it is specified. The rules referring to identifier-2 also apply to the other receiving areas. Any length evaluation or subscripting associated with identifier-2 is evaluated immediately before the data is moved to the respective data item.
+(2) Literal-1 or the content of the data item referenced by identifier-1 is moved to the data item referenced by each identifier-2 ║in the order in which it is specified. The rules referring to identifier-2 also apply to the other receiving areas.║ Any length evaluation or subscripting associated with identifier-2 is evaluated immediately before the data is moved to the respective data item.
 
 Any subscripting associated with identifier-1 is evaluated only once, immediately before data is moved to the first of the receiving operands. The length of the data item referenced by identifier-1 is evaluated only once, immediately before the data is moved to the first of the receiving operands.
 
@@ -13111,7 +13111,7 @@ VI-103
 
 Nucleus - MOVE
 
-> The evaluation of the length of identifier-1 or identifier-2 may be affected by the DEPENDING ON phrase of the OCCURS clause. (See page VI-26, The OCCURS Clause.)
+> ║The evaluation of the length of identifier-1 or identifier-2 may be affected by the DEPENDING ON phrase of the OCCURS clause. (See page VI-26, The OCCURS Clause.)║
 
 The result of the statement
 
@@ -13143,7 +13143,7 @@ d. In level 1 a numeric edited data item must not be moved to a numeric or numer
 
 e. All other elementary moves are legal and are performed according to the rules given in general rule 4.
 
-(4) Any necessary conversion of data from one form of internal representation to another takes place during legal elementary moves, along with any editing specified for, <ins>or de-editing implied by,</ins> the receiving data item:
+(4) Any necessary conversion of data from one form of internal representation to another takes place during legal elementary moves, along with any editing specified for, ║or de-editing implied by,║ the receiving data item:
 
 a. When an alphanumeric edited or alphanumeric item is a receiving item, alignment and any necessary space filling takes place as previously defined. (See page IV-16, Standard Alignment Rules.) If the sending operand is described as being signed numeric, the operational sign is not moved; if the
 
@@ -13155,7 +13155,7 @@ Nucleus - MOVE
 
 operational sign occupies a separate character position, that character is not moved and the size of the sending operand is considered to be one less than its actual size in terms of standard data format characters. (See page VI-42, The SIGN Clause.) If the sending operand is numeric edited, no de-editing takes place. If the usage of the sending operand is different from that of the receiving operand, conversion of the sending operand to the internal representation of the receiving operand takes place. If the sending operand is numeric and contains the PICTURE symbol 'P', all digit positions specified with this symbol are considered to have the value zero and are counted in the size of the sending operand.
 
-b. When a numeric or numeric edited item is the receiving item, alignment by decimal point and any necessary zero filling takes place as previously defined except where zeros are replaced because of editing requirements. (See page IV-16, Standard Alignment Rules.) When the sending operand is numeric edited, de-editing is implied to establish the operand's unedited numeric value, which may be signed; then the unedited numeric value is moved to the receiving field.
+b. When a numeric or numeric edited item is the receiving item, alignment by decimal point and any necessary zero filling takes place as previously defined except where zeros are replaced because of editing requirements. (See page IV-16, Standard Alignment Rules.) ║When the sending operand is numeric edited, de-editing is implied to establish the operand's unedited numeric value, which may be signed; then the unedited numeric value is moved to the receiving field.║
 
 1\) When a signed numeric item is the receiving item, the sign of the sending operand is placed in the receiving item. (See page VI-42, The SIGN Clause.) Conversion of the representation of the sign takes place as necessary. If the sending operand is unsigned, a positive sign is generated for the receiving item.
 
@@ -13165,7 +13165,7 @@ b. When a numeric or numeric edited item is the receiving item, alignment by dec
 
 c. When a receiving field is described as alphabetic, justification and any necessary space filling takes place as previously defined. (See page IV-16, Standard Alignment Rules.)
 
-(5) Any move that is not an elementary move is treated exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion of data from one form of internal representation to another. In such a move, the receiving area will be filled without consideration for the individual elementary or group items contained within either the sending or receiving area, except as noted in the OCCURS clause. (See page VI-26, The OCCURS Clause.)
+(5) Any move that is not an elementary move is treated exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion of data from one form of internal representation to another. In such a move, the receiving area will be filled without consideration for the individual elementary or group items contained within either the sending or receiving area, ║except as noted in the OCCURS clause. (See page VI-26, The OCCURS Clause.)║
 
 VI-105
 
@@ -13343,23 +13343,23 @@ Nucleus - PERFORM
 
 (1) If procedure-name-1 is omitted, imperative-statement-1 and the END-PERFORM phrase must be specified; if procedure-name-1 is specified, imperative-statement-1 and the END-PERFORM phrase must not be specified.
 
-(2) In format 4, if procedure-name-1 is omitted, the AFTER phrase must not be specified.
+║(2) In format 4, if procedure-name-1 is omitted, the AFTER phrase must not be specified.║
 
-(3) If neither the TEST BEFORE nor the TEST AFTER phrase is specified, the TEST BEFORE phrase is assumed.
+║(3) If neither the TEST BEFORE nor the TEST AFTER phrase is specified, the TEST BEFORE phrase is assumed.║
 
 (4) Each identifier represents a numeric elementary item described in the Data Division. In format 2, identifier-1 must be described as a numeric integer.
 
-(5) Each literal represents a numeric literal.
+║(5) Each literal represents a numeric literal.║
 
 (6) The words THROUGH and THRU are equivalent.
 
-(7) If an index-name is specified in the VARYING or AFTER phrase, then:
+║(7) If an index-name is specified in the VARYING or AFTER phrase, then:║
 
-a. The identifier in the associated FROM and BY phrases must reference an integer data item.
+║a. The identifier in the associated FROM and BY phrases must reference an integer data item.║
 
-b. The literal in the associated FROM phrase must be a positive integer.
+║b. The literal in the associated FROM phrase must be a positive integer.║
 
-c. The literal in the associated BY phrase must be a nonzero integer.
+║c. The literal in the associated BY phrase must be a nonzero integer.║
 
 VI-110
 
@@ -13367,27 +13367,27 @@ VI-110
 
 Nucleus - PERFORM
 
-> (8) If an index-name is specified in the FROM phrase, then:
+> ║(8) If an index-name is specified in the FROM phrase, then:║
 >
-> a. The identifier in the associated VARYING or AFTER phrase must reference an integer data item.
+> ║a. The identifier in the associated VARYING or AFTER phrase must reference an integer data item.║
 >
-> b. The identifier in the associated BY phrase must reference an integer data item.
+> ║b. The identifier in the associated BY phrase must reference an integer data item.║
 >
-> c. The literal in the associated BY phrase must be an integer.
+> ║c. The literal in the associated BY phrase must be an integer.║
 >
-> (9) Literal in the BY phrase must not be zero.
+> ║(9) Literal in the BY phrase must not be zero.║
 
-(10) Condition-1, condition-2, ... , may be any conditional expression. (See page VI-54, Conditional Expressions.)
+(10) Condition-1, ║condition-2, ... ,║ may be any conditional expression. (See page VI-54, Conditional Expressions.)
 
 (11) Where procedure-name-1 and procedure-name-2 are both specified and either is the name of a procedure in the declaratives portion of the Procedure Division, both must be procedure-names in the same declarative section.
 
-> (12) At least six AFTER phrases must be permitted in format 4 of the PERFORM statement.
+> ║(12) At least six AFTER phrases must be permitted in format 4 of the PERFORM statement.║
 
 ### 6.21.4 General Rules
 
-> (1) The data items referenced by identifier-4 and identifier-7 must not have a zero value.
+> ║(1) The data items referenced by identifier-4 and identifier-7 must not have a zero value.║
 >
-> (2) If an index-name is specified in the VARYING or AFTER phrase, and an identifier is specified in the associated FROM phrase, the data item referenced by the identifier must have a positive value.
+> ║(2) If an index-name is specified in the VARYING or AFTER phrase, and an identifier is specified in the associated FROM phrase, the data item referenced by the identifier must have a positive value.║
 
 (3) When procedure-name-1 is specified, the PERFORM statement is referred to as an out-of-line PERFORM statement; when procedure-name-1 is omitted, the PERFORM statement is referred to as an in-line PERFORM statement.
 
@@ -13435,11 +13435,11 @@ VI-112
 
 Nucleus - PERFORM
 
-c. Format 3 is the PERFORM ... UNTIL. The specified set of statements is performed until the condition specified by the UNTIL phrase is true. When the condition is true, control is transferred to the end of the PERFORM statement. If the condition is true when the PERFORM statement is entered, and the TEST BEFORE phrase is specified or implied, no transfer to procedure-name-1 takes place, and control is passed to the end of the PERFORM statement. If the TEST AFTER phrase is specified, the PERFORM statement functions as if the TEST BEFORE phrase were specified except that the condition is tested after the specified set of statements has been executed. Any subscripting or reference modification associated with the operands specified in condition-1 is evaluated each time the condition is tested.
+c. Format 3 is the PERFORM ... UNTIL. The specified set of statements is performed until the condition specified by the UNTIL phrase is true. When the condition is true, control is transferred to the end of the PERFORM statement. If the condition is true when the PERFORM statement is entered, ║and the TEST BEFORE phrase is specified or implied,║ no transfer to procedure-name-1 takes place, and control is passed to the end of the PERFORM statement. ║If the TEST AFTER phrase is specified, the PERFORM statement functions as if the TEST BEFORE phrase were specified except that the condition is tested after the specified set of statements has been executed. Any subscripting or reference modification associated with the operands specified in condition-1 is evaluated each time the condition is tested.║
 
-d. Format 4 is the PERFORM ... VARYING. This variation of the PERFORM statement is used to augment the values referenced by one or more identifiers or index-names in an orderly fashion during the execution of a PERFORM statement. In the following discussion, every reference to identifier as the object of the VARYING, AFTER, and FROM (current value) phrases also refers to index-names. If index-name-1 or index-name-3 is specified, the value of the associated index at the beginning of the PERFORM statement must be set to an occurrence number of an element in the table. If index-name-2 or index-name-4 is specified, the value of the data item referenced by identifier-2 or identifier-5 at the beginning of the PERFORM statement must be equal to an occurrence number of an element in a table associated with index-name-2 or index-name-4. Subsequent augmentation, as described below, of index-name-1 or index-name-3 must not result in the associated index being set to a value outside the range of the table associated with index-name-1 or index-name-3; except that, at the completion of the PERFORM statement, the index associated with index-name-1 may contain a value that is outside the range of the associated table by one increment or decrement value. If identifier-2 or identifier-5 is subscripted, the subscripts are evaluated each time the content of the data item referenced by the identifier is set or augmented. If identifier-3, identifier-4, identifier-6, or identifier-7 is subscripted, the subscripts are evaluated each time the content of the data item referenced by the identifier is used in a setting or augmenting operation. Any subscripting or reference modification associated with the operands specified in condition-1 or condition-2 is evaluated each time the condition is tested.
+║d. Format 4 is the PERFORM ... VARYING. This variation of the PERFORM statement is used to augment the values referenced by one or more identifiers or index-names in an orderly fashion during the execution of a PERFORM statement. In the following discussion, every reference to identifier as the object of the VARYING, AFTER, and FROM (current value) phrases also refers to index-names. If index-name-1 or index-name-3 is specified, the value of the associated index at the beginning of the PERFORM statement must be set to an occurrence number of an element in the table. If index-name-2 or index-name-4 is specified, the value of the data item referenced by identifier-2 or identifier-5 at the beginning of the PERFORM statement must be equal to an occurrence number of an element in a table associated with index-name-2 or index-name-4. Subsequent augmentation, as described below, of index-name-1 or index-name-3 must not result in the associated index being set to a value outside the range of the table associated with index-name-1 or index-name-3; except that, at the completion of the PERFORM statement, the index associated with index-name-1 may contain a value that is outside the range of the associated table by one increment or decrement value. If identifier-2 or identifier-5 is subscripted, the subscripts are evaluated each time the content of the data item referenced by the identifier is set or augmented. If identifier-3, identifier-4, identifier-6, or identifier-7 is subscripted, the subscripts are evaluated each time the content of the data item referenced by the identifier is used in a setting or augmenting operation. Any subscripting or reference modification associated with the operands specified in condition-1 or condition-2 is evaluated each time the condition is tested.║
 
-Representations of the actions of several types of format 4 PERFORM statements are given in figures 1 through 4 on pages VI-114 through VI-119. These are not intended to dictate implementation.
+║Representations of the actions of several types of format 4 PERFORM statements are given in figures 1 through 4 on pages VI-114 through VI-119. These are not intended to dictate implementation.║
 
 VI-113
 
@@ -13447,9 +13447,9 @@ VI-113
 
 Nucleus - PERFORM
 
-1\) If the TEST BEFORE phrase is specified or implied:
+║1\) If the TEST BEFORE phrase is specified or implied:║
 
-When the data item referenced by one identifier is varied, the content of the data item referenced by identifier-2 is set to literal-1 or the current value of the data item referenced by identifier-3 at the point of initial execution of the PERFORM statement; then, if the condition of the UNTIL phrase is false, the specified set of statements is executed once. The value of the data item referenced by identifier-2 is augmented by the specified increment or decrement value (literal-2 or the value of the data item referenced by identifier-4) and condition-1 is evaluated again. The cycle continues until this condition is true, at which point control is transferred to the end of the PERFORM statement. If condition-1 is true at the beginning of execution of the PERFORM statement, control is transferred to the end of the PERFORM statement.
+║When the data item referenced by one identifier is varied, the content of the data item referenced by identifier-2 is set to literal-1 or the current value of the data item referenced by identifier-3 at the point of initial execution of the PERFORM statement; then, if the condition of the UNTIL phrase is false, the specified set of statements is executed once. The value of the data item referenced by identifier-2 is augmented by the specified increment or decrement value (literal-2 or the value of the data item referenced by identifier-4) and condition-1 is evaluated again. The cycle continues until this condition is true, at which point control is transferred to the end of the PERFORM statement. If condition-1 is true at the beginning of execution of the PERFORM statement, control is transferred to the end of the PERFORM statement.║
 
 <pre style="line-height:1">
                     Entrance
@@ -13479,7 +13479,7 @@ When the data item referenced by one identifier is varied, the content of the da
           └────────────────────────────┘
 </pre>
 
-Figure 1: The VARYING option of a PERFORM statement with the TEST BEFORE phrase having one condition
+║Figure 1: The VARYING option of a PERFORM statement with the TEST BEFORE phrase having one condition║
 
 VI-114
 
@@ -13487,7 +13487,7 @@ VI-114
 
 Nucleus - PERFORM
 
-When the data items referenced by two identifiers are varied, the content of the data item referenced by identifier-2 is set to literal-1 or the current value of the data item referenced by identifier-3 and then the content of the data item referenced by identifier-5 is set to literal-3 or the current value of the data item referenced by identifier-6. After the contents of the data items referenced by the identifiers have been set, condition-1 is evaluated; if true, control is transferred to the end of the PERFORM statement; if false, condition-2 is evaluated. If condition-2 is false, the specified set of statements is executed once, then the content of the data item referenced by identifier-5 is augmented by literal-4 or the content of the data item referenced by identifier-7 and condition-2 is evaluated again. This cycle of evaluation and augmentation continues until this condition is true. When condition-2 is true, the content of the data item referenced by identifier-2 is augmented by literal-2 or the content of the data item referenced by identifier-4, the content of the data item referenced by identifier-5 is set to literal-3 or the current value of the data item referenced by identifier-6, and condition-1 is reevaluated. The PERFORM statement is completed if condition-1 is true; if not, the cycle continues until condition-1 is true.
+║When the data items referenced by two identifiers are varied, the content of the data item referenced by identifier-2 is set to literal-1 or the current value of the data item referenced by identifier-3 and then the content of the data item referenced by identifier-5 is set to literal-3 or the current value of the data item referenced by identifier-6. After the contents of the data items referenced by the identifiers have been set, condition-1 is evaluated; if true, control is transferred to the end of the PERFORM statement; if false, condition-2 is evaluated. If condition-2 is false, the specified set of statements is executed once, then the content of the data item referenced by identifier-5 is augmented by literal-4 or the content of the data item referenced by identifier-7 and condition-2 is evaluated again. This cycle of evaluation and augmentation continues until this condition is true. When condition-2 is true, the content of the data item referenced by identifier-2 is augmented by literal-2 or the content of the data item referenced by identifier-4, the content of the data item referenced by identifier-5 is set to literal-3 or the current value of the data item referenced by identifier-6, and condition-1 is reevaluated. The PERFORM statement is completed if condition-1 is true; if not, the cycle continues until condition-1 is true.║
 
 <pre style="line-height:1">
                         Entrance
@@ -13527,7 +13527,7 @@ When the data items referenced by two identifiers are varied, the content of the
     └───────────────────────────────────────────────────────┘
 </pre>
 
-Figure 2: The VARYING option of a PERFORM statement with the TEST BEFORE phrase having two conditions
+║Figure 2: The VARYING option of a PERFORM statement with the TEST BEFORE phrase having two conditions║
 
 VI-115
 
@@ -13535,7 +13535,7 @@ VI-115
 
 Nucleus - PERFORM
 
-> At the termination of the PERFORM statement, the data item referenced by identifier-5 contains literal-3 or the current value of the data item referenced by identifier-6. The data item referenced by identifier-2 contains a value that exceeds the last used setting by one increment or decrement value, unless condition-1 was true when the PERFORM statement was entered, in which case, the data item referenced by identifier-2 contains literal-1 or the current value of the data item referenced by identifier-3.
+> ║At the termination of the PERFORM statement, the data item referenced by identifier-5 contains literal-3 or the current value of the data item referenced by identifier-6. The data item referenced by identifier-2 contains a value that exceeds the last used setting by one increment or decrement value, unless condition-1 was true when the PERFORM statement was entered, in which case, the data item referenced by identifier-2 contains literal-1 or the current value of the data item referenced by identifier-3.║
 
 VI-116
 
@@ -13543,9 +13543,9 @@ VI-116
 
 Nucleus - PERFORM
 
-2\) If the TEST AFTER phrase is specified:
+║2\) If the TEST AFTER phrase is specified:║
 
-When the data item referenced by one identifier is varied, the content of the data item referenced by identifier-2 is set to literal-1 or the current value of the data item referenced by identifier-3 at the point of execution of the PERFORM statement; then the specified set of statements is executed once and condition-1 of the UNTIL phrase is tested. If the condition is false, the value of the data item referenced by identifier-2 is augmented by the specified increment or decrement value (literal-2 or the value of the data item referenced by identifier-4) and the specified set of statements is executed again. The cycle continues until condition-1 is tested and found to be true, at which point control is transferred to the end of the PERFORM statement.
+║When the data item referenced by one identifier is varied, the content of the data item referenced by identifier-2 is set to literal-1 or the current value of the data item referenced by identifier-3 at the point of execution of the PERFORM statement; then the specified set of statements is executed once and condition-1 of the UNTIL phrase is tested. If the condition is false, the value of the data item referenced by identifier-2 is augmented by the specified increment or decrement value (literal-2 or the value of the data item referenced by identifier-4) and the specified set of statements is executed again. The cycle continues until condition-1 is tested and found to be true, at which point control is transferred to the end of the PERFORM statement.║
 
 <pre style="line-height:1">
                          Entrance
@@ -13576,7 +13576,7 @@ When the data item referenced by one identifier is varied, the content of the da
                 └──────────────────────────┘
 </pre>
 
-Figure 3: The VARYING option of a PERFORM statement with the TEST AFTER phrase having one condition
+║Figure 3: The VARYING option of a PERFORM statement with the TEST AFTER phrase having one condition║
 
 VI-117
 
@@ -13584,9 +13584,9 @@ VI-117
 
 Nucleus - PERFORM
 
-When the data items referenced by two identifiers are varied, the content of the data item referenced by identifier-2 is set to literal-1 or the current value of the data item referenced by identifier-3, then the content of the data item referenced by identifier-5 is set to literal-3 or the current value of the data item referenced by identifier-6, and the specified set of statements is then executed. Condition-2 is then evaluated; if false, the content of the data item referenced by identifier-5 is augmented by literal-4 or the content of the data item referenced by identifier-7 and the specified set of statements is again executed. The cycle continues until condition-2 is again evaluated and found to be true, at which time condition-1 is evaluated. If false, the content of the data item referenced by identifier-2 is augmented by literal-2 or the content of the data item referenced by identifier-4, the content of the data item referenced by identifier-5 is set to literal-3 or the current value of the data item referenced by identifier-6 and the specified set of statements is again executed. This cycle continues until condition-1 is again evaluated and found to be true, at which time control is transferred to the end of the PERFORM statement.
+║When the data items referenced by two identifiers are varied, the content of the data item referenced by identifier-2 is set to literal-1 or the current value of the data item referenced by identifier-3, then the content of the data item referenced by identifier-5 is set to literal-3 or the current value of the data item referenced by identifier-6, and the specified set of statements is then executed. Condition-2 is then evaluated; if false, the content of the data item referenced by identifier-5 is augmented by literal-4 or the content of the data item referenced by identifier-7 and the specified set of statements is again executed. The cycle continues until condition-2 is again evaluated and found to be true, at which time condition-1 is evaluated. If false, the content of the data item referenced by identifier-2 is augmented by literal-2 or the content of the data item referenced by identifier-4, the content of the data item referenced by identifier-5 is set to literal-3 or the current value of the data item referenced by identifier-6 and the specified set of statements is again executed. This cycle continues until condition-1 is again evaluated and found to be true, at which time control is transferred to the end of the PERFORM statement.║
 
-After the completion of the PERFORM statement, each data item varied by an AFTER or VARYING phrase contains the same value it contained at the end of the most recent execution of the specified set of statements.
+║After the completion of the PERFORM statement, each data item varied by an AFTER or VARYING phrase contains the same value it contained at the end of the most recent execution of the specified set of statements.║
 
 VI-118
 
@@ -13616,9 +13616,9 @@ VI-119
 
 Nucleus - PERFORM
 
-> During the execution of the specified set of statements associated with the PERFORM statement, any change to the VARYING variable (the data item referenced by identifier-2 and index-name-1), the BY variable (the data item referenced by identifier-4), the AFTER variable (the data item referenced by identifier-5 and index-name-3), or the FROM variable (the data item referenced by identifier-3 and index-name-2) will be taken into consideration and will affect the operation of the PERFORM statement.
+> ║During the execution of the specified set of statements associated with the PERFORM statement, any change to the VARYING variable (the data item referenced by identifier-2 and index-name-1), the BY variable (the data item referenced by identifier-4), the AFTER variable (the data item referenced by identifier-5 and index-name-3), or the FROM variable (the data item referenced by identifier-3 and index-name-2) will be taken into consideration and will affect the operation of the PERFORM statement.║
 >
-> When the data items referenced by two identifiers are varied, the data item referenced by identifier-5 goes through a complete cycle (FROM, BY, UNTIL) each time the content of the data item referenced by identifier-2 is varied. When the contents of three or more data items referenced by identifiers are varied, the mechanism is the same as for two identifiers except that the data item being varied by each AFTER phrase goes through a complete cycle each time the data item being varied by the preceding AFTER phrase is augmented.
+> ║When the data items referenced by two identifiers are varied, the data item referenced by identifier-5 goes through a complete cycle (FROM, BY, UNTIL) each time the content of the data item referenced by identifier-2 is varied. When the contents of three or more data items referenced by identifiers are varied, the mechanism is the same as for two identifiers except that the data item being varied by each AFTER phrase goes through a complete cycle each time the data item being varied by the preceding AFTER phrase is augmented.║
 
 (11) The range of a PERFORM statement consists logically of all those statements that are executed as a result of executing the PERFORM statement through execution of the implicit transfer of control to the end of the PERFORM statement. The range includes all statements that are executed as the result of a transfer of control by CALL, EXIT, GO TO, and PERFORM statements in the range of the PERFORM statement, as well as all statements in declarative procedures that are executed as a result of the execution of statements in the range of the PERFORM statement. The statements in the range of a PERFORM statement need not appear consecutively in the source program.
 
@@ -13687,15 +13687,15 @@ VI-121
 
 Nucleus - SEARCH
 
-# 6.22 THE SEARCH STATEMENT
+# ║6.22 THE SEARCH STATEMENT║
 
-## 6.22.1 Function
+## ║6.22.1 Function║
 
-The SEARCH statement is used to search a table for a table element that satisfies the specified condition and to adjust the value of the associated index to indicate that table element.
+║The SEARCH statement is used to search a table for a table element that satisfies the specified condition and to adjust the value of the associated index to indicate that table element.║
 
-## 6.22.2 General Format
+## ║6.22.2 General Format║
 
-<u>Format 1</u>:
+║<u>Format 1</u>:║
 
 <pre style="line-height:1">
 ╔<u>SEARCH</u> identifier-1 ┌<u>VARYING</u> ╭identifier-2╮┐        ╗
@@ -13741,33 +13741,33 @@ VI-122
 
 Nucleus - SEARCH
 
-### 6.22.3 Syntax Rules
+### ║6.22.3 Syntax Rules║
 
-(1) In both formats 1 and 2, identifier-1 must not be subscripted or reference modified, but its description must contain an OCCURS clause including an INDEXED BY phrase. The description of identifier-1 in format 2 must also contain the KEY IS phrase in its OCCURS clause.
+║(1) In both formats 1 and 2, identifier-1 must not be subscripted or reference modified, but its description must contain an OCCURS clause including an INDEXED BY phrase. The description of identifier-1 in format 2 must also contain the KEY IS phrase in its OCCURS clause.║
 
-(2) Identifier-2 must reference a data item described as USAGE IS INDEX or as a numeric elementary data item without any positions to the right of the assumed decimal point. Identifier-2 may not be subscripted by the first (or only) index-name specified in the INDEXED BY phrase in the OCCURS clause associated with identifier-1.
+║(2) Identifier-2 must reference a data item described as USAGE IS INDEX or as a numeric elementary data item without any positions to the right of the assumed decimal point. Identifier-2 may not be subscripted by the first (or only) index-name specified in the INDEXED BY phrase in the OCCURS clause associated with identifier-1.║
 
-(3) In format 1, condition-1 may be any conditional expression. (See page VI-54, Conditional Expressions.)
+║(3) In format 1, condition-1 may be any conditional expression. (See page VI-54, Conditional Expressions.)║
 
-(4) In format 2, all referenced condition-names must be defined as having only a single value. The data-name associated with a condition-name must appear in the KEY IS phrase in the OCCURS clause referenced by identifier-1. Each data-name-1, data-name-2 may be qualified. Each data-name-1, data-name-2 must be subscripted by the first index-name associated with identifier-1 along with other subscripts as required, and must be referenced in the KEY IS phrase in the OCCURS clause referenced by identifier-1. Identifier-3, identifier-4, or identifiers specified in arithmetic-expression-1, arithmetic-expression-2 must not be referenced in the KEY IS phrase in the OCCURS clause referenced by identifier-1 or be subscripted by the first index-name associated with identifier-1.
+║(4) In format 2, all referenced condition-names must be defined as having only a single value. The data-name associated with a condition-name must appear in the KEY IS phrase in the OCCURS clause referenced by identifier-1. Each data-name-1, data-name-2 may be qualified. Each data-name-1, data-name-2 must be subscripted by the first index-name associated with identifier-1 along with other subscripts as required, and must be referenced in the KEY IS phrase in the OCCURS clause referenced by identifier-1. Identifier-3, identifier-4, or identifiers specified in arithmetic-expression-1, arithmetic-expression-2 must not be referenced in the KEY IS phrase in the OCCURS clause referenced by identifier-1 or be subscripted by the first index-name associated with identifier-1.║
 
-In format 2, when a data-name in the KEY IS phrase in the OCCURS clause referenced by identifier-1 is referenced, or when a condition-name associated with a data-name in the KEY IS phrase in the OCCURS clause referenced by identifier-1 is referenced, all preceding data-names in the KEY IS phrase in the OCCURS clause referenced by identifier-1 or their associated condition-names must also be referenced.
+║In format 2, when a data-name in the KEY IS phrase in the OCCURS clause referenced by identifier-1 is referenced, or when a condition-name associated with a data-name in the KEY IS phrase in the OCCURS clause referenced by identifier-1 is referenced, all preceding data-names in the KEY IS phrase in the OCCURS clause referenced by identifier-1 or their associated condition-names must also be referenced.║
 
-(5) If the END-SEARCH phrase is specified, the NEXT SENTENCE phrase must not be specified.
+║(5) If the END-SEARCH phrase is specified, the NEXT SENTENCE phrase must not be specified.║
 
-### 6.22.4 General Rules
+### ║6.22.4 General Rules║
 
-(1) The scope of a SEARCH statement may be terminated by any of the following:
+║(1) The scope of a SEARCH statement may be terminated by any of the following:║
 
-a. An END-SEARCH phrase at the same level of nesting.
+║a. An END-SEARCH phrase at the same level of nesting.║
 
-b. A separator period.
+║b. A separator period.║
 
-c. An ELSE or END-IF phrase associated with a previous IF statement.
+║c. An ELSE or END-IF phrase associated with a previous IF statement.║
 
-(See page IV-40, Scope of Statements.)
+║(See page IV-40, Scope of Statements.)║
 
-(2) If format 1 of the SEARCH statement is used, a serial type of search operation takes place, starting with the current index setting.
+║(2) If format 1 of the SEARCH statement is used, a serial type of search operation takes place, starting with the current index setting.║
 
 VI-123
 
@@ -13775,17 +13775,17 @@ VI-123
 
 Nucleus - SEARCH
 
-a. If, at the start of execution of the SEARCH statement, the index-name associated with identifier-1 contains a value that corresponds to an occurrence number that is greater than the highest permissible occurrence number for identifier-1, the search is terminated immediately. The number of occurrences of identifier-1, the last of which is the highest permissible, is discussed in the OCCURS clause. (See VI-26, The OCCURS Clause.) Then, if the AT END phrase is specified, imperative-statement-1 is executed; if the AT END phrase is not specified, control passes to the end of the SEARCH statement.
+║a. If, at the start of execution of the SEARCH statement, the index-name associated with identifier-1 contains a value that corresponds to an occurrence number that is greater than the highest permissible occurrence number for identifier-1, the search is terminated immediately. The number of occurrences of identifier-1, the last of which is the highest permissible, is discussed in the OCCURS clause. (See VI-26, The OCCURS Clause.) Then, if the AT END phrase is specified, imperative-statement-1 is executed; if the AT END phrase is not specified, control passes to the end of the SEARCH statement.║
 
-b. If, at the start of execution of the SEARCH statement, the index-name associated with identifier-1 contains a value that corresponds to an occurrence number that is not greater than the highest permissible occurrence number for identifier-1 (the number of occurrences of identifier-1, the last of which is the highest permissible, is discussed in the OCCURS clause), the SEARCH statement operates by evaluating the conditions in the order that they are written, making use of the index settings, wherever specified, to determine the occurrence of those items to be tested. If none of the conditions is satisfied, the index-name for identifier-1 is incremented to obtain reference to the next occurrence. The process is then repeated using the new index-name settings unless the new value of the index-name settings for identifier-1 corresponds to a table element outside the permissible range of occurrence values, in which case the search terminates as indicated in 2a above. If one of the conditions is satisfied upon its evaluation, the search terminates immediately, and control passes to the imperative statement associated with that condition, if present, or, if the NEXT SENTENCE phrase is associated with that condition, to the next executable sentence; the index-name remains set at the occurrence which caused the condition to be satisfied.
+║b. If, at the start of execution of the SEARCH statement, the index-name associated with identifier-1 contains a value that corresponds to an occurrence number that is not greater than the highest permissible occurrence number for identifier-1 (the number of occurrences of identifier-1, the last of which is the highest permissible, is discussed in the OCCURS clause), the SEARCH statement operates by evaluating the conditions in the order that they are written, making use of the index settings, wherever specified, to determine the occurrence of those items to be tested. If none of the conditions is satisfied, the index-name for identifier-1 is incremented to obtain reference to the next occurrence. The process is then repeated using the new index-name settings unless the new value of the index-name settings for identifier-1 corresponds to a table element outside the permissible range of occurrence values, in which case the search terminates as indicated in 2a above. If one of the conditions is satisfied upon its evaluation, the search terminates immediately, and control passes to the imperative statement associated with that condition, if present, or, if the NEXT SENTENCE phrase is associated with that condition, to the next executable sentence; the index-name remains set at the occurrence which caused the condition to be satisfied.║
 
-(3) In a format 2 SEARCH statement, the results of the SEARCH ALL operation are predictable only when:
+║(3) In a format 2 SEARCH statement, the results of the SEARCH ALL operation are predictable only when:║
 
-a. The data in the table is ordered in the same manner as described in the KEY IS phrase of the OCCURS clause referenced by identifier-1, and
+║a. The data in the table is ordered in the same manner as described in the KEY IS phrase of the OCCURS clause referenced by identifier-1, and║
 
-b. The contents of the key(s) referenced in the WHEN phrase are sufficient to identify a unique table element.
+║b. The contents of the key(s) referenced in the WHEN phrase are sufficient to identify a unique table element.║
 
-(4) If format 2 of the SEARCH statement is used, a nonserial type of search operation may take place; the initial setting of the index-name for identifier-1 is ignored and its setting is varied during the search operation in a manner specified by the implementor, with the restriction that at no time is it set to a value that exceeds the value which corresponds to the last element of the table, or that is less than the value that corresponds to the first element of the table. The length of the table is discussed in the OCCURS clause. (See page VI-26, The OCCURS Clause.) If any of the conditions specified in the WHEN phrase cannot be satisfied for any setting of the index within the permitted range, control is passed to imperative-statement-1 of the AT END phrase, when specified, or to the end of the SEARCH statement when this phrase is not specified; in either case the final setting of the index is not predictable. If all the conditions can be satisfied, the index indicates an occurrence that allows the conditions to be satisfied, and control passes to imperative-statement-2, if specified, or to the next executable sentence if the NEXT SENTENCE phrase is specified.
+║(4) If format 2 of the SEARCH statement is used, a nonserial type of search operation may take place; the initial setting of the index-name for identifier-1 is ignored and its setting is varied during the search operation in a manner specified by the implementor, with the restriction that at no time is it set to a value that exceeds the value which corresponds to the last element of the table, or that is less than the value that corresponds to the first element of the table. The length of the table is discussed in the OCCURS clause. (See page VI-26, The OCCURS Clause.) If any of the conditions specified in the WHEN phrase cannot be satisfied for any setting of the index within the permitted range, control is passed to imperative-statement-1 of the AT END phrase, when specified, or to the end of the SEARCH statement when this phrase is not specified; in either case the final setting of the index is not predictable. If all the conditions can be satisfied, the index indicates an occurrence that allows the conditions to be satisfied, and control passes to imperative-statement-2, if specified, or to the next executable sentence if the NEXT SENTENCE phrase is specified.║
 
 VI-124
 
@@ -13793,21 +13793,21 @@ VI-124
 
 Nucleus - SEARCH
 
-(5) After execution of imperative-statement-1 or imperative-statement-2, that does not terminate with a GO TO statement, control passes to the end of the SEARCH statement.
+║(5) After execution of imperative-statement-1 or imperative-statement-2, that does not terminate with a GO TO statement, control passes to the end of the SEARCH statement.║
 
-(6) In format 2, the index-name that is used for the search operation is the first (or only) index-name specified in the INDEXED BY phrase in the OCCURS clause associated with identifier-1. Any other index-names for identifier-1 remain unchanged.
+║(6) In format 2, the index-name that is used for the search operation is the first (or only) index-name specified in the INDEXED BY phrase in the OCCURS clause associated with identifier-1. Any other index-names for identifier-1 remain unchanged.║
 
-(7) In format 1, if the VARYING phrase is not used, the index-name that is used for the search operation is the first (or only) index-name specified in the INDEXED BY phrase in the OCCURS clause associated with identifier-1. Any other index-names for identifier-1 remain unchanged.
+║(7) In format 1, if the VARYING phrase is not used, the index-name that is used for the search operation is the first (or only) index-name specified in the INDEXED BY phrase in the OCCURS clause associated with identifier-1. Any other index-names for identifier-1 remain unchanged.║
 
-(8) In format 1, if the VARYING index-name-1 phrase is specified, and if index-name-1 appears in the INDEXED BY phrase in the OCCURS clause referenced by identifier-1, that index-name is used for this search. If this is not the case, or if the VARYING identifier-2 phrase is specified, the first (or only) index-name given in the INDEXED BY phrase in the OCCURS clause referenced by identifier-1 is used for the search. In addition, the following operations will occur:
+║(8) In format 1, if the VARYING index-name-1 phrase is specified, and if index-name-1 appears in the INDEXED BY phrase in the OCCURS clause referenced by identifier-1, that index-name is used for this search. If this is not the case, or if the VARYING identifier-2 phrase is specified, the first (or only) index-name given in the INDEXED BY phrase in the OCCURS clause referenced by identifier-1 is used for the search. In addition, the following operations will occur:║
 
-a. If the VARYING index-name-1 phrase is used, and if index-name-1 appears in the INDEXED BY phrase in the OCCURS clause referenced by another table entry, the occurrence number represented by index-name-1 is incremented by the same amount as, and at the same time as, the occurrence number represented by the index-name associated with identifier-1 is incremented.
+║a. If the VARYING index-name-1 phrase is used, and if index-name-1 appears in the INDEXED BY phrase in the OCCURS clause referenced by another table entry, the occurrence number represented by index-name-1 is incremented by the same amount as, and at the same time as, the occurrence number represented by the index-name associated with identifier-1 is incremented.║
 
-b. If the VARYING identifier-2 phrase is specified, and identifier-2 is an index data item, then the data item referenced by identifier-2 is incremented by the same amount as, and at the same time as, the index associated with identifier-1 is incremented. If identifier-2 is not an index data item, the data item referenced by identifier-2 is incremented by the value one at the same time as the index referenced by the index-name associated with identifier-1 is incremented.
+║b. If the VARYING identifier-2 phrase is specified, and identifier-2 is an index data item, then the data item referenced by identifier-2 is incremented by the same amount as, and at the same time as, the index associated with identifier-1 is incremented. If identifier-2 is not an index data item, the data item referenced by identifier-2 is incremented by the value one at the same time as the index referenced by the index-name associated with identifier-1 is incremented.║
 
-(9) The END-SEARCH phrase delimits the scope of the SEARCH statement. (See page IV-40, Scope of Statements.)
+║(9) The END-SEARCH phrase delimits the scope of the SEARCH statement. (See page IV-40, Scope of Statements.)║
 
-(10) A representation of the action of a format 1 SEARCH statement containing two WHEN phrases is shown in figure 1 on the next page. This figure is not intended to dictate implementation.
+║(10) A representation of the action of a format 1 SEARCH statement containing two WHEN phrases is shown in figure 1 on the next page. This figure is not intended to dictate implementation.║
 
 VI-125
 
@@ -13851,7 +13851,7 @@ Nucleus - SET
 
 (2) The SET statement is also used to alter the status of external switches.
 
-(3) The SET statement is also used to alter the value of conditional variables.
+║(3) The SET statement is also used to alter the value of conditional variables.║
 
 ## 6.23.2 General Format
 
@@ -13899,7 +13899,7 @@ Nucleus - SET
 
 (5) Mnemonic-name-1 must be associated with an external switch, the status of which can be altered. The implementor defines which external switches can be referenced by the SET statement.
 
-(6) Condition-name-1 must be associated with a conditional variable.
+║(6) Condition-name-1 must be associated with a conditional variable.║
 
 VI-127
 
@@ -13968,11 +13968,11 @@ in Format 1 SET Statements
 
 (6) The status of each external switch associated with the specified mnemonic-name-1 is modified such that the truth value resultant from evaluation of a condition-name associated with that switch will reflect an on status if the ON phrase is specified, or an off status if the OFF phrase is specified. (See page VI-58, Switch-Status Condition.)
 
-<u>FORMAT 4</u>:
+<u>║FORMAT 4</u>:║
 
-(7) The literal in the VALUE clause associated with condition-name-1 is placed in the conditional variable according to the rules of the VALUE clause (see page VI-48, The VALUE Clause). If more than one literal is specified in the VALUE clause, the conditional variable is set to the value of the first literal that appears in the VALUE clause.
+║(7) The literal in the VALUE clause associated with condition-name-1 is placed in the conditional variable according to the rules of the VALUE clause (see page VI-48, The VALUE Clause). If more than one literal is specified in the VALUE clause, the conditional variable is set to the value of the first literal that appears in the VALUE clause.║
 
-(8) If multiple condition-names are specified, the results are the same as if a separate SET statement had been written for each condition-name-1 in the same order as specified in the SET statement.
+║(8) If multiple condition-names are specified, the results are the same as if a separate SET statement had been written for each condition-name-1 in the same order as specified in the SET statement.║
 
 VI-129
 
@@ -14018,13 +14018,13 @@ VI-130
 
 Nucleus - STRING
 
-## 6.25 THE STRING STATEMENT
+## ║6.25 THE STRING STATEMENT║
 
-### 6.25.1 Function
+### ║6.25.1 Function║
 
-The STRING statement provides juxtaposition of the partial or complete contents of one or more data items into a single data item.
+║The STRING statement provides juxtaposition of the partial or complete contents of one or more data items into a single data item.║
 
-### 6.25.2 General Format
+### ║6.25.2 General Format║
 
 <pre style="line-height:1">
 ╔       ╭╭identifier-1╮                   ╭ identifier-2 ╮ ╮   ╗
@@ -14043,25 +14043,25 @@ The STRING statement provides juxtaposition of the partial or complete contents 
 ╚   [<u>END-STRING</u>]                                               ╝
 </pre>
 
-### 6.25.3 Syntax Rules
+### ║6.25.3 Syntax Rules║
 
-(1) Literal-1 or literal-2 must not be a figurative constant that begins with the word ALL.
+║(1) Literal-1 or literal-2 must not be a figurative constant that begins with the word ALL.║
 
-(2) All literals must be described as nonnumeric literals, and all identifiers, except identifier-4, must be described implicitly or explicitly as USAGE IS DISPLAY.
+║(2) All literals must be described as nonnumeric literals, and all identifiers, except identifier-4, must be described implicitly or explicitly as USAGE IS DISPLAY.║
 
-(3) Identifier-3 must not be referenced modified.
+║(3) Identifier-3 must not be referenced modified.║
 
-(4) Identifier-3 must not represent an edited data item and must not be described with the JUSTIFIED clause.
+║(4) Identifier-3 must not represent an edited data item and must not be described with the JUSTIFIED clause.║
 
-(5) Identifier-4 must be described as an elementary numeric integer data item of sufficient size to contain a value equal to 1 plus the size of the data item referenced by identifier-3. The symbol 'P' may not be used in the PICTURE character-string of identifier-4.
+║(5) Identifier-4 must be described as an elementary numeric integer data item of sufficient size to contain a value equal to 1 plus the size of the data item referenced by identifier-3. The symbol 'P' may not be used in the PICTURE character-string of identifier-4.║
 
-(6) Where identifier-1 or identifier-2 is an elementary numeric data item, it must be described as an integer without the symbol 'P' in its PICTURE character-string.
+║(6) Where identifier-1 or identifier-2 is an elementary numeric data item, it must be described as an integer without the symbol 'P' in its PICTURE character-string.║
 
-### 6.25.4 General Rules
+### ║6.25.4 General Rules║
 
-(1) Identifier-1 or literal-1 represents the sending item. Identifier-3 represents the receiving item.
+║(1) Identifier-1 or literal-1 represents the sending item. Identifier-3 represents the receiving item.║
 
-(2) Literal-2 or the content of the data item referenced by identifier-2 indicates the character(s) delimiting the move. If the SIZE phrase is used, the content of the complete data item defined by identifier-1 or literal-1 is moved.
+║(2) Literal-2 or the content of the data item referenced by identifier-2 indicates the character(s) delimiting the move. If the SIZE phrase is used, the content of the complete data item defined by identifier-1 or literal-1 is moved.║
 
 VI-131
 
@@ -14069,27 +14069,27 @@ VI-131
 
 Nucleus - STRING
 
-When a figurative constant is used as the delimiter, it is a single character nonnumeric literal.
+║When a figurative constant is used as the delimiter, it is a single character nonnumeric literal.║
 
-(3) When a figurative constant is specified as literal-1 or literal-2, it refers to an implicit one character data item whose usage is DISPLAY.
+║(3) When a figurative constant is specified as literal-1 or literal-2, it refers to an implicit one character data item whose usage is DISPLAY.║
 
-(4) When the STRING statement is executed, the transfer of data is governed by the following rules:
+║(4) When the STRING statement is executed, the transfer of data is governed by the following rules:║
 
-a. Those characters from literal-1 or from the content of the data item referenced by identifier-1 are transferred to the data item referenced by identifier-3 in accordance with the rules for alphanumeric to alphanumeric moves, except that no space filling will be provided. (See general rule 4a of the MOVE statement on page VI-104.)
+║a. Those characters from literal-1 or from the content of the data item referenced by identifier-1 are transferred to the data item referenced by identifier-3 in accordance with the rules for alphanumeric to alphanumeric moves, except that no space filling will be provided. (See general rule 4a of the MOVE statement on page VI-104.)║
 
-b. If the DELIMITED phrase is specified without the SIZE phrase, the content of the data item referenced by identifier-1, or the value of literal-1, is transferred to the receiving data item in the sequence specified in the STRING statement beginning with the leftmost character and continuing from left to right until the end of the sending data item is reached or the end of the receiving data item is reached or until the character(s) specified by literal-2, or by the content of the data item referenced by identifier-2, are encountered. The character(s) specified by literal-2 or by the data item referenced by identifier-2 are not transferred.
+║b. If the DELIMITED phrase is specified without the SIZE phrase, the content of the data item referenced by identifier-1, or the value of literal-1, is transferred to the receiving data item in the sequence specified in the STRING statement beginning with the leftmost character and continuing from left to right until the end of the sending data item is reached or the end of the receiving data item is reached or until the character(s) specified by literal-2, or by the content of the data item referenced by identifier-2, are encountered. The character(s) specified by literal-2 or by the data item referenced by identifier-2 are not transferred.║
 
-c. If the DELIMITED phrase is specified with the SIZE phrase, the entire content of literal-1, or the content of the data item referenced by identifier-1, is transferred, in the sequence specified in the STRING statement, to the data item referenced by identifier-3 until all data has been transferred or the end of the data item referenced by identifier-3 has been reached.
+║c. If the DELIMITED phrase is specified with the SIZE phrase, the entire content of literal-1, or the content of the data item referenced by identifier-1, is transferred, in the sequence specified in the STRING statement, to the data item referenced by identifier-3 until all data has been transferred or the end of the data item referenced by identifier-3 has been reached.║
 
-This behavior is repeated until all occurrences of literal-1 or data items referenced by identifier-1 have been processed.
+║This behavior is repeated until all occurrences of literal-1 or data items referenced by identifier-1 have been processed.║
 
-(5) If the POINTER phrase is specified, the data item referenced by identifier-4 must be set to an initial value greater than zero prior to the execution of the STRING statement.
+║(5) If the POINTER phrase is specified, the data item referenced by identifier-4 must be set to an initial value greater than zero prior to the execution of the STRING statement.║
 
-(6) If the POINTER phrase is not specified, the following general rules apply as if the user had specified identifier-4 referencing a data item with an initial value of 1.
+║(6) If the POINTER phrase is not specified, the following general rules apply as if the user had specified identifier-4 referencing a data item with an initial value of 1.║
 
-(7) When characters are transferred to the data item referenced by identifier-3, the moves behave as though the characters were moved one at a time from the source into the character positions of the data item referenced by identifier-3 designated by the value of the data item referenced by identifier-4 (provided the value of the data item referenced by identifier-4 does not exceed the length of the data item referenced by identifier-3), and then the data item referenced by identifier-4 was increased by one prior to the move of the next character or prior to the end of execution of the STRING statement. The value of the data item referenced by identifier-4 is changed during execution of the STRING statement only by the behavior specified above.
+║(7) When characters are transferred to the data item referenced by identifier-3, the moves behave as though the characters were moved one at a time from the source into the character positions of the data item referenced by identifier-3 designated by the value of the data item referenced by identifier-4 (provided the value of the data item referenced by identifier-4 does not exceed the length of the data item referenced by identifier-3), and then the data item referenced by identifier-4 was increased by one prior to the move of the next character or prior to the end of execution of the STRING statement. The value of the data item referenced by identifier-4 is changed during execution of the STRING statement only by the behavior specified above.║
 
-(8) At the end of execution of the STRING statement, only the portion of the data item referenced by identifier-3 that was referenced during the execution of
+║(8) At the end of execution of the STRING statement, only the portion of the data item referenced by identifier-3 that was referenced during the execution of║
 
 VI-132
 
@@ -14097,15 +14097,15 @@ VI-132
 
 Nucleus - STRING
 
-the STRING statement is changed. All other portions of the data item referenced by identifier-3 will contain data that was present before this execution of the STRING statement.
+║the STRING statement is changed. All other portions of the data item referenced by identifier-3 will contain data that was present before this execution of the STRING statement.║
 
-(9) Before each move of a character to the data item referenced by identifier-3, if the value associated with the data item referenced by identifier-4 is either less than one or exceeds the number of character positions in the data item referenced by identifier-3, no (further) data is transferred to the data item referenced by identifier-3, and the NOT ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the STRING statement or, if the ON OVERFLOW phrase is specified, to imperative-statement-1. If control is transferred to imperative-statement-1, execution continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the STRING statement.
+║(9) Before each move of a character to the data item referenced by identifier-3, if the value associated with the data item referenced by identifier-4 is either less than one or exceeds the number of character positions in the data item referenced by identifier-3, no (further) data is transferred to the data item referenced by identifier-3, and the NOT ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the STRING statement or, if the ON OVERFLOW phrase is specified, to imperative-statement-1. If control is transferred to imperative-statement-1, execution continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the STRING statement.║
 
-(10) If, at the time of execution of a STRING statement with the NOT ON OVERFLOW phrase, the conditions described in general rule 9 are not encountered, after completion of the transfer of data according to the other general rules, the ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the STRING statement or, if the NOT ON OVERFLOW phrase is specified, to imperative-statement-2. If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the STRING statement.
+║(10) If, at the time of execution of a STRING statement with the NOT ON OVERFLOW phrase, the conditions described in general rule 9 are not encountered, after completion of the transfer of data according to the other general rules, the ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the STRING statement or, if the NOT ON OVERFLOW phrase is specified, to imperative-statement-2. If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the STRING statement.║
 
-(11) The END-STRING phrase delimits the scope of the STRING statement. (See page IV-40, Scope of Statements.)
+║(11) The END-STRING phrase delimits the scope of the STRING statement. (See page IV-40, Scope of Statements.)║
 
-(12) If identifier-1, or identifier-2, occupies the same storage area as identifier-3, or identifier-4, or if identifier-3 and identifier-4 occupy the same storage area, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)
+║(12) If identifier-1, or identifier-2, occupies the same storage area as identifier-3, or identifier-4, or if identifier-3 and identifier-4 occupy the same storage area, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)║
 
 VI-133
 
@@ -14172,7 +14172,7 @@ Nucleus - SUBTRACT
 
 a. In format 2, each identifier following the word GIVING must refer to either an elementary numeric item or an elementary numeric edited item.
 
-b. In format 3, each identifier must refer to a group item.
+║b. In format 3, each identifier must refer to a group item.║
 
 (2) Each literal must be a numeric literal.
 
@@ -14182,9 +14182,9 @@ a. In format 1 the composite of operands is determined by using all of the opera
 
 b. In format 2 the composite of operands is determined by using all of the operands in a given statement excluding the data items that follow the word GIVING.
 
-c. In format 3 the composite of operands is determined separately for each pair of corresponding data items.
+║c. In format 3 the composite of operands is determined separately for each pair of corresponding data items.║
 
-(4) CORR is an abbreviation for CORRESPONDING.
+║(4) CORR is an abbreviation for CORRESPONDING.║
 
 6.26.4 General Rules
 
@@ -14192,11 +14192,11 @@ c. In format 3 the composite of operands is determined separately for each pair 
 
 (2) In format 2, all literals and the values of the data items referenced by the identifiers preceding the word FROM are added together, the sum is subtracted from literal-2 or the value of the data item referenced by identifier-2 and the result of the subtraction is stored as the new content of each data item referenced by identifier-3.
 
-(3) If format 3 is used, data items in identifier-1 are subtracted from and stored into corresponding data items in identifier-2.
+║(3) If format 3 is used, data items in identifier-1 are subtracted from and stored into corresponding data items in identifier-2.║
 
 (4) The compiler insures enough places are carried so as not to lose significant digits during execution.
 
-(5) Additional rules and explanations relative to this statement are given under the appropriate paragraphs. (See page IV-40, Scope of Statements; page VI-67, The ROUNDED Phrase; page VI-67, The ON SIZE ERROR Phrase; page VI-69, The Arithmetic Statements; page VI-69, Overlapping Operands; page VI-69, Multiple Results in Arithmetic Statements; page VI-68, The CORRESPONDING Phrase.)
+(5) Additional rules and explanations relative to this statement are given under the appropriate paragraphs. (See page IV-40, Scope of Statements; page VI-67, The ROUNDED Phrase; page VI-67, The ON SIZE ERROR Phrase; page VI-69, The Arithmetic Statements; page VI-69, Overlapping Operands; page VI-69, Multiple Results in Arithmetic Statements; ║page VI-68, The CORRESPONDING Phrase.)║
 
 VI-135
 
@@ -14206,13 +14206,13 @@ VI-135
 Nucleus - UNSTRING
 </pre>
 
-6.27 THE UNSTRING STATEMENT
+║6.27 THE UNSTRING STATEMENT║
 
-6.27.1 Function
+║6.27.1 Function║
 
-The UNSTRING statement causes contiguous data in a sending field to be separated and placed into multiple receiving fields.
+║The UNSTRING statement causes contiguous data in a sending field to be separated and placed into multiple receiving fields.║
 
-6.27.2 General Format
+║6.27.2 General Format║
 
 <pre style="line-height:1">
 ╔<u>UNSTRING</u> identifier-1                                                              ╗
@@ -14234,21 +14234,21 @@ The UNSTRING statement causes contiguous data in a sending field to be separated
 ╚   [ <u>END-UNSTRING</u> ]                                                                ╝
 </pre>
 
-6.27.3 Syntax Rules
+║6.27.3 Syntax Rules║
 
-(1) Literal-1 and literal-2 must be nonnumeric literals and neither can be a figurative constant that begins with the word ALL.
+║(1) Literal-1 and literal-2 must be nonnumeric literals and neither can be a figurative constant that begins with the word ALL.║
 
-(2) Identifier-1, identifier-2, identifier-3, and identifier-5 must reference data items described, implicitly or explicitly, as category alphanumeric.
+║(2) Identifier-1, identifier-2, identifier-3, and identifier-5 must reference data items described, implicitly or explicitly, as category alphanumeric.║
 
-(3) Identifier-4 may be described as either the category alphabetic, alphanumeric, or numeric (except that the symbol 'P' may not be used in the PICTURE character-string), and must be described implicitly or explicitly, as USAGE IS DISPLAY.
+║(3) Identifier-4 may be described as either the category alphabetic, alphanumeric, or numeric (except that the symbol 'P' may not be used in the PICTURE character-string), and must be described implicitly or explicitly, as USAGE IS DISPLAY.║
 
-(4) Identifier-6 and identifier-8 must reference integer data items (except that the symbol 'P' may not be used in the PICTURE character-string).
+║(4) Identifier-6 and identifier-8 must reference integer data items (except that the symbol 'P' may not be used in the PICTURE character-string).║
 
-(5) Identifier-7 must be described as an elementary numeric integer data item of sufficient size to contain a value equal to 1 plus the size of the data item referenced by identifier-1. The symbol 'P' may not be used in the PICTURE character-string of identifier-7.
+║(5) Identifier-7 must be described as an elementary numeric integer data item of sufficient size to contain a value equal to 1 plus the size of the data item referenced by identifier-1. The symbol 'P' may not be used in the PICTURE character-string of identifier-7.║
 
-(6) The DELIMITER IN phrase and the COUNT IN phrase may be specified only if the DELIMITED BY phrase is specified.
+║(6) The DELIMITER IN phrase and the COUNT IN phrase may be specified only if the DELIMITED BY phrase is specified.║
 
-(7) Identifier-1 must not be reference modified.
+║(7) Identifier-1 must not be reference modified.║
 
 VI-136
 
@@ -14256,33 +14256,33 @@ VI-136
 
 Nucleus - UNSTRING
 
-6.27.4 General Rules
+║6.27.4 General Rules║
 
-(1) All references to identifier-2 and literal-1 apply equally to identifier-3 and literal-2, respectively, and all recursions thereof.
+║(1) All references to identifier-2 and literal-1 apply equally to identifier-3 and literal-2, respectively, and all recursions thereof.║
 
-(2) The data item referenced by identifier-1 represents the sending area.
+║(2) The data item referenced by identifier-1 represents the sending area.║
 
-(3) The data item referenced by identifier-4 represents the data receiving area. The data item referenced by identifier-5 represents the receiving area for delimiters.
+║(3) The data item referenced by identifier-4 represents the data receiving area. The data item referenced by identifier-5 represents the receiving area for delimiters.║
 
-(4) Literal-1 or the data item referenced by identifier-2 specifies a delimiter.
+║(4) Literal-1 or the data item referenced by identifier-2 specifies a delimiter.║
 
-(5) The data item referenced by identifier-6 represents the count of the number of characters within the data item referenced by identifier-1 isolated by the delimiters for the move to the data item referenced by identifier-4. This value does not include a count of the delimiter character(s).
+║(5) The data item referenced by identifier-6 represents the count of the number of characters within the data item referenced by identifier-1 isolated by the delimiters for the move to the data item referenced by identifier-4. This value does not include a count of the delimiter character(s).║
 
-(6) The data item referenced by identifier-7 contains a value that indicates a relative character position within the area referenced by identifier-1.
+║(6) The data item referenced by identifier-7 contains a value that indicates a relative character position within the area referenced by identifier-1.║
 
-(7) The data item referenced by identifier-8 is a counter which is incremented by 1 for each occurrence of the data item referenced by identifier-4 accessed during the UNSTRING operation.
+║(7) The data item referenced by identifier-8 is a counter which is incremented by 1 for each occurrence of the data item referenced by identifier-4 accessed during the UNSTRING operation.║
 
-(8) When a figurative constant is used as the delimiter, it stands for a single character nonnumeric literal.
+║(8) When a figurative constant is used as the delimiter, it stands for a single character nonnumeric literal.║
 
-When the ALL phrase is specified, one occurrence or two or more contiguous occurrences of literal-1 (figurative constant or not) or the content of the data item referenced by identifier-2 are treated as if they were only one occurrence, and one occurrence of literal-1 or the data item referenced by identifier-2 is moved to the receiving data item according to the rules in general rule 13d.
+║When the ALL phrase is specified, one occurrence or two or more contiguous occurrences of literal-1 (figurative constant or not) or the content of the data item referenced by identifier-2 are treated as if they were only one occurrence, and one occurrence of literal-1 or the data item referenced by identifier-2 is moved to the receiving data item according to the rules in general rule 13d.║
 
-(9) When any examination encounters two contiguous delimiters, the current receiving area is space filled if it is described as alphabetic or alphanumeric, or zero filled if it is described as numeric.
+║(9) When any examination encounters two contiguous delimiters, the current receiving area is space filled if it is described as alphabetic or alphanumeric, or zero filled if it is described as numeric.║
 
-(10) Literal-1 or the content of the data item referenced by identifier-2 can contain any character in the computer's character set.
+║(10) Literal-1 or the content of the data item referenced by identifier-2 can contain any character in the computer's character set.║
 
-(11) Each literal-1 or the data item referenced by identifier-2 represents one delimiter. When a delimiter contains two or more characters, all of the characters must be present in contiguous positions of the sending item, and in the order given, to be recognized as a delimiter.
+║(11) Each literal-1 or the data item referenced by identifier-2 represents one delimiter. When a delimiter contains two or more characters, all of the characters must be present in contiguous positions of the sending item, and in the order given, to be recognized as a delimiter.║
 
-(12) When two or more delimiters are specified in the DELIMITED BY phrase, an OR condition exists between them. Each delimiter is compared to the sending field. If a match occurs, the character(s) in the sending field is considered to be a single delimiter. No character(s) in the sending field can be considered a part of more than one delimiter.
+║(12) When two or more delimiters are specified in the DELIMITED BY phrase, an OR condition exists between them. Each delimiter is compared to the sending field. If a match occurs, the character(s) in the sending field is considered to be a single delimiter. No character(s) in the sending field can be considered a part of more than one delimiter.║
 
 VI-137
 
@@ -14290,25 +14290,25 @@ VI-137
 
 Nucleus - UNSTRING
 
-Each delimiter is applied to the sending field in the sequence specified in the UNSTRING statement.
+║Each delimiter is applied to the sending field in the sequence specified in the UNSTRING statement.║
 
-(13) When the UNSTRING statement is initiated, the current receiving area is the data item referenced by identifier-4. Data is transferred from the data item referenced by identifier-1 to the data item referenced by identifier-4 according to the following rules:
+║(13) When the UNSTRING statement is initiated, the current receiving area is the data item referenced by identifier-4. Data is transferred from the data item referenced by identifier-1 to the data item referenced by identifier-4 according to the following rules:║
 
-a. If the POINTER phrase is specified, the string of characters referenced by identifier-1 is examined beginning with the relative character position indicated by the content of the data item referenced by identifier-7. If the POINTER phrase is not specified, the string of characters is examined beginning with the leftmost character position.
+║a. If the POINTER phrase is specified, the string of characters referenced by identifier-1 is examined beginning with the relative character position indicated by the content of the data item referenced by identifier-7. If the POINTER phrase is not specified, the string of characters is examined beginning with the leftmost character position.║
 
-b. If the DELIMITED BY phrase is specified, the examination proceeds left to right until either a delimiter specified by literal-1 or the value of the data item referenced by identifier-2 is encountered. (See general rule 11.) If the DELIMITED BY phrase is not specified, the number of characters examined is equal to the size of the current receiving area. However, if the sign of the receiving item is defined as occupying a separate character position, the number of characters examined is one less than the size of the current receiving area.
+║b. If the DELIMITED BY phrase is specified, the examination proceeds left to right until either a delimiter specified by literal-1 or the value of the data item referenced by identifier-2 is encountered. (See general rule 11.) If the DELIMITED BY phrase is not specified, the number of characters examined is equal to the size of the current receiving area. However, if the sign of the receiving item is defined as occupying a separate character position, the number of characters examined is one less than the size of the current receiving area.║
 
-If the end of the data item referenced by identifier-1 is encountered before the delimiting condition is met, the examination terminates with the last character examined.
+║If the end of the data item referenced by identifier-1 is encountered before the delimiting condition is met, the examination terminates with the last character examined.║
 
-c. The characters thus examined (excluding the delimiting character(s), if any) are treated as an elementary alphanumeric data item, and are moved into the current receiving area according to the rules for the MOVE statement. (See page VI-103, The MOVE Statement.)
+║c. The characters thus examined (excluding the delimiting character(s), if any) are treated as an elementary alphanumeric data item, and are moved into the current receiving area according to the rules for the MOVE statement. (See page VI-103, The MOVE Statement.)║
 
-d. If the DELIMITER IN phrase is specified the delimiting character(s) are treated as an elementary alphanumeric data item and are moved into the data item referenced by identifier-5 according to the rules for the MOVE statement. (See page VI-103, The MOVE Statement.) If the delimiting condition is the end of the data item referenced by identifier-1, then the data item referenced by identifier-5 is space filled.
+║d. If the DELIMITER IN phrase is specified the delimiting character(s) are treated as an elementary alphanumeric data item and are moved into the data item referenced by identifier-5 according to the rules for the MOVE statement. (See page VI-103, The MOVE Statement.) If the delimiting condition is the end of the data item referenced by identifier-1, then the data item referenced by identifier-5 is space filled.║
 
-e. If the COUNT IN phrase is specified, a value equal to the number of characters thus examined (excluding the delimiter character(s), if any) is moved into the area referenced by identifier-6 according to the rules for an elementary move.
+║e. If the COUNT IN phrase is specified, a value equal to the number of characters thus examined (excluding the delimiter character(s), if any) is moved into the area referenced by identifier-6 according to the rules for an elementary move.║
 
-f. If the DELIMITED BY phrase is specified the string of characters is further examined beginning with the first character to the right of the delimiter. If the DELIMITED BY phrase is not specified the string of characters is further examined beginning with the character to the right of the last character transferred.
+║f. If the DELIMITED BY phrase is specified the string of characters is further examined beginning with the first character to the right of the delimiter. If the DELIMITED BY phrase is not specified the string of characters is further examined beginning with the character to the right of the last character transferred.║
 
-g. After data is transferred to the data item referenced by identifier-4, the current receiving area is the data item referenced by the next recurrence of identifier-4. The behavior described in paragraphs 13b through 13f is repeated until either all the characters are exhausted in the data item referenced by identifier-1, or until there are no more receiving areas.
+║g. After data is transferred to the data item referenced by identifier-4, the current receiving area is the data item referenced by the next recurrence of identifier-4. The behavior described in paragraphs 13b through 13f is repeated until either all the characters are exhausted in the data item referenced by identifier-1, or until there are no more receiving areas.║
 
 VI-138
 
@@ -14316,19 +14316,19 @@ VI-138
 
 Nucleus - UNSTRING
 
-(14) The initialization of the contents of the data items associated with the POINTER phrase or the TALLYING phrase is the responsibility of the user.
+║(14) The initialization of the contents of the data items associated with the POINTER phrase or the TALLYING phrase is the responsibility of the user.║
 
-(15) The content of the data item referenced by identifier-7 will be incremented by one for each character examined in the data item referenced by identifier-1. When the execution of an UNSTRING statement with a POINTER phrase is completed, the content of the data item referenced by identifier-7 will contain a value equal to the initial value plus the number of characters examined in the data item referenced by identifier-1.
+║(15) The content of the data item referenced by identifier-7 will be incremented by one for each character examined in the data item referenced by identifier-1. When the execution of an UNSTRING statement with a POINTER phrase is completed, the content of the data item referenced by identifier-7 will contain a value equal to the initial value plus the number of characters examined in the data item referenced by identifier-1.║
 
-(16) When the execution of an UNSTRING statement with a TALLYING phrase is completed, the content of the data item referenced by identifier-8 contains a value equal to its value at the beginning of the execution of the statement plus a value equal to the number of identifier-4 receiving data items accessed during execution of the statement.
+║(16) When the execution of an UNSTRING statement with a TALLYING phrase is completed, the content of the data item referenced by identifier-8 contains a value equal to its value at the beginning of the execution of the statement plus a value equal to the number of identifier-4 receiving data items accessed during execution of the statement.║
 
-(17) Either of the following situations causes an overflow condition:
+║(17) Either of the following situations causes an overflow condition:║
 
-a. An UNSTRING is initiated, and the value in the data item referenced by identifier-7 is less than 1 or greater than the size of the data item referenced by identifier-1.
+║a. An UNSTRING is initiated, and the value in the data item referenced by identifier-7 is less than 1 or greater than the size of the data item referenced by identifier-1.║
 
-b. If, during execution of an UNSTRING statement, all receiving areas have been acted upon, and the data item referenced by identifier-1 contains characters that have not been examined.
+║b. If, during execution of an UNSTRING statement, all receiving areas have been acted upon, and the data item referenced by identifier-1 contains characters that have not been examined.║
 
-(18) When an overflow condition exists, the UNSTRING operation is terminated, the NOT ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the UNSTRING statement or, if the ON OVERFLOW phrase is specified, to imperative-statement-1. If control is transferred to imperative-statement-1, execution continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the UNSTRING statement.
+║(18) When an overflow condition exists, the UNSTRING operation is terminated, the NOT ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the UNSTRING statement or, if the ON OVERFLOW phrase is specified, to imperative-statement-1. If control is transferred to imperative-statement-1, execution continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the UNSTRING statement.║
 
 (19) The END-UNSTRING phrase delimits the scope of the UNSTRING statement. (See page IV-40, Scope of Statements.)
 
@@ -14340,7 +14340,7 @@ VI-139
 
 Nucleus - UNSTRING
 
-(21) If identifier-1, identifier-2, or identifier-3, occupies the same storage area as identifier-4, identifier-5, identifier-6, identifier-7, or identifier-8, or if identifier-4, identifier-5, or identifier-6, occupies the same storage area as identifier-7 or identifier-8, or if identifier-7 and identifier-8 occupy the same storage area, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)
+║(21) If identifier-1, identifier-2, or identifier-3, occupies the same storage area as identifier-4, identifier-5, identifier-6, identifier-7, or identifier-8, or if identifier-4, identifier-5, or identifier-6, occupies the same storage area as identifier-7 or identifier-8, or if identifier-7 and identifier-8 occupy the same storage area, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)║
 
 VI-140
 
@@ -14398,13 +14398,13 @@ The Sequential I-O module provides a capability to access records of a file in e
 
 Sequential I-O level 1 provides limited capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph. Within the Procedure Division, the Sequential I-O level 1 provides limited capabilities for the CLOSE, OPEN, READ, USE, and WRITE statements; full capabilities are provided for the REWRITE statement.
 
-Sequential I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph. Within the Procedure Division, the Sequential I-O level 2 provides full capabilities for the CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements.
+║Sequential I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph. Within the Procedure Division, the Sequential I-O level 2 provides full capabilities for the CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements.║
 
 ### 1.3 LANGUAGE CONCEPTS
 
 #### 1.3.1 Organization
 
-Sequential files are organized so that each record, except the last, has a unique successor record; each record, except the first, has a unique predecessor record. The successor relationships are established by the order of execution of WRITE statements when the file is created. Once established, successor relationships do not change except in the case where records are added to the end of a file.
+Sequential files are organized so that each record, except the last, has a unique successor record; each record, except the first, has a unique predecessor record. The successor relationships are established by the order of execution of WRITE statements when the file is created. Once established, successor relationships do not change ║except in the case where records are added to the end of a file.║
 
 A sequentially organized mass storage file has the same logical structure as a file on any sequential medium; however, a sequential mass storage file may be updated in place. When this technique is used, new records cannot be added to the file and each replaced record must be the same size as the original record.
 
@@ -14424,7 +14424,7 @@ The current volume pointer is a conceptual entity used in this document to facil
 
 ## 1.3.4 File Position Indicator
 
-The file position indicator is a conceptual entity used in this document to facilitate exact specification of the next record to be accessed within a given file during certain sequences of input-output operations. The setting of the file position indicator is affected only by the CLOSE, OPEN, and READ statements. The concept of a file position indicator has no meaning for a file opened in the output <ins>or extend</ins> mode.
+The file position indicator is a conceptual entity used in this document to facilitate exact specification of the next record to be accessed within a given file during certain sequences of input-output operations. The setting of the file position indicator is affected only by the CLOSE, OPEN, and READ statements. The concept of a file position indicator has no meaning for a file opened in the output ║or extend║ mode.
 
 ## 1.3.5 I-O Status
 
@@ -14462,9 +14462,9 @@ a. I-O Status = 00. The input-output statement is successfully executed and no f
 
 b. I-O Status = 04. A READ statement is successfully executed but the length of the record being processed does not conform to the fixed file attributes for that file.
 
-c. I-O Status = 05. An OPEN statement is successfully executed but the referenced optional file is not present at the time the OPEN statement is executed. If the open mode is I-O or extend, the file has been created.
+║c. I-O Status = 05. An OPEN statement is successfully executed but the referenced optional file is not present at the time the OPEN statement is executed. If the open mode is I-O or extend, the file has been created.║
 
-d. I-O Status = 07. The input-output statement is successfully executed. However, for a CLOSE statement with the NO REWIND, REEL/UNIT, or FOR REMOVAL phrase or for an OPEN statement with the NO REWIND phrase, the referenced file is on a non-reel/unit medium.
+d. I-O Status = 07. The input-output statement is successfully executed. However, for a CLOSE statement with the ║NO REWIND,║ ║REEL/UNIT,║ ║or FOR REMOVAL║ phrase ║or for an OPEN statement with the NO REWIND phrase,║ the referenced file is on a non-reel/unit medium.
 
 (2) At End Condition With Unsuccessful Completion
 
@@ -14472,7 +14472,7 @@ a. I-O Status = 10. A sequential READ statement is attempted and no next logical
 
 1\) The end of the file has been reached, or
 
-2\) A sequential READ statement is attempted for the first time on an optional input file that is not present.
+║2\) A sequential READ statement is attempted for the first time on an optional input file that is not present.║
 
 (3) Permanent Error Condition With Unsuccessful Completion
 
@@ -14486,17 +14486,17 @@ VII-3
 
 Sequential I-O - Introduction
 
-c. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, [or EXTEND] phrase is attempted on a [non-optional] file that is not present.
+c. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, [║or EXTEND║] phrase is attempted on a [║non-optional║] file that is not present.
 
 d. I-O Status = 37. A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. The possible violations are:
 
-1\) The [EXTEND or] OUTPUT phrase is specified but the file will not support write operations.
+1\) The [║EXTEND or║] OUTPUT phrase is specified but the file will not support write operations.
 
 2\) The I-O phrase is specified but the file will not support the input and output operations that are permitted for a sequential file when opened in the I-O mode.
 
 3\) The INPUT phrase is specified but the file will not support read operations.
 
-e. I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.
+║e. I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.║
 
 f. I-O Status = 39. The OPEN statement is unsuccessful because a conflict has been detected between the fixed file attributes and the attributes specified for that file in the program.
 
@@ -14510,7 +14510,7 @@ c. I-O Status = 43. For a mass storage file in the sequential access mode, the l
 
 d. I-O Status = 44. A boundary violation exists because:
 
-1\) An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed by the RECORD IS VARYING clause of the associated file-name, or
+║1\) An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed by the RECORD IS VARYING clause of the associated file-name, or║
 
 2\) An attempt is made to rewrite a record to a sequential file and the record is not the same size as the record being replaced.
 
@@ -14528,7 +14528,7 @@ Sequential I-O - Introduction
 
 f. I-O Status = 47. The execution of a READ statement is attempted on a file not open in the input or I-O mode.
 
-g. I-O Status = 48. The execution of a WRITE statement is attempted on a file not open in the output or extend mode.
+g. I-O Status = 48. The execution of a WRITE statement is attempted on a file not open in the output ║or extend║ mode.
 
 h. I-O Status = 49. The execution of a REWRITE statement is attempted on a file not open in the I-O mode.
 
@@ -14550,9 +14550,9 @@ When the file attribute conflict condition is recognized, these actions take pla
 
 (2) A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.
 
-### 1.3.8 Special Register LINAGE-COUNTER
+### ║1.3.8 Special Register LINAGE-COUNTER║
 
-The reserved word LINAGE-COUNTER is a name for a line counter generated by the presence of a LINAGE clause in a file description entry. (See page VII-27, The LINAGE Clause.) The implicit description is that of an unsigned integer whose size is equal to the size of integer-1 or the data item referenced by data-name-1 in the LINAGE clause. LINAGE-COUNTER may be referenced only in Procedure Division statements; however, only the input-output control system may change the value of LINAGE-COUNTER.
+║The reserved word LINAGE-COUNTER is a name for a line counter generated by the presence of a LINAGE clause in a file description entry. (See page VII-27, The LINAGE Clause.) The implicit description is that of an unsigned integer whose size is equal to the size of integer-1 or the data item referenced by data-name-1 in the LINAGE clause. LINAGE-COUNTER may be referenced only in Procedure Division statements; however, only the input-output control system may change the value of LINAGE-COUNTER.║
 
 VII-5
 
@@ -14644,25 +14644,25 @@ Sequential I-O - FILE-CONTROL
 
 (1) If the file connector referenced by file-name-1 is an external file connector (see page X-23, The EXTERNAL Clause), all file control entries in the run unit which reference this file connector must have:
 
-a. The same specification for the OPTIONAL phrase.
+║a. The same specification for the OPTIONAL phrase.║
 
 b. A consistent specification for implementor-name-1 or literal-1 in the ASSIGN clause. The implementor will specify the consistency rules for implementor-name-1 or literal-1.
 
-c. A consistent specification for implementor-name-2 in the RECORD DELIMITER clause. The implementor will specify the consistency rules for implementor-name-2.
+║c. A consistent specification for implementor-name-2 in the RECORD DELIMITER clause. The implementor will specify the consistency rules for implementor-name-2.║
 
-d. The same value for integer-1 in the RESERVE clause.
+║d. The same value for integer-1 in the RESERVE clause.║
 
 e. The same organization.
 
 f. The same access mode.
 
-g. The same specification for the PADDING CHARACTER clause.
+║g. The same specification for the PADDING CHARACTER clause.║
 
-(2) The OPTIONAL phrase applies only to files opened in the input, I-O, or extend mode. Its specification is required for files that are not necessarily present each time the object program is executed.
+║(2) The OPTIONAL phrase applies only to files opened in the input, I-O, or extend mode. Its specification is required for files that are not necessarily present each time the object program is executed.║
 
 (3) The ASSIGN clause specifies the association of the file referenced by file-name-1 to a storage medium referenced by implementor-name-1 or literal-1.
 
-(4) The ACCESS MODE clause, the FILE STATUS clause, the ORGANIZATION IS SEQUENTIAL clause, the PADDING CHARACTER clause, the RECORD DELIMITER clause, and the RESERVE clause are presented in alphabetical order on the following pages.
+(4) The ACCESS MODE clause, the FILE STATUS clause, the ORGANIZATION IS SEQUENTIAL clause, ║the PADDING CHARACTER clause, the RECORD DELIMITER clause, and the RESERVE clause║ are presented in alphabetical order on the following pages.
 
 VII-8
 
@@ -14686,7 +14686,7 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
 
 (1) If the ACCESS MODE clause is not specified, sequential access is assumed.
 
-(2) Records in the file are accessed in the sequence dictated by the file organization. For sequential files this sequence is specified by predecessor-successor record relationships established by the execution of WRITE statements when the file is created or extended.
+(2) Records in the file are accessed in the sequence dictated by the file organization. For sequential files this sequence is specified by predecessor-successor record relationships established by the execution of WRITE statements when the file is created ║or extended.║
 
 (3) If the associated file connector is an external file connector, every file control entry in the run unit which is associated with that file connector must specify the same access mode.
 
@@ -14752,13 +14752,13 @@ VII-11
 
 Sequential I-O - PADDING CHARACTER
 
-## 2.7 THE PADDING CHARACTER CLAUSE
+## ║2.7 THE PADDING CHARACTER CLAUSE║
 
-### 2.7.1 Function
+### ║2.7.1 Function║
 
-The PADDING CHARACTER clause specifies the character which is to be used for block padding on sequential files.
+║The PADDING CHARACTER clause specifies the character which is to be used for block padding on sequential files.║
 
-### 2.7.2 General Format
+### ║2.7.2 General Format║
 
 <pre style="line-height:1">
 ╔                      ╭ data-name-1 ╮ ╗
@@ -14766,27 +14766,27 @@ The PADDING CHARACTER clause specifies the character which is to be used for blo
 ╚                      ╰ literal-1   ╯ ╝
 </pre>
 
-### 2.7.3 Syntax Rules
+### ║2.7.3 Syntax Rules║
 
-(1) Literal-1 must be a one-character nonnumeric literal.
+║(1) Literal-1 must be a one-character nonnumeric literal.║
 
-(2) Data-name-1 may be qualified.
+║(2) Data-name-1 may be qualified.║
 
-(3) Data-name-1 must be defined in the Data Division as a one-character data item of the category alphanumeric and must not be defined in the Communication Section, the File Section, or the Report Section.
+║(3) Data-name-1 must be defined in the Data Division as a one-character data item of the category alphanumeric and must not be defined in the Communication Section, the File Section, or the Report Section.║
 
-### 2.7.4 General Rules
+### ║2.7.4 General Rules║
 
-(1) The PADDING CHARACTER clause specifies the character which is to be used for block padding on sequential files. During input operations, any portion of a block which exists beyond the last logical record and consists entirely of padding characters will be bypassed. During input operations, a logical record which consists solely of padding characters will be ignored. During output operations, any portion of a block which exists beyond the last logical record will be filled entirely with padding characters.
+║(1) The PADDING CHARACTER clause specifies the character which is to be used for block padding on sequential files. During input operations, any portion of a block which exists beyond the last logical record and consists entirely of padding characters will be bypassed. During input operations, a logical record which consists solely of padding characters will be ignored. During output operations, any portion of a block which exists beyond the last logical record will be filled entirely with padding characters.║
 
-(2) If the PADDING CHARACTER clause is not applicable to the device type to which the file is assigned, the creation or recognition of padding characters does not occur.
+║(2) If the PADDING CHARACTER clause is not applicable to the device type to which the file is assigned, the creation or recognition of padding characters does not occur.║
 
-(3) Literal-1 or the value of the data item referenced by data-name-1, at the time the OPEN statement which creates the file is executed, is used as the value of the padding character. The padding character is a fixed file attribute.
+║(3) Literal-1 or the value of the data item referenced by data-name-1, at the time the OPEN statement which creates the file is executed, is used as the value of the padding character. The padding character is a fixed file attribute.║
 
-(4) If the CODE-SET clause is specified for the file, conversion of the padding character specified by literal-1 or the content of data-name-1 is established for the file when the file is opened.
+║(4) If the CODE-SET clause is specified for the file, conversion of the padding character specified by literal-1 or the content of data-name-1 is established for the file when the file is opened.║
 
-(5) If the PADDING CHARACTER clause is not specified, the value used for the padding character will be defined by the implementor.
+║(5) If the PADDING CHARACTER clause is not specified, the value used for the padding character will be defined by the implementor.║
 
-(6) If the associated file connector is an external file connector, all PADDING CHARACTER clauses in the run unit which are associated with that file connector must have the same specifications. If data-name-1 is specified, it must reference an external data item.
+║(6) If the associated file connector is an external file connector, all PADDING CHARACTER clauses in the run unit which are associated with that file connector must have the same specifications. If data-name-1 is specified, it must reference an external data item.║
 
 VII-12
 
@@ -14794,13 +14794,13 @@ VII-12
 
 Sequential I-O - RECORD DELIMITER
 
-## 2.8 THE RECORD DELIMITER CLAUSE
+## ║2.8 THE RECORD DELIMITER CLAUSE║
 
-### 2.8.1 Function
+### ║2.8.1 Function║
 
-The RECORD DELIMITER clause indicates the method of determining the length of a variable length record on the external medium.
+║The RECORD DELIMITER clause indicates the method of determining the length of a variable length record on the external medium.║
 
-### 2.8.2 General Format
+### ║2.8.2 General Format║
 
 <pre style="line-height:1">
                     ╭ <u>STANDARD-1</u>         ╮
@@ -14808,25 +14808,25 @@ The RECORD DELIMITER clause indicates the method of determining the length of a 
                     ╰ implementor-name-1 ╯
 </pre>
 
-### 2.8.3 Syntax Rules
+### ║2.8.3 Syntax Rules║
 
-(1) The RECORD DELIMITER clause may be specified only for variable length records.
+║(1) The RECORD DELIMITER clause may be specified only for variable length records.║
 
-(2) If the STANDARD-1 phrase is specified, the external medium must be a magnetic tape file.
+║(2) If the STANDARD-1 phrase is specified, the external medium must be a magnetic tape file.║
 
-### 2.8.4 General Rules
+### ║2.8.4 General Rules║
 
-(1) The RECORD DELIMITER clause is used to indicate the method of determining the length of a variable length record on the external medium. Any method used will not be reflected in the record area or the record size used within the program.
+║(1) The RECORD DELIMITER clause is used to indicate the method of determining the length of a variable length record on the external medium. Any method used will not be reflected in the record area or the record size used within the program.║
 
-(2) If the STANDARD-1 phrase is specified, the method used for determining the length of a variable length record is that specified in American National Standard X3.27-1978, Magnetic Tape Labels and File Structure for Information Interchange, and International Standard 1001 1979, Magnetic Tape Labels and File Structure for Information Interchange.
+║(2) If the STANDARD-1 phrase is specified, the method used for determining the length of a variable length record is that specified in American National Standard X3.27-1978, Magnetic Tape Labels and File Structure for Information Interchange, and International Standard 1001 1979, Magnetic Tape Labels and File Structure for Information Interchange.║
 
-(3) If the implementor-name-1 phrase is specified, the method used for determining the length of a variable length record is that associated with implementor-name-1 by the implementor.
+║(3) If the implementor-name-1 phrase is specified, the method used for determining the length of a variable length record is that associated with implementor-name-1 by the implementor.║
 
-(4) If the RECORD DELIMITER clause is not specified, the method used for determining the length of a variable length record is specified by the implementor.
+║(4) If the RECORD DELIMITER clause is not specified, the method used for determining the length of a variable length record is specified by the implementor.║
 
-(5) At the time of a successful execution of an OPEN statement, the record delimiter is the one specified in the RECORD DELIMITER clause in the file control entry associated with the file-name specified in the OPEN statement.
+║(5) At the time of a successful execution of an OPEN statement, the record delimiter is the one specified in the RECORD DELIMITER clause in the file control entry associated with the file-name specified in the OPEN statement.║
 
-(6) If the associated file connector is an external file connector, all RECORD DELIMITER clauses in the run unit which are associated with that file connector must have the same specifications.
+║(6) If the associated file connector is an external file connector, all RECORD DELIMITER clauses in the run unit which are associated with that file connector must have the same specifications.║
 
 VII-13
 
@@ -14834,13 +14834,13 @@ VII-13
 
 Sequential I-O - RESERVE
 
-## 2.9 THE RESERVE CLAUSE
+## ║2.9 THE RESERVE CLAUSE║
 
-### 2.9.1 Function
+### ║2.9.1 Function║
 
-The RESERVE clause allows the user to specify the number of input-output areas allocated.
+║The RESERVE clause allows the user to specify the number of input-output areas allocated.║
 
-### 2.9.2 General Format
+### ║2.9.2 General Format║
 
 <pre style="line-height:1">
 ╔                    ┌ AREA  ┐ ╗
@@ -14848,9 +14848,9 @@ The RESERVE clause allows the user to specify the number of input-output areas a
 ╚                    └ AREAS ┘ ╝
 </pre>
 
-### 2.9.3 General Rules
+### ║2.9.3 General Rules║
 
-(1) The RESERVE clause allows the user to specify the number of input-output areas allocated. If the RESERVE clause is specified, the number of input-output areas allocated is equal to the value of integer-1. If the RESERVE clause is not specified, the number of input-output areas allocated is specified by the implementor.
+║(1) The RESERVE clause allows the user to specify the number of input-output areas allocated. If the RESERVE clause is specified, the number of input-output areas allocated is equal to the value of integer-1. If the RESERVE clause is not specified, the number of input-output areas allocated is specified by the implementor.║
 
 VII-14
 
@@ -14862,7 +14862,7 @@ Sequential I-O - I-O-CONTROL
 
 ### 2.10.1 Function
 
-The I-O-CONTROL paragraph specifies the points at which rerun is to be established, the memory area which is to be shared by different files, and the location of files on a multiple file reel. The RERUN clause and the MULTIPLE FILE TAPE clause within the I-O-CONTROL paragraph are obsolete elements in Standard COBOL because they are to be deleted from the next revision of Standard COBOL.
+The I-O-CONTROL paragraph specifies the points at which rerun is to be established, the memory area which is to be shared by different files, ║and the location of files on a multiple file reel.║ The RERUN clause ║and the MULTIPLE FILE TAPE clause║ within the I-O-CONTROL paragraph are obsolete elements in Standard COBOL because they are to be deleted from the next revision of Standard COBOL.
 
 ### 2.10.2 General Format
 
@@ -14887,7 +14887,7 @@ The I-O-CONTROL paragraph specifies the points at which rerun is to be establish
 
 ### 2.10.4 General Rules
 
-(1) The MULTIPLE FILE TAPE clause, the RERUN clause, and the SAME clause are presented in alphabetical order on the following pages.
+(1) ║The MULTIPLE FILE TAPE clause,║ the RERUN clause, and the SAME clause are presented in alphabetical order on the following pages.
 
 VII-15
 
@@ -14895,21 +14895,21 @@ VII-15
 
 Sequential I-O - MULTIPLE FILE TAPE
 
-## 2.11 THE MULTIPLE FILE TAPE CLAUSE
+## ║2.11 THE MULTIPLE FILE TAPE CLAUSE║
 
-### 2.11.1 Function
+### ║2.11.1 Function║
 
-The MULTIPLE FILE TAPE clause specifies the location of files on a multiple file reel. The MULTIPLE FILE TAPE clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
+║The MULTIPLE FILE TAPE clause specifies the location of files on a multiple file reel. The MULTIPLE FILE TAPE clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.║
 
-### 2.11.2 General Format
+### ║2.11.2 General Format║
 
 <pre style="line-height:1">
 ║ <u>MULTIPLE</u> <u>FILE</u> TAPE CONTAINS { file-name-1 [ <u>POSITION</u> integer-1 ] } … ║
 </pre>
 
-### 2.11.3 General Rules
+### ║2.11.3 General Rules║
 
-(1) The MULTIPLE FILE TAPE clause is required when more than one file shares the same physical reel of tape. Regardless of the number of files on a single reel, only those files that are used in the object program need be specified. If all file-names have been listed in consecutive order, the POSITION phrase need not be given. If any file in the sequence is not listed, the position relative to the beginning of the tape must be given. Not more than one file on the same tape reel may be open at one time.
+║(1) The MULTIPLE FILE TAPE clause is required when more than one file shares the same physical reel of tape. Regardless of the number of files on a single reel, only those files that are used in the object program need be specified. If all file-names have been listed in consecutive order, the POSITION phrase need not be given. If any file in the sequence is not listed, the position relative to the beginning of the tape must be given. Not more than one file on the same tape reel may be open at one time.║
 
 VII-16
 
@@ -15007,11 +15007,11 @@ The SAME clause specifies the memory area which is to be shared by different fil
 
 a. A file-name must not appear in more than one SAME AREA clause.
 
-b. A file-name must not appear in more than one SAME RECORD AREA clause.
+║b. A file-name must not appear in more than one SAME RECORD AREA clause.║
 
-c. If one or more file-names of a SAME AREA clause appear in a SAME RECORD AREA clause, all of the file-names in that SAME AREA clause must appear in the SAME RECORD AREA clause. However, additional file-names not appearing in that SAME AREA clause may also appear in that SAME RECORD AREA clause. The rule that only one of the files mentioned in a SAME AREA clause can be open at any given time takes precedence over the rule that all files mentioned in a SAME RECORD AREA clause can be open at any given time.
+║c. If one or more file-names of a SAME AREA clause appear in a SAME RECORD AREA clause, all of the file-names in that SAME AREA clause must appear in the SAME RECORD AREA clause. However, additional file-names not appearing in that SAME AREA clause may also appear in that SAME RECORD AREA clause. The rule that only one of the files mentioned in a SAME AREA clause can be open at any given time takes precedence over the rule that all files mentioned in a SAME RECORD AREA clause can be open at any given time.║
 
-(4) The files referenced in the SAME AREA or SAME RECORD AREA clause need not all have the same organization or access.
+(4) The files referenced in the SAME AREA ║or SAME RECORD AREA║ clause need not all have the same organization or access.
 
 ### 2.13.4 General Rules
 
@@ -15023,7 +15023,7 @@ VII-19
 
 Sequential I-O - SAME
 
-(2) The SAME RECORD AREA clause specifies that two or more files referenced by file-name-1, file-name-2 are to use the same memory area for processing of the current logical record. All of these files may be in the open mode at the same time. A logical record in the SAME RECORD AREA is considered as a logical record of each file open in the output mode whose file-name appears in this SAME RECORD AREA clause and of the most recently read file open in the input mode whose file-name appears in this SAME RECORD AREA clause. This is equivalent to an implicit redefinition of the area, i.e., records are aligned on the leftmost character position.
+║(2) The SAME RECORD AREA clause specifies that two or more files referenced by file-name-1, file-name-2 are to use the same memory area for processing of the current logical record. All of these files may be in the open mode at the same time. A logical record in the SAME RECORD AREA is considered as a logical record of each file open in the output mode whose file-name appears in this SAME RECORD AREA clause and of the most recently read file open in the input mode whose file-name appears in this SAME RECORD AREA clause. This is equivalent to an implicit redefinition of the area, i.e., records are aligned on the leftmost character position.║
 
 VII-20
 
@@ -15117,7 +15117,7 @@ The file description entry furnishes information concerning the physical structu
 
 (1) A file description entry associates file-name-1 with a file connector.
 
-(2) The BLOCK CONTAINS clause, the CODE-SET clause, the DATA RECORDS clause, the LABEL RECORDS clause, the LINAGE clause, the RECORD clause, and the VALUE OF clause are presented in alphabetical order on the following pages.
+(2) The BLOCK CONTAINS clause, the CODE-SET clause, the DATA RECORDS clause, the LABEL RECORDS clause, ║the LINAGE clause,║ the RECORD clause, and the VALUE OF clause are presented in alphabetical order on the following pages.
 
 VII-22
 
@@ -15159,7 +15159,7 @@ c. Logical records are grouped in such a manner that an inaccurate physical reco
 
 (3) If the CHARACTERS phrase is specified, the physical record size is specified in terms of the number of character positions required to store the physical record, regardless of the types of characters used to represent the items within the physical record.
 
-(4) If integer-1 is not specified, integer-2 represents the exact size of the physical record. If integer-1 and integer-2 are both specified, they refer to the minimum and maximum size of the physical record, respectively.
+(4) ║If integer-1 is not specified,║ integer-2 represents the exact size of the physical record. ║If integer-1 and integer-2 are both specified, they refer to the minimum and maximum size of the physical record, respectively.║
 
 (5) If the associated file connector is an external file connector, all BLOCK CONTAINS clauses in the run unit which are associated with that file connector must have the same value for integer-1 and integer-2.
 
@@ -15265,13 +15265,13 @@ VII-26
 
 Sequential I-O - LINAGE
 
-## 3.7 THE LINAGE CLAUSE
+## ║3.7 THE LINAGE CLAUSE║
 
-### 3.7.1 Function
+### ║3.7.1 Function║
 
-The LINAGE clause provides a means for specifying the depth of a logical page in terms of number of lines. It also provides for specifying the size of the top and bottom margins on the logical page, and the line number, within the page body, at which the footing area begins.
+║The LINAGE clause provides a means for specifying the depth of a logical page in terms of number of lines. It also provides for specifying the size of the top and bottom margins on the logical page, and the line number, within the page body, at which the footing area begins.║
 
-### 3.7.2 General Format
+### ║3.7.2 General Format║
 
 <pre style="line-height:1">
 ╔           ╭ data-name-1 ╮       ┌                 ╭ data-name-2 ╮ ┐  ╗
@@ -15283,27 +15283,27 @@ The LINAGE clause provides a means for specifying the depth of a logical page in
 ╚ └              ╰ integer-3   ╯ ┘ └                 ╰ integer-4   ╯ ┘ ╝
 </pre>
 
-### 3.7.3 Syntax Rules
+### ║3.7.3 Syntax Rules║
 
-(1) Data-name-1, data-name-2, data-name-3, data-name-4 must reference elementary unsigned numeric integer data items.
+║(1) Data-name-1, data-name-2, data-name-3, data-name-4 must reference elementary unsigned numeric integer data items.║
 
-(2) Data-name-1, data-name-2, data-name-3, data-name-4 may be qualified.
+║(2) Data-name-1, data-name-2, data-name-3, data-name-4 may be qualified.║
 
-(3) Integer-2 must not be greater than integer-1.
+║(3) Integer-2 must not be greater than integer-1.║
 
-(4) Integer-3, integer-4 may be zero.
+║(4) Integer-3, integer-4 may be zero.║
 
-### 3.7.4 General Rules
+### ║3.7.4 General Rules║
 
-(1) The LINAGE clause provides a means for specifying the size of a logical page in terms of number of lines. The logical page size is the sum of the values referenced by each phrase except the FOOTING phrase. If the LINES AT TOP or LINES AT BOTTOM phrases are not specified, the values of these items are zero. If the FOOTING phrase is not specified, no end-of-page condition independent of the page overflow condition exists.
+║(1) The LINAGE clause provides a means for specifying the size of a logical page in terms of number of lines. The logical page size is the sum of the values referenced by each phrase except the FOOTING phrase. If the LINES AT TOP or LINES AT BOTTOM phrases are not specified, the values of these items are zero. If the FOOTING phrase is not specified, no end-of-page condition independent of the page overflow condition exists.║
 
-There is not necessarily any relationship between the size of the logical page and the size of a physical page.
+║There is not necessarily any relationship between the size of the logical page and the size of a physical page.║
 
-(2) Integer-1 or the value of the data item referenced by data-name-1 specifies the number of lines that can be written and/or spaced on the logical page. The value must be greater than zero. That part of the logical page in which these lines can be written and/or spaced is called the page body.
+║(2) Integer-1 or the value of the data item referenced by data-name-1 specifies the number of lines that can be written and/or spaced on the logical page. The value must be greater than zero. That part of the logical page in which these lines can be written and/or spaced is called the page body.║
 
-(3) Integer-2 or the value of the data item referenced by data-name-2 specifies the line number within the page body at which the footing area begins. The value must be greater than zero and not greater than integer-1 or the value of the data item referenced by data-name-1.
+║(3) Integer-2 or the value of the data item referenced by data-name-2 specifies the line number within the page body at which the footing area begins. The value must be greater than zero and not greater than integer-1 or the value of the data item referenced by data-name-1.║
 
-The footing area comprises the area of the page body between the line represented by integer-2 or the value of the data item referenced by data-name-2 and the line represented by integer-1 or the value of the data item referenced by data-name-1, inclusive.
+║The footing area comprises the area of the page body between the line represented by integer-2 or the value of the data item referenced by data-name-2 and the line represented by integer-1 or the value of the data item referenced by data-name-1, inclusive.║
 
 VII-27
 
@@ -15311,29 +15311,29 @@ VII-27
 
 Sequential I-O - LINAGE
 
-(4) Integer-3 or the value of the data item referenced by data-name-3 specifies the number of lines that comprise the top margin on the logical page. The value may be zero.
+║(4) Integer-3 or the value of the data item referenced by data-name-3 specifies the number of lines that comprise the top margin on the logical page. The value may be zero.║
 
-(5) Integer-4 or the value of the data item referenced by data-name-4 specifies the number of lines that comprise the bottom margin on the logical page. The value may be zero.
+║(5) Integer-4 or the value of the data item referenced by data-name-4 specifies the number of lines that comprise the bottom margin on the logical page. The value may be zero.║
 
-(6) Integer-1, integer-3, and integer-4, if specified, are used at the time the file is opened by the execution of an OPEN statement with the OUTPUT phrase, to specify the number of lines that comprise each of the indicated sections of a logical page. Integer-2, if specified, is used at that time to define the footing area. These values are used for all logical pages written for that file during a given execution of the program.
+║(6) Integer-1, integer-3, and integer-4, if specified, are used at the time the file is opened by the execution of an OPEN statement with the OUTPUT phrase, to specify the number of lines that comprise each of the indicated sections of a logical page. Integer-2, if specified, is used at that time to define the footing area. These values are used for all logical pages written for that file during a given execution of the program.║
 
-(7) The values of the data items referenced by data-name-1, data-name-3, and data-name-4, if specified, are used as follows:
+║(7) The values of the data items referenced by data-name-1, data-name-3, and data-name-4, if specified, are used as follows:║
 
-a. The values of the data items, at the time an OPEN statement with the OUTPUT phrase is executed for the file, are used to specify the number of lines that are to comprise each of the indicated sections for the first logical page.
+║a. The values of the data items, at the time an OPEN statement with the OUTPUT phrase is executed for the file, are used to specify the number of lines that are to comprise each of the indicated sections for the first logical page.║
 
-b. The values of the data items, at the time a WRITE statement with the ADVANCING PAGE phrase is executed or a page overflow condition occurs are used to specify the number of lines that are to comprise each of the indicated sections for the next logical page. (See page VII-52, The WRITE Statement.)
+║b. The values of the data items, at the time a WRITE statement with the ADVANCING PAGE phrase is executed or a page overflow condition occurs are used to specify the number of lines that are to comprise each of the indicated sections for the next logical page. (See page VII-52, The WRITE Statement.)║
 
-(8) The value of the data item referenced by data-name-2, if specified, at the time an OPEN statement with the OUTPUT phrase is executed for the file, is used to define the footing area for the first logical page. At the time a WRITE statement with the ADVANCING PAGE phrase is executed or a page overflow condition occurs, it is used to define the footing area for the next logical page.
+║(8) The value of the data item referenced by data-name-2, if specified, at the time an OPEN statement with the OUTPUT phrase is executed for the file, is used to define the footing area for the first logical page. At the time a WRITE statement with the ADVANCING PAGE phrase is executed or a page overflow condition occurs, it is used to define the footing area for the next logical page.║
 
-(9) A LINAGE-COUNTER is generated by the presence of a LINAGE clause. The value in the LINAGE-COUNTER at any given time represents the line number at which the device is positioned within the current page body. The rules governing the LINAGE-COUNTER are as follows:
+║(9) A LINAGE-COUNTER is generated by the presence of a LINAGE clause. The value in the LINAGE-COUNTER at any given time represents the line number at which the device is positioned within the current page body. The rules governing the LINAGE-COUNTER are as follows:║
 
-a. A separate LINAGE-COUNTER is supplied for each file described in the File Section whose file description entry contains a LINAGE clause.
+║a. A separate LINAGE-COUNTER is supplied for each file described in the File Section whose file description entry contains a LINAGE clause.║
 
-b. LINAGE-COUNTER may be referenced only in Procedure Division statements; however only the input-output control system may change the value of LINAGE-COUNTER. Since more than one LINAGE-COUNTER may exist in a program, the user must qualify LINAGE-COUNTER by file-name when necessary.
+║b. LINAGE-COUNTER may be referenced only in Procedure Division statements; however only the input-output control system may change the value of LINAGE-COUNTER. Since more than one LINAGE-COUNTER may exist in a program, the user must qualify LINAGE-COUNTER by file-name when necessary.║
 
-c. LINAGE-COUNTER is automatically modified, according to the following rules, during the execution of a WRITE statement to an associated file:
+║c. LINAGE-COUNTER is automatically modified, according to the following rules, during the execution of a WRITE statement to an associated file:║
 
-1\) When the ADVANCING PAGE phrase of the WRITE statement is specified, the LINAGE-COUNTER is automatically reset to one. During the resetting of LINAGE-COUNTER to the value one, the value of LINAGE-COUNTER is implicitly incremented to exceed the value specified by integer-1 or the data item referenced by data-name-1.
+║1\) When the ADVANCING PAGE phrase of the WRITE statement is specified, the LINAGE-COUNTER is automatically reset to one. During the resetting of LINAGE-COUNTER to the value one, the value of LINAGE-COUNTER is implicitly incremented to exceed the value specified by integer-1 or the data item referenced by data-name-1.║
 
 VII-28
 
@@ -15341,23 +15341,23 @@ VII-28
 
 Sequential I-O - LINAGE
 
-2\) When the ADVANCING identifier-2 or integer-1 phrase of the WRITE statement is specified, the LINAGE-COUNTER is incremented by integer-1 or the value of the data item referenced by identifier-2.
+║2\) When the ADVANCING identifier-2 or integer-1 phrase of the WRITE statement is specified, the LINAGE-COUNTER is incremented by integer-1 or the value of the data item referenced by identifier-2.║
 
-3\) When the ADVANCING phrase of the WRITE statement is not specified, the LINAGE-COUNTER is incremented by the value one. (See page VII-52, The WRITE Statement.)
+║3\) When the ADVANCING phrase of the WRITE statement is not specified, the LINAGE-COUNTER is incremented by the value one. (See page VII-52, The WRITE Statement.)║
 
-4\) The value of LINAGE-COUNTER is automatically reset to one when the device is repositioned to the first line that can be written on for each of the succeeding logical pages. (See page VII-52, The WRITE Statement.)
+║4\) The value of LINAGE-COUNTER is automatically reset to one when the device is repositioned to the first line that can be written on for each of the succeeding logical pages. (See page VII-52, The WRITE Statement.)║
 
-d. The value of LINAGE-COUNTER is automatically set to one at the time an OPEN statement with the OUTPUT phrase is executed for the associated file.
+║d. The value of LINAGE-COUNTER is automatically set to one at the time an OPEN statement with the OUTPUT phrase is executed for the associated file.║
 
-(10) Each logical page is contiguous to the next with no additional spacing provided.
+║(10) Each logical page is contiguous to the next with no additional spacing provided.║
 
-(11) If the file connector associated with this file description entry is an external file connector, all file description entries in the run unit which are associated with this file connector must have:
+║(11) If the file connector associated with this file description entry is an external file connector, all file description entries in the run unit which are associated with this file connector must have:║
 
-a. A LINAGE clause, if any file description entry has a LINAGE clause.
+║a. A LINAGE clause, if any file description entry has a LINAGE clause.║
 
-b. The same corresponding values for integer-1, integer-2, integer-3, and integer-4, if specified.
+║b. The same corresponding values for integer-1, integer-2, integer-3, and integer-4, if specified.║
 
-c. The same corresponding external data items referenced by data-name-1, data-name-2, data-name-3, and data-name-4.
+║c. The same corresponding external data items referenced by data-name-1, data-name-2, data-name-3, and data-name-4.║
 
 VII-29
 
@@ -15398,13 +15398,13 @@ The RECORD clause specifies the number of character positions in a fixed length 
 
 (1) No record description entry for the file may specify a number of character positions greater than integer-1.
 
-<u>FORMAT 2</u>:
+<u>║FORMAT 2</u>:║
 
-(2) Record descriptions for the file must not describe records which contain a lesser number of character positions than that specified by integer-2 nor records which contain a greater number of character positions than that specified by integer-3.
+║(2) Record descriptions for the file must not describe records which contain a lesser number of character positions than that specified by integer-2 nor records which contain a greater number of character positions than that specified by integer-3.║
 
-(3) Integer-3 must be greater than integer-2.
+║(3) Integer-3 must be greater than integer-2.║
 
-(4) Data-name-1 must describe an elementary unsigned integer in the Working-Storage or Linkage Section.
+║(4) Data-name-1 must describe an elementary unsigned integer in the Working-Storage or Linkage Section.║
 
 ### 3.8.4 General Rules
 
@@ -15418,33 +15418,33 @@ VII-30
 
 Sequential I-O - RECORD
 
-(2) If the associated file connector is an external file connector, all file description entries in the run unit which are associated with that file connector must specify the same values for integer-1 or integer-2 and integer-3. If the RECORD clause is not specified, all record description entries associated with this file connector must be the same length.
+(2) If the associated file connector is an external file connector, all file description entries in the run unit which are associated with that file connector must specify the same values for integer-1 ║or integer-2 and integer-3.║ If the RECORD clause is not specified, all record description entries associated with this file connector must be the same length.
 
 <u>FORMAT 1</u>:
 
 (3) Format 1 is used to specify fixed length records. Integer-1 specifies the number of character positions contained in each record in the file.
 
-<u>FORMAT 2</u>:
+<u>║FORMAT 2</u>:║
 
-(4) Format 2 is used to specify variable length records. Integer-2 specifies the minimum number of character positions to be contained in any record of the file. Integer-3 specifies the maximum number of character positions in any record of the file.
+║(4) Format 2 is used to specify variable length records. Integer-2 specifies the minimum number of character positions to be contained in any record of the file. Integer-3 specifies the maximum number of character positions in any record of the file.║
 
-(5) The number of character positions associated with a record description is determined by the sum of the number of character positions in all elementary data items excluding redefinitions and renamings, plus any implicit FILLER due to synchronization. If a table is specified:
+║(5) The number of character positions associated with a record description is determined by the sum of the number of character positions in all elementary data items excluding redefinitions and renamings, plus any implicit FILLER due to synchronization. If a table is specified:║
 
-a. The minimum number of table elements described in the record is used in the summation above to determine the minimum number of character positions associated with the record description.
+║a. The minimum number of table elements described in the record is used in the summation above to determine the minimum number of character positions associated with the record description.║
 
-b. The maximum number of table elements described in the record is used in the summation above to determine the maximum number of character positions associated with the record description.
+║b. The maximum number of table elements described in the record is used in the summation above to determine the maximum number of character positions associated with the record description.║
 
-(6) If integer-2 is not specified, the minimum number of character positions to be contained in any record of the file is equal to the least number of character positions described for a record in that file.
+║(6) If integer-2 is not specified, the minimum number of character positions to be contained in any record of the file is equal to the least number of character positions described for a record in that file.║
 
-(7) If integer-3 is not specified, the maximum number of character positions to be contained in any record of the file is equal to the greatest number of character positions described for a record in that file.
+║(7) If integer-3 is not specified, the maximum number of character positions to be contained in any record of the file is equal to the greatest number of character positions described for a record in that file.║
 
-(8) If data-name-1 is specified, the number of character positions in the record must be placed into the data item referenced by data-name-1 before any RELEASE, REWRITE, or WRITE statement is executed for the file.
+║(8) If data-name-1 is specified, the number of character positions in the record must be placed into the data item referenced by data-name-1 before any RELEASE, REWRITE, or WRITE statement is executed for the file.║
 
-(9) If data-name-1 is specified, the execution of a DELETE, RELEASE, REWRITE, START, or WRITE statement or the unsuccessful execution of a READ or RETURN statement does not alter the content of the data item referenced by data-name-1.
+║(9) If data-name-1 is specified, the execution of a DELETE, RELEASE, REWRITE, START, or WRITE statement or the unsuccessful execution of a READ or RETURN statement does not alter the content of the data item referenced by data-name-1.║
 
-(10) During the execution of a RELEASE, REWRITE, or WRITE statement, the number of character positions in the record is determined by the following conditions:
+║(10) During the execution of a RELEASE, REWRITE, or WRITE statement, the number of character positions in the record is determined by the following conditions:║
 
-a. If data-name-1 is specified, by the content of the data item referenced by data-name-1.
+║a. If data-name-1 is specified, by the content of the data item referenced by data-name-1.║
 
 VII-31
 
@@ -15452,17 +15452,17 @@ VII-31
 
 Sequential I-O - RECORD
 
-b. If data-name-1 is not specified and the record does not contain a variable occurrence data item, by the number of character positions in the record.
+║b. If data-name-1 is not specified and the record does not contain a variable occurrence data item, by the number of character positions in the record.║
 
-c. If data-name-1 is not specified and the record does contain a variable occurrence data item, by the sum of the fixed portion and that portion of the table described by the number of occurrences at the time of execution of the output statement.
+║c. If data-name-1 is not specified and the record does contain a variable occurrence data item, by the sum of the fixed portion and that portion of the table described by the number of occurrences at the time of execution of the output statement.║
 
-(11) If data-name-1 is specified, after the successful execution of a READ or RETURN statement for the file, the contents of the data item referenced by data-name-1 will indicate the number of character positions in the record just read.
+║(11) If data-name-1 is specified, after the successful execution of a READ or RETURN statement for the file, the contents of the data item referenced by data-name-1 will indicate the number of character positions in the record just read.║
 
-(12) If the INTO phrase is specified in the READ or RETURN statement, the number of character positions in the current record that participate as the sending data items in the implicit MOVE statement is determined by the following conditions:
+║(12) If the INTO phrase is specified in the READ or RETURN statement, the number of character positions in the current record that participate as the sending data items in the implicit MOVE statement is determined by the following conditions:║
 
-a. If data-name-1 is specified, by the content of the data item referenced by data-name-1.
+║a. If data-name-1 is specified, by the content of the data item referenced by data-name-1.║
 
-b. If data-name-1 is not specified, by the value that would have been moved into the data item referenced by data-name-1 had data-name-1 been specified.
+║b. If data-name-1 is not specified, by the value that would have been moved into the data item referenced by data-name-1 had data-name-1 been specified.║
 
 <u>FORMAT 3</u>:
 
@@ -15491,15 +15491,15 @@ The VALUE OF clause particularizes the description of an item in the label recor
 
 ## 3.9.3 Syntax Rules
 
-(1) Data-name-1 should be qualified when necessary, but cannot be subscripted, nor can data-name-1 be an item described with the USAGE IS INDEX clause.
+║(1) Data-name-1 should be qualified when necessary, but cannot be subscripted, nor can data-name-1 be an item described with the USAGE IS INDEX clause.║
 
-(2) Data-name-1 must be in the Working-Storage Section.
+║(2) Data-name-1 must be in the Working-Storage Section.║
 
 ## 3.9.4 General Rules
 
-(1) For an input file, the appropriate label routine checks to see if the value of implementor-name-1 is equal to literal-1 or the content of the data item referenced by data-name-1, whichever has been specified.
+(1) For an input file, the appropriate label routine checks to see if the value of implementor-name-1 is equal to literal-1 ║or the content of the data item referenced by data-name-1, whichever has been specified.║
 
-For an output file, at the appropriate time the value of implementor-name-1 is made equal to literal-1 or the content of the data item referenced by data-name-1, whichever has been specified.
+For an output file, at the appropriate time the value of implementor-name-1 is made equal to literal-1 ║or the content of the data item referenced by data-name-1, whichever has been specified.║
 
 (2) If the associated file connector is an external file connector, all VALUE OF clauses in the run unit which are associated with that file connector must be consistent. The implementor will specify the consistency rules.
 
@@ -15547,7 +15547,7 @@ Sequential I-O - CLOSE
 
 #### 4.2.1 Function
 
-The CLOSE statement terminates the processing of reels/units and files with optional rewind and/or lock or removal where applicable.
+The CLOSE statement terminates the processing of reels/units and files ║with optional rewind and/or lock or removal where applicable.║
 
 #### 4.2.2 General Format
 
@@ -15567,7 +15567,7 @@ The CLOSE statement terminates the processing of reels/units and files with opti
 
 #### 4.2.4 General Rules
 
-Except where otherwise stated in the general rules below, the terms 'reel' and 'unit' are synonymous and completely interchangeable in the CLOSE statement. Treatment of sequential mass storage files is logically equivalent to the treatment of a file on tape or analogous sequential media. Treatment of a file contained in a multiple file tape environment is logically equivalent to the treatment of a sequential single-reel/unit file if the file is wholly contained on one reel.
+Except where otherwise stated in the general rules below, the terms 'reel' and 'unit' are synonymous and completely interchangeable in the CLOSE statement. Treatment of sequential mass storage files is logically equivalent to the treatment of a file on tape or analogous sequential media. ║Treatment of a file contained in a multiple file tape environment is logically equivalent to the treatment of a sequential single-reel/unit file if the file is wholly contained on one reel.║
 
 (1) A CLOSE statement may only be executed for a file in an open mode.
 
@@ -15644,13 +15644,13 @@ operations specified by the implementor are executed. If the file is positioned 
 
 If label records are specified for the file, the labels are processed according to the implementor's standard label convention. The behavior of the CLOSE statement when label records are specified but not present, or when label records are not specified but are present, is undefined. Closing operations specified by the implementor are executed. If label records are not specified for the file, label processing does not take place but other closing operations specified by the implementor are executed.
 
-D. Reel/Unit Removal
+║D. Reel/Unit Removal║
 
-The current reel or unit is rewound, when applicable, and the reel or unit is logically removed from the run unit; however, the reel or unit may be accessed again, in its proper order of reels or units within the file, if a CLOSE statement without the REEL or UNIT phrase is subsequently executed for this file followed by the execution of an OPEN statement for the file.
+║The current reel or unit is rewound, when applicable, and the reel or unit is logically removed from the run unit; however, the reel or unit may be accessed again, in its proper order of reels or units within the file, if a CLOSE statement without the REEL or UNIT phrase is subsequently executed for this file followed by the execution of an OPEN statement for the file.║
 
-E. File Lock
+║E. File Lock║
 
-The file is locked and cannot be opened again during this execution of this run unit.
+║The file is locked and cannot be opened again during this execution of this run unit.║
 
 F. Close Reel/Unit
 
@@ -15688,12 +15688,12 @@ G. Rewind
 
 The current reel or analogous device is positioned at its physical beginning.
 
-| H. Optional Phrases Ignored<br><br>The CLOSE statement is executed as if none of the optional phrases is present. |
+| ║H. Optional Phrases Ignored<br><br>The CLOSE statement is executed as if none of the optional phrases is present.║ |
 |---|
 
 (4) The execution of the CLOSE statement causes the value of the I-O status associated with file-name-1 to be updated. (See page VII-2, I-O Status.)
 
-| (5) If an optional input file is not present, no end-of-file or reel/unit processing is performed for the file and the file position indicator and the current volume pointer are unchanged. |
+| ║(5) If an optional input file is not present, no end-of-file or reel/unit processing is performed for the file and the file position indicator and the current volume pointer are unchanged.║ |
 |---|
 
 (6) Following the successful execution of a CLOSE statement without the REEL or UNIT phrase, the record area associated with a file-name-1 is no longer available. The unsuccessful execution of such a CLOSE statement leaves the availability of the record area undefined.
@@ -15712,7 +15712,7 @@ Sequential I-O - OPEN
 
 ### 4.3.1 Function
 
-The OPEN statement initiates the processing of files. The REVERSED phrase is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
+The OPEN statement initiates the processing of files. ║The REVERSED phrase is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.║
 
 ### 4.3.2 General Format
 
@@ -15727,11 +15727,11 @@ The OPEN statement initiates the processing of files. The REVERSED phrase is an 
 
 ### 4.3.3 Syntax Rules
 
-(1) The REVERSED phrase can only be used with sequential files.
+║(1) The REVERSED phrase can only be used with sequential files.║
 
-(2) The EXTEND phrase must not be specified for a multiple file reel.
+║(2) The EXTEND phrase must not be specified for a multiple file reel.║
 
-(3) The EXTEND phrase must only be used for files for which the LINAGE clause has not been specified.
+║(3) The EXTEND phrase must only be used for files for which the LINAGE clause has not been specified.║
 
 (4) The files referenced in the OPEN statement need not all have the same organization or access.
 
@@ -15781,7 +15781,7 @@ VII-40
 
 Sequential I-O - OPEN
 
-(5) A file may be opened with the INPUT, OUTPUT, EXTEND, and I-O phrases in the same run unit. Following the initial execution of an OPEN statement for a file, each subsequent OPEN statement execution for that same file must be preceded by the execution of a CLOSE statement, without the REEL, UNIT, or LOCK phrase, for that file.
+(5) A file may be opened with the INPUT, OUTPUT, ║EXTEND,║ and I-O phrases in the same run unit. Following the initial execution of an OPEN statement for a file, each subsequent OPEN statement execution for that same file must be preceded by the execution of a CLOSE statement, without the REEL, UNIT, ║or LOCK║ phrase, for that file.
 
 (6) Execution of the OPEN statement does not obtain or release the first data record.
 
@@ -15795,21 +15795,21 @@ The behavior of the OPEN statement when label records are specified but not pres
 
 (8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VII-5, The File Attribute Conflict Condition.)
 
-(9) The NO REWIND and REVERSED phrases must only be used with:
+║(9) The NO REWIND and REVERSED phrases must only be used with:║
 
-a. Sequential single reel/unit files. (See page VII-35, The CLOSE Statement.)
+║a. Sequential single reel/unit files. (See page VII-35, The CLOSE Statement.)║
 
-b. Sequential files wholly contained within a single reel of tape within a multiple file tape environment. (See page VII-16, The MULTIPLE FILE TAPE Clause.)
+║b. Sequential files wholly contained within a single reel of tape within a multiple file tape environment. (See page VII-16, The MULTIPLE FILE TAPE Clause.)║
 
-(10) The NO REWIND and REVERSED phrases will be ignored if they do not apply to the storage medium on which the file resides.
+║(10) The NO REWIND and REVERSED phrases will be ignored if they do not apply to the storage medium on which the file resides.║
 
 (11) If the storage medium for the file permits rewinding, the following rules apply:
 
-a. When neither the REVERSED, the EXTEND, nor the NO REWIND phrase is specified, execution of the OPEN statement causes the file to be positioned at its beginning.
+a. ║When neither the REVERSED, the EXTEND, nor the NO REWIND phrase is specified,║ execution of the OPEN statement causes the file to be positioned at its beginning.
 
-b. When the NO REWIND phrase is specified, execution of the OPEN statement does not cause the file to be repositioned; the file must be already positioned at its beginning prior to execution of the OPEN statement.
+║b. When the NO REWIND phrase is specified, execution of the OPEN statement does not cause the file to be repositioned; the file must be already positioned at its beginning prior to execution of the OPEN statement.║
 
-c. When the REVERSED phrase is specified, the file is positioned at its end by execution of the OPEN statement.
+║c. When the REVERSED phrase is specified, the file is positioned at its end by execution of the OPEN statement.║
 
 VII-41
 
@@ -15817,23 +15817,23 @@ VII-41
 
 Sequential I-O - OPEN
 
-(12) When the REVERSED phrase is specified, the subsequent READ statements for the file make the data records of the file available in reversed order; that is, starting with the last record.
+║(12) When the REVERSED phrase is specified, the subsequent READ statements for the file make the data records of the file available in reversed order; that is, starting with the last record.║
 
-(13) If a file opened with the INPUT phrase is an optional file which is not present, the OPEN statement sets the file position indicator to indicate that an optional input file is not present.
+║(13) If a file opened with the INPUT phrase is an optional file which is not present, the OPEN statement sets the file position indicator to indicate that an optional input file is not present.║
 
 (14) When files are opened with the INPUT or I-O phrase, the file position indicator is set to 1.
 
-(15) When the EXTEND phrase is specified, the OPEN statement positions the file immediately after the last logical record for that file. The last logical record for a sequential file is the last record written in the file.
+║(15) When the EXTEND phrase is specified, the OPEN statement positions the file immediately after the last logical record for that file. The last logical record for a sequential file is the last record written in the file.║
 
-(16) When the EXTEND phrase is specified and the LABEL RECORDS clause indicates label records are present, the execution of the OPEN statement includes the following steps:
+║(16) When the EXTEND phrase is specified and the LABEL RECORDS clause indicates label records are present, the execution of the OPEN statement includes the following steps:║
 
-a. The beginning file labels are processed only in the case of a single reel/unit file.
+║a. The beginning file labels are processed only in the case of a single reel/unit file.║
 
-b. The beginning reel/unit labels on the last existing reel/unit are processed as though the file was being opened with the INPUT phrase.
+║b. The beginning reel/unit labels on the last existing reel/unit are processed as though the file was being opened with the INPUT phrase.║
 
-c. The existing ending file labels are processed as though the file is being opened with the INPUT phrase. These labels are then deleted.
+║c. The existing ending file labels are processed as though the file is being opened with the INPUT phrase. These labels are then deleted.║
 
-d. Processing then proceeds as though the file has been opened with the OUTPUT phrase.
+║d. Processing then proceeds as though the file has been opened with the OUTPUT phrase.║
 
 (17) The OPEN statement with the I-O phrase must reference a file that supports the input and output operations that are permitted for a sequential file when opened in the I-O mode. The execution of the OPEN statement with the I-O phrase places the referenced file in the open mode for both input and output operations.
 
@@ -15843,11 +15843,11 @@ a. The labels are checked in accordance with the implementor's specified convent
 
 b. The new labels are written in accordance with the implementor's specified conventions for input-output label writing.
 
-(19) Treatment of a file contained in a multiple file tape environment is logically equivalent to the treatment of a sequential file contained in a single file tape environment.
+║(19) Treatment of a file contained in a multiple file tape environment is logically equivalent to the treatment of a sequential file contained in a single file tape environment.║
 
-(20) Whenever a set of files resides on a multiple file reel, and one of this set of files is referenced in an OPEN statement, the following rules apply:
+║(20) Whenever a set of files resides on a multiple file reel, and one of this set of files is referenced in an OPEN statement, the following rules apply:║
 
-a. Not more than one of the files may be in the open mode at one time.
+║a. Not more than one of the files may be in the open mode at one time.║
 
 VII-42
 
@@ -15855,20 +15855,20 @@ VII-42
 
 Sequential I-O - OPEN
 
-b. There is no constraint on the order in which files may be opened in the input mode.
+║b. There is no constraint on the order in which files may be opened in the input mode.║
 
-c. When one of the files referenced by a file-name is the subject of an OPEN statement with the OUTPUT phrase, all files on the associated multiple file reel whose position numbers are less than the position number of that file must already exist on the reel at the time the OPEN statement is executed. Further, no file on that multiple file reel whose position number is greater than the position number of that file can exist at that time on the reel.
+║c. When one of the files referenced by a file-name is the subject of an OPEN statement with the OUTPUT phrase, all files on the associated multiple file reel whose position numbers are less than the position number of that file must already exist on the reel at the time the OPEN statement is executed. Further, no file on that multiple file reel whose position number is greater than the position number of that file can exist at that time on the reel.║
 
-d. Each of the files must be a sequential file.
+║d. Each of the files must be a sequential file.║
 
-(21) For an optional file that is unavailable, the successful execution of an OPEN statement with an EXTEND or I-O phrase creates the file. This creation takes place as if the following statements were executed in the order shown:
+(21) ║For an optional file that is unavailable, the successful execution of an OPEN statement with an EXTEND or I-O phrase creates the file. This creation takes place as if the following statements were executed in the order shown:║
 
 ```
 OPEN OUTPUT file-name.
 CLOSE file-name.
 ```
 
-These statements are followed by execution of the OPEN statement specified in the source program.
+║These statements are followed by execution of the OPEN statement specified in the source program.║
 
 The successful execution of an OPEN statement with the OUTPUT phrase creates the file. After the successful creation of a file, that file contains no data records.
 
@@ -15876,9 +15876,9 @@ The successful execution of an OPEN statement with the OUTPUT phrase creates the
 
 a. To point to the first or only reel/unit for an available input or I-O file.
 
-b. To point to the reel/unit containing the last logical record for an extend file.
+║b. To point to the reel/unit containing the last logical record for an extend file.║
 
-c. To point to the new reel/unit for an unavailable output, I-O, or extend file.
+c. To point to the new reel/unit for an unavailable output, I-O, ║or extend║ file.
 
 (23) The execution of the OPEN statement causes the value of the I-O status associated with file-name to be updated. (See page VII-2, I-O Status.)
 
@@ -15917,7 +15917,7 @@ The READ statement makes available the next logical record from a file.
 
 (1) The file referenced by file-name-1 must be open in the input or I-O mode at the time this statement is executed. (See page VII-39, The OPEN Statement.)
 
-(2) The NEXT phrase is optional and has no effect on the execution of the READ statement.
+║(2) The NEXT phrase is optional and has no effect on the execution of the READ statement.║
 
 (3) The execution of the READ statement causes the value of the I-O status associated with file-name-1 to be updated. (See page VII-2, I-O Status.)
 
@@ -15925,7 +15925,7 @@ The READ statement makes available the next logical record from a file.
 
 a. If the file position indicator indicates that no valid next record has been established, execution of the READ statement is unsuccessful.
 
-b. If the file position indicator indicates that an optional input file is not present, execution proceeds as specified in general rule 10.
+║b. If the file position indicator indicates that an optional input file is not present, execution proceeds as specified in general rule 10.║
 
 c. If the file position indicator was established by a previous OPEN statement, the first existing record in the file whose record number is greater than or equal to the file position indicator is selected.
 
@@ -15957,7 +15957,7 @@ b. If all record-names associated with file-name-1 and the data item referenced 
 
 a. The execution of the same READ statement without the INTO phrase.
 
-b. The current record is moved from the record area to the area specified by identifier-1 according to the rules for the MOVE statement without the CORRESPONDING phrase. <u>The size of the current record is determined by rules specified in the RECORD clause. If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move.</u> The implied MOVE statement does not occur if the execution of the READ statement was unsuccessful. Any subscripting associated with identifier-1 is evaluated after the record has been read and immediately before it is moved to the data item. The record is available in both the record area and the data item referenced by identifier-1.
+b. The current record is moved from the record area to the area specified by identifier-1 according to the rules for the MOVE statement without the CORRESPONDING phrase. <u>The size of the current record is determined by rules specified in the RECORD clause. ║If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move.</u>║ The implied MOVE statement does not occur if the execution of the READ statement was unsuccessful. Any subscripting associated with identifier-1 is evaluated after the record has been read and immediately before it is moved to the data item. The record is available in both the record area and the data item referenced by identifier-1.
 
 (9) If, during the execution of a READ statement, the end of reel/unit is recognized or a reel/unit contains no logical records, and the logical end of the file has not been reached, the following operations are executed:
 
@@ -15973,7 +15973,7 @@ b. A reel/unit swap. The current volume pointer is updated to point to the next 
 
 c. The standard beginning reel/unit label procedure.
 
-(10) If the file position indicator indicates that no next logical record exists, or that an optional input file is not present, the following occurs in the order specified:
+(10) If the file position indicator indicates that no next logical record exists, ║or that an optional input file is not present,║ the following occurs in the order specified:
 
 a. A value, derived from the setting of the file position indicator, is placed into the I-O status associated with file-name-1 to indicate the at end condition. (See page VII-2, I-O Status.)
 
@@ -15999,7 +15999,7 @@ VII-46
 
 Sequential I-O - READ
 
-(13) If the number of character positions in the record that is read is less than the minimum size specified by the record description entries for file-name-1, the portion of the record area which is to be right of the last valid character read is undefined. If the number of character positions in the record that is read is greater than the maximum size specified by the record description entries for file-name-1, the record is truncated on the right to the maximum size. In either of these cases, the READ statement is successful and an I-O status is set indicating a record length conflict has occurred. (See page VII-2, I-O Status.)
+║(13) If the number of character positions in the record that is read is less than the minimum size specified by the record description entries for file-name-1, the portion of the record area which is to be right of the last valid character read is undefined. If the number of character positions in the record that is read is greater than the maximum size specified by the record description entries for file-name-1, the record is truncated on the right to the maximum size. In either of these cases, the READ statement is successful and an I-O status is set indicating a record length conflict has occurred. (See page VII-2, I-O Status.)║
 
 (14) The END-READ phrase delimits the scope of the READ statement. (See page IV-40, Scope of Statements.)
 
@@ -16033,7 +16033,7 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 (2) The last input-output statement executed for the associated file prior to the execution of the REWRITE statement must have been a successfully executed READ statement. The mass storage control system (MSCS) logically replaces the record that was accessed by the READ statement.
 
-(3) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files referenced in the same SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.
+(3) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files referenced in the same SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.║
 
 (4) The result of the execution of a REWRITE statement with the FROM phrase is equivalent to the execution of the following statements in the order specified:
 
@@ -16045,7 +16045,7 @@ according to the rules specified for the MOVE statement.
 
 b. The same REWRITE statement without the FROM phrase.
 
-(5) After the execution of the REWRITE statement is complete, the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available except as specified by the SAME RECORD AREA clause.
+(5) After the execution of the REWRITE statement is complete, the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available ║except as specified by the SAME RECORD AREA clause.║
 
 VII-48
 
@@ -16097,7 +16097,7 @@ The USE statement specifies procedures for input-output error handling that are 
 
 (5) The files implicitly or explicitly referenced in the USE statement need not all have the same organization or access.
 
-(6) The INPUT, OUTPUT, I-O, and EXTEND phrases may each be specified only once in the declaratives portion of a given Procedure Division.
+(6) The INPUT, OUTPUT, I-O, ║and EXTEND║ phrases may each be specified only once in the declaratives portion of a given Procedure Division.
 
 ### 4.6.4 General Rules
 
@@ -16125,7 +16125,7 @@ c. If OUTPUT is specified, the associated procedure is executed when the conditi
 
 d. If I-O is specified, the associated procedure is executed when the condition described in the USE statement occurs for any file open in the I-O mode or in the process of being opened in the I-O mode, except those files referenced by file-name-1 in another USE statement specifying the same condition.
 
-e. If EXTEND is specified, the associated procedure is executed when the condition described in the USE statement occurs for any file open in the extend mode or in the process of being opened in the extend mode, except those files referenced by file-name-1 in another USE statement specifying the same condition.
+║e. If EXTEND is specified, the associated procedure is executed when the condition described in the USE statement occurs for any file open in the extend mode or in the process of being opened in the extend mode, except those files referenced by file-name-1 in another USE statement specifying the same condition.║
 
 (6) After execution of the USE procedure, control is transferred to the invoking routine in the input-output control system. If the I-O status value does not indicate a critical input-output error, the input-output control system returns control to the next executable statement following the input-output statement whose execution caused the exception. If the I-O status value does indicate a critical error, the implementor determines what action is taken. (See page VII-2, I-O Status.)
 
@@ -16174,19 +16174,19 @@ The WRITE statement releases a logical record for an output file. It can also be
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
-(3) The ADVANCING mnemonic-name-1 phrase cannot be specified when writing a record to a file which is associated with a file description entry containing a LINAGE clause.
+║(3) The ADVANCING mnemonic-name-1 phrase cannot be specified when writing a record to a file which is associated with a file description entry containing a LINAGE clause.║
 
 (4) Identifier-2 must reference an integer data item.
 
 (5) Integer-1 may be positive or zero, but must not be negative.
 
-(6) When mnemonic-name-1 is specified, the name is associated with a particular feature specified by the implementor. Mnemonic-name-1 is defined in the SPECIAL-NAMES paragraph of the Environment Division.
+║(6) When mnemonic-name-1 is specified, the name is associated with a particular feature specified by the implementor. Mnemonic-name-1 is defined in the SPECIAL-NAMES paragraph of the Environment Division.║
 
-(7) The phrases ADVANCING PAGE and END-OF-PAGE must not both be specified in a single WRITE statement.
+║(7) The phrases ADVANCING PAGE and END-OF-PAGE must not both be specified in a single WRITE statement.║
 
-(8) If the END-OF-PAGE or the NOT END-OF-PAGE phrase is specified, the LINAGE clause must be specified in the file description entry for the associated file.
+║(8) If the END-OF-PAGE or the NOT END-OF-PAGE phrase is specified, the LINAGE clause must be specified in the file description entry for the associated file.║
 
-(9) The words END-OF-PAGE and EOP are equivalent.
+║(9) The words END-OF-PAGE and EOP are equivalent.║
 
 VII-52
 
@@ -16196,9 +16196,9 @@ Sequential I-O - WRITE
 
 4.7.4 General Rules
 
-(1) The file referenced by the file-name associated with record-name-1 must be open in the output or extend mode at the time of the execution of this statement. (See page VII-39, The OPEN Statement.)
+(1) The file referenced by the file-name associated with record-name-1 must be open in the output ║or extend║ mode at the time of the execution of this statement. (See page VII-39, The OPEN Statement.)
 
-(2) The logical record released by the successful execution of the WRITE statement is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files referenced in the SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.
+(2) The logical record released by the successful execution of the WRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files referenced in the SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.║
 
 (3) The result of the execution of a WRITE statement with the FROM phrase is equivalent to the execution of the following statements in the order specified:
 
@@ -16210,7 +16210,7 @@ according to the rules specified for the MOVE statement.
 
 b. The same WRITE statement without the FROM phrase.
 
-(4) After the execution of the WRITE statement is complete, the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available except as specified by the SAME RECORD AREA clause.
+(4) After the execution of the WRITE statement is complete, the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available ║except as specified by the SAME RECORD AREA clause.║
 
 (5) The file position indicator is not affected by the execution of a WRITE statement.
 
@@ -16218,11 +16218,11 @@ b. The same WRITE statement without the FROM phrase.
 
 (7) The execution of the WRITE statement releases a logical record to the operating system.
 
-(8) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the WRITE statement is unsuccessful, the WRITE operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page VII-2, I-O Status.)
+║(8) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the WRITE statement is unsuccessful, the WRITE operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page VII-2, I-O Status.)║
 
-(9) If, during the execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:
+║(9) If, during the execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:║
 
-a. If the execution of the WRITE statement is successful, after the record is written and after updating the I-O status of the file-name associated with record-name-1.
+║a. If the execution of the WRITE statement is successful, after the record is written and after updating the I-O status of the file-name associated with record-name-1.║
 
 VII-53
 
@@ -16230,13 +16230,13 @@ VII-53
 
 Sequential I-O - WRITE
 
-b. If the execution of the WRITE statement is unsuccessful, after updating the I-O status of the file-name associated with record-name-1, and after executing the procedure, if any, specified by a USE AFTER STANDARD EXCEPTION PROCEDURE statement applicable to the file-name associated with record-name-1.
+║b. If the execution of the WRITE statement is unsuccessful, after updating the I-O status of the file-name associated with record-name-1, and after executing the procedure, if any, specified by a USE AFTER STANDARD EXCEPTION PROCEDURE statement applicable to the file-name associated with record-name-1.║
 
 (10) The END-WRITE phrase delimits the scope of the WRITE statement. (See page IV-40, Scope of Statements.)
 
-(11) The successor relationship of a sequential file is established by the order of execution of WRITE statements when the file is created. The relationship does not change except when records are added to the end of a file.
+(11) The successor relationship of a sequential file is established by the order of execution of WRITE statements when the file is created. The relationship does not change ║except when records are added to the end of a file.║
 
-(12) When a sequential file is open in the extend mode, the execution of the WRITE statement will add records to the end of the file as though the file were open in the output mode. If there are records in the file, the first record written after the execution of the OPEN statement with the EXTEND phrase is the successor of the last record in the file.
+║(12) When a sequential file is open in the extend mode, the execution of the WRITE statement will add records to the end of the file as though the file were open in the output mode. If there are records in the file, the first record written after the execution of the OPEN statement with the EXTEND phrase is the successor of the last record in the file.║
 
 (13) When an attempt is made to write beyond the externally defined boundaries of a sequential file, an exception condition exists and the contents of the record area are unaffected. The following actions take place:
 
@@ -16254,7 +16254,7 @@ b. A reel/unit swap. The current volume pointer is updated to point to the next 
 
 c. The standard beginning reel/unit label procedure.
 
-(15) Both the ADVANCING phrase and the END-OF-PAGE phrase allow control of the vertical positioning of each line on a representation of a printed page. If the ADVANCING phrase is not used, automatic advancing will be provided by the implementor to act as if the user had specified AFTER ADVANCING 1 LINE. If the ADVANCING phrase is used, advancing is provided as follows:
+(15) ║Both║ the ADVANCING phrase ║and the END-OF-PAGE phrase║ allow control of the vertical positioning of each line on a representation of a printed page. If the ADVANCING phrase is not used, automatic advancing will be provided by the implementor to act as if the user had specified AFTER ADVANCING 1 LINE. If the ADVANCING phrase is used, advancing is provided as follows:
 
 a. If integer-1 or the value of the data item referenced by identifier-2 is positive, the representation of the printed page is advanced the number of lines equal to that value.
 
@@ -16268,23 +16268,23 @@ b. If the value of the data item referenced by identifier-2 is negative, the res
 
 c. If integer-1 or the value of the data item referenced by identifier-2 is zero, no repositioning of the representation of the printed page is performed.
 
-d. If mnemonic-name-1 is specified, the representation of the printed page is advanced according to the rules specified by the implementor for that hardware device.
+║d. If mnemonic-name-1 is specified, the representation of the printed page is advanced according to the rules specified by the implementor for that hardware device.║
 
-e. If the BEFORE phrase is used, the line is presented before the representation of the printed page is advanced according to rules a, b, c, and d above.
+e. If the BEFORE phrase is used, the line is presented before the representation of the printed page is advanced according to rules a, b, c, ║and d║ above.
 
-f. If the AFTER phrase is used, the line is presented after the representation of the printed page is advanced according to rules a, b, c, and d above.
+f. If the AFTER phrase is used, the line is presented after the representation of the printed page is advanced according to rules a, b, c, ║and d║ above.
 
-g. If PAGE is specified and the LINAGE clause is specified in the associated file description entry, the record is presented on the logical page before or after (depending on the phrase used) the device is repositioned to the next logical page. The repositioning is to the first line that can be written on the next logical page as specified in the LINAGE clause.
+║g. If PAGE is specified and the LINAGE clause is specified in the associated file description entry, the record is presented on the logical page before or after (depending on the phrase used) the device is repositioned to the next logical page. The repositioning is to the first line that can be written on the next logical page as specified in the LINAGE clause.║
 
-h. If PAGE is specified and the LINAGE clause is not specified in the associated file description entry, the record is presented on the physical page before or after (depending on the phrase used) the device is repositioned to the next physical page. The repositioning to the next physical page is accomplished in accordance with an implementor-defined technique. If physical page has no meaning in conjunction with a specific device, advancing will be provided by the implementor to act as if the user had specified BEFORE or AFTER (depending on the phrase used) ADVANCING 1 LINE.
+h. If PAGE is specified ║and the LINAGE clause is not specified in the associated file description entry,║ the record is presented on the physical page before or after (depending on the phrase used) the device is repositioned to the next physical page. The repositioning to the next physical page is accomplished in accordance with an implementor-defined technique. If physical page has no meaning in conjunction with a specific device, advancing will be provided by the implementor to act as if the user had specified BEFORE or AFTER (depending on the phrase used) ADVANCING 1 LINE.
 
-(16) If the logical end of the representation of the printed page is reached during the execution of a WRITE statement with the END-OF-PAGE phrase, imperative-statement-1 specified in the END-OF-PAGE phrase is executed. The logical end is specified in the LINAGE clause associated with record-name-1.
+║(16) If the logical end of the representation of the printed page is reached during the execution of a WRITE statement with the END-OF-PAGE phrase, imperative-statement-1 specified in the END-OF-PAGE phrase is executed. The logical end is specified in the LINAGE clause associated with record-name-1.║
 
-(17) An end-of-page condition occurs when the execution of a given WRITE statement with the END-OF-PAGE phrase causes printing or spacing within the footing area of a page body. This occurs when the execution of such a WRITE statement causes the LINAGE-COUNTER to equal or exceed the value specified by integer-2 or the data item referenced by data-name-2 of the LINAGE clause if specified. In this case, the WRITE statement is executed and then imperative-statement-1 in the END-OF-PAGE phrase is executed.
+║(17) An end-of-page condition occurs when the execution of a given WRITE statement with the END-OF-PAGE phrase causes printing or spacing within the footing area of a page body. This occurs when the execution of such a WRITE statement causes the LINAGE-COUNTER to equal or exceed the value specified by integer-2 or the data item referenced by data-name-2 of the LINAGE clause if specified. In this case, the WRITE statement is executed and then imperative-statement-1 in the END-OF-PAGE phrase is executed.║
 
-An automatic page overflow condition occurs when the execution of a given WRITE statement (with or without an END-OF-PAGE phrase) cannot be fully accommodated within the current page body.
+║An automatic page overflow condition occurs when the execution of a given WRITE statement (with or without an END-OF-PAGE phrase) cannot be fully accommodated within the current page body.║
 
-This occurs when a WRITE statement, if executed, would cause the LINAGE-COUNTER to exceed the value specified by integer-1 or the data item referenced by data-name-1 of the LINAGE clause. In this case, the record is presented on the logical page before or after (depending on the phrase used) the
+║This occurs when a WRITE statement, if executed, would cause the LINAGE-COUNTER to exceed the value specified by integer-1 or the data item referenced by data-name-1 of the LINAGE clause. In this case, the record is presented on the logical page before or after (depending on the phrase used) the║
 
 VII-55
 
@@ -16292,9 +16292,9 @@ VII-55
 
 Sequential I-O - WRITE
 
-device is repositioned to the first line that can be written on the next logical page as specified in the LINAGE clause. Imperative-statement-1 in the END-OF-PAGE phrase, if specified, is executed after the record is written and the device has been repositioned.
+║device is repositioned to the first line that can be written on the next logical page as specified in the LINAGE clause. Imperative-statement-1 in the END-OF-PAGE phrase, if specified, is executed after the record is written and the device has been repositioned.║
 
-A page overflow condition occurs when the execution of a given WRITE statement would cause LINAGE-COUNTER to simultaneously exceed the value of both integer-2 or the data item referenced by data-name-2 of the LINAGE clause and integer-1 or the data item referenced by data-name-1 of the LINAGE clause.
+║A page overflow condition occurs when the execution of a given WRITE statement would cause LINAGE-COUNTER to simultaneously exceed the value of both integer-2 or the data item referenced by data-name-2 of the LINAGE clause and integer-1 or the data item referenced by data-name-1 of the LINAGE clause.║
 
 VII-56
 
@@ -16316,7 +16316,7 @@ The Relative I-O module provides a capability to access records of a mass storag
 
 Relative I-O level 1 provides limited capabilities for the file control entry, the file description entry, and the entries in the I-O CONTROL paragraph. Within the Procedure Division, the Relative I-O level 1 provides limited capabilities for the CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements and full capabilities for the DELETE statement.
 
-> Relative I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O CONTROL paragraph. Within the Procedure Division, the Relative I-O level 2 provides full capabilities for the CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, and WRITE statements.
+> ║Relative I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O CONTROL paragraph. Within the Procedure Division, the Relative I-O level 2 provides full capabilities for the CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, and WRITE statements.║
 
 ### 1.3 LANGUAGE CONCEPTS.
 
@@ -16336,19 +16336,19 @@ Relative I-O - Introduction
 
 ### 1.3.2 Access Modes
 
-For relative organization, the order of sequential access is ascending based on the value of the relative record number. Only records which currently exist in the file are made available. The START statement may be used to establish a starting point for a series of subsequent sequential retrievals.
+For relative organization, the order of sequential access is ascending based on the value of the relative record number. Only records which currently exist in the file are made available. ║The START statement may be used to establish a starting point for a series of subsequent sequential retrievals.║
 
 When a file is accessed in random mode, input-output statements are used to access the records in a programmer-specified order. For a file with relative organization, the programmer specifies the desired record by placing its relative record number in a relative key data item.
 
-With dynamic access mode, the programmer may change at will from sequential accessing to random accessing, using appropriate forms of input-output statements.
+║With dynamic access mode, the programmer may change at will from sequential accessing to random accessing, using appropriate forms of input-output statements.║
 
 ### 1.3.3 File Position Indicator
 
-The file position indicator is a conceptual entity used in this document to facilitate exact specification of the next record to be accessed within a given file during certain sequences of input-output operations. The setting of the file position indicator is affected only by the CLOSE, OPEN, READ, and START statements. The concept of a file position indicator has no meaning for a file opened in the output or extend mode.
+The file position indicator is a conceptual entity used in this document to facilitate exact specification of the next record to be accessed within a given file during certain sequences of input-output operations. The setting of the file position indicator is affected only by the CLOSE, OPEN, READ, ║and START║ statements. The concept of a file position indicator has no meaning for a file opened in the output ║or extend║ mode.
 
 ### 1.3.4 I-O Status
 
-The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, or WRITE statement and prior to the execution of any imperative statement associated with that input-output statement or prior to the execution of any applicable USE AFTER STANDARD EXCEPTION procedure. The value of the I-O status is made available to the COBOL program through the use of the FILE STATUS clause in the file control entry for the file.
+The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, ║START,║ or WRITE statement and prior to the execution of any imperative statement associated with that input-output statement or prior to the execution of any applicable USE AFTER STANDARD EXCEPTION procedure. The value of the I-O status is made available to the COBOL program through the use of the FILE STATUS clause in the file control entry for the file.
 
 The I-O status also determines whether an applicable USE AFTER STANDARD EXCEPTION procedure will be executed. If any condition other than those contained under the heading "Successful Completion" on page VIII-3 results, such a procedure may be executed depending on rules stated elsewhere. If one of the conditions listed under the heading "Successful Completion" on page VIII-3 results, no such procedure will be executed. (See page VIII-35, The USE Statement.)
 
@@ -16382,7 +16382,7 @@ a. I-O Status = 00. The input-output statement is successfully executed and no f
 
 b. I-O Status = 04. A READ statement is successfully executed but the length of the record being processed does not conform to the fixed file attributes for that file.
 
-c. I-O Status = 05. An OPEN statement is successfully executed but the referenced optional file is not present at the time the OPEN statement is executed. If the open mode is I-O or extend, the file has been created.
+║c. I-O Status = 05. An OPEN statement is successfully executed but the referenced optional file is not present at the time the OPEN statement is executed. If the open mode is I-O or extend, the file has been created.║
 
 (2) At End Condition With Unsuccessful Completion.
 
@@ -16390,7 +16390,7 @@ a. I-O Status = 10. A sequential READ statement is attempted and no next logical
 
 1\) The end of the file has been reached; or
 
-2\) A sequential READ statement is attempted for the first time on an optional input file that is not present.
+║2\) A sequential READ statement is attempted for the first time on an optional input file that is not present.║
 
 b. I-O Status = 14. A sequential READ statement is attempted for a relative file and the number of significant digits in the relative record number is larger than the size of the relative key data item described for the file.
 
@@ -16408,7 +16408,7 @@ b. I-O Status = 23. This condition exists because:
 
 1\) An attempt is made to randomly access a record that does not exist in the file; or
 
-2\) A START or random READ statement is attempted on an optional input file that is not present.
+║2\) A START or random READ statement is attempted on an optional input file that is not present.║
 
 c. I-O Status = 24. An attempt is made to write beyond the externally defined boundaries of a relative file. The implementor specifies the manner in which these boundaries are defined. Or, a sequential WRITE statement is attempted for a relative file and the number of significant digits in the relative record number is larger than the size of the relative key data item described for the file.
 
@@ -16416,17 +16416,17 @@ c. I-O Status = 24. An attempt is made to write beyond the externally defined bo
 
 a. I-O Status = 30. A permanent error exists and no further information is available concerning the input-output operation.
 
-b. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, or EXTEND phrase is attempted on a non-optional file that is not present.
+b. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, ║or EXTEND║ phrase is attempted on a ║non-optional║ file that is not present.
 
 c. I-O Status = 37. A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. The possible violations are:
 
-1\) The EXTEND or OUTPUT phrase is specified but the file will not support write operations.
+1\) The ║EXTEND or║ OUTPUT phrase is specified but the file will not support write operations.
 
 2\) The I-O phrase is specified but the file will not support the input and output operations that are permitted for a relative file when opened in the I-O mode.
 
 3\) The INPUT phrase is specified but the file will not support read operations.
 
-d. I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.
+║d. I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.║
 
 e. I-O Status = 39. The OPEN statement is unsuccessful because a conflict has been detected between the fixed file attributes and the attributes specified for that file in the program.
 
@@ -16446,21 +16446,21 @@ c. I-O Status = 43. In the sequential access mode, the last input-output stateme
 
 d. I-O Status = 44. A boundary violation exists because:
 
-1\) An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed by the RECORD IS VARYING clause of the associated file-name.
+║1\) An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed by the RECORD IS VARYING clause of the associated file-name.║
 
 2\) In level 1 an attempt is made to rewrite a record to a relative file and the record is not the same size as the record being replaced.
 
 e. I-O Status = 46. A sequential READ statement is attempted on a file open in the input or I-O mode and no valid next record has been established because:
 
-1\) The preceding START statement was unsuccessful, or
+║1\) The preceding START statement was unsuccessful, or║
 
 2\) The preceding READ statement was unsuccessful but did not cause an at end condition, or
 
 3\) The preceding READ statement caused an at end condition.
 
-f. I-O Status = 47. The execution of a READ or START statement is attempted on a file not open in the input or I-O mode.
+f. I-O Status = 47. The execution of a READ ║or START║ statement is attempted on a file not open in the input or I-O mode.
 
-g. I-O Status = 48. The execution of a WRITE statement is attempted on a file not open in the I-O, output, or extend mode.
+g. I-O Status = 48. The execution of a WRITE statement is attempted on a file not open in the I-O, output, ║or extend║ mode.
 
 h. I-O Status = 49. The execution of a DELETE or REWRITE statement is attempted on a file not open in the I-O mode.
 
@@ -16470,7 +16470,7 @@ a. I-O Status = 9x. An implementor-defined condition exists. This condition must
 
 ### 1.3.5 The Invalid Key Condition
 
-The invalid key condition can occur as a result of the execution of a DELETE, READ, REWRITE, START, or WRITE statement. When the invalid key condition occurs, execution of the input-output statement which recognized the condition is unsuccessful and the file is not affected. (See page VIII-19, The DELETE Statement; page VIII-26, The READ Statement; page VIII-30, The REWRITE Statement; page VIII-33, The START Statement; and page VIII-37, The WRITE Statement.)
+The invalid key condition can occur as a result of the execution of a DELETE, READ, REWRITE, ║START,║ or WRITE statement. When the invalid key condition occurs, execution of the input-output statement which recognized the condition is unsuccessful and the file is not affected. (See page VIII-19, The DELETE Statement; page VIII-26, The READ Statement; page VIII-30, The REWRITE Statement; page VIII-33, The START Statement; and page VIII-37, The WRITE Statement.)
 
 If the invalid key condition exists after the execution of the input-output operation specified in an input-output statement, the following actions occur in the order shown:
 
@@ -16576,11 +16576,11 @@ VIII-8
 
 Relative I-O - File Control Entry
 
-a. The same specification for the OPTIONAL phrase.
+║a. The same specification for the OPTIONAL phrase.║
 
 b. A consistent specification for implementor-name-1 or literal-1 in the ASSIGN clause. The implementor will specify the consistency rules for implementor-name-1 or literal-1.
 
-c. The same value for integer-1 in the RESERVE clause.
+║c. The same value for integer-1 in the RESERVE clause.║
 
 d. The same organization.
 
@@ -16590,11 +16590,11 @@ f. The same external data item for data-name-1 in the RELATIVE KEY phrase.
 
 (2) The native character set is assumed for data on the external media.
 
-(3) The OPTIONAL phrase applies only to files opened in the input, I-O, or extend mode. Its specification is required for files that are not necessarily present each time the object program is executed.
+║(3) The OPTIONAL phrase applies only to files opened in the input, I-O, or extend mode. Its specification is required for files that are not necessarily present each time the object program is executed.║
 
 (4) The ASSIGN clause specifies the association of the file referenced by file-name-1 to a storage medium referenced by implementor-name-1 or literal-1.
 
-(5) The RESERVE clause for the Relative I-O module is the same as the RESERVE clause for the Sequential I-O module. Thus the specifications for the RESERVE clause are located on page VII-14.
+║(5) The RESERVE clause for the Relative I-O module is the same as the RESERVE clause for the Sequential I-O module. Thus the specifications for the RESERVE clause are located on page VII-14.║
 
 (6) The FILE STATUS clause for the Relative I-O module is the same as the FILE STATUS clause for the Sequential I-O module. Thus the specifications for the FILE STATUS clause are located on page VII-10. The content of the data item associated with the FILE STATUS clause of a relative file is presented in the paragraph entitled I-O Status beginning on page VIII-2.
 
@@ -16632,7 +16632,7 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
 
 (4) The ACCESS MODE IS RANDOM clause must not be specified for file-names specified in the USING or GIVING phrase of a SORT or MERGE statement.
 
-(5) If a relative file is referenced by a START statement, the RELATIVE KEY phrase within the ACCESS MODE clause must be specified for that file.
+║(5) If a relative file is referenced by a START statement, the RELATIVE KEY phrase within the ACCESS MODE clause must be specified for that file.║
 
 ### 2.4.4 General Rules
 
@@ -16642,7 +16642,7 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
 
 (3) If the access mode is random, the value of the relative key data item for relative files indicates the record to be accessed.
 
-(4) If the access mode is dynamic, records in the file may be accessed sequentially and/or randomly.
+║(4) If the access mode is dynamic, records in the file may be accessed sequentially and/or randomly.║
 
 (5) All records stored in a relative file are uniquely identified by relative record numbers. The relative record number of a given record specifies the record's logical ordinal position in the file. The first logical record has a relative record number of 1, and subsequent logical records have relative record numbers of 2, 3, 4, ... .
 
@@ -16820,7 +16820,7 @@ Relative I-O - CLOSE
 
 ### 4.2.1 Function
 
-The CLOSE statement terminates the processing of files with optional lock.
+The CLOSE statement terminates the processing of files ║with optional lock.║
 
 ### 4.2.2 General Format
 
@@ -16857,18 +16857,18 @@ VIII-17
 
 Relative I-O - CLOSE
 
-<u>Input Files and Input-Output Files (Random or Dynamic Access Mode);</u>
-<u>Output Files (Random, Dynamic, or Sequential Access Mode)</u>:
+<u>Input Files and Input-Output Files (Random ║or Dynamic║ Access Mode);</u>
+<u>Output Files (Random, ║Dynamic,║ or Sequential Access Mode)</u>:
 
 If label records are specified for the file, the labels are processed according to the implementor's standard label convention. The behavior of the CLOSE statement when label records are specified but not present, or when label records are not specified but are present, is undefined. Closing operations specified by the implementor are executed. If label records are not specified for the file, label processing does not take place but other closing operations specified by the implementor are executed.
 
-B. File Lock
+║B. File Lock║
 
-The file is locked and cannot be opened again during this execution of this run unit.
+║The file is locked and cannot be opened again during this execution of this run unit.║
 
 (3) The execution of the CLOSE statement causes the value of the I-O status associated with file-name-1 to be updated. (See page VIII-2, I-O Status.)
 
-(4) If an optional input file is not present, no end-of-file processing is performed for the file and the file position indicator is unchanged.
+║(4) If an optional input file is not present, no end-of-file processing is performed for the file and the file position indicator is unchanged.║
 
 (5) Following the successful execution of a CLOSE statement, the record area associated with file-name-1 is no longer available. The unsuccessful execution of such a CLOSE statement leaves the availability of the record area undefined.
 
@@ -16909,11 +16909,11 @@ The DELETE statement logically removes a record from a mass storage file.
 
 (2) For files in the sequential access mode, the last input-output statement executed for file-name-1 prior to the execution of the DELETE statement must have been a successfully executed READ statement. The mass storage control system (MSCS) logically removes from the file the record that was accessed by that READ statement.
 
-(3) For a relative file in random or dynamic access mode, the mass storage control system (MSCS) logically removes from the file that record identified by the content of the relative key data item associated with file-name-1. If the file does not contain the record specified by the key, the invalid key condition exists. (See page VIII-5, The Invalid Key Condition.)
+(3) For a relative file in random ║or dynamic║ access mode, the mass storage control system (MSCS) logically removes from the file that record identified by the content of the relative key data item associated with file-name-1. If the file does not contain the record specified by the key, the invalid key condition exists. (See page VIII-5, The Invalid Key Condition.)
 
 (4) After the successful execution of a DELETE statement, the identified record has been logically removed from the file and can no longer be accessed.
 
-(5) The execution of a DELETE statement does not affect the content of the record area or the content of the data item referenced by the data-name specified in the DEPENDING ON phrase of the RECORD clause associated with file-name-1.
+(5) The execution of a DELETE statement does not affect the content of the record area ║or the content of the data item referenced by the data-name specified in the DEPENDING ON phrase of the RECORD clause associated with file-name-1.║
 
 (6) The file position indicator is not affected by the execution of a DELETE statement.
 
@@ -16952,7 +16952,7 @@ The OPEN statement initiates the processing of files.
 
 ## 4.4.3 Syntax Rules
 
-(1) The EXTEND phrase must only be used for files in the sequential access mode.
+║(1) The EXTEND phrase must only be used for files in the sequential access mode.║
 
 (2) The files referenced in the OPEN statement need not all have the same organization or access.
 
@@ -17018,7 +17018,7 @@ Relative I-O - OPEN
 
 Table 2: Permissible Statements
 
-(5) A file may be opened with the INPUT, OUTPUT, [EXTEND,] and I-O phrases in the same run unit. Following the initial execution of an OPEN statement for a file, each subsequent OPEN statement execution for that same file must be preceded by the execution of a CLOSE statement, [without the LOCK phrase,] for that file.
+(5) A file may be opened with the INPUT, OUTPUT, [║EXTEND,║] and I-O phrases in the same run unit. Following the initial execution of an OPEN statement for a file, each subsequent OPEN statement execution for that same file must be preceded by the execution of a CLOSE statement, [║without the LOCK phrase,║] for that file.
 
 (6) Execution of the OPEN statement does not obtain or release the first data record.
 
@@ -17038,21 +17038,21 @@ The behavior of the OPEN statement when label records are specified but not pres
 
 (8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VIII-6, The File Attribute Conflict Condition.)
 
-> (9) If a file opened with the INPUT phrase is an optional file which is not present, the OPEN statement sets the file position indicator to indicate that an optional input file is not present.
+> ║(9) If a file opened with the INPUT phrase is an optional file which is not present, the OPEN statement sets the file position indicator to indicate that an optional input file is not present.║
 
 (10) When files are opened with the INPUT or I-O phrase, the file position indicator is set to 1.
 
-> (11) When the EXTEND phrase is specified, the OPEN statement positions the file immediately after the last logical record for that file. The last logical record for a relative file is the currently existing record with the highest relative record number.
+> ║(11) When the EXTEND phrase is specified, the OPEN statement positions the file immediately after the last logical record for that file. The last logical record for a relative file is the currently existing record with the highest relative record number.║
 >
-> (12) When the EXTEND phrase is specified and the LABEL RECORDS clause indicates label records are present, the execution of the OPEN statement includes the following steps.
+> ║(12) When the EXTEND phrase is specified and the LABEL RECORDS clause indicates label records are present, the execution of the OPEN statement includes the following steps.║
 >
-> a. The beginning file labels are processed only in the case of a single reel/unit file.
+> ║a. The beginning file labels are processed only in the case of a single reel/unit file.║
 >
-> b. The beginning reel/unit labels on the last existing reel/unit are processed as though the file was being opened with the INPUT phrase.
+> ║b. The beginning reel/unit labels on the last existing reel/unit are processed as though the file was being opened with the INPUT phrase.║
 >
-> c. The existing ending file labels are processed as though the file is being opened with the INPUT phrase. These labels are then deleted.
+> ║c. The existing ending file labels are processed as though the file is being opened with the INPUT phrase. These labels are then deleted.║
 >
-> d. Processing then proceeds as though the file had been opened with the OUTPUT phrase.
+> ║d. Processing then proceeds as though the file had been opened with the OUTPUT phrase.║
 
 (13) The OPEN statement with the I-O phrase must reference a file that supports the input and output operations that are permitted for a relative file when opened in the I-O mode. The execution of the OPEN statement with the I-O phrase places the referenced file in the open mode for both input and output operations.
 
@@ -17068,7 +17068,7 @@ VIII-24
 
 Relative I-O - OPEN
 
-(15) For an optional file that is unavailable, the successful execution of an OPEN statement with an EXTEND or I-O phrase creates the file. This creation takes place as if the following statements were executed in the order shown:
+(15) For an optional file that is unavailable, the successful execution of an OPEN statement with an ║EXTEND or║ I-O phrase creates the file. This creation takes place as if the following statements were executed in the order shown:
 
 ```
 OPEN OUTPUT file-name.
@@ -17123,9 +17123,9 @@ For sequential access, the READ statement makes available the next logical recor
 
 (2) Format 1 must be used for all files in sequential access mode.
 
-(3) The NEXT phrase must be specified for files in dynamic access mode when records are to be retrieved sequentially.
+║(3) The NEXT phrase must be specified for files in dynamic access mode when records are to be retrieved sequentially.║
 
-(4) Format 2 is used for files in random access mode or for files in dynamic access mode when records are to be retrieved randomly.
+(4) Format 2 is used for files in random access mode ║or for files in dynamic access mode when records are to be retrieved randomly.║
 
 (5) The INVALID KEY phrase or the AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.
 
@@ -17133,7 +17133,7 @@ For sequential access, the READ statement makes available the next logical recor
 
 (1) The file referenced by file-name-1 must be open in the input or I-O mode at the time this statement is executed. (See page VIII-21, The OPEN Statement.)
 
-(2) For files in sequential access mode, the NEXT phrase is optional and has no effect on the execution of the READ statement.
+║(2) For files in sequential access mode, the NEXT phrase is optional and has no effect on the execution of the READ statement.║
 
 VIII-26
 
@@ -17147,7 +17147,7 @@ Relative I-O - READ
 
 a. If the file position indicator indicates that no valid next record has been established, execution of the READ statement is unsuccessful.
 
-b. If the file position indicator indicates that an optional input file is not present, execution proceeds as specified in general rule 10.
+b. If the file position indicator indicates ║that an optional input file is not present,║ execution proceeds as specified in general rule 10.
 
 c. If the file position indicator was established by a previous OPEN or START statement, the first existing record in the file whose relative record number is greater than or equal to the file position indicator is selected.
 
@@ -17179,11 +17179,11 @@ b. If all record-names associated with file-name-1 and the data item referenced 
 
 a. The execution of the same READ statement without the INTO phrase.
 
-b. The current record is moved from the record area to the area specified by identifier-1 according to the rules for the MOVE statement without the CORRESPONDING phrase. The size of the current record is determined by rules specified for the RECORD clause. If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move. The implied MOVE statement does not occur if the execution of the READ statement was unsuccessful. Any subscripting associated with identifier-1 is evaluated after the record has been read and immediately before it is moved to the data item. The record is available in both the record area and the data item referenced by identifier-1.
+b. The current record is moved from the record area to the area specified by identifier-1 according to the rules for the MOVE statement without the CORRESPONDING phrase. The size of the current record is determined by rules specified for the RECORD clause. ║If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move.║ The implied MOVE statement does not occur if the execution of the READ statement was unsuccessful. Any subscripting associated with identifier-1 is evaluated after the record has been read and immediately before it is moved to the data item. The record is available in both the record area and the data item referenced by identifier-1.
 
-(9) If, at the time of the execution of a format 2 READ statement, the file position indicator indicates that an optional input file is not present, the invalid key condition exists and execution of the READ statement is unsuccessful. (See page VIII-5, The Invalid Key Condition.)
+║(9) If, at the time of the execution of a format 2 READ statement, the file position indicator indicates that an optional input file is not present, the invalid key condition exists and execution of the READ statement is unsuccessful. (See page VIII-5, The Invalid Key Condition.)║
 
-(10) For a format 1 READ statement, if the file position indicator indicates that no next logical record exists, or that the number of significant digits in the relative record number is larger than the size of the relative key data item, or that an optional file is not present, the following occurs in the order specified:
+(10) For a format 1 READ statement, if the file position indicator indicates that no next logical record exists, or that the number of significant digits in the relative record number is larger than the size of the relative key data item, ║or that an optional file is not present,║ the following occurs in the order specified:
 
 a. A value, derived from the setting of the file position indicator, is placed into the I-O status associated with file-name-1 to indicate the at end condition. (See page VIII-2, I-O Status.)
 
@@ -17209,13 +17209,13 @@ c. If no exception condition exists, the record is made available in the record 
 
 (12) Following the unsuccessful execution of a READ statement, the content of the associated record area is undefined and the file position indicator is set to indicate that no valid next record has been established.
 
-(13) For a relative file for which dynamic access mode is specified, a format 1 READ statement with the NEXT phrase specified causes the next logical record to be retrieved from that file.
+║(13) For a relative file for which dynamic access mode is specified, a format 1 READ statement with the NEXT phrase specified causes the next logical record to be retrieved from that file.║
 
 (14) For a relative file, if the RELATIVE KEY phrase is specified for file-name-1, the execution of a format 1 READ statement moves the relative record number of the record made available to the relative key data item according to the rules for the MOVE statement. (See page VI-103, The MOVE Statement.)
 
 (15) For a relative file, execution of a format 2 READ statement sets the file position indicator to the value contained in the data item referenced by the RELATIVE KEY phrase for the file, and the record whose relative record number equals the file position indicator is made available in the record area associated with file-name-1. If the file does not contain such a record, the invalid key condition exists and execution of the READ statement is unsuccessful. (See page VIII-5, The Invalid Key Condition.)
 
-(16) If the number of character positions in the record that is read is less than the minimum size specified by the record description entries for file-name-1, the portion of the record area which is to the right of the last valid character read is undefined. If the number of character positions in the record that is read is greater than the maximum size specified by the record description entries for file-name-1, the record is truncated on the right to the maximum size. In either of these cases, the READ statement is successful and an I-O status is set indicating a record length conflict has occurred. (See page VIII-2, I-O Status.)
+║(16) If the number of character positions in the record that is read is less than the minimum size specified by the record description entries for file-name-1, the portion of the record area which is to the right of the last valid character read is undefined. If the number of character positions in the record that is read is greater than the maximum size specified by the record description entries for file-name-1, the record is truncated on the right to the maximum size. In either of these cases, the READ statement is successful and an I-O status is set indicating a record length conflict has occurred. (See page VIII-2, I-O Status.)║
 
 (17) The END-READ phrase delimits the scope of the READ statement. (See page IV-40, Scope of Statements.)
 
@@ -17248,7 +17248,7 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 (3) The INVALID KEY and the NOT INVALID KEY phrases must not be specified for a REWRITE statement which references a relative file in sequential access mode.
 
-(4) The INVALID KEY phrase must be specified in the REWRITE statement for relative files in the random or dynamic access mode, and for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified.
+(4) The INVALID KEY phrase must be specified in the REWRITE statement for relative files in the random ║or dynamic║ access mode, and for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified.
 
 ### 4.6.4 General Rules
 
@@ -17256,9 +17256,9 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 (2) For files in the sequential access mode, the last input-output statement executed for the associated file prior to the execution of the REWRITE statement must have been a successfully executed READ statement. The mass storage control system (MSCS) logically replaces the record that was accessed by the READ statement.
 
-(3) In level 1, the number of character positions in the record referenced by record-name-1 must be equal to the number of character positions in the record being replaced. In level 2, the number of character positions in the record referenced by record-name-1 may or may not be equal to the number of character positions in the record being replaced.
+(3) In level 1, the number of character positions in the record referenced by record-name-1 must be equal to the number of character positions in the record being replaced. ║In level 2, the number of character positions in the record referenced by record-name-1 may or may not be equal to the number of character positions in the record being replaced.║
 
-(4) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files
+(4) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files║
 
 VIII-30
 
@@ -17266,7 +17266,7 @@ VIII-30
 
 Relative I-O - REWRITE
 
-referenced in the same SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.
+║referenced in the same SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.║
 
 (5) The result of the execution of a REWRITE statement with the FROM phrase is equivalent to the execution of the following statements in the order specified:
 
@@ -17278,7 +17278,7 @@ according to the rules specified for the MOVE statement.
 
 b. The same REWRITE statement without the FROM phrase.
 
-(6) After the execution of the REWRITE statement is complete, the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available except as specified by the SAME RECORD AREA clause.
+(6) After the execution of the REWRITE statement is complete, the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available ║except as specified by the SAME RECORD AREA clause.║
 
 (7) The file position indicator is not affected by the execution of a REWRITE statement.
 
@@ -17290,7 +17290,7 @@ b. The same REWRITE statement without the FROM phrase.
 
 (11) The END-REWRITE phrase delimits the scope of the REWRITE statement. (See page IV-40, Scope of Statements.)
 
-(12) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, the contents of the record area are unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page VIII-2, I-O Status.)
+║(12) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, the contents of the record area are unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page VIII-2, I-O Status.)║
 
 VIII-31
 
@@ -17298,7 +17298,7 @@ VIII-31
 
 Relative I-O - REWRITE
 
-(13) For a file accessed in |either| random |or dynamic| access mode, the mass storage control system (MSCS) logically replaces the record specified by the content of the relative key data of the file-name associated with record-name-1. If the file does not contain the record specified by the key, the invalid key condition exists. When the invalid key condition is recognized, the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, the contents of the record area are unaffected and the I-O status of the file-name associated with record-name-1 is set to a value indicating the cause of the condition. (See page VIII-2, I-O Status.)
+(13) For a file accessed in |║either║| random |║or dynamic║| access mode, the mass storage control system (MSCS) logically replaces the record specified by the content of the relative key data of the file-name associated with record-name-1. If the file does not contain the record specified by the key, the invalid key condition exists. When the invalid key condition is recognized, the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, the contents of the record area are unaffected and the I-O status of the file-name associated with record-name-1 is set to a value indicating the cause of the condition. (See page VIII-2, I-O Status.)
 
 VIII-32
 
@@ -17306,13 +17306,13 @@ VIII-32
 
 Relative I-O - START
 
-## 4.7 THE START STATEMENT
+## ║4.7 THE START STATEMENT║
 
-### 4.7.1 Function
+### ║4.7.1 Function║
 
-The START statement provides a basis for logical positioning within a relative file, for subsequent sequential retrieval of records.
+║The START statement provides a basis for logical positioning within a relative file, for subsequent sequential retrieval of records.║
 
-### 4.7.2 General Format
+### ║4.7.2 General Format║
 
 <pre style="line-height:1">
 ╔                  ┌     ╭ IS <u>EQUAL</u> TO                 ╮             ┐ ╗
@@ -17331,23 +17331,23 @@ The START statement provides a basis for logical positioning within a relative f
 ╚   [ <u>END-START</u> ]                                                      ╝
 </pre>
 
-### 4.7.3 Syntax Rules
+### ║4.7.3 Syntax Rules║
 
-(1) File-name-1 must be the name of a file with a sequential or dynamic access.
+║(1) File-name-1 must be the name of a file with a sequential or dynamic access.║
 
-(2) Data-name-1 may be qualified.
+║(2) Data-name-1 may be qualified.║
 
-(3) The INVALID KEY phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.
+║(3) The INVALID KEY phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.║
 
-(4) Data-name-1, if specified, must be the data item specified in the RELATIVE KEY phrase in the ACCESS MODE clause of the associated file control entry.
+║(4) Data-name-1, if specified, must be the data item specified in the RELATIVE KEY phrase in the ACCESS MODE clause of the associated file control entry.║
 
-### 4.7.4 General Rules
+### ║4.7.4 General Rules║
 
-(1) The file referenced by file-name-1 must be open in the input or I-O mode at the time that the START statement is executed. (See page VIII-21, The OPEN Statement.)
+║(1) The file referenced by file-name-1 must be open in the input or I-O mode at the time that the START statement is executed. (See page VIII-21, The OPEN Statement.)║
 
-(2) If the KEY phrase is not specified, the relational operator 'IS EQUAL TO' is implied.
+║(2) If the KEY phrase is not specified, the relational operator 'IS EQUAL TO' is implied.║
 
-(3) The execution of the START statement does not alter either the content of the record area or the content of the data item referenced by the data-name specified in the DEPENDING ON phrase of the RECORD clause associated with file-name-1.
+║(3) The execution of the START statement does not alter either the content of the record area or the content of the data item referenced by the data-name specified in the DEPENDING ON phrase of the RECORD clause associated with file-name-1.║
 
 VIII-33
 
@@ -17355,23 +17355,23 @@ VIII-33
 
 Relative I-O - START
 
-(4) The type of comparison specified by the relational operator in the KEY phrase occurs between a key associated with a record in the file referenced by file-name-1 and a data item as specified in general rule 10. Numeric comparison rules apply. (See page VI-55, Comparison of Numeric Operands.)
+║(4) The type of comparison specified by the relational operator in the KEY phrase occurs between a key associated with a record in the file referenced by file-name-1 and a data item as specified in general rule 10. Numeric comparison rules apply. (See page VI-55, Comparison of Numeric Operands.)║
 
-a. The file position indicator is set to the relative record number of the first logical record in the file whose key satisfies the comparison.
+║a. The file position indicator is set to the relative record number of the first logical record in the file whose key satisfies the comparison.║
 
-b. If the comparison is not satisfied by any record in the file, the invalid key condition exists and the execution of the START statement is unsuccessful.
+║b. If the comparison is not satisfied by any record in the file, the invalid key condition exists and the execution of the START statement is unsuccessful.║
 
-(5) The execution of the START statement causes the value of the I-O status associated with file-name-1 to be updated. (See page VIII-2, I-O Status.)
+║(5) The execution of the START statement causes the value of the I-O status associated with file-name-1 to be updated. (See page VIII-2, I-O Status.)║
 
-(6) If, at the time of the execution of the START statement, the file position indicator indicates that an optional input file is not present, the invalid key condition exists and the execution of the START statement is unsuccessful.
+║(6) If, at the time of the execution of the START statement, the file position indicator indicates that an optional input file is not present, the invalid key condition exists and the execution of the START statement is unsuccessful.║
 
-(7) Transfer of control following the successful or unsuccessful execution of the START operation depends on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases in the START statement. (See page VIII-5, The Invalid Key Condition.)
+║(7) Transfer of control following the successful or unsuccessful execution of the START operation depends on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases in the START statement. (See page VIII-5, The Invalid Key Condition.)║
 
-(8) Following the unsuccessful execution of a START statement, the file position indicator is set to indicate that no valid next record has been established.
+║(8) Following the unsuccessful execution of a START statement, the file position indicator is set to indicate that no valid next record has been established.║
 
-(9) The END-START phrase delimits the scope of the START statement. (See page IV-40, Scope of Statements.)
+║(9) The END-START phrase delimits the scope of the START statement. (See page IV-40, Scope of Statements.)║
 
-(10) The comparison described in general rule 4 uses the data item referenced by the RELATIVE KEY phrase of the ACCESS MODE clause associated with file-name-1.
+║(10) The comparison described in general rule 4 uses the data item referenced by the RELATIVE KEY phrase of the ACCESS MODE clause associated with file-name-1.║
 
 VIII-34
 
@@ -17407,7 +17407,7 @@ The USE statement specifies procedures for input-output error handling that are 
 
 (5) The files implicitly or explicitly referenced in the USE statement need not all have the same organization or access.
 
-(6) The INPUT, OUTPUT, I-O, and EXTEND phrases may each be specified only once in the declaratives portion of a given Procedure Division.
+(6) The INPUT, OUTPUT, I-O, ║and EXTEND║ phrases may each be specified only once in the declaratives portion of a given Procedure Division.
 
 #### 4.8.4 General Rules
 
@@ -17435,7 +17435,7 @@ c. If OUTPUT is specified, the associated procedure is executed when the conditi
 
 d. If I-O is specified, the associated procedure is executed when the condition described in the USE statement occurs for any file open in the I-O mode or in the process of being opened in the I-O mode, except those files referenced by file-name-1 in another USE statement specifying the same condition.
 
-e. If EXTEND is specified, the associated procedure is executed when the condition described in the USE statement occurs for any file open in the extend mode or in the process of being opened in the extend mode, except those files referenced by file-name-1 in another USE statement specifying the same condition.
+║e. If EXTEND is specified, the associated procedure is executed when the condition described in the USE statement occurs for any file open in the extend mode or in the process of being opened in the extend mode, except those files referenced by file-name-1 in another USE statement specifying the same condition.║
 
 (6) After execution of the USE procedure, control is transferred to the invoking routine in the input-output control system. If the I-O status value does not indicate a critical input-output error, the input-output control system returns control to the next executable statement following the input-output statement whose execution caused the exception. If the I-O status value does indicate a critical error, the implementor determines what action is taken. (See page VIII-2, I-O Status.)
 
@@ -17474,9 +17474,9 @@ The WRITE statement releases a logical record for an output or input-output file
 
 ### 4.9.4 General Rules
 
-(1) The file referenced by the file-name associated with record-name-1 must be open in the output, I-O, or extend mode at the time of the execution of this statement. (See page VIII-21, The OPEN Statement.)
+(1) The file referenced by the file-name associated with record-name-1 must be open in the output, I-O, ║or extend║ mode at the time of the execution of this statement. (See page VIII-21, The OPEN Statement.)
 
-(2) The logical record released by the successful execution of the WRITE statement is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files referenced in the same SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.
+(2) The logical record released by the successful execution of the WRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files referenced in the same SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.║
 
 (3) The result of the execution of a WRITE statement with the FROM phrase is equivalent to the execution of the following statements in the order specified:
 
@@ -17494,7 +17494,7 @@ VIII-37
 
 Relative I-O - WRITE
 
-(4) After the execution of the WRITE statement is complete, the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available except as specified by the SAME RECORD AREA clause.
+(4) After the execution of the WRITE statement is complete, the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available ║except as specified by the SAME RECORD AREA clause.║
 
 (5) The file position indicator is not affected by the execution of a WRITE statement.
 
@@ -17502,7 +17502,7 @@ Relative I-O - WRITE
 
 (7) The execution of the WRITE statement releases a logical record to the operating system.
 
-(8) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the WRITE statement is unsuccessful, the WRITE operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page VIII-2, I-O Status.)
+║(8) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the WRITE statement is unsuccessful, the WRITE operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page VIII-2, I-O Status.)║
 
 (9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, the invalid key condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:
 
@@ -17522,15 +17522,15 @@ VIII-38
 
 Relative I-O - WRITE
 
-b. If the access mode is random or dynamic, prior to the execution of the WRITE statement the value of the relative key data item must be initialized by the program with the relative record number to be associated with the record in the record area. That record is then released to the mass storage control system (MSCS) by execution of the WRITE statement.
+b. If the access mode is random ║or dynamic,║ prior to the execution of the WRITE statement the value of the relative key data item must be initialized by the program with the relative record number to be associated with the record in the record area. That record is then released to the mass storage control system (MSCS) by execution of the WRITE statement.
 
-(12) When a relative file is open in the extend mode, records are inserted into the file. The first record released to the mass storage control system (MSCS) has a relative record number one greater than the highest relative record number existing in the file. Subsequent records released to the mass storage control system (MSCS) have consecutively higher relative record numbers. If the RELATIVE KEY phrase is specified for the file-name associated with record-name-1, the relative record number of the record being released is moved into the relative key data item by the mass storage control system (MSCS) during execution of the WRITE statement according to the rules for the MOVE statement. (See page VI-103, The MOVE Statement.)
+║(12) When a relative file is open in the extend mode, records are inserted into the file. The first record released to the mass storage control system (MSCS) has a relative record number one greater than the highest relative record number existing in the file. Subsequent records released to the mass storage control system (MSCS) have consecutively higher relative record numbers. If the RELATIVE KEY phrase is specified for the file-name associated with record-name-1, the relative record number of the record being released is moved into the relative key data item by the mass storage control system (MSCS) during execution of the WRITE statement according to the rules for the MOVE statement. (See page VI-103, The MOVE Statement.)║
 
-(13) When a relative file is opened in the I-O mode and the access mode is random or dynamic, records are to be inserted in the associated file. The value of the relative key data item must be initialized by the program with the relative record number to be associated with the record in the record area. Execution of the WRITE statement then causes the content of the record area to be released to the mass storage control system (MSCS).
+(13) When a relative file is opened in the I-O mode and the access mode is random ║or dynamic,║ records are to be inserted in the associated file. The value of the relative key data item must be initialized by the program with the relative record number to be associated with the record in the record area. Execution of the WRITE statement then causes the content of the record area to be released to the mass storage control system (MSCS).
 
 (14) The invalid key condition exists under the following circumstances:
 
-a. When the access mode is random or dynamic, and the relative key data item specifies a record which already exists in the file, or
+a. When the access mode is random ║or dynamic,║ and the relative key data item specifies a record which already exists in the file, or
 
 b. When an attempt is made to write beyond the externally defined boundaries of the file, or
 
@@ -17562,7 +17562,7 @@ The Indexed I-O module provides a capability to access records of a mass storage
 
 Indexed I-O level 1 provides limited capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph. Within the Procedure Division, the Indexed I-O level 1 provides limited capabilities for the CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements and full capabilities for the DELETE statement.
 
-> Indexed I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph. Within the Procedure Division, the Indexed I-O level 2 provides full capabilities for the CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, and WRITE statements.
+> ║Indexed I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph. Within the Procedure Division, the Indexed I-O level 2 provides full capabilities for the CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, and WRITE statements.║
 
 ### 1.3 LANGUAGE CONCEPTS
 
@@ -17572,7 +17572,7 @@ A file with indexed organization is a mass storage file from which any record ma
 
 Each indexed file has a primary index which represents the prime record key of each record in the file. Each record is inserted in the file, changed, or deleted from the file based solely upon the value of its prime record key. The prime record key of each record in the file must be unique, and it must not be changed when updating a record. The prime record key is declared in the RECORD KEY clause of the file control entry for the file.
 
-> Alternate record keys provide alternate means of retrieval for the records of a file. Such keys are named in the ALTERNATE RECORD KEY clause of the file control entry. The value of a particular alternate record key in each record need not be unique. When these values may not be unique, the DUPLICATES phrase is specified in the ALTERNATE RECORD KEY clause.
+> ║Alternate record keys provide alternate means of retrieval for the records of a file. Such keys are named in the ALTERNATE RECORD KEY clause of the file control entry. The value of a particular alternate record key in each record need not be unique. When these values may not be unique, the DUPLICATES phrase is specified in the ALTERNATE RECORD KEY clause.║
 
 IX-1
 
@@ -17582,19 +17582,19 @@ Indexed I-O - Introduction
 
 1.3.2 Access Modes
 
-For indexed organization, the order of sequential access is ascending based on the value of the key of reference according to the collating sequence of the file. Any of the keys associated with the file may be established as the key of reference during the processing of a file. The order of retrieval from a set of records which have duplicate key of reference values is the original order of arrival of those records into that set. The START statement may be used to establish a starting point within an indexed file for a series of subsequent sequential retrievals.
+For indexed organization, the order of sequential access is ascending based on the value of the key of reference according to the collating sequence of the file. Any of the keys associated with the file may be established as the key of reference during the processing of a file. ║The order of retrieval from a set of records which have duplicate key of reference values is the original order of arrival of those records into that set. The START statement may be used to establish a starting point within an indexed file for a series of subsequent sequential retrievals.║
 
 When a file is accessed in random mode, input-output statements are used to access the records in a programmer-specified order. With the indexed organization, the programmer specifies the desired record by placing the value of one of its record keys in a record key or an alternate record key data item.
 
-With dynamic access mode, the programmer may change at will from sequential accessing to random accessing, using appropriate forms of input-output statements.
+║With dynamic access mode, the programmer may change at will from sequential accessing to random accessing, using appropriate forms of input-output statements.║
 
 1.3.3 File Position Indicator
 
-The file position indicator is a conceptual entity used in this document to facilitate exact specification of the next record to be accessed within a given file during certain sequences of input-output operations. The setting of the file position indicator is affected only by the CLOSE, OPEN, READ, and START statements. The concept of a file position indicator has no meaning for a file opened in the output or extend mode.
+The file position indicator is a conceptual entity used in this document to facilitate exact specification of the next record to be accessed within a given file during certain sequences of input-output operations. The setting of the file position indicator is affected only by the CLOSE, OPEN, READ, ║and START║ statements. The concept of a file position indicator has no meaning for a file opened in the output ║or extend║ mode.
 
 1.3.4 I-O Status
 
-The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, or WRITE statement and prior to the execution of any imperative statement associated with that input-output statement or prior to the execution of any applicable USE AFTER STANDARD EXCEPTION procedure. The value of the I-O status is made available to the COBOL program through the use of the FILE STATUS clause in the file control entry for the file.
+The I-O status is a two-character conceptual entity whose value is set to indicate the status of an input-output operation during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, ║START,║ or WRITE statement and prior to the execution of any imperative statement associated with that input-output statement or prior to the execution of any applicable USE AFTER STANDARD EXCEPTION procedure. The value of the I-O status is made available to the COBOL program through the use of the FILE STATUS clause in the file control entry for the file.
 
 The I-O status also determines whether an applicable USE AFTER STANDARD EXCEPTION procedure will be executed. If any condition other than those contained under the heading "Successful Completion" on page IX-3 results, such a procedure may be executed depending on rules stated elsewhere. If one of the conditions listed under the heading "Successful Completion" on page IX-3 results, no such procedure will be executed. (See page IX-39, The USE Statement.)
 
@@ -17630,11 +17630,11 @@ b. I-O Status = 02. The input-output statement is successfully executed but a du
 
 1\) For a READ statement, the key value for the current key of reference is equal to the value of the same key in the next record within the current key of reference.
 
-2\) For a REWRITE or WRITE statement, the record just written created a duplicate key value for at least one alternate record key for which duplicates are allowed.
+║2\) For a REWRITE or WRITE statement, the record just written created a duplicate key value for at least one alternate record key for which duplicates are allowed.║
 
 c. I-O Status = 04. A READ statement is successfully executed but the length of the record being processed does not conform to the fixed file attributes for that file.
 
-d. I-O Status = 05. An OPEN statement is successfully executed but the referenced optional file is not present at the time the OPEN statement is executed. If the open mode is I-O or extend, the file has been created.
+║d. I-O Status = 05. An OPEN statement is successfully executed but the referenced optional file is not present at the time the OPEN statement is executed. If the open mode is I-O or extend, the file has been created.║
 
 IX-3
 
@@ -17648,19 +17648,19 @@ a. I-O Status = 10. A sequential READ statement is attempted and no next logical
 
 1\) The end of the file has been reached; or
 
-2\) A sequential READ statement is attempted for the first time on an optional input file that is not present.
+║2\) A sequential READ statement is attempted for the first time on an optional input file that is not present.║
 
 (3) Invalid Key Condition With Unsuccessful Completion
 
 a. I-O Status = 21. A sequence error exists for a sequentially accessed indexed file. The prime record key value has been changed by the program between the successful execution of a READ statement and the execution of the next REWRITE statement for that file, or the ascending sequence requirements for successive record key values are violated. (See page IX-41, The WRITE Statement.)
 
-b. I-O Status = 22. An attempt is made to write or rewrite a record that would create a duplicate prime record key or a duplicate alternate record key without the DUPLICATES phrase in an indexed file.
+b. I-O Status = 22. An attempt is made to write or rewrite a record that would create a duplicate prime record key ║or a duplicate alternate record key without the DUPLICATES phrase in an indexed file.║
 
 c. I-O Status = 23. This condition exists because:
 
 1\) An attempt is made to randomly access a record that does not exist in the file, or
 
-2\) A START or random READ statement is attempted on an optional input file that is not present.
+║2\) A START or random READ statement is attempted on an optional input file that is not present.║
 
 d. I-O Status = 24. An attempt is made to write beyond the externally-defined boundaries of an indexed file. The implementor specifies the manner in which these boundaries are defined.
 
@@ -17668,11 +17668,11 @@ d. I-O Status = 24. An attempt is made to write beyond the externally-defined bo
 
 a. I-O Status = 30. A permanent error exists and no further information is available concerning the input-output operation.
 
-b. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, or EXTEND phrase is attempted on a non-optional file that is not present.
+b. I-O Status = 35. A permanent error exists because an OPEN statement with the INPUT, I-O, ║or EXTEND║ phrase is attempted on a ║non-optional║ file that is not present.
 
 c. I-O Status = 37. A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. The possible violations are:
 
-1\) The EXTEND or OUTPUT phrase is specified but the file will not support write operations.
+1\) The ║EXTEND or║ OUTPUT phrase is specified but the file will not support write operations.
 
 2\) The I-O phrase is specified but the file will not support the input and output operations that are permitted for an indexed file when opened in the I-O mode.
 
@@ -17684,7 +17684,7 @@ Indexed I-O - Introduction
 
 3\) The INPUT phrase is specified but the file will not support read operations.
 
-d. I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.
+║d. I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.║
 
 e. I-O Status = 39. The OPEN statement is unsuccessful because a conflict has been detected between the fixed file attributes and the attributes specified for that file in the program.
 
@@ -17698,21 +17698,21 @@ c. I-O Status = 43. In the sequential access mode, the last input-output stateme
 
 d. I-O Status = 44. A boundary violation exists because:
 
-1\) An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed for the RECORD IS VARYING clause of the associated file-name.
+║1\) An attempt is made to write or rewrite a record that is larger than the largest or smaller than the smallest record allowed for the RECORD IS VARYING clause of the associated file-name.║
 
 2\) In level 1 an attempt is made to rewrite a record to an indexed file and the record is not the same size as the record being replaced.
 
 e. I-O Status = 46. A sequential READ statement is attempted on a file open in the input or I-O mode and no valid next record has been established because:
 
-1\) The preceding START statement was unsuccessful, or
+║1\) The preceding START statement was unsuccessful, or║
 
 2\) The preceding READ statement was unsuccessful but did not cause an at end condition, or
 
 3\) The preceding READ statement caused an at end condition.
 
-f. I-O Status = 47. The execution of a READ or START statement is attempted on a file not open in the input or I-O mode.
+f. I-O Status = 47. The execution of a READ ║or START║ statement is attempted on a file not open in the input or I-O mode.
 
-g. I-O Status = 48. The execution of a WRITE statement is attempted on a file not open in the I-O, output, or extend mode.
+g. I-O Status = 48. The execution of a WRITE statement is attempted on a file not open in the I-O, output, ║or extend║ mode.
 
 h. I-O Status = 49. The execution of a DELETE or REWRITE statement is attempted on a file not open in the I-O mode.
 
@@ -17728,7 +17728,7 @@ a. I-O Status = 9x. An implementor-defined condition exists. This condition must
 
 1.3.5 The Invalid Key Condition
 
-The invalid key condition can occur as a result of the execution of a DELETE, READ, REWRITE, START, or WRITE statement. When the invalid key condition occurs, execution of the input-output statement which recognized the condition is unsuccessful and the file is not affected. (See page IX-21, The DELETE Statement; page IX-28, The READ Statement; page IX-33, The REWRITE Statement; page IX-36, The START Statement; and page IX-41, The WRITE Statement.)
+The invalid key condition can occur as a result of the execution of a DELETE, READ, REWRITE, ║START,║ or WRITE statement. When the invalid key condition occurs, execution of the input-output statement which recognized the condition is unsuccessful and the file is not affected. (See page IX-21, The DELETE Statement; page IX-28, The READ Statement; page IX-33, The REWRITE Statement; ║page IX-36, The START Statement;║ and page IX-41, The WRITE Statement.)
 
 If the invalid key condition exists after the execution of the input-output operation specified in an input-output statement, the following actions occur in the order shown:
 
@@ -17832,11 +17832,11 @@ Indexed I-O - File Control Entry
 
 (1) If the file connector referenced by file-name-1 is an external file connector (see page X-23, The EXTERNAL Clause), all file control entries in the run unit which reference this file connector must have:
 
-a. The same specification for the OPTIONAL phrase.
+║a. The same specification for the OPTIONAL phrase.║
 
 b. A consistent specification for implementor-name-1 or literal-1 in the ASSIGN clause. The implementor will specify the consistency rules for implementor-name-1 or literal-1.
 
-c. The same value for integer-1 in the RESERVE clause.
+║c. The same value for integer-1 in the RESERVE clause.║
 
 d. The same organization.
 
@@ -17850,15 +17850,15 @@ g. The same data description entry for data-name-2, the same relative location w
 
 (3) For an indexed file, the collating sequence associated with the native character set is assumed. This is the sequence of values of a given key of reference used to process the file sequentially.
 
-(4) The OPTIONAL phrase applies only to files opened in the input, I-O, or extend mode. Its specification is required for files that are not necessarily present each time the object program is executed.
+║(4) The OPTIONAL phrase applies only to files opened in the input, I-O, or extend mode. Its specification is required for files that are not necessarily present each time the object program is executed.║
 
 (5) The ASSIGN clause specifies the association of the file referenced by file-name-1 to a storage medium referenced by implementor-name-1 or literal-1.
 
-(6) The RESERVE clause for the Indexed I-O module is the same as the RESERVE clause for the Sequential I-O module. Thus the specifications for the RESERVE clause are located on page VII-14.
+║(6) The RESERVE clause for the Indexed I-O module is the same as the RESERVE clause for the Sequential I-O module. Thus the specifications for the RESERVE clause are located on page VII-14.║
 
 (7) The FILE STATUS clause for the Indexed I-O module is the same as the FILE STATUS clause for the Sequential I-O module. Thus the specifications for the FILE STATUS clause are located on page VII-10. The content of the data item associated with the FILE STATUS clause of an indexed file is presented in the paragraph entitled I-O Status beginning on page IX-2.
 
-(8) The ACCESS MODE clause, the ALTERNATE RECORD KEY clause, the ORGANIZATION IS INDEXED clause, and the RECORD KEY clause are presented on the following pages.
+(8) The ACCESS MODE clause, ║the ALTERNATE RECORD KEY clause,║ the ORGANIZATION IS INDEXED clause, and the RECORD KEY clause are presented on the following pages.
 
 IX-9
 
@@ -17892,7 +17892,7 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
 
 (3) If the access mode is random, the value of a record key data item for indexed files indicates the record to be accessed.
 
-> (4) If the access mode is dynamic, records in the file may be accessed sequentially and/or randomly.
+> ║(4) If the access mode is dynamic, records in the file may be accessed sequentially and/or randomly.║
 
 (5) If the associated file connector is an external file connector, every file control entry in the run unit which is associated with that file connector must specify the same access mode.
 
@@ -17902,39 +17902,39 @@ IX-10
 
 Indexed I-O - ALTERNATE RECORD KEY
 
-## 2.5 THE ALTERNATE RECORD KEY CLAUSE
+## ║2.5 THE ALTERNATE RECORD KEY CLAUSE║
 
-### 2.5.1 Function
+### ║2.5.1 Function║
 
-The ALTERNATE RECORD KEY clause specifies an alternate record key access path to the records in an indexed file.
+║The ALTERNATE RECORD KEY clause specifies an alternate record key access path to the records in an indexed file.║
 
-### 2.5.2 General Format
+### ║2.5.2 General Format║
 
 <pre style="line-height:1">
 ║ <u>ALTERNATE</u> <u>RECORD</u> KEY IS data-name-1 [ WITH <u>DUPLICATES</u> ] ║
 </pre>
 
-### 2.5.3 Syntax Rules
+### ║2.5.3 Syntax Rules║
 
-(1) Data-name-1 may be qualified.
+║(1) Data-name-1 may be qualified.║
 
-(2) Data-name-1 must be defined as a data item of the category alphanumeric within a record description entry associated with the file-name to which the ALTERNATE RECORD KEY clause is subordinate.
+║(2) Data-name-1 must be defined as a data item of the category alphanumeric within a record description entry associated with the file-name to which the ALTERNATE RECORD KEY clause is subordinate.║
 
-(3) Data-name-1 must not reference a group item that contains a variable occurrence data item.
+║(3) Data-name-1 must not reference a group item that contains a variable occurrence data item.║
 
-(4) Data-name-1 must not reference an item whose leftmost character position corresponds to the leftmost character position of the prime record key or of any other alternate record key associated with this file.
+║(4) Data-name-1 must not reference an item whose leftmost character position corresponds to the leftmost character position of the prime record key or of any other alternate record key associated with this file.║
 
-(5) If the indexed file contains variable length records, each alternate record key must be contained within the first x character positions of the record, where x equals the minimum record size specified for the file. (See page VII-30, The RECORD Clause.)
+║(5) If the indexed file contains variable length records, each alternate record key must be contained within the first x character positions of the record, where x equals the minimum record size specified for the file. (See page VII-30, The RECORD Clause.)║
 
-### 2.5.4 General Rules
+### ║2.5.4 General Rules║
 
-(1) An ALTERNATE RECORD KEY clause specifies an alternate record key for the file with which this clause is associated.
+║(1) An ALTERNATE RECORD KEY clause specifies an alternate record key for the file with which this clause is associated.║
 
-(2) The data description of data-name-1 as well as its relative location within a record must be the same as that used when the file was created. The number of alternate record keys for the file must also be the same as that used when the file was created.
+║(2) The data description of data-name-1 as well as its relative location within a record must be the same as that used when the file was created. The number of alternate record keys for the file must also be the same as that used when the file was created.║
 
-(3) The DUPLICATES phrase specifies that the value of the associated alternate record key may be duplicated within any of the records in the file. If the DUPLICATES phrase is not specified, the value of the associated alternate record key must not be duplicated among any of the records in the file.
+║(3) The DUPLICATES phrase specifies that the value of the associated alternate record key may be duplicated within any of the records in the file. If the DUPLICATES phrase is not specified, the value of the associated alternate record key must not be duplicated among any of the records in the file.║
 
-(4) If the file has more than one record description entry, data-name-1 need only be described in one of these record description entries. The identical character positions referenced by data-name-1 in any one record description entry are implicitly referenced in keys for all other record description entries of that file.
+║(4) If the file has more than one record description entry, data-name-1 need only be described in one of these record description entries. The identical character positions referenced by data-name-1 in any one record description entry are implicitly referenced in keys for all other record description entries of that file.║
 
 IX-11
 
@@ -17942,7 +17942,7 @@ IX-11
 
 Indexed I-O - ALTERNATE RECORD KEY
 
-(5) If the associated file connector is an external file connector, every file control entry in the run unit which is associated with that file connector must specify the same data description entry for data-name-1, the same relative location within the associated record, the same number of alternate record keys, and the same DUPLICATES phrase.
+║(5) If the associated file connector is an external file connector, every file control entry in the run unit which is associated with that file connector must specify the same data description entry for data-name-1, the same relative location within the associated record, the same number of alternate record keys, and the same DUPLICATES phrase.║
 
 IX-12
 
@@ -17994,7 +17994,7 @@ The RECORD KEY clause specifies the prime record key access path to the records 
 
 (3) Data-name-1 must not reference a group item that contains a variable occurrence data item.
 
-(4) If the indexed file contains variable length records, the prime record key must be contained within the first x character positions of the record, where x equals the minimum record size specified for the file. (See page VII-30, The RECORD Clause.)
+║(4) If the indexed file contains variable length records, the prime record key must be contained within the first x character positions of the record, where x equals the minimum record size specified for the file. (See page VII-30, The RECORD Clause.)║
 
 ### 2.7.4 General Rules
 
@@ -18144,7 +18144,7 @@ Indexed I-O - CLOSE
 
 ### 4.2.1 Function
 
-The CLOSE statement terminates the processing of files with optional lock.
+The CLOSE statement terminates the processing of files ║with optional lock.║
 
 ### 4.2.2 General Format
 
@@ -18181,18 +18181,18 @@ IX-19
 
 Indexed I-O - CLOSE
 
-<u>Input Fil'es and Input-Output Files (Random or Dynamic Access Mode)</u>;
-<u>Output Files (Random, Dynamic, or Sequential Access Mode)</u>:
+<u>Input Fil'es and Input-Output Files (Random ║or Dynamic║ Access Mode)</u>;
+<u>Output Files (Random, ║Dynamic,║ or Sequential Access Mode)</u>:
 
 If label records are specified for the file, the labels are processed according to the implementor's standard label convention. The behavior of the CLOSE statement when label records are specified but not present, or when label records are not specified but are present, is undefined. Closing operations specified by the implementor are executed. If label records are not specified for the file, label processing does not take place but other closing operations specified by the implementor are executed.
 
-B. File Lock
+║B. File Lock║
 
-The file is locked and cannot be opened again during this execution of this run unit.
+║The file is locked and cannot be opened again during this execution of this run unit.║
 
 (3) The execution of the CLOSE statement causes the value of the I-O status associated with file-name-1 to be updated. (See page IX-2, I-O Status.)
 
-(4) If an optional input file is not present, no end-of-file processing is performed for the file and the file position indicator is unchanged.
+║(4) If an optional input file is not present, no end-of-file processing is performed for the file and the file position indicator is unchanged.║
 
 (5) Following the successful execution of a CLOSE statement, the record area associated with file-name-1 is no longer available. The unsuccessful execution of such a CLOSE statement leaves the availability of the record area undefined.
 
@@ -18233,11 +18233,11 @@ The DELETE statement logically removes a record from a mass storage file.
 
 (2) For files in the sequential access mode, the last input-output statement executed for file-name-1 prior to the execution of the DELETE statement must have been a successfully executed READ statement. The mass storage control system (MSCS) logically removes from the file the record that was accessed by that READ statement.
 
-(3) For an indexed file in random or dynamic access mode, the mass storage control system (MSCS) logically removes from the file the record identified by the content of the prime record key data item associated with file-name-1. If the file does not contain the record specified by the key, the invalid key condition exists. (See page IX-6, The Invalid Key Condition.)
+(3) For an indexed file in random ║or dynamic║ access mode, the mass storage control system (MSCS) logically removes from the file the record identified by the content of the prime record key data item associated with file-name-1. If the file does not contain the record specified by the key, the invalid key condition exists. (See page IX-6, The Invalid Key Condition.)
 
 (4) After the successful execution of a DELETE statement, the identified record has been logically removed from the file and can no longer be accessed.
 
-(5) The execution of a DELETE statement does not affect the content of the record area or the content of the data item referenced by the data-name specified in the DEPENDING ON phrase of the RECORD clause associated with file-name-1.
+(5) The execution of a DELETE statement does not affect the content of the record area ║or the content of the data item referenced by the data-name specified in the DEPENDING ON phrase of the RECORD clause associated with file-name-1.║
 
 (6) The file position indicator is not affected by the execution of a DELETE statement.
 
@@ -18276,7 +18276,7 @@ The OPEN statement initiates the processing of files.
 
 ### 4.4.3 Syntax Rules
 
-(1) The EXTEND phrase must only be used for files in the sequential access mode.
+║(1) The EXTEND phrase must only be used for files in the sequential access mode.║
 
 (2) The files referenced in the OPEN statement need not all have the same organization or access.
 
@@ -18351,7 +18351,7 @@ Indexed I-O - OPEN
 
 Table 2: Permissible Statements
 
-(5) A file may be opened with the INPUT, OUTPUT, EXTEND, and I-O phrases in the same run unit. Following the initial execution of an OPEN statement for a file, each subsequent OPEN statement execution for that same file must be preceded by the execution of a CLOSE statement, without the LOCK phrase, for that file.
+(5) A file may be opened with the INPUT, OUTPUT, ║EXTEND,║ and I-O phrases in the same run unit. Following the initial execution of an OPEN statement for a file, each subsequent OPEN statement execution for that same file must be preceded by the execution of a CLOSE statement, ║without the LOCK phrase,║ for that file.
 
 (6) Execution of the OPEN statement does not obtain or release the first data record.
 
@@ -18371,21 +18371,21 @@ The behavior of the OPEN statement when label records are specified but not pres
 
 (8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page IX-7, The File Attribute Conflict Condition.)
 
-(9) If a file opened with the INPUT phrase is an optional file which is not present, the OPEN statement sets the file position indicator to indicate that an optional input file is not present.
+║(9) If a file opened with the INPUT phrase is an optional file which is not present, the OPEN statement sets the file position indicator to indicate that an optional input file is not present.║
 
 (10) When files are opened with the INPUT or I-O phrase, the file position indicator is set to the characters that have the lowest ordinal position in the collating sequence associated with the file, and the prime record key is established as the key of reference.
 
-(11) When the EXTEND phrase is specified, the OPEN statement positions the file immediately after the last logical record for that file. The last logical record for an indexed file is the currently existing record with the highest prime key value.
+║(11) When the EXTEND phrase is specified, the OPEN statement positions the file immediately after the last logical record for that file. The last logical record for an indexed file is the currently existing record with the highest prime key value.║
 
-(12) When the EXTEND phrase is specified and the LABEL RECORDS clause indicates label records are present, the execution of the OPEN statement includes the following steps:
+║(12) When the EXTEND phrase is specified and the LABEL RECORDS clause indicates label records are present, the execution of the OPEN statement includes the following steps:║
 
-a. The beginning file labels are processed only in the case of a single reel/unit file.
+║a. The beginning file labels are processed only in the case of a single reel/unit file.║
 
-b. The beginning reel/unit labels on the last existing reel/unit are processed as though the file was being opened with the INPUT phrase.
+║b. The beginning reel/unit labels on the last existing reel/unit are processed as though the file was being opened with the INPUT phrase.║
 
-c. The existing ending file labels are processed as though the file is being opened with the INPUT phrase. These labels are then deleted.
+║c. The existing ending file labels are processed as though the file is being opened with the INPUT phrase. These labels are then deleted.║
 
-d. Processing then proceeds as though the file had been opened with the OUTPUT phrase.
+║d. Processing then proceeds as though the file had been opened with the OUTPUT phrase.║
 
 (13) The OPEN statement with the I-O phrase must reference a file that supports the input and output operations that are permitted for an indexed file when opened in the I-O mode. The execution of the OPEN statement with the I-O phrase places the referenced file in the open mode for both input and output operations.
 
@@ -18401,7 +18401,7 @@ IX-26
 
 Indexed I-O - OPEN
 
-(15) For an optional file that is unavailable, the successful execution of an OPEN statement with an EXTEND or I-O phrase creates the file. This creation takes place as if the following statements were executed in the order shown:
+(15) For an optional file that is unavailable, the successful execution of an OPEN statement with an ║EXTEND or║ I-O phrase creates the file. This creation takes place as if the following statements were executed in the order shown:
 
     OPEN OUTPUT file-name.
     CLOSE file-name.
@@ -18456,15 +18456,15 @@ For sequential access, the READ statement makes available the next logical recor
 
 (1) The storage area associated with identifier-1 and the record area associated with file-name-1 must not be the same storage area.
 
-(2) Data-name-1 must be the name of a data item specified as a record key associated with file-name-1.
+║(2) Data-name-1 must be the name of a data item specified as a record key associated with file-name-1.║
 
-(3) Data-name-1 may be qualified.
+║(3) Data-name-1 may be qualified.║
 
 (4) Format 1 must be used for all files in sequential access mode.
 
-(5) The NEXT phrase must be specified for files in dynamic access mode, when records are to be retrieved sequentially.
+║(5) The NEXT phrase must be specified for files in dynamic access mode, when records are to be retrieved sequentially.║
 
-(6) Format 2 is used for files in random access mode or for files in dynamic access mode when records are to be retrieved randomly.
+(6) Format 2 is used for files in random access mode ║or for files in dynamic access mode║ when records are to be retrieved randomly.
 
 (7) The INVALID KEY phrase or the AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.
 
@@ -18478,7 +18478,7 @@ Indexed I-O - READ
 
 (1) The file referenced by file-name-1 must be open in the input or I-O mode at the time this statement is executed. (See page IX-23, The OPEN Statement.)
 
-(2) For files in sequential access mode, the NEXT phrase is optional and has no effect on the execution of the READ statement.
+║(2) For files in sequential access mode, the NEXT phrase is optional and has no effect on the execution of the READ statement.║
 
 (3) The execution of the READ statement causes the value of the I-O status associated with file-name-1 to be updated. (See page IX-2, I-O Status.)
 
@@ -18486,13 +18486,13 @@ Indexed I-O - READ
 
 a. If the file position indicator indicates that no valid next record has been established, execution of the READ statement is unsuccessful.
 
-b. If the file position indicator indicates that an optional input file is not present, execution proceeds as specified in general rule 10.
+║b. If the file position indicator indicates that an optional input file is not present, execution proceeds as specified in general rule 10.║
 
-c. If the file position indicator was established by a previous OPEN or START statement, the first existing record in the file whose key value is greater than or equal to the file position indicator is selected.
+c. If the file position indicator was established by a previous OPEN ║or START║ statement, the first existing record in the file whose key value is greater than or equal to the file position indicator is selected.
 
-d. If the file position indicator was established by a previous READ statement, and the current key of reference does not allow duplicates, the first existing record in the file whose key value is greater than the file position indicator is selected.
+d. If the file position indicator was established by a previous READ statement, ║and the current key of reference does not allow duplicates, the║ first existing record in the file whose key value is greater than the file position indicator is selected.
 
-e. If the file position indicator was established by a previous READ statement, and the current key of reference does allow duplicates, the first record in the file whose key value is either equal to the file position indicator and whose logical position within the set of duplicates is immediately after the record that was made available by that previous READ statement, or whose key value is greater than the file position indicator, is selected.
+║e. If the file position indicator was established by a previous READ statement, and the current key of reference does allow duplicates, the first record in the file whose key value is either equal to the file position indicator and whose logical position within the set of duplicates is immediately after the record that was made available by that previous READ statement, or whose key value is greater than the file position indicator, is selected.║
 
 If a record is found which satisfies the above rules, it is made available in the record area associated with file-name-1.
 
@@ -18520,11 +18520,11 @@ b. If all record-names associated with file-name-1 and the data item referenced 
 
 a. The execution of the same READ statement without the INTO phrase.
 
-b. The current record is moved from the record area to the area specified by identifier-1 according to the rules for the MOVE statement without the CORRESPONDING phrase. The size of the current record is determined by rules specified for the RECORD clause. If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move. The implied MOVE statement does not occur if the execution of the READ statement was unsuccessful. Any subscripting associated with identifier-1 is evaluated after the record has been read and immediately before it is moved to the data item. The record is available in both the record area and the data item referenced by identifier-1.
+b. The current record is moved from the record area to the area specified by identifier-1 according to the rules for the MOVE statement without the CORRESPONDING phrase. The size of the current record is determined by rules specified for the RECORD clause. ║If the file description entry contains a RECORD IS VARYING clause, the implied move is a group move.║ The implied MOVE statement does not occur if the execution of the READ statement was unsuccessful. Any subscripting associated with identifier-1 is evaluated after the record has been read and immediately before it is moved to the data item. The record is available in both the record area and the data item referenced by identifier-1.
 
-(9) If, at the time of the execution of a format 2 READ statement, the file position indicator indicates that an optional input file is not present, the invalid key condition exists and execution of the READ statement is unsuccessful. (See page IX-6, The Invalid Key Condition.)
+║(9) If, at the time of the execution of a format 2 READ statement, the file position indicator indicates that an optional input file is not present, the invalid key condition exists and execution of the READ statement is unsuccessful. (See page IX-6, The Invalid Key Condition.)║
 
-(10) For a format 1 READ statement, if the file position indicator indicates that no next logical record exists, or that an optional input file is not present, the following occurs in the order specified:
+(10) For a format 1 READ statement, if the file position indicator indicates that no next logical record exists, ║or that an optional input file is not present,║ the following occurs in the order specified:
 
 a. A value, derived from the setting of the file position indicator, is placed into the I-O status associated with file-name-1 to indicate the at end condition. (See page IX-2, I-O Status.)
 
@@ -18550,13 +18550,13 @@ c. If no exception condition exists, the record is made available in the record 
 
 (12) Following the unsuccessful execution of a READ statement, the content of the associated record area is undefined, the key of reference is undefined for indexed files, and the file position indicator is set to indicate that no valid next record has been established.
 
-(13) For an indexed file for which dynamic access mode is specified, a format 1 READ statement with the NEXT phrase specified causes the next logical record to be retrieved from that file.
+║(13) For an indexed file for which dynamic access mode is specified, a format 1 READ statement with the NEXT phrase specified causes the next logical record to be retrieved from that file.║
 
-(14) For an indexed file being sequentially accessed, records having the same duplicate value in an alternate record key which is the key of reference are made available in the same order in which they are released by execution of WRITE statements, or by execution of REWRITE statements which create such duplicate values.
+║(14) For an indexed file being sequentially accessed, records having the same duplicate value in an alternate record key which is the key of reference are made available in the same order in which they are released by execution of WRITE statements, or by execution of REWRITE statements which create such duplicate values.║
 
-(15) For an indexed file, if the KEY phrase is specified in a format 2 READ statement, data-name-1 is established as the key of reference for this retrieval. If the dynamic access mode is specified, this key of reference is also used for retrievals by any subsequent executions of format 1 READ statements for the file until a different key of reference is established for the file.
+║(15) For an indexed file, if the KEY phrase is specified in a format 2 READ statement, data-name-1 is established as the key of reference for this retrieval. If the dynamic access mode is specified, this key of reference is also used for retrievals by any subsequent executions of format 1 READ statements for the file until a different key of reference is established for the file.║
 
-(16) For an indexed file, if the KEY phrase is not specified in a format 2 READ statement, the prime record key is established as the key of reference for this statement. If the dynamic access mode is specified, this key of reference is also used for retrievals by any subsequent execution of format 1 READ statements for the file until a different key of reference is established for the file.
+(16) For an indexed file, ║if the KEY phrase is not specified in a format 2 READ statement,║ the prime record key is established as the key of reference for this statement. ║If the dynamic access mode is specified, this key of reference is also used for retrievals by any subsequent execution of format 1 READ statements for the file until a different key of reference is established for the file.║
 
 IX-31
 
@@ -18564,7 +18564,7 @@ IX-31
 
 Indexed I-O - READ
 
-(17) For an indexed file, execution of a format 2 READ statement sets the file position indicator to the value in the key of reference. This value is compared with the value contained in the corresponding data item of the stored records in the file until the first record having an equal value is found. In the case of an alternate key with duplicate values, the first record found is the first record of a sequence of duplicates which was released to the mass storage control system (MSCS). The record so found is made available in the record area associated with file-name-1. If no record can be so identified, the invalid key condition exists and execution of the READ statement is unsuccessful. (See page IX-6, The Invalid Key Condition.)
+(17) For an indexed file, execution of a format 2 READ statement sets the file position indicator to the value in the key of reference. This value is compared with the value contained in the corresponding data item of the stored records in the file until the first record having an equal value is found. ║In the case of an alternate key with duplicate values, the first record found is the first record of a sequence of duplicates which was released to the mass storage control system (MSCS).║ The record so found is made available in the record area associated with file-name-1. If no record can be so identified, the invalid key condition exists and execution of the READ statement is unsuccessful. (See page IX-6, The Invalid Key Condition.)
 
 (18) If the number of character positions in the record that is read is less than the minimum size specified by the record description entries for file-name-1, the portion of the record area which is to the right of the last valid character read is undefined. If the number of character positions in the record that is read is greater than the maximum size specified by the record description entries for file-name-1, the record is truncated on the right to the maximum size. In either of these cases, the READ statement is successful and an I-O status is set indicating a record length conflict has occurred. (See page IX-2, I-O Status.)
 
@@ -18605,9 +18605,9 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 (2) For files in the sequential access mode, the last input-output statement executed for the associated file prior to the execution of the REWRITE statement must have been a successfully executed READ statement. The mass storage control system (MSCS) logically replaces the record that was accessed by the READ statement.
 
-(3) In level 1, the number of character positions in the record referenced by record-name-1 must be equal to the number of character positions in the record being replaced. In level 2, the number of character positions in the record referenced by record-name-1 may or may not be equal to the number of character positions in the record being replaced.
+(3) In level 1, the number of character positions in the record referenced by record-name-1 must be equal to the number of character positions in the record being replaced. ║In level 2, the number of character positions in the record referenced by record-name-1 may or may not be equal to the number of character positions in the record being replaced.║
 
-(4) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is available to the program as a record of other files referenced in the SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.
+(4) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is available to the program as a record of other files referenced in the SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.║
 
 IX-33
 
@@ -18625,7 +18625,7 @@ according to the rules specified for the MOVE statement.
 
 b. The same REWRITE statement without the FROM phrase.
 
-(6) After the execution of the REWRITE statement is complete, the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available except as specified by the SAME RECORD AREA clause.
+(6) After the execution of the REWRITE statement is complete, the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available ║except as specified by the SAME RECORD AREA clause.║
 
 (7) The file position indicator is not affected by the execution of a REWRITE statement.
 
@@ -18637,13 +18637,13 @@ b. The same REWRITE statement without the FROM phrase.
 
 (11) The END-REWRITE phrase delimits the scope of the REWRITE statement. (See page IV-40, Scope of Statements.)
 
-(12) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page IX-2, I-O Status.)
+║(12) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page IX-2, I-O Status.)║
 
 (13) For a file in the sequential access mode, the record to be replaced is specified by the value of the prime record key. When the REWRITE statement is executed the value of the prime record key of the record to be replaced must be equal to the value of the prime record key of the last record read from this file.
 
-(14) For a file in the random or dynamic access mode, the record to be replaced is specified by the prime record key.
+(14) For a file in the random ║or dynamic║ access mode, the record to be replaced is specified by the prime record key.
 
-(15) Execution of the REWRITE statement for a record which has an alternate record key occurs as follows:
+║(15) Execution of the REWRITE statement for a record which has an alternate record key occurs as follows:║
 
 IX-34
 
@@ -18651,17 +18651,17 @@ IX-34
 
 Indexed I-O - REWRITE
 
-> a. When the value of a specific alternate record key is not changed, the order of retrieval when that key is the key of reference remains unchanged.
+> ║a. When the value of a specific alternate record key is not changed, the order of retrieval when that key is the key of reference remains unchanged.║
 >
-> b. When the value of a specific alternate record key is changed, the subsequent order of retrieval of that record may be changed when that specific alternate record key is the key of reference. When duplicate key values are permitted, the record is logically positioned last within the set of duplicate records containing the same alternate record key value as the alternate record key value that was placed in the record.
+> ║b. When the value of a specific alternate record key is changed, the subsequent order of retrieval of that record may be changed when that specific alternate record key is the key of reference. When duplicate key values are permitted, the record is logically positioned last within the set of duplicate records containing the same alternate record key value as the alternate record key value that was placed in the record.║
 
 (16) The invalid key condition exists under the following circumstances:
 
 a. When the file is open in the sequential access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of the last record read from the file, or
 
-b. When the file is open in the [dynamic or] random access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of any record existing in the file, or
+b. When the file is open in the [║dynamic or║] random access mode, and the value of the prime record key of the record to be replaced is not equal to the value of the prime record key of any record existing in the file, or
 
-> c. When the value of an alternate record key of the record to be replaced, for which duplicates are not allowed, equals the value of the corresponding data item of a record already existing in the file.
+> ║c. When the value of an alternate record key of the record to be replaced, for which duplicates are not allowed, equals the value of the corresponding data item of a record already existing in the file.║
 
 (17) When the invalid key condition is recognized, the execution of the REWRITE statement is unsuccessful, the updating operation does not take place, the content of the record area is unaffected and the I-O status of the file-name associated with record-name-1 is set to a value indicating the cause of the condition. (See page IX-2, I-O Status.)
 
@@ -18671,13 +18671,13 @@ IX-35
 
 Indexed I-O - START
 
-## 4.7 THE START STATEMENT
+## ║4.7 THE START STATEMENT║
 
-### 4.7.1 Function
+### ║4.7.1 Function║
 
-The START statement provides a basis for logical positioning within an indexed file, for subsequent sequential retrieval of records.
+║The START statement provides a basis for logical positioning within an indexed file, for subsequent sequential retrieval of records.║
 
-### 4.7.2 General Format
+### ║4.7.2 General Format║
 
 <pre style="line-height:1">
 ╔                  ┌     ╭ IS <u>EQUAL</u> TO                 ╮             ┐ ╗
@@ -18696,25 +18696,25 @@ The START statement provides a basis for logical positioning within an indexed f
 ╚   [ <u>END-START</u> ]                                                      ╝
 </pre>
 
-### 4.7.3 Syntax Rules
+### ║4.7.3 Syntax Rules║
 
-(1) File-name-1 must be the name of a file with sequential or dynamic access.
+║(1) File-name-1 must be the name of a file with sequential or dynamic access.║
 
-(2) Data-name-1 may be qualified.
+║(2) Data-name-1 may be qualified.║
 
-(3) The INVALID KEY phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.
+║(3) The INVALID KEY phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.║
 
-(4) If the KEY phrase is specified, data-name-1 must reference either:
+║(4) If the KEY phrase is specified, data-name-1 must reference either:║
 
-a. A data item specified as a record key associated with file-name-1 (see page IX-11, The ALTERNATE RECORD KEY Clause, and page IX-14, The RECORD KEY Clause), or
+║a. A data item specified as a record key associated with file-name-1 (see page IX-11, The ALTERNATE RECORD KEY Clause, and page IX-14, The RECORD KEY Clause), or║
 
-b. Any data item of category alphanumeric whose leftmost character position within a record of the file corresponds to the leftmost character position of a record key associated with file-name-1 and whose length is not greater than the length of that record key.
+║b. Any data item of category alphanumeric whose leftmost character position within a record of the file corresponds to the leftmost character position of a record key associated with file-name-1 and whose length is not greater than the length of that record key.║
 
-### 4.7.4 General Rules
+### ║4.7.4 General Rules║
 
-(1) The file referenced by file-name-1 must be open in the input or I-O mode at the time that the START statement is executed. (See page IX-23, The OPEN Statement.)
+║(1) The file referenced by file-name-1 must be open in the input or I-O mode at the time that the START statement is executed. (See page IX-23, The OPEN Statement.)║
 
-(2) If the KEY phrase is not specified, the relational operator 'IS EQUAL TO' is implied.
+║(2) If the KEY phrase is not specified, the relational operator 'IS EQUAL TO' is implied.║
 
 IX-36
 
@@ -18722,31 +18722,31 @@ IX-36
 
 Indexed I-O - START
 
-(3) The execution of the START statement does not alter either the content of the record area or the content of the data item referenced by the data-name specified in the DEPENDING ON phrase of the RECORD clause associated with file-name-1.
+║(3) The execution of the START statement does not alter either the content of the record area or the content of the data item referenced by the data-name specified in the DEPENDING ON phrase of the RECORD clause associated with file-name-1.║
 
-(4) The type of comparison specified by the relational operator in the KEY phrase occurs between a key associated with a record in the file referenced by file-name-1 and a data item as specified in general rules 11 and 12. The comparison is made on the ascending key of reference according to the collating sequence of the file. If the operands are of unequal size, comparison proceeds as though the longer one was truncated on the right such that its length is equal to that of the shorter. All other nonnumeric comparison rules apply. (See page VI-55, Comparison of Nonnumeric Operands.)
+║(4) The type of comparison specified by the relational operator in the KEY phrase occurs between a key associated with a record in the file referenced by file-name-1 and a data item as specified in general rules 11 and 12. The comparison is made on the ascending key of reference according to the collating sequence of the file. If the operands are of unequal size, comparison proceeds as though the longer one was truncated on the right such that its length is equal to that of the shorter. All other nonnumeric comparison rules apply. (See page VI-55, Comparison of Nonnumeric Operands.)║
 
-a. The file position indicator is set to the value of the key of reference in the first logical record whose key satisfies the comparison.
+║a. The file position indicator is set to the value of the key of reference in the first logical record whose key satisfies the comparison.║
 
-b. If the comparison is not satisfied by any record in the file, the invalid key condition exists and the execution of the START statement is unsuccessful.
+║b. If the comparison is not satisfied by any record in the file, the invalid key condition exists and the execution of the START statement is unsuccessful.║
 
-(5) The execution of the START statement causes the value of the I-O status associated with file-name-1 to be updated. (See page IX-2, I-O Status.)
+║(5) The execution of the START statement causes the value of the I-O status associated with file-name-1 to be updated. (See page IX-2, I-O Status.)║
 
-(6) If, at the time of the execution of the START statement, the file position indicator indicates that an optional input file is not present, the invalid key condition exists and the execution of the START statement is unsuccessful.
+║(6) If, at the time of the execution of the START statement, the file position indicator indicates that an optional input file is not present, the invalid key condition exists and the execution of the START statement is unsuccessful.║
 
-(7) Transfer of control following the successful or unsuccessful execution of the START operation depends on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases in the START statement. (See page IX-6, The Invalid Key Condition.)
+║(7) Transfer of control following the successful or unsuccessful execution of the START operation depends on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases in the START statement. (See page IX-6, The Invalid Key Condition.)║
 
-(8) Following the unsuccessful execution of a START statement, the file position indicator is set to indicate that no valid next record has been established. Also, for indexed files, the key of reference is undefined.
+║(8) Following the unsuccessful execution of a START statement, the file position indicator is set to indicate that no valid next record has been established. Also, for indexed files, the key of reference is undefined.║
 
-(9) The END-START phrase delimits the scope of the START statement. (See page IV-40, Scope of Statements.)
+║(9) The END-START phrase delimits the scope of the START statement. (See page IV-40, Scope of Statements.)║
 
-(10) A key of reference is established as follows:
+║(10) A key of reference is established as follows:║
 
-a. If the KEY phrase is not specified, the prime record key specified for file-name-1 becomes the key of reference.
+║a. If the KEY phrase is not specified, the prime record key specified for file-name-1 becomes the key of reference.║
 
-b. If the KEY phrase is specified, and data-name-1 is specified as a record key for file-name-1, that record key becomes the key of reference.
+║b. If the KEY phrase is specified, and data-name-1 is specified as a record key for file-name-1, that record key becomes the key of reference.║
 
-c. If the KEY phrase is specified, and data-name-1 is not specified as a record key for file-name-1, the record key whose leftmost character position corresponds to the leftmost character position of the data item specified by data-name-1, becomes the key of reference.
+║c. If the KEY phrase is specified, and data-name-1 is not specified as a record key for file-name-1, the record key whose leftmost character position corresponds to the leftmost character position of the data item specified by data-name-1, becomes the key of reference.║
 
 IX-37
 
@@ -18754,11 +18754,11 @@ IX-37
 
 Indexed I-O - START
 
-This key of reference is used to establish the ordering of records for the purpose of this START statement, see general rule 4; and, if the execution of the START statement is successful, the key of reference is also used for subsequent sequential READ statements. (See page IX-28, The READ Statement.)
+║This key of reference is used to establish the ordering of records for the purpose of this START statement, see general rule 4; and, if the execution of the START statement is successful, the key of reference is also used for subsequent sequential READ statements. (See page IX-28, The READ Statement.)║
 
-(11) If the KEY phrase is specified, the comparison described in general rule 4 uses the data item referenced by data-name-1.
+║(11) If the KEY phrase is specified, the comparison described in general rule 4 uses the data item referenced by data-name-1.║
 
-(12) If the KEY phrase is not specified, the comparison described in general rule 4 uses the data item referenced in the RECORD KEY clause associated with file-name-1.
+║(12) If the KEY phrase is not specified, the comparison described in general rule 4 uses the data item referenced in the RECORD KEY clause associated with file-name-1.║
 
 IX-38
 
@@ -18794,7 +18794,7 @@ The USE statement specifies procedures for input-output error handling that are 
 
 (5) The files implicitly or explicitly referenced in the USE statement need not all have the same organization or access.
 
-(6) The INPUT, OUTPUT, I-O, and EXTEND phrases may each be specified only once in the declaratives portion of a given Procedure Division.
+(6) The INPUT, OUTPUT, I-O, ║and EXTEND║ phrases may each be specified only once in the declaratives portion of a given Procedure Division.
 
 ### 4.8.4 General Rules
 
@@ -18822,7 +18822,7 @@ c. If OUTPUT is specified, the associated procedure is executed when the conditi
 
 d. If I-O is specified, the associated procedure is executed when the condition described in the USE statement occurs for any file open in the I-O mode or in the process of being opened in the I-O mode, except those files referenced by file-name-1 in another USE statement specifying the same condition.
 
-e. If EXTEND is specified, the associated procedure is executed when the condition described in the USE statement occurs for any file open in the extend mode or in the process of being opened in the extend mode, except those files referenced by file-name-1 in another USE statement specifying the same condition.
+║e. If EXTEND is specified, the associated procedure is executed when the condition described in the USE statement occurs for any file open in the extend mode or in the process of being opened in the extend mode, except those files referenced by file-name-1 in another USE statement specifying the same condition.║
 
 (6) After execution of the USE procedure, control is transferred to the invoking routine in the input-output control system. If the I-O status value does not indicate a critical input-output error, the input-output control system returns control to the next executable statement following the input-output statement whose execution caused the exception. If the I-O status value does indicate a critical error, the implementor determines what action is taken. (See page IX-2, I-O Status.)
 
@@ -18862,9 +18862,9 @@ The WRITE statement releases a logical record for an output or input-output file
 
 ### 4.9.4 General Rules
 
-(1) The file referenced by the file-name associated with record-name-1 must be open in the output, I-O, or extend mode at the time of the execution of this statement. (See page IX-23, The OPEN Statement.)
+(1) The file referenced by the file-name associated with record-name-1 must be open in the output, I-O, ║or extend║ mode at the time of the execution of this statement. (See page IX-23, The OPEN Statement.)
 
-(2) The logical record released by the successful execution of the WRITE statement is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files referenced in the same SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.
+(2) The logical record released by the successful execution of the WRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files referenced in the same SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.║
 
 (3) The result of the execution of a WRITE statement with the FROM phrase is equivalent to the execution of the following statements in the order specified:
 
@@ -18884,7 +18884,7 @@ IX-41
 
 Indexed I-O - WRITE
 
-in the area referenced by record-name-1 is not available except as specified by the SAME RECORD AREA clause.
+in the area referenced by record-name-1 is not available ║except as specified by the SAME RECORD AREA clause.║
 
 (5) The file position indicator is not affected by the execution of a WRITE statement.
 
@@ -18892,7 +18892,7 @@ in the area referenced by record-name-1 is not available except as specified by 
 
 (7) The execution of the WRITE statement releases a logical record to the operating system.
 
-(8) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the WRITE statement is unsuccessful, the WRITE operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page IX-2, I-O Status.)
+║(8) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the WRITE statement is unsuccessful, the WRITE operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page IX-2, I-O Status.)║
 
 (9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, the invalid key condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:
 
@@ -18908,7 +18908,7 @@ b. If the execution of the WRITE statement is unsuccessful for a reason other th
 
 (13) The data item specified as the prime record key must be set by the program to the desired value prior to the execution of the WRITE statement.
 
-(14) If the file is open in the sequential access mode, records must be released to the mass storage control system (MSCS) in ascending order of prime record key values according to the collating sequence of the file. When the file is open in the extend mode, the first record released to the MSCS must have
+(14) If the file is open in the sequential access mode, records must be released to the mass storage control system (MSCS) in ascending order of prime record key values according to the collating sequence of the file. ║When the file is open in the extend mode, the first record released to the MSCS must have║
 
 IX-42
 
@@ -18916,11 +18916,11 @@ IX-42
 
 Indexed I-O - WRITE
 
-a prime record key whose value is greater than the highest prime record key value existing in the file.
+║a prime record key whose value is greater than the highest prime record key value existing in the file.║
 
-(15) If the file is open in the random or dynamic access mode, records may be released to the mass storage control system (MSCS) in any program-specified order.
+(15) If the file is open in the random ║or dynamic║ access mode, records may be released to the mass storage control system (MSCS) in any program-specified order.
 
-(16) When the ALTERNATE RECORD KEY clause is specified in the file control entry for an indexed file, the value of the alternate record key may be nonunique only if the DUPLICATES phrase is specified for that data item. In this case the mass storage control system (MSCS) provides storage of records such that when records are accessed sequentially, the order of retrieval of those records is the order in which they are released to the MSCS.
+║(16) When the ALTERNATE RECORD KEY clause is specified in the file control entry for an indexed file, the value of the alternate record key may be nonunique only if the DUPLICATES phrase is specified for that data item. In this case the mass storage control system (MSCS) provides storage of records such that when records are accessed sequentially, the order of retrieval of those records is the order in which they are released to the MSCS.║
 
 (17) The invalid key condition exists under the following circumstances:
 
@@ -18928,7 +18928,7 @@ a. When the file is open in the sequential access mode, and the file also is ope
 
 b. When the file is open in the output or I-O mode, and the value of the prime record key equals the value of the prime record key of a record already existing in the file, or
 
-c. When the file is open in the output, extend, or I-O mode, and the value of an alternate record key for which duplicates are not allowed equals the value of the corresponding data item of a record already existing in the file, or
+║c. When the file is open in the output, extend, or I-O mode, and the value of an alternate record key for which duplicates are not allowed equals the value of the corresponding data item of a record already existing in the file, or║
 
 d. When an attempt is made to write beyond the externally defined boundaries of the file.
 
@@ -18952,21 +18952,21 @@ Inter-Program Communication - Introduction
 
 ### 1.1 FUNCTION
 
-The Inter-Program Communication module provides a facility by which a program can communicate with one or more programs. This communication is provided by: (a) the ability to transfer control from one program to another within a run unit and (b) the ability to pass parameters between programs to make certain data value available to a called program. The Inter-Program Communication module also permits communication between two programs by the sharing of data and the sharing of files.
+The Inter-Program Communication module provides a facility by which a program can communicate with one or more programs. This communication is provided by: (a) the ability to transfer control from one program to another within a run unit and (b) the ability to pass parameters between programs to make certain data value available to a called program. ║The Inter-Program Communication module also permits communication between two programs by the sharing of data and the sharing of files.║
 
 ### 1.2 LEVEL CHARACTERISTICS
 
 Inter-Program Communication level 1 provides a capability to transfer control to one or more programs whose names are known at compile time and for the sharing of data among such programs.
 
-Inter-Program Communication level 2 provides the capability to transfer control to one or more programs whose names are not known at compile time as well as the ability to determine the availability of object time memory for the program to which control is being passed. Inter-Program Communication level 2 also provides external attributes, global names, and nesting of source programs.
+║Inter-Program Communication level 2 provides the capability to transfer control to one or more programs whose names are not known at compile time as well as the ability to determine the availability of object time memory for the program to which control is being passed. Inter-Program Communication level 2 also provides external attributes, global names, and nesting of source programs.║
 
 ### 1.3 LANGUAGE CONCEPTS
 
 #### 1.3.1 Nested Source Programs
 
-A COBOL source program is a syntactically correct set of COBOL statements. A COBOL source program may contain other COBOL source programs and these contained programs may reference some of the resources of the program within which they are contained.
+A COBOL source program is a syntactically correct set of COBOL statements. ║A COBOL source program may contain other COBOL source programs and these contained programs may reference some of the resources of the program within which they are contained.║
 
-When a program, program B, is contained in another program, program A, it may be directly contained or indirectly contained. Program B is directly contained in program A if there is no program contained in program A that also contains program B. Program B is indirectly contained in program A if there exists a program contained in program A that also contains program B.
+║When a program, program B, is contained in another program, program A, it may be directly contained or indirectly contained. Program B is directly contained in program A if there is no program contained in program A that also contains program B. Program B is indirectly contained in program A if there exists a program contained in program A that also contains program B.║
 
 #### 1.3.2 File Connector
 
@@ -18980,29 +18980,29 @@ Inter-Program Communication - Introduction
 
 ### 1.3.3 Global Names and Local Names
 
-A data-name names a data item. A file-name names a file connector. These names are classified as either global or local.
+A data-name names a data item. A file-name names a file connector. These names are classified as ║either global or║ local.
 
-A global name may be used to refer to the object with which it is associated either from within the program in which the global name is declared or from within any other program which is contained in the program which declares the global name.
+║A global name may be used to refer to the object with which it is associated either from within the program in which the global name is declared or from within any other program which is contained in the program which declares the global name.║
 
-A local name, however, may be used only to refer to the object with which it is associated from within the program in which the local name is declared. Some names are always global; other names are always local; and some other names are either local or global depending upon specifications in the program in which the names are declared.
+A local name, however, may be used only to refer to the object with which it is associated from within the program in which the local name is declared. ║Some names are always global; other names are always local; and some other names are either local or global depending upon specifications in the program in which the names are declared.║
 
-A record-name is global if the GLOBAL clause is specified in the record description entry by which the record-name is declared or, in the case of record description entries in the File Section, if the GLOBAL clause is specified in the file description entry for the file-name associated with the record description entry. A data-name is global if the GLOBAL clause is specified either in the data description entry by which the data-name is declared or in another entry to which that data description entry is subordinate. A condition-name declared in a data description entry is global if that entry is subordinate to another entry in which the GLOBAL clause is specified. However, specific rules sometimes prohibit specification of the GLOBAL clause for certain data description, file description, or record description entries.
+║A record-name is global if the GLOBAL clause is specified in the record description entry by which the record-name is declared or, in the case of record description entries in the File Section, if the GLOBAL clause is specified in the file description entry for the file-name associated with the record description entry. A data-name is global if the GLOBAL clause is specified either in the data description entry by which the data-name is declared or in another entry to which that data description entry is subordinate. A condition-name declared in a data description entry is global if that entry is subordinate to another entry in which the GLOBAL clause is specified. However, specific rules sometimes prohibit specification of the GLOBAL clause for certain data description, file description, or record description entries.║
 
-A file-name is global if the GLOBAL clause is specified in the file description entry for that file-name.
+║A file-name is global if the GLOBAL clause is specified in the file description entry for that file-name.║
 
 If a data-name, a file-name, or a condition-name declared in a data description entry is not global, the name is local.
 
-Global names are transitive across programs contained within other programs.
+║Global names are transitive across programs contained within other programs.║
 
 ### 1.3.4 External Objects and Internal Objects
 
-Accessible data items usually require that certain representations of data be stored. File connectors usually require that certain information concerning files be stored. The storage associated with a data item or a file connector may be external or internal to the program in which the object is declared.
+Accessible data items usually require that certain representations of data be stored. File connectors usually require that certain information concerning files be stored. The storage associated with a data item or a file connector may be ║external or║ internal to the program in which the object is declared.
 
-A data item or file connector is external if the storage associated with that object is associated with the run unit rather than with any particular program within the run unit. An external object may be referenced by any program in the run unit which describes the object. References to an external object from different programs using separate descriptions of the object are always to the same object. In a run unit, there is only one representative of an external object.
+║A data item or file connector is external if the storage associated with that object is associated with the run unit rather than with any particular program within the run unit. An external object may be referenced by any program in the run unit which describes the object. References to an external object from different programs using separate descriptions of the object are always to the same object. In a run unit, there is only one representative of an external object.║
 
 An object is internal if the storage associated with that object is associated only with the program which describes the object.
 
-External and internal objects may have either global or local names.
+║External and║ internal objects may have ║either global or║ local names.
 
 X-2
 
@@ -19010,21 +19010,21 @@ X-2
 
 Inter-Program Communication - Introduction
 
-A data record described in the Working-Storage Section is given the external attribute by the presence of the EXTERNAL clause in its data description entry. Any data item described by a data description entry subordinate to an entry describing an external record also attains the external attribute. If a record or data item does not have the external attribute, it is part of the internal data of the program in which it is described.
+║A data record described in the Working-Storage Section is given the external attribute by the presence of the EXTERNAL clause in its data description entry. Any data item described by a data description entry subordinate to an entry describing an external record also attains the external attribute.║ If a record or data item does not have the external attribute, it is part of the internal data of the program in which it is described.
 
-A file connector is given the external attribute by the presence of the EXTERNAL clause in the associated file description entry. If the file connector does not have the external attribute, it is internal to the program in which the associated file-name is described.
+║A file connector is given the external attribute by the presence of the EXTERNAL clause in the associated file description entry.║ If the file connector does not have the external attribute, it is internal to the program in which the associated file-name is described.
 
-The data records described subordinate to a file description entry which does not contain the EXTERNAL clause or a sort-merge file description entry, as well as any data items described subordinate to the data description entries for such records, are always internal to the program describing the file-name. If the EXTERNAL clause is included in the file description entry, the data records and the data items attain the external attribute.
+The data records described subordinate to a file description entry which does not contain the EXTERNAL clause or a sort-merge file description entry, as well as any data items described subordinate to the data description entries for such records, are always internal to the program describing the file-name. ║If the EXTERNAL clause is included in the file description entry, the data records and the data items attain the external attribute.║
 
 Data records, subordinate data items, and various associated control information described in the Linkage, Communication, and Report Sections of a program are always considered to be internal to the program describing that data. Special considerations apply to data described in the Linkage Section whereby an association is made between the data records described and other data items accessible to other programs.
 
-### 1.3.5 Common Programs and Initial Programs
+### ║1.3.5 Common Programs and Initial Programs║
 
-All programs which form part of a run unit may possess none, one, or more of the following attributes: common and initial.
+║All programs which form part of a run unit may possess none, one, or more of the following attributes: common and initial.║
 
-A common program is one which, despite being directly contained within another program, may be called by any program directly or indirectly contained in that other program. The common attribute is attained by specifying the COMMON clause in a program's Identification Division. The COMMON clause facilitates the writing of subprograms which are to be used by all the programs contained within a program.
+║A common program is one which, despite being directly contained within another program, may be called by any program directly or indirectly contained in that other program. The common attribute is attained by specifying the COMMON clause in a program's Identification Division. The COMMON clause facilitates the writing of subprograms which are to be used by all the programs contained within a program.║
 
-An initial program is one whose program state is initialized when the program is called. Thus, whenever an initial program is called, its program state is the same as when the program was first called in that run unit. During the process of initializing an initial program, that program's internal data is initialized; thus an item of the program's internal data whose description contains a VALUE clause is initialized to that defined value, but an item whose description does not contain a VALUE clause is initialized to an undefined value. Files with internal file connectors associated with the program are not in the open mode. The control mechanisms for all PERFORM statements contained in the program are set to their initial states. The initial attribute is attained by specifying the INITIAL clause in the program's Identification Division.
+║An initial program is one whose program state is initialized when the program is called. Thus, whenever an initial program is called, its program state is the same as when the program was first called in that run unit. During the process of initializing an initial program, that program's internal data is initialized; thus an item of the program's internal data whose description contains a VALUE clause is initialized to that defined value, but an item whose description does not contain a VALUE clause is initialized to an undefined value. Files with internal file connectors associated with the program are not in the open mode. The control mechanisms for all PERFORM statements contained in the program are set to their initial states. The initial attribute is attained by specifying the INITIAL clause in the program's Identification Division.║
 
 X-3
 
@@ -19036,19 +19036,19 @@ Inter-Program Communication - Introduction
 
 Two programs in a run unit may reference common data in the following circumstances:
 
-(1) The data content of an external data record may be referenced from any program provided that program has described that data record.
+║(1) The data content of an external data record may be referenced from any program provided that program has described that data record.║
 
-(2) If a program is contained within another program, both programs may refer to data possessing the global attribute either in the containing program or in any program which directly or indirectly contains the containing program.
+║(2) If a program is contained within another program, both programs may refer to data possessing the global attribute either in the containing program or in any program which directly or indirectly contains the containing program.║
 
 (3) The mechanism whereby a parameter value is passed by reference from a calling program to a called program establishes a common data item; the called program, which may use a different identifier, may refer to a data item in the calling program.
 
-### 1.3.7 Sharing Files
+### ║1.3.7 Sharing Files║
 
-Two programs in a run unit may reference common file connectors in the following circumstances:
+║Two programs in a run unit may reference common file connectors in the following circumstances:║
 
-(1) An external file connector may be referenced from any program which describes that file connector.
+║(1) An external file connector may be referenced from any program which describes that file connector.║
 
-(2) If a program is contained within another program, both programs may refer to a common file connector by referring to an associated global file-name either in the containing program or in any program which directly or indirectly contains the containing program.
+║(2) If a program is contained within another program, both programs may refer to a common file connector by referring to an associated global file-name either in the containing program or in any program which directly or indirectly contains the containing program.║
 
 ### 1.3.8 Scope of Names
 
@@ -19097,13 +19097,13 @@ Specific conventions, for declarations and references, apply to the following ty
 
 1.3.8.1 Conventions for Program-Names
 
-The program-name of a program is declared in the PROGRAM-ID paragraph of the program's Identification Division. A program-name may be referenced only by the CALL statement, the CANCEL statement, and the end program header. The program-names allocated to programs constituting a run unit are not necessarily unique but, when two programs in a run unit are identically named, at least one of those two programs must be directly or indirectly contained within another separately compiled program which does not contain the other of those two programs.
+The program-name of a program is declared in the PROGRAM-ID paragraph of the program's Identification Division. A program-name may be referenced only by the CALL statement, ║the CANCEL statement,║ ║and the end program header.║ ║The program-names allocated to programs constituting a run unit are not necessarily unique but, when two programs in a run unit are identically named, at least one of those two programs must be directly or indirectly contained within another separately compiled program which does not contain the other of those two programs.║
 
 The following rules regulate the scope of a program-name.
 
-(1) If the program-name is that of a program which does not possess the common attribute and which is directly contained within another program, that program-name may be referenced only by statements included in that containing program.
+║(1) If the program-name is that of a program which does not possess the common attribute and which is directly contained within another program, that program-name may be referenced only by statements included in that containing program.║
 
-(2) If the program-name is that of a program which does possess the common attribute and which is directly contained within another program, that program-name may be referenced only by statements included in that containing program and any programs directly or indirectly contained within that containing program, except that program possessing the common attribute and any programs contained within it.
+║(2) If the program-name is that of a program which does possess the common attribute and which is directly contained within another program, that program-name may be referenced only by statements included in that containing program and any programs directly or indirectly contained within that containing program, except that program possessing the common attribute and any programs contained within it.║
 
 X-5
 
@@ -19115,29 +19115,29 @@ Inter-Program Communication - Introduction
 
 ### 1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names
 
-When condition-names, data-names, file-names, record-names, and report-names are declared in a source program, these names may be referenced only by that program except when one or more of the names is global and the program contains other programs.
+When condition-names, data-names, file-names, record-names, and report-names are declared in a source program, these names may be referenced only by that program ║except when one or more of the names is global and the program contains other programs.║
 
 The requirements governing the uniqueness of the names allocated by a single program to be condition-names, data-names, file-names, record-names, and report-names are explained elsewhere in these specifications. (See page IV-6, User-Defined Words.)
 
-A program cannot reference any condition-name, data-name, file-name, record-name, or report-name declared in any program it contains.
+║A program cannot reference any condition-name, data-name, file-name, record-name, or report-name declared in any program it contains.║
 
-A global name may be referenced in the program in which it is declared or in any programs which are directly or indirectly contained within that program.
+║A global name may be referenced in the program in which it is declared or in any programs which are directly or indirectly contained within that program.║
 
-When a program, program B, is directly contained within another program, program A, both programs may define a condition-name, a data-name, a file-name, a record-name, or a report-name using the same user-defined word. When such a duplicated name is referenced in program B, the following rules are used to determine the referenced object.
+║When a program, program B, is directly contained within another program, program A, both programs may define a condition-name, a data-name, a file-name, a record-name, or a report-name using the same user-defined word. When such a duplicated name is referenced in program B, the following rules are used to determine the referenced object.║
 
-(1) The set of names to be used for determination of a referenced object consists of all names which are defined in program B and all global names which are defined in program A and in any programs which directly or indirectly contain program A. Using this set of names, the normal rules for qualification and any other rules for uniqueness of reference are applied until one or more objects is identified.
+║(1) The set of names to be used for determination of a referenced object consists of all names which are defined in program B and all global names which are defined in program A and in any programs which directly or indirectly contain program A. Using this set of names, the normal rules for qualification and any other rules for uniqueness of reference are applied until one or more objects is identified.║
 
-(2) If only one object is identified, it is the referenced object.
+║(2) If only one object is identified, it is the referenced object.║
 
-(3) If more than one object is identified, no more than one of them can have a name local to program B. If zero or one of the objects has a name local to program B, the following rules apply:
+║(3) If more than one object is identified, no more than one of them can have a name local to program B. If zero or one of the objects has a name local to program B, the following rules apply:║
 
-a. If the name is declared in program B, the object in program B is the referenced object.
+║a. If the name is declared in program B, the object in program B is the referenced object.║
 
-b. Otherwise, if program A is contained within another program, the referenced object is:
+║b. Otherwise, if program A is contained within another program, the referenced object is:║
 
-1\) The object in program A if the name is declared in program A.
+║1\) The object in program A if the name is declared in program A.║
 
-2\) The object in the containing program if the name is not declared in program A and is declared in the program containing program A. This rule is applied to further containing programs until a single valid name has been found.
+║2\) The object in the containing program if the name is not declared in program A and is declared in the program containing program A. This rule is applied to further containing programs until a single valid name has been found.║
 
 X-6
 
@@ -19145,9 +19145,9 @@ X-6
 
 Inter-Program Communication - Introduction
 
-### 1.3.8.3 Conventions for Index-Names
+### ║1.3.8.3 Conventions for Index-Names║
 
-If a data item possessing either or both the external or global attributes includes a table accessed with an index, that index also possesses correspondingly either or both attributes. Therefore, the scope of an index-name is identical to that of the data-name which names the table whose index is named by that index-name and the scope of name rules for data-names apply. Index-names cannot be qualified.
+║If a data item possessing either or both the external or global attributes includes a table accessed with an index, that index also possesses correspondingly either or both attributes. Therefore, the scope of an index-name is identical to that of the data-name which names the table whose index is named by that index-name and the scope of name rules for data-names apply. Index-names cannot be qualified.║
 
 X-7
 
@@ -19155,26 +19155,26 @@ X-7
 
 Inter-Program Communication - Nested Source Programs
 
-## 2. <u>NESTED SOURCE PROGRAMS</u>
+## ║2. <u>NESTED SOURCE PROGRAMS</u>║
 
-### 2.1 GENERAL DESCRIPTION
+### ║2.1 GENERAL DESCRIPTION║
 
-A COBOL source program is a syntactically correct set of COBOL statements. A COBOL source program may contain other COBOL source programs and these contained programs may reference some of the resources of the programs within which they are contained.
+║A COBOL source program is a syntactically correct set of COBOL statements. A COBOL source program may contain other COBOL source programs and these contained programs may reference some of the resources of the programs within which they are contained.║
 
-### 2.2 ORGANIZATION
+### ║2.2 ORGANIZATION║
 
-With the exception of COPY and REPLACE statements and the end program header, the statements, entries, paragraphs, and sections of a COBOL source program are grouped into four divisions which are sequenced in the following order:
+║With the exception of COPY and REPLACE statements and the end program header, the statements, entries, paragraphs, and sections of a COBOL source program are grouped into four divisions which are sequenced in the following order:║
 
-1. The Identification Division
-2. The Environment Division
-3. The Data Division
-4. The Procedure Division
+║1. The Identification Division║
+║2. The Environment Division║
+║3. The Data Division║
+║4. The Procedure Division║
 
-The end of a COBOL source program is indicated by either the end program header, if specified, or by the absence of additional source program lines.
+║The end of a COBOL source program is indicated by either the end program header, if specified, or by the absence of additional source program lines.║
 
-### 2.3 STRUCTURE
+### ║2.3 STRUCTURE║
 
-The following gives the general format and order of presentation of the entries and statements which constitute a COBOL source program. The generic terms identification-division, environment-division, data-division, procedure-division, source-program, and end-program-header represent a COBOL Identification Division, a COBOL Environment Division, a COBOL Data Division, a COBOL Procedure Division, a COBOL source program, and a COBOL end program header, respectively.
+║The following gives the general format and order of presentation of the entries and statements which constitute a COBOL source program. The generic terms identification-division, environment-division, data-division, procedure-division, source-program, and end-program-header║ represent a COBOL Identification Division, a COBOL Environment Division, a COBOL Data Division, a COBOL Procedure Division, a COBOL source program, and a COBOL end program header, respectively.
 
 #### 2.3.1 General Format
 
@@ -19193,29 +19193,29 @@ X-8
 
 Inter-Program Communication - Nested Source Programs
 
-2.3.2 Syntax Rules
+║2.3.2 Syntax Rules║
 
-(1) End-program-header must be present if:
+║(1) End-program-header must be present if:║
 
-a. The COBOL source program contains one or more other COBOL source programs; or
+║a. The COBOL source program contains one or more other COBOL source programs; or║
 
-b. The COBOL source program is contained within another COBOL source program.
+║b. The COBOL source program is contained within another COBOL source program.║
 
-2.3.3 General Rules
+║2.3.3 General Rules║
 
-(1) The beginning of a division in a program is indicated by the appropriate division header. The end of a division is indicated by one of the following:
+║(1) The beginning of a division in a program is indicated by the appropriate division header. The end of a division is indicated by one of the following:║
 
-a. The division header of a succeeding division in that program.
+║a. The division header of a succeeding division in that program.║
 
-b. An Identification Division header which indicates the start of another source program.
+║b. An Identification Division header which indicates the start of another source program.║
 
-c. The end program header.
+║c. The end program header.║
 
-d. That physical position after which no more source program lines occur.
+║d. That physical position after which no more source program lines occur.║
 
-(2) A COBOL source program which is directly or indirectly contained within another program is considered in these specifications as a separate program that may additionally reference certain resources defined in the containing program.
+║(2) A COBOL source program which is directly or indirectly contained within another program is considered in these specifications as a separate program that may additionally reference certain resources defined in the containing program.║
 
-(3) The object code, resulting from compiling a source program contained within another program, is considered in these specifications to be inseparable from the object code resulting from compiling the containing program.
+║(3) The object code, resulting from compiling a source program contained within another program, is considered in these specifications to be inseparable from the object code resulting from compiling the containing program.║
 
 X-9
 
@@ -19243,7 +19243,7 @@ A program is in the initial state:
 
 (1) The first time the program is called in a run unit.
 
-(2) The first time the program is called after the execution of a CANCEL statement referencing the program or a CANCEL statement referencing a program that directly or indirectly contains the program.
+║(2) The first time the program is called after the execution of a CANCEL statement referencing the program or a CANCEL statement referencing a program that directly or indirectly contains the program.║
 
 (3) Every time the program is called, if it possesses the initial attribute.
 
@@ -19273,17 +19273,17 @@ The end program header indicates the end of the named COBOL source program.
 
 (2) The program-name must be identical to a program-name declared in a preceding PROGRAM-ID paragraph. (See page X-12, The PROGRAM-ID Paragraph.)
 
-(3) If a PROGRAM-ID paragraph declaring a specific program-name is stated between the PROGRAM-ID paragraph and the end program header declaring and referencing, respectively, another program-name, the end program header referencing the former program-name must precede that referencing the latter program-name.
+║(3) If a PROGRAM-ID paragraph declaring a specific program-name is stated between the PROGRAM-ID paragraph and the end program header declaring and referencing, respectively, another program-name, the end program header referencing the former program-name must precede that referencing the latter program-name.║
 
 ### 2.5.4 General Rules
 
-(1) The end program header must be present in every program which either contains or is contained within another program.
+║(1) The end program header must be present in every program which either contains or is contained within another program.║
 
 (2) The end program header indicates the end of the specified COBOL source program.
 
-(3) If the program terminated by the end program header is contained within another program, the next statement must either be an Identification Division header or another end program header which terminates the containing program.
+║(3) If the program terminated by the end program header is contained within another program, the next statement must either be an Identification Division header or another end program header which terminates the containing program.║
 
-(4) If the program terminated by the end program header is not contained within another program and if the next source statement is a COBOL statement, it must be the Identification Division header of a program to be compiled separately from that program terminated by the end program header.
+(4) ║If the program terminated by the end program header is not contained within another program and║ if the next source statement is a COBOL statement, it must be the Identification Division header of a program to be compiled separately from that program terminated by the end program header.
 
 X-11
 
@@ -19291,15 +19291,15 @@ X-11
 
 Inter-Program Communication - Identification Division
 
-# 3. IDENTIFICATION DIVISION IN THE INTER-PROGRAM COMMUNICATION MODULE
+# ║3. IDENTIFICATION DIVISION IN THE INTER-PROGRAM COMMUNICATION MODULE║
 
-## 3.1 THE PROGRAM-ID PARAGRAPH AND NESTED SOURCE PROGRAMS
+## ║3.1 THE PROGRAM-ID PARAGRAPH AND NESTED SOURCE PROGRAMS║
 
-### 3.1.1 Function
+### ║3.1.1 Function║
 
-The PROGRAM-ID paragraph specifies the name by which a program is identified and assigns selected program attributes to that program.
+║The PROGRAM-ID paragraph specifies the name by which a program is identified and assigns selected program attributes to that program.║
 
-### 3.1.2 General Format
+### ║3.1.2 General Format║
 
 <pre style="line-height:1">
 ╔                          ┌    ╭ │ <u>COMMON</u>  │ ╮         ┐   ╗
@@ -19307,21 +19307,21 @@ The PROGRAM-ID paragraph specifies the name by which a program is identified and
 ╚                          └    ╰ │ <u>INITIAL</u> │ ╯         ┘   ╝
 </pre>
 
-### 3.1.3 Syntax Rules
+### ║3.1.3 Syntax Rules║
 
-(1) The program-name must conform to the rules for formation of a user-defined word.
+║(1) The program-name must conform to the rules for formation of a user-defined word.║
 
-(2) A program contained within another program must not be assigned the same name as that of any other program contained within the separately compiled program which contains this program.
+║(2) A program contained within another program must not be assigned the same name as that of any other program contained within the separately compiled program which contains this program.║
 
-(3) The optional COMMON clause may be used only if the program is contained within another program.
+║(3) The optional COMMON clause may be used only if the program is contained within another program.║
 
-### 3.1.4 General Rules
+### ║3.1.4 General Rules║
 
-(1) The program-name identifies the source program, the object program, and all listings pertaining to a particular program.
+║(1) The program-name identifies the source program, the object program, and all listings pertaining to a particular program.║
 
-(2) The COMMON clause specifies that the program is common. A common program is contained within another program but may be called from programs other than that containing it. (See page X-4, Scope of Names.)
+║(2) The COMMON clause specifies that the program is common. A common program is contained within another program but may be called from programs other than that containing it. (See page X-4, Scope of Names.)║
 
-(3) The INITIAL clause specifies that the program is initial. When an initial program is called, it and any programs contained within it are placed in their initial state. (See page X-10, Initial State of a Program.)
+║(3) The INITIAL clause specifies that the program is initial. When an initial program is called, it and any programs contained within it are placed in their initial state. (See page X-10, Initial State of a Program.)║
 
 X-12
 
@@ -19347,17 +19347,17 @@ The end program header indicates the end of the named COBOL source program.
 
 (2) The program-name must be identical to a program-name declared in a preceding PROGRAM-ID paragraph. (See page X-12, The PROGRAM-ID Paragraph.)
 
-(3) If a PROGRAM-ID paragraph declaring a specific program-name is stated between the PROGRAM-ID paragraph and the end program header declaring and referencing, respectively, another program-name, the end program header referencing the former program-name must precede that referencing the latter program-name.
+║(3) If a PROGRAM-ID paragraph declaring a specific program-name is stated between the PROGRAM-ID paragraph and the end program header declaring and referencing, respectively, another program-name, the end program header referencing the former program-name must precede that referencing the latter program-name.║
 
 ### 2.5.4 General Rules
 
-(1) The end program header must be present in every program which either contains or is contained within another program.
+║(1) The end program header must be present in every program which either contains or is contained within another program.║
 
 (2) The end program header indicates the end of the specified COBOL source program.
 
-(3) If the program terminated by the end program header is contained within another program, the next statement must either be an Identification Division header or another end program header which terminates the containing program.
+║(3) If the program terminated by the end program header is contained within another program, the next statement must either be an Identification Division header or another end program header which terminates the containing program.║
 
-(4) If the program terminated by the end program header is not contained within another program and if the next source statement is a COBOL statement, it must be the Identification Division header of a program to be compiled separately from that program terminated by the end program header.
+(4) ║If the program terminated by the end program header is not contained within another program and║ if the next source statement is a COBOL statement, it must be the Identification Division header of a program to be compiled separately from that program terminated by the end program header.
 
 X-11
 
@@ -19365,15 +19365,15 @@ X-11
 
 Inter-Program Communication - Identification Division
 
-# 3. IDENTIFICATION DIVISION IN THE INTER-PROGRAM COMMUNICATION MODULE
+# ║3. IDENTIFICATION DIVISION IN THE INTER-PROGRAM COMMUNICATION MODULE║
 
-## 3.1 THE PROGRAM-ID PARAGRAPH AND NESTED SOURCE PROGRAMS
+## ║3.1 THE PROGRAM-ID PARAGRAPH AND NESTED SOURCE PROGRAMS║
 
-### 3.1.1 Function
+### ║3.1.1 Function║
 
-The PROGRAM-ID paragraph specifies the name by which a program is identified and assigns selected program attributes to that program.
+║The PROGRAM-ID paragraph specifies the name by which a program is identified and assigns selected program attributes to that program.║
 
-### 3.1.2 General Format
+### ║3.1.2 General Format║
 
 <pre style="line-height:1">
 ╔                          ┌    ╭ │ <u>COMMON</u>  │ ╮         ┐   ╗
@@ -19381,21 +19381,21 @@ The PROGRAM-ID paragraph specifies the name by which a program is identified and
 ╚                          └    ╰ │ <u>INITIAL</u> │ ╯         ┘   ╝
 </pre>
 
-### 3.1.3 Syntax Rules
+### ║3.1.3 Syntax Rules║
 
-(1) The program-name must conform to the rules for formation of a user-defined word.
+║(1) The program-name must conform to the rules for formation of a user-defined word.║
 
-(2) A program contained within another program must not be assigned the same name as that of any other program contained within the separately compiled program which contains this program.
+║(2) A program contained within another program must not be assigned the same name as that of any other program contained within the separately compiled program which contains this program.║
 
-(3) The optional COMMON clause may be used only if the program is contained within another program.
+║(3) The optional COMMON clause may be used only if the program is contained within another program.║
 
-### 3.1.4 General Rules
+### ║3.1.4 General Rules║
 
-(1) The program-name identifies the source program, the object program, and all listings pertaining to a particular program.
+║(1) The program-name identifies the source program, the object program, and all listings pertaining to a particular program.║
 
-(2) The COMMON clause specifies that the program is common. A common program is contained within another program but may be called from programs other than that containing it. (See page X-4, Scope of Names.)
+║(2) The COMMON clause specifies that the program is common. A common program is contained within another program but may be called from programs other than that containing it. (See page X-4, Scope of Names.)║
 
-(3) The INITIAL clause specifies that the program is initial. When an initial program is called, it and any programs contained within it are placed in their initial state. (See page X-10, Initial State of a Program.)
+║(3) The INITIAL clause specifies that the program is initial. When an initial program is called, it and any programs contained within it are placed in their initial state. (See page X-10, Initial State of a Program.)║
 
 X-12
 
@@ -19600,9 +19600,9 @@ Inter-Program Communication - File Description Entry
 
 ### 4.2.4 General Rules
 
-(1) If the file description entry for a sequential file contains the LINAGE clause and the EXTERNAL clause, the LINAGE-COUNTER data item is an external data item. If the file description entry for a sequential file contains the LINAGE clause and the GLOBAL clause, the special register LINAGE-COUNTER is a global name.
+║(1) If the file description entry for a sequential file contains the LINAGE clause and the EXTERNAL clause, the LINAGE-COUNTER data item is an external data item. If the file description entry for a sequential file contains the LINAGE clause and the GLOBAL clause, the special register LINAGE-COUNTER is a global name.║
 
-(2) The EXTERNAL clause is presented on page X-23. The GLOBAL clause is presented on page X-24. All other clauses in the file description entry are presented in the appropriate module within these specifications.
+(2) ║The EXTERNAL clause is presented on page X-23. The GLOBAL clause is presented on page X-24.║ All other clauses in the file description entry are presented in the appropriate module within these specifications.
 
 X-18
 
@@ -19689,17 +19689,17 @@ Inter-Program Communication - Data Description Entry
 
 (1) The availability of specific clauses in the data description entry is dependent on the level of the Nucleus module suppported by the implementation. (See page VI-20 in the Nucleus module.)
 
-(2) The EXTERNAL clause may be specified only in data description entries in the Working-Storage Section whose level-number is 01.
+║(2) The EXTERNAL clause may be specified only in data description entries in the Working-Storage Section whose level-number is 01.║
 
-(3) The EXTERNAL clause and the REDEFINES clause must not be specified in the same data description entry.
+║(3) The EXTERNAL clause and the REDEFINES clause must not be specified in the same data description entry.║
 
-(4) The GLOBAL clause may be specified only in data description entries whose level-number is 01.
+║(4) The GLOBAL clause may be specified only in data description entries whose level-number is 01.║
 
-(5) Data-name-1 must be specified for any entry containing the GLOBAL or EXTERNAL clause, or for record descriptions associated with a file description entry which contains the EXTERNAL or GLOBAL clause.
+║(5) Data-name-1 must be specified for any entry containing the GLOBAL or EXTERNAL clause, or for record descriptions associated with a file description entry which contains the EXTERNAL or GLOBAL clause.║
 
 ### 4.3.4 General Rules
 
-(1) The EXTERNAL clause is presented on page X-23. The GLOBAL clause is presented on page X-24. All other clauses in the data description entry are presented in the Nucleus module within these specifications.
+(1) ║The EXTERNAL clause is presented on page X-23. The GLOBAL clause is presented on page X-24.║ All other clauses in the data description entry are presented in the Nucleus module within these specifications.
 
 X-21
 
@@ -19741,9 +19741,9 @@ Within the Inter-Program Communication module, the report description entry in t
 
 ### 4.4.4 General Rules
 
-(1) If the report description entry contains the GLOBAL clause, the special registers LINE-COUNTER and PAGE-COUNTER are global names.
+║(1) If the report description entry contains the GLOBAL clause, the special registers LINE-COUNTER and PAGE-COUNTER are global names.║
 
-(2) The GLOBAL clause is presented on page X-24. All other clauses in the report description entry are presented in the Report Writer module within these specifications.
+(2) ║The GLOBAL clause is presented on page X-24.║ All other clauses in the report description entry are presented in the Report Writer module within these specifications.
 
 X-22
 
@@ -19751,35 +19751,35 @@ X-22
 
 Inter-Program Communication - EXTERNAL
 
-## 4.5 THE EXTERNAL CLAUSE
+## ║4.5 THE EXTERNAL CLAUSE║
 
-### 4.5.1 Function
+### ║4.5.1 Function║
 
-The EXTERNAL clause specifies that a data item or a file connector is external. The constitutent data items and group data items of an external data record are available to every program in the run unit which describes that record.
+║The EXTERNAL clause specifies that a data item or a file connector is external. The constitutent data items and group data items of an external data record are available to every program in the run unit which describes that record.║
 
-### 4.5.2 General Format
+### ║4.5.2 General Format║
 
 <pre style="line-height:1">
 ║ IS <u>EXTERNAL</u> ║
 </pre>
 
-### 4.5.3 Syntax Rules
+### ║4.5.3 Syntax Rules║
 
-(1) The EXTERNAL clause may be specified only in file description entries (see pages X-15 through X-18) or in record description entries in the Working-Storage Section (see pages X-19 through X-21).
+║(1) The EXTERNAL clause may be specified only in file description entries (see pages X-15 through X-18) or in record description entries in the Working-Storage Section (see pages X-19 through X-21).║
 
-(2) In the same program, the data-name specified as the subject of the entry whose level-number is 01 that includes the EXTERNAL clause must not be the same data-name specified for any other data description entry which includes the EXTERNAL clause.
+║(2) In the same program, the data-name specified as the subject of the entry whose level-number is 01 that includes the EXTERNAL clause must not be the same data-name specified for any other data description entry which includes the EXTERNAL clause.║
 
-(3) The VALUE clause must not be used in any data description entry which includes, or is subordinate to, an entry which includes the EXTERNAL clause. The VALUE clause may be specified for condition-name entries associated with such data description entries.
+║(3) The VALUE clause must not be used in any data description entry which includes, or is subordinate to, an entry which includes the EXTERNAL clause. The VALUE clause may be specified for condition-name entries associated with such data description entries.║
 
-### 4.5.4 General Rules
+### ║4.5.4 General Rules║
 
-(1) The data contained in the record named by the data-name clause is external and may be accessed and processed by any program in the run unit which describes and, optionally, redefines it subject to the following general rules.
+║(1) The data contained in the record named by the data-name clause is external and may be accessed and processed by any program in the run unit which describes and, optionally, redefines it subject to the following general rules.║
 
-(2) Within a run unit, if two or more programs describe the same external data record, each record-name of the associated record description entries must be the same and the records must define the same number of standard data format characters. However, a program which describes an external record may contain a data description entry including the REDEFINES clause which redefines the complete external record, and this complete redefinition need not occur identically in other programs in the run unit. (See page VI-38, The REDEFINES Clause.)
+║(2) Within a run unit, if two or more programs describe the same external data record, each record-name of the associated record description entries must be the same and the records must define the same number of standard data format characters. However, a program which describes an external record may contain a data description entry including the REDEFINES clause which redefines the complete external record, and this complete redefinition need not occur identically in other programs in the run unit. (See page VI-38, The REDEFINES Clause.)║
 
-(3) Use of the EXTERNAL clause does not imply that the associated file-name or data-name is a global name. (See page X-24, The GLOBAL Clause.)
+║(3) Use of the EXTERNAL clause does not imply that the associated file-name or data-name is a global name. (See page X-24, The GLOBAL Clause.)║
 
-(4) The file connector associated with this description entry is an external file connector.
+║(4) The file connector associated with this description entry is an external file connector.║
 
 X-23
 
@@ -19787,33 +19787,33 @@ X-23
 
 Inter-Program Communication - GLOBAL
 
-## 4.6 THE GLOBAL CLAUSE
+## ║4.6 THE GLOBAL CLAUSE║
 
-### 4.6.1 Function
+### ║4.6.1 Function║
 
-The GLOBAL clause specifies that a data-name, a file-name, or a report-name is a global name. A global name is available to every program contained within the program which declares it.
+║The GLOBAL clause specifies that a data-name, a file-name, or a report-name is a global name. A global name is available to every program contained within the program which declares it.║
 
-### 4.6.2 General Format
+### ║4.6.2 General Format║
 
 <pre style="line-height:1">
 ║ IS <u>GLOBAL</u> ║
 </pre>
 
-### 4.6.3 Syntax Rules
+### ║4.6.3 Syntax Rules║
 
-(1) The GLOBAL clause may be specified only in data description entries whose level-number is 01 in the File Section or the Working-Storage Section, file description entries, or report description entries.
+║(1) The GLOBAL clause may be specified only in data description entries whose level-number is 01 in the File Section or the Working-Storage Section, file description entries, or report description entries.║
 
-(2) In the same Data Division, the data description entries for any two data items for which the same data-name is specified must not include the GLOBAL clause.
+║(2) In the same Data Division, the data description entries for any two data items for which the same data-name is specified must not include the GLOBAL clause.║
 
-(3) If the SAME RECORD AREA clause is specified for several files, the record description entries or the file description entries for these files must not include the GLOBAL clause.
+║(3) If the SAME RECORD AREA clause is specified for several files, the record description entries or the file description entries for these files must not include the GLOBAL clause.║
 
-### 4.6.4 General Rules
+### ║4.6.4 General Rules║
 
-(1) A data-name, file-name, or report-name described using a GLOBAL clause is a global name. All data-names subordinate to a global name are global names. All condition-names associated with a global name are global names.
+║(1) A data-name, file-name, or report-name described using a GLOBAL clause is a global name. All data-names subordinate to a global name are global names. All condition-names associated with a global name are global names.║
 
-(2) A statement in a program contained directly or indirectly within a program which describes a global name may reference that name without describing it again. (See page X-4, Scope of Names.)
+║(2) A statement in a program contained directly or indirectly within a program which describes a global name may reference that name without describing it again. (See page X-4, Scope of Names.)║
 
-(3) If the GLOBAL clause is used in a data description entry which contains the REDEFINES clause, it is only the subject of that REDEFINES clause which possesses the global attribute.
+║(3) If the GLOBAL clause is used in a data description entry which contains the REDEFINES clause, it is only the subject of that REDEFINES clause which possesses the global attribute.║
 
 X-24
 
@@ -19839,7 +19839,7 @@ Data-name-1 must be defined as a level 01 entry or a level 77 entry in the Linka
 
 The following additional rules apply:
 
-> (1) If the reference to the corresponding data item in the CALL statement declares the parameter to be passed by content, the value of the item is moved when the CALL statement is executed and placed into a system-defined storage item possessing the attributes declared in the Linkage Section for data-name-1. The data description of each parameter in the BY CONTENT phrase of the CALL statement must be the same, meaning no conversion or extension or truncation, as the data description of the corresponding parameter in the USING phrase of the Procedure Division header. (See page X-27, The CALL Statement.)
+> ║(1) If the reference to the corresponding data item in the CALL statement declares the parameter to be passed by content, the value of the item is moved when the CALL statement is executed and placed into a system-defined storage item possessing the attributes declared in the Linkage Section for data-name-1. The data description of each parameter in the BY CONTENT phrase of the CALL statement must be the same, meaning no conversion or extension or truncation, as the data description of the corresponding parameter in the USING phrase of the Procedure Division header. (See page X-27, The CALL Statement.)║
 
 (2) If the reference to the corresponding data item in the CALL statement declares the parameter to be passed by reference, the object program operates as if the data item in the called program occupies the same storage area as the data item in the calling program. The description of the data item in the called program must describe the same number of character positions as described by the description of the corresponding data item in the calling program.
 
@@ -19909,13 +19909,13 @@ The CALL statement causes control to be transferred from one object program to a
 
 (1) Literal-1 must be a nonnumeric literal.
 
-(2) Identifier-1 must be defined as an alphanumeric data item such that its value can be a program-name.
+║(2) Identifier-1 must be defined as an alphanumeric data item such that its value can be a program-name.║
 
 (3) Each of the operands in the USING phrase must have been defined as a data item in the File Section, Working-Storage Section, Communication Section, or Linkage Section, and must be a level 01 data item, a level 77 data item, or an elementary data item.
 
 5.2.4 General Rules
 
-(1) Literal-1 or the content of the data item referenced by identifier-1 is the name of the called program. The program in which the CALL statement appears is the calling program. If the program being called is a COBOL program, literal-1 or the content of the data item referenced by identifier-1 must contain the program-name contained in the PROGRAM-ID paragraph of the called program. If the program being called is not a COBOL program, the rules for formation of the program-name are defined by the implementor.
+(1) Literal-1 ║or the content of the data item referenced by identifier-1║ is the name of the called program. The program in which the CALL statement appears is the calling program. If the program being called is a COBOL program, literal-1 ║or the content of the data item referenced by identifier-1║ must contain the program-name contained in the PROGRAM-ID paragraph of the called program. If the program being called is not a COBOL program, the rules for formation of the program-name are defined by the implementor.
 
 (2) If, when a CALL statement is executed, the program specified by the CALL statement is made available for execution, control is transferred to the called
 
@@ -19925,27 +19925,27 @@ X-27
 
 Inter-Program Communication - CALL
 
-program. After control is returned from the called program, the ON OVERFLOW or ON EXCEPTION phrase, if specified, is ignored and control is transferred to the end of the CALL statement or, if the NOT ON EXCEPTION phrase is specified, to imperative-statement-2. If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the CALL statement.
+program. After control is returned from the called program, ║the ON OVERFLOW or ON EXCEPTION phrase, if specified, is ignored and║ control is transferred to the end of the CALL statement ║or, if the NOT ON EXCEPTION phrase is specified, to imperative-statement-2. If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the CALL statement.║
 
 (3) If it is determined, when a CALL statement is executed, that the program specified by the CALL statement cannot be made available for execution at that time, one of the two actions listed below will occur. The object time resources which must be checked in order to determine the availability of the called program for execution are defined by the implementor.
 
-a. If the ON OVERFLOW or ON EXCEPTION phrase is specified in the CALL statement, control is transferred to imperative-statement-1. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the CALL statement and the NOT ON EXCEPTION phrase, if specified, is ignored.
+║a. If the ON OVERFLOW or ON EXCEPTION phrase is specified in the CALL statement, control is transferred to imperative-statement-1. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the CALL statement and the NOT ON EXCEPTION phrase, if specified, is ignored.║
 
-b. If the ON OVERFLOW or ON EXCEPTION phrase is not specified in the CALL statement, the NOT ON EXCEPTION phrase, if specified, is ignored. All other effects of the CALL statement are defined by the implementor.
+b. ║If the ON OVERFLOW or ON EXCEPTION phrase is not specified in the CALL statement, the NOT ON EXCEPTION phrase, if specified, is ignored.║ All other effects of the CALL statement are defined by the implementor.
 
-(4) Two or more programs in the run unit may have the same program-name, and the reference in a CALL statement to such a program-name is resolved by using the scope of names conventions for program-names. (See page X-5, Conventions for Program-Names.)
+║(4) Two or more programs in the run unit may have the same program-name, and the reference in a CALL statement to such a program-name is resolved by using the scope of names conventions for program-names. (See page X-5, Conventions for Program-Names.)║
 
-For example, when only two programs in the run unit have the same name as that specified in a CALL statment:
+║For example, when only two programs in the run unit have the same name as that specified in a CALL statment:║
 
-a. One of those two programs must also be contained directly or indirectly either within the separately compiled program which includes that CALL statement or within the separately compiled program which itself directly or indirectly contains the program which includes that CALL statement, and
+║a. One of those two programs must also be contained directly or indirectly either within the separately compiled program which includes that CALL statement or within the separately compiled program which itself directly or indirectly contains the program which includes that CALL statement, and║
 
-b. The other of those two programs must be a different separately compiled program.
+║b. The other of those two programs must be a different separately compiled program.║
 
-The mechanism used in this example is as follows:
+║The mechanism used in this example is as follows:║
 
-a. If one of the two programs having the same name as that specified in the CALL statement is directly contained within the program which includes that CALL statement, that program is called.
+║a. If one of the two programs having the same name as that specified in the CALL statement is directly contained within the program which includes that CALL statement, that program is called.║
 
-b. If one of the two programs having the same name as that specified in the CALL statement possesses the common attribute and is directly contained within another program which directly or indirectly contains the program which
+║b. If one of the two programs having the same name as that specified in the CALL statement possesses the common attribute and is directly contained within another program which directly or indirectly contains║ the program which
 
 X-28
 
@@ -19953,21 +19953,21 @@ X-28
 
 Inter-Program Communication - CALL
 
-includes the CALL statement, that common program is called unless the calling program is contained within that common program.
+║includes the CALL statement, that common program is called unless the calling program is contained within that common program.║
 
-c. Otherwise, the separately compiled program is called.
+║c. Otherwise, the separately compiled program is called.║
 
-(5) If the called program does not possess the initial attribute it, and each program directly or indirectly contained within it, is in its initial state the first time it is called within a run unit and the first time it is called after a CANCEL to the called program.
+(5) ║If║ the called program ║does not possess the initial attribute it, and each program directly or indirectly contained within it,║ ║is in its initial state the first time it is called within a run unit║ ║and the first time it is called after a CANCEL to the called program.║
 
-On all other entries into the called program, the state of the program and each program directly or indirectly contained within it remains unchanged from its state when last exited.
+On all other entries into the called program, the state of the program ║and each program directly or indirectly contained within it║ remains unchanged from its state when last exited.
 
-(6) If the called program possesses the initial attribute, it and each program directly or indirectly contained within it, is placed into its initial state every time the called program is called within a run unit.
+║(6) If the called program possesses the initial attribute, it and each program directly or indirectly contained within it, is placed into its initial state every time the called program is called within a run unit.║
 
 (7) Files associated with a called program's internal file connectors are not in the open mode when the program is in an initial state. (See page X-10, Initial State of a Program.)
 
 On all other entries into the called program, the states and positioning of all such files is the same as when the called program was last exited.
 
-(8) The process of calling a program or exiting from a called program does not alter the status or positioning of a file associated with any external file connector.
+║(8) The process of calling a program or exiting from a called program does not alter the status or positioning of a file associated with any external file connector.║
 
 (9) If the program being called is a COBOL program, the USING phrase is included in the CALL statement only if there is a USING phrase in the Procedure Division header of the called program, in which case the number of operands in each USING phrase must be identical. If the program being called is other than a COBOL program, the use of the USING phrase is defined by the implementor.
 
@@ -19975,9 +19975,9 @@ On all other entries into the called program, the states and positioning of all 
 
 (11) The values of the parameters referenced in the USING phrase of the CALL statement are made available to the called program at the time the CALL statement is executed.
 
-(12) Both the BY CONTENT and BY REFERENCE phrases are transitive across the parameters which follow them until another BY CONTENT or BY REFERENCE phrase is encountered. If neither the BY CONTENT nor the BY REFERENCE phrase is specified prior to the first parameter, the BY REFERENCE phrase is assumed.
+(12) ║Both the BY CONTENT and BY REFERENCE phrases are transitive across the parameters which follow them until another BY CONTENT or BY REFERENCE phrase is encountered.║ If neither the BY CONTENT nor the BY REFERENCE phrase is specified prior to the first parameter, the BY REFERENCE phrase is assumed.
 
-(13) If the BY REFERENCE phrase is either specified or implied for a parameter, the object program operates as if the corresponding data item in the called program occupies the same storage area as the data item in the calling program. The description of the data item in the called program must describe
+(13) If the BY REFERENCE phrase is ║either specified or║ implied for a parameter, the object program operates as if the corresponding data item in the called program occupies the same storage area as the data item in the calling program. The description of the data item in the called program must describe
 
 X-29
 
@@ -19987,7 +19987,7 @@ Inter-Program Communication - CALL
 
 the same number of character positions as described by the description of the corresponding data item in the calling program.
 
-> (14) If the BY CONTENT phrase is specified or implied for a parameter, the called program cannot change the value of this parameter as referenced in the CALL statement's USING phrase, though the called program may change the value of the data item referenced by the coresponding data-name in the called program's Procedure Division header. The data description of each parameter in the BY CONTENT phrase of the CALL statement must be the same, meaning no conversion or extension or truncation, as the data description of the corresponding parameter in the USING phrase of the Procedure Division header. (See page X-25, The Procedure Division Header.)
+> ║(14) If the BY CONTENT phrase is specified or implied for a parameter, the called program cannot change the value of this parameter as referenced in the CALL statement's USING phrase, though the called program may change the value of the data item referenced by the coresponding data-name in the called program's Procedure Division header. The data description of each parameter in the BY CONTENT phrase of the CALL statement must be the same, meaning no conversion or extension or truncation, as the data description of the corresponding parameter in the USING phrase of the Procedure Division header. (See page X-25, The Procedure Division Header.)║
 
 (15) Called programs may contain CALL statements. However, a called program must not execute a CALL statement that directly or indirectly calls the calling program. If a CALL statement is executed within the range of a declarative, that CALL statement cannot directly or indirectly reference any called program to which control has been transferred and which has not completed execution.
 
@@ -19999,13 +19999,13 @@ X-30
 
 Inter-Program Communication - CANCEL
 
-## 5.3 THE CANCEL STATEMENT
+## ║5.3 THE CANCEL STATEMENT║
 
-### 5.3.1 Function
+### ║5.3.1 Function║
 
-The CANCEL statement ensures that the next time the referenced program is called it will be in its initial state.
+║The CANCEL statement ensures that the next time the referenced program is called it will be in its initial state.║
 
-### 5.3.2 General Format
+### ║5.3.2 General Format║
 
 <pre style="line-height:1">
 ╔        ╭ identifier-1 ╮   ╗
@@ -20013,29 +20013,29 @@ The CANCEL statement ensures that the next time the referenced program is called
 ╚        ╰ literal-1    ╯   ╝
 </pre>
 
-### 5.3.3 Syntax Rules
+### ║5.3.3 Syntax Rules║
 
-(1) Literal-1 must be a nonnumeric literal.
+║(1) Literal-1 must be a nonnumeric literal.║
 
-(2) Identifier-1 must reference an alphanumeric data item.
+║(2) Identifier-1 must reference an alphanumeric data item.║
 
-### 5.3.4 General Rules
+### ║5.3.4 General Rules║
 
-(1) Literal-1 or the content of the data item referenced by identifier-1 identifies the program to be cancelled.
+║(1) Literal-1 or the content of the data item referenced by identifier-1 identifies the program to be cancelled.║
 
-(2) Subsequent to the execution of an explicit or implicit CANCEL statement, the program referred to therein ceases to have any logical relationship to the run unit in which the CANCEL statement appears. If the program referenced by a successfully executed explicit or implicit CANCEL statement in a run unit is subsequently called in that run unit, that program is in its initial state. (See page X-10, Initial State of a Program.)
+║(2) Subsequent to the execution of an explicit or implicit CANCEL statement, the program referred to therein ceases to have any logical relationship to the run unit in which the CANCEL statement appears. If the program referenced by a successfully executed explicit or implicit CANCEL statement in a run unit is subsequently called in that run unit, that program is in its initial state. (See page X-10, Initial State of a Program.)║
 
-(3) A program named in a CANCEL statement in another program must be callable by that other program. (See page X-4, Scope of Names, and page X-27, The CALL Statement.)
+║(3) A program named in a CANCEL statement in another program must be callable by that other program. (See page X-4, Scope of Names, and page X-27, The CALL Statement.)║
 
-(4) When an explicit or implicit CANCEL statement is executed, all programs contained within the program referenced by the CANCEL statement are also cancelled. The result is the same as if a valid CANCEL statement were executed for each contained program in the reverse order in which the programs appear in the separately compiled program.
+║(4) When an explicit or implicit CANCEL statement is executed, all programs contained within the program referenced by the CANCEL statement are also cancelled. The result is the same as if a valid CANCEL statement were executed for each contained program in the reverse order in which the programs appear in the separately compiled program.║
 
-(5) A program named in the CANCEL statement must not refer directly or indirectly to any program that has been called and has not yet executed an EXIT PROGRAM statement.
+║(5) A program named in the CANCEL statement must not refer directly or indirectly to any program that has been called and has not yet executed an EXIT PROGRAM statement.║
 
-(6) A logical relationship to a cancelled program is established only by execution of a subsequent CALL statement naming that program.
+║(6) A logical relationship to a cancelled program is established only by execution of a subsequent CALL statement naming that program.║
 
-(7) A called program is cancelled either by being referred to as the operand of a CANCEL statement, by the termination of the run unit of which the program is a member, or by execution of an EXIT PROGRAM statement in a called program that possesses the initial attribute.
+║(7) A called program is cancelled either by being referred to as the operand of a CANCEL statement, by the termination of the run unit of which the program is a member, or by execution of an EXIT PROGRAM statement in a called program that possesses the initial attribute.║
 
-(8) No action is taken when an explicit or implicit CANCEL statment is executed naming a program that has not been called in this run unit or has been
+║(8) No action is taken when an explicit or implicit CANCEL statment is executed naming a program that has not been called in this run unit or has been║
 
 X-31
 
@@ -20043,11 +20043,11 @@ X-31
 
 Inter-Program Communication - CANCEL
 
-called and is at present cancelled. Control is transferred to the next executable statement following the explicit CANCEL statement.
+║called and is at present cancelled. Control is transferred to the next executable statement following the explicit CANCEL statement.║
 
-(9) The contents of data items in external data records described by a program are not changed when that program is cancelled.
+║(9) The contents of data items in external data records described by a program are not changed when that program is cancelled.║
 
-(10) During execution of an explicit or implicit CANCEL statement, an implicit CLOSE statement without any optional phrases is executed for each file in the open mode that is associated with an internal file connector in the program named in the explicit CANCEL statement. Any USE procedures associated with any of these files are not executed.
+║(10) During execution of an explicit or implicit CANCEL statement, an implicit CLOSE statement without any optional phrases is executed for each file in the open mode that is associated with an internal file connector in the program named in the explicit CANCEL statement. Any USE procedures associated with any of these files are not executed.║
 
 X-32
 
@@ -20079,7 +20079,7 @@ The EXIT PROGRAM statement marks the logical end of a called program.
 
 (2) The execution of an EXIT PROGRAM statement in a called program which does not possess the initial attribute causes execution to continue with the next executable statement following the CALL statement in the calling program. The program state of the calling program is not altered and is identical to that which existed at the time it executed the CALL statement except that the contents of data items and the contents of data files shared between the calling and called program may have been changed. The program state of the called program is not altered except that the ends of the ranges of all PERFORM statements executed by that called program are considered to have been reached.
 
-> (3) Besides the actions specified in general rule 2, the execution of an EXIT PROGRAM statement in a called program which possesses the initial attribute is equivalent also to executing a CANCEL statement referencing that program. (See page X-31, The CANCEL Statement.)
+> ║(3) Besides the actions specified in general rule 2, the execution of an EXIT PROGRAM statement in a called program which possesses the initial attribute is equivalent also to executing a CANCEL statement referencing that program. (See page X-31, The CANCEL Statement.)║
 
 X-33
 
@@ -20087,13 +20087,13 @@ X-33
 
 Inter-Program Communication - USE
 
-## 5.5 THE USE STATEMENT
+## ║5.5 THE USE STATEMENT║
 
-### 5.5.1 Function
+### ║5.5.1 Function║
 
-Within the Inter-Program Communication module, the USE statement determines whether the associated declarative procedures are invoked during the execution of any program contained within the program which includes the USE statement.
+║Within the Inter-Program Communication module, the USE statement determines whether the associated declarative procedures are invoked during the execution of any program contained within the program which includes the USE statement.║
 
-### 5.5.2 General Format
+### ║5.5.2 General Format║
 
 <pre style="line-height:1">
 ╔                                                         ╭ { file-name-1 } … ╮ ╗
@@ -20103,19 +20103,19 @@ Within the Inter-Program Communication module, the USE statement determines whet
 ╚                                                         ╰ <u>EXTEND</u>            ╯ ╝
 </pre>
 
-### 5.5.3 Syntax Rules
+### ║5.5.3 Syntax Rules║
 
-(1) The availability of the multiple file-names and the EXTEND phrase is dependent on the level of Sequential I-O module, Relative I-O module, or Indexed I-O module supported by the implementation. (See page VII-50 in the Sequential I-O module, page VIII-35 in the Relative I-O module, and page IX-39 in the Indexed I-O module.)
+║(1) The availability of the multiple file-names and the EXTEND phrase is dependent on the level of Sequential I-O module, Relative I-O module, or Indexed I-O module supported by the implementation. (See page VII-50 in the Sequential I-O module, page VIII-35 in the Relative I-O module, and page IX-39 in the Indexed I-O module.)║
 
-### 5.5.4 General Rules
+### ║5.5.4 General Rules║
 
-(1) Special precedence rules are followed when programs are contained within other programs. In applying these rules, only the first qualifying declarative will be selected for execution. The declarative which is selected for execution must satisfy the rules for execution of that declarative. The order of precedence for selecting a declarative is:
+║(1) Special precedence rules are followed when programs are contained within other programs. In applying these rules, only the first qualifying declarative will be selected for execution. The declarative which is selected for execution must satisfy the rules for execution of that declarative. The order of precedence for selecting a declarative is:║
 
-a. The declarative within the program that contains the statement which caused the qualifying condition.
+║a. The declarative within the program that contains the statement which caused the qualifying condition.║
 
-b. The declarative in which the GLOBAL phrase is specified and which is within the program directly containing the program which was last examined for a qualifying declarative.
+║b. The declarative in which the GLOBAL phrase is specified and which is within the program directly containing the program which was last examined for a qualifying declarative.║
 
-c. Any declarative selected by applying rule 1b to each more inclusive containing program until rule 1b is applied to the outermost program. If no qualifying declarative is found, none is executed.
+║c. Any declarative selected by applying rule 1b to each more inclusive containing program until rule 1b is applied to the outermost program. If no qualifying declarative is found, none is executed.║
 
 X-34
 
@@ -20123,31 +20123,31 @@ X-34
 
 Inter-Program Communication - USE BEFORE REPORTING
 
-## 5.6 THE USE BEFORE REPORTING STATEMENT
+## ║5.6 THE USE BEFORE REPORTING STATEMENT║
 
-### 5.6.1 Function
+### ║5.6.1 Function║
 
-Within the Inter-Program Communication module, the USE BEFORE REPORTING statement determines whether the associated declarative procedures are invoked during the execution of any program contained within the program which includes the USE BEFORE REPORTING statement.
+║Within the Inter-Program Communication module, the USE BEFORE REPORTING statement determines whether the associated declarative procedures are invoked during the execution of any program contained within the program which includes the USE BEFORE REPORTING statement.║
 
-### 5.6.2 General Format
+### ║5.6.2 General Format║
 
 <pre style="line-height:1">
 ║ <u>USE</u> [ <u>GLOBAL</u> ] <u>BEFORE</u> <u>REPORTING</u> identifier-1 ║
 </pre>
 
-### 5.6.3 Syntax Rules
+### ║5.6.3 Syntax Rules║
 
-(1) The availability of the USE BEFORE REPORTING statement is dependent on whether the Report Writer module is supported by the implementation. (See page XIII-78 in the Report Writer module.)
+║(1) The availability of the USE BEFORE REPORTING statement is dependent on whether the Report Writer module is supported by the implementation. (See page XIII-78 in the Report Writer module.)║
 
-### 5.6.4 General Rules
+### ║5.6.4 General Rules║
 
-(1) Special precedence rules are followed when programs are contained within other programs. In applying these rules, only the first qualifying declarative will be selected for execution. The declarative which is selected for execution must satisfy the rules for execution of that declarative. The order of precedence for selecting a declarative is:
+║(1) Special precedence rules are followed when programs are contained within other programs. In applying these rules, only the first qualifying declarative will be selected for execution. The declarative which is selected for execution must satisfy the rules for execution of that declarative. The order of precedence for selecting a declarative is:║
 
-a. The declarative within the program that contains the statement which caused the qualifying condition.
+║a. The declarative within the program that contains the statement which caused the qualifying condition.║
 
-b. The declarative in which the GLOBAL phrase is specified and which is within the program directly containing the program which was last examined for a qualifying declarative.
+║b. The declarative in which the GLOBAL phrase is specified and which is within the program directly containing the program which was last examined for a qualifying declarative.║
 
-c. Any declarative selected by applying rule 1b to each more inclusive containing program until rule 1b is applied to the outermost program. If no qualifying declarative is found, none is executed.
+║c. Any declarative selected by applying rule 1b to each more inclusive containing program until rule 1b is applied to the outermost program. If no qualifying declarative is found, none is executed.║
 
 X-35
 
@@ -20860,17 +20860,17 @@ Source Text Manipulation - Introduction
 
 ### 1.1 FUNCTION
 
-The Source Text Manipulation module contains the COPY statement and the REPLACE statement. Each of these statements can function either independent of the other or in conjunction with the other to provide an extensive capability to insert and replace source program text as part of the compilation of the source program.
+The Source Text Manipulation module contains the COPY statement ║and the REPLACE statement.║ Each of these statements can function either independent of the other or in conjunction with the other to provide an extensive capability to insert ║and replace║ source program text as part of the compilation of the source program.
 
 COBOL libraries contain texts which are available to the compiler at compile time. The effect of the interpretation of the COPY statement is to generate, from a library text, text which is treated by the compiler as part of the source program.
 
-Similarly, COBOL source programs can be written in a programmer defined notation which, at compile time, can be expanded into syntactically correct phrases, clauses, and statements. The effect of the interpretation of the REPLACE statement is to substitute new text for text appearing in the source program and have the substituted text treated by the compiler as part of the source program.
+Similarly, COBOL source programs can be written in a programmer defined notation which, at compile time, can be expanded into syntactically correct phrases, clauses, and statements. ║The effect of the interpretation of the REPLACE statement is to substitute new text for text appearing in the source program and have the substituted text treated by the compiler as part of the source program.║
 
 ### 1.2 LEVEL CHARACTERISTICS
 
 Source Text Manipulation level 1 provides the facility for copying text from a single library into the source program. Text is copied from the library without change.
 
-Source Text Manipulation level 2 provides the additional capability of replacing all occurrences of a given literal, identifier, word, or group of words in the library text, with alternate text, during the copying process. Level 2 also provides for the availability of more than one COBOL library at compile time and the substitution of new text for text appearing in the source program.
+║Source Text Manipulation level 2 provides the additional capability of replacing all occurrences of a given literal, identifier, word, or group of words in the library text, with alternate text, during the copying process. Level 2 also provides for the availability of more than one COBOL library at compile time and the substitution of new text for text appearing in the source program.║
 
 XII-1
 
@@ -20899,25 +20899,25 @@ The COPY statement incorporates text into a COBOL source program.
 
 ### 2.3 Syntax Rules
 
-(1) If more than one COBOL library is available during compilation, text-name-1 must be qualified by library-name-1 identifying the COBOL library in which the text associated with text-name-1 resides.
+(1) ║If more than one COBOL library is available during compilation, text-name-1 must be qualified by library-name-1 identifying the COBOL library in which the text associated with text-name-1 resides.║
 
 Within one COBOL library, each text-name must be unique.
 
 (2) The COPY statement must be preceded by a space and terminated by the separator period.
 
-(3) Pseudo-text-1 must contain one or more text words.
+║(3) Pseudo-text-1 must contain one or more text words.║
 
-(4) Pseudo-text-2 may contain zero, one, or more text words.
+║(4) Pseudo-text-2 may contain zero, one, or more text words.║
 
-(5) Character-strings within pseudo-text-1 and pseudo-text-2 may be continued. (See page IV-43, Pseudo-Text.)
+║(5) Character-strings within pseudo-text-1 and pseudo-text-2 may be continued. (See page IV-43, Pseudo-Text.)║
 
-(6) Word-1 or word-2 may be any single COBOL word except 'COPY'.
+║(6) Word-1 or word-2 may be any single COBOL word except 'COPY'.║
 
 (7) A COPY statement may be specified in the source program anywhere a character-string or a separator, other than the closing quotation mark, may occur except that a COPY statement must not occur within a COPY statement.
 
-(8) The implementor must allow a length from 1 through 322 characters for a text word within pseudo-text and within library text.
+(8) The implementor must allow a length from 1 through 322 characters for a text word ║within pseudo-text and║ within library text.
 
-(9) Pseudo-text-1 must not consist entirely of a separator comma or a separator semicolon.
+║(9) Pseudo-text-1 must not consist entirely of a separator comma or a separator semicolon.║
 
 (10) If the word COPY appears in a comment-entry or in the place where a comment-entry may appear, it is considered part of the comment-entry.
 
@@ -20933,21 +20933,21 @@ Source Text Manipulation - COPY
 
 (2) The effect of processing a COPY statement is that the library text associated with text-name-1 is copied into the source program, logically replacing the entire COPY statement, beginning with the reserved word COPY and ending with the punctuation character period, inclusive.
 
-(3) If the REPLACING phrase is not specified, the library text is copied unchanged.
+(3) ║If the REPLACING phrase is not specified,║ the library text is copied unchanged.
 
-If the REPLACING phrase is specified the library text is copied and each properly matched occurrence of pseudo-text-1, identifier-1, word-1, and literal-1 in the library text is replaced by the corresponding pseudo-text-2, identifier-2, word-2, or literal-2.
+║If the REPLACING phrase is specified the library text is copied and each properly matched occurrence of pseudo-text-1, identifier-1, word-1, and literal-1 in the library text is replaced by the corresponding pseudo-text-2, identifier-2, word-2, or literal-2.║
 
-(4) For purposes of matching, identifier-1, word-1, and literal-1 are treated as pseudo-text containing only identifier-1, word-1, or literal-1, respectively.
+║(4) For purposes of matching, identifier-1, word-1, and literal-1 are treated as pseudo-text containing only identifier-1, word-1, or literal-1, respectively.║
 
-(5) The comparison operation to determine text replacement occurs in the following manner:
+║(5) The comparison operation to determine text replacement occurs in the following manner:║
 
-a. The leftmost library text word which is not a separator comma or a separator semicolon is the first text word used for comparison. Any text word or space preceding this text word is copied into the source program. Starting with the first text word for comparison and first pseudo-text-1, identifier-1, word-1, or literal-1 that was specified in the REPLACING phrase, the entire REPLACING phrase operand that precedes the reserved word BY is compared to an equivalent number of contiguous library text words.
+║a. The leftmost library text word which is not a separator comma or a separator semicolon is the first text word used for comparison. Any text word or space preceding this text word is copied into the source program. Starting with the first text word for comparison and first pseudo-text-1, identifier-1, word-1, or literal-1 that was specified in the REPLACING phrase, the entire REPLACING phrase operand that precedes the reserved word BY is compared to an equivalent number of contiguous library text words.║
 
-b. Pseudo-text-1, identifier-1, word-1, or literal-1 match the library text if, and only if, the ordered sequence of text words that forms pseudo-text-1, identifier-1, word-1, or literal-1 is equal, character for character, to the ordered sequence of library text words. For purposes of matching, each occurrence of a separator comma, semicolon, or space in pseudo-text-1 or in the library text is considered to be a single space. Each sequence of one or more space separators is considered to be a single space.
+║b. Pseudo-text-1, identifier-1, word-1, or literal-1 match the library text if, and only if, the ordered sequence of text words that forms pseudo-text-1, identifier-1, word-1, or literal-1 is equal, character for character, to the ordered sequence of library text words. For purposes of matching, each occurrence of a separator comma, semicolon, or space in pseudo-text-1 or in the library text is considered to be a single space. Each sequence of one or more space separators is considered to be a single space.║
 
-c. If no match occurs, the comparison is repeated with each next successive pseudo-text-1, identifier-1, word-1, or literal-1, if any, in the REPLACING phrase until either a match is found or there is no next successive REPLACING operand.
+║c. If no match occurs, the comparison is repeated with each next successive pseudo-text-1, identifier-1, word-1, or literal-1, if any, in the REPLACING phrase until either a match is found or there is no next successive REPLACING operand.║
 
-d. When all the REPLACING phrase operands have been compared and no match has occurred, the leftmost library text word is copied into the source program. The next successive library text word is then considered as the leftmost library text word, and the comparison cycle starts again with the first pseudo-text-1, identifier-1, word-1, or literal-1 specified in the REPLACING phrase.
+║d. When all the REPLACING phrase operands have been compared and no match has occurred, the leftmost library text word is copied into the source program. The next successive library text word is then considered as the leftmost library text word, and the comparison cycle starts again with the first pseudo-text-1, identifier-1, word-1, or literal-1 specified in the REPLACING phrase.║
 
 XII-3
 
@@ -20955,21 +20955,21 @@ XII-3
 
 Source Text Manipulation - COPY
 
-e. Whenever a match occurs between pseudo-text-1, identifier-1, word-1, or literal-1 and the library text, the corresponding pseudo-text-2, identifier-2, word-2, or literal-2 is placed into the source program. The library text word immediately following the rightmost text word that participated in the match is then considered as the leftmost text word. The comparison cycle starts again with the first pseudo-text-1, identifier-1, word-1, or literal-1 specified in the REPLACING phrase.
+║e. Whenever a match occurs between pseudo-text-1, identifier-1, word-1, or literal-1 and the library text, the corresponding pseudo-text-2, identifier-2, word-2, or literal-2 is placed into the source program. The library text word immediately following the rightmost text word that participated in the match is then considered as the leftmost text word. The comparison cycle starts again with the first pseudo-text-1, identifier-1, word-1, or literal-1 specified in the REPLACING phrase.║
 
-f. The comparison operation continues until the rightmost text word in the library text has either participated in a match or been considered as a leftmost library text word and participated in a complete comparison cycle.
+║f. The comparison operation continues until the rightmost text word in the library text has either participated in a match or been considered as a leftmost library text word and participated in a complete comparison cycle.║
 
-(6) Comment lines or blank lines occurring in the library text and in pseudo-text-1 are ignored for purposes of matching; and the sequence of text words in the library text, if any, and in pseudo-text-1 is determined by the rules for reference format. (See page IV-41, Reference Format Representation.) Comment lines or blank lines appearing in pseudo-text-2 are copied into the resultant program unchanged whenever pseudo-text-2 is placed into the source program as a result of text replacement. Comment lines or blank lines appearing in library text are copied into the resultant source program unchanged with the following exception: a comment line or blank line in library text is not copied if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.
+║(6) Comment lines or blank lines occurring in the library text and in pseudo-text-1 are ignored for purposes of matching; and the sequence of text words in the library text, if any, and in pseudo-text-1 is determined by the rules for reference format. (See page IV-41, Reference Format Representation.) Comment lines or blank lines appearing in pseudo-text-2 are copied into the resultant program unchanged whenever pseudo-text-2 is placed into the source program as a result of text replacement.║ Comment lines or blank lines appearing in library text are copied into the resultant source program unchanged ║with the following exception: a comment line or blank line in library text is not copied if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.║
 
-(7) Debugging lines are permitted within library text and pseudo-text. Text words within a debugging line participate in the matching rules as if the 'D' did not appear in the indicator area. A debugging line is specified within pseudo-text if the debugging line begins in the source program after the opening pseudo-text-delimiter but before the matching closing pseudo-text-delimiter.
+(7) Debugging lines are permitted within library text ║and pseudo-text. Text words within a debugging line participate in the matching rules as if the 'D' did not appear in the indicator area. A debugging line is specified within pseudo-text if the debugging line begins in the source program after the opening pseudo-text-delimiter but before the matching closing pseudo-text-delimiter.║
 
-(8) The syntactic correctness of the library text cannot be independently determined. Except for COPY and REPLACE statements, the syntactic correctness of the entire COBOL source program cannot be determined until all COPY and REPLACE statements have been completely processed.
+(8) The syntactic correctness of the library text cannot be independently determined. Except for COPY ║and REPLACE║ statements, the syntactic correctness of the entire COBOL source program cannot be determined until all COPY ║and REPLACE║ statements have been completely processed.
 
-(9) Each text word copied from the library but not replaced is copied so as to start in the same area of the line in the resultant program as it begins in the line within the library. However, if a text word copied from the library begins in area A but follows another text word, which also begins in area A of the same line, and if replacement of a preceding text word in the line by replacement text of greater length occurs, the following text word begins in area B if it cannot begin in area A. Each text word in pseudo-text-2 that is to be placed into the resultant program begins in the same area of the resultant program as it appears in pseudo-text-2. Each identifier-2, literal-2, and word-2 that is to be placed into the resultant program begins in the same area of the resultant program as the leftmost library text word that participated in the match would appear if it had not been replaced.
+(9) Each text word copied from the library ║but not replaced║ is copied so as to start in the same area of the line in the resultant program as it begins in the line within the library. ║However, if a text word copied from the library begins in area A but follows another text word, which also begins in area A of the same line, and if replacement of a preceding text word in the line by replacement text of greater length occurs, the following text word begins in area B if it cannot begin in area A. Each text word in pseudo-text-2 that is to be placed into the resultant program begins in the same area of the resultant program as it appears in pseudo-text-2. Each identifier-2, literal-2, and word-2 that is to be placed into the resultant program begins in the same area of the resultant program as the leftmost library text word that participated in the match would appear if it had not been replaced.║
 
 Library text must conform to the rules for COBOL reference format.
 
-If additional lines are introduced into the source program as a result of a COPY statement, each text word introduced appears on a debugging line if the COPY statement begins on a debugging line or if the text word being introduced appears on a debugging line in library text. When a text word
+If additional lines are introduced into the source program as a result of a COPY statement, each text word introduced appears on a debugging line if the COPY statement begins on a debugging line or if the text word being introduced appears on a debugging line in library text. ║When a text word║
 
 XII-4
 
@@ -20977,11 +20977,11 @@ XII-4
 
 Source Text Manipulation - COPY
 
-in the preceding cases, only those text words that are specified on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines in the resultant program. If any literal specified as literal-2 or within pseudo-text-2 or library text is of too great length to be accommodated on a single line without continuation to another line in the resultant program and the literal is not being placed on a debugging line, additional continuation lines are introduced which contain the remainder of the literal. If replacement requires that the continued literal be continued on a debugging line, the program is in error.
+║in the preceding cases, only those text words that are specified on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines in the resultant program. If any literal specified as literal-2 or within pseudo-text-2 or library text is of too great length to be accommodated on a single line without continuation to another line in the resultant program and the literal is not being placed on a debugging line, additional continuation lines are introduced which contain the remainder of the literal. If replacement requires that the continued literal be continued on a debugging line, the program is in error.║
 
-(10) For purposes of compilation, text words after replacement are placed in the source program according to the rules for reference format. (See page IV-41, Reference Format.) When copying text words of pseudo-text-2 into the source program, additional spaces may be introduced only between text words where there already exists a space (including the assumed space between source lines).
+║(10) For purposes of compilation, text words after replacement are placed in the source program according to the rules for reference format. (See page IV-41, Reference Format.) When copying text words of pseudo-text-2 into the source program, additional spaces may be introduced only between text words where there already exists a space (including the assumed space between source lines).║
 
-(11) If additional lines are introduced into the source program as a result of the processing of COPY statements, the indicator area of the introduced line contains the same character as the line on which the text being replaced begins, unless that line contains a hyphen, in which case the introduced line contains a space. In the case where a literal is continued onto an introduced line which is not a debugging line, a hyphen is placed in the indicator area.
+║(11) If additional lines are introduced into the source program as a result of the processing of COPY statements, the indicator area of the introduced line contains the same character as the line on which the text being replaced begins, unless that line contains a hyphen, in which case the introduced line contains a space. In the case where a literal is continued onto an introduced line which is not a debugging line, a hyphen is placed in the indicator area.║
 
 XII-5
 
@@ -20989,51 +20989,51 @@ XII-5
 
 Source Text Manipulation - REPLACE
 
-3. <u>THE REPLACE STATEMENT</u>
+║3. <u>THE REPLACE STATEMENT</u>║
 
-3.1 Function
+║3.1 Function║
 
-The REPLACE statement is used to replace source program text.
+║The REPLACE statement is used to replace source program text.║
 
-3.2 General Format
+║3.2 General Format║
 
-<u>Format 1:</u>
+║<u>Format 1:</u>║
 
 <pre style="line-height:1">
 ║ <u>REPLACE</u> { ==pseudo-text-1== <u>BY</u> ==pseudo-text-2== } … ║
 </pre>
 
-<u>Format 2:</u>
+║<u>Format 2:</u>║
 
 <pre style="line-height:1">
 <u>REPLACE</u> <u>OFF</u>
 </pre>
 
-3.3 Syntax Rules
+║3.3 Syntax Rules║
 
-(1) A REPLACE statement may occur anywhere in the source program where a character-string may occur. It must be preceded by a separator period except when it is the first statement in a separately compiled program.
+║(1) A REPLACE statement may occur anywhere in the source program where a character-string may occur. It must be preceded by a separator period except when it is the first statement in a separately compiled program.║
 
-(2) A REPLACE statement must be terminated by a separator period.
+║(2) A REPLACE statement must be terminated by a separator period.║
 
-(3) Pseudo-text-1 must contain one or more text words.
+║(3) Pseudo-text-1 must contain one or more text words.║
 
-(4) Pseudo-text-2 may contain zero, one, or more text words.
+║(4) Pseudo-text-2 may contain zero, one, or more text words.║
 
-(5) Character-strings within pseudo-text-1 and pseudo-text-2 may be continued. (See page IV-43, Pseudo-Text.)
+║(5) Character-strings within pseudo-text-1 and pseudo-text-2 may be continued. (See page IV-43, Pseudo-Text.)║
 
-(6) The implementor must allow a length from 1 through 322 characters for a text word within pseudo-text.
+║(6) The implementor must allow a length from 1 through 322 characters for a text word within pseudo-text.║
 
-(7) Pseudo-text-1 must not consist entirely of a separator comma or a separator semicolon.
+║(7) Pseudo-text-1 must not consist entirely of a separator comma or a separator semicolon.║
 
-(8) If the word REPLACE appears in a comment-entry or in the place where a comment-entry may appear, it is considered part of the comment-entry.
+║(8) If the word REPLACE appears in a comment-entry or in the place where a comment-entry may appear, it is considered part of the comment-entry.║
 
-3.4 General Rules
+║3.4 General Rules║
 
-(1) The format 1 REPLACE statement specifies the text of the source program to be replaced by the corresponding text. Each matched occurrence of pseudo-text-1 in the source program is replaced by the corresponding pseudo-text-2.
+║(1) The format 1 REPLACE statement specifies the text of the source program to be replaced by the corresponding text. Each matched occurrence of pseudo-text-1 in the source program is replaced by the corresponding pseudo-text-2.║
 
-(2) The format 2 REPLACE statement specifies that any text replacement currently in effect is discontinued.
+║(2) The format 2 REPLACE statement specifies that any text replacement currently in effect is discontinued.║
 
-(3) A given occurrence of the REPLACE statement is in effect from the point at which it is specified until the next occurrence of the statement or the end of the separately compiled program, respectively.
+║(3) A given occurrence of the REPLACE statement is in effect from the point at which it is specified until the next occurrence of the statement or the end of the separately compiled program, respectively.║
 
 XII-6
 
@@ -21041,27 +21041,27 @@ XII-6
 
 Source Text Manipulation - REPLACE
 
-(4) Any REPLACE statements contained in a source program are processed after the processing of any COPY statements contained in a source program.
+║(4) Any REPLACE statements contained in a source program are processed after the processing of any COPY statements contained in a source program.║
 
-(5) The text produced as a result of the processing of a REPLACE statement must not contain a REPLACE statement.
+║(5) The text produced as a result of the processing of a REPLACE statement must not contain a REPLACE statement.║
 
-(6) The comparison operation to determine text replacement occurs in the following manner:
+║(6) The comparison operation to determine text replacement occurs in the following manner:║
 
-a. Starting with the leftmost source program text word and the first pseudo-text-1, pseudo-text-1 is compared to an equivalent number of contiguous source program text words.
+║a. Starting with the leftmost source program text word and the first pseudo-text-1, pseudo-text-1 is compared to an equivalent number of contiguous source program text words.║
 
-b. Pseudo-text-1 matches the source program text if, and only if, the ordered sequence of text words that forms pseudo-text-1 is equal, character for character, to the ordered sequence of source program text words. For purposes of matching, each occurrence of a separator comma, semicolon, or space in pseudo-text-1 or in the source program text is considered to be a single space. Each sequence of one or more space separators is considered to be a single space.
+║b. Pseudo-text-1 matches the source program text if, and only if, the ordered sequence of text words that forms pseudo-text-1 is equal, character for character, to the ordered sequence of source program text words. For purposes of matching, each occurrence of a separator comma, semicolon, or space in pseudo-text-1 or in the source program text is considered to be a single space. Each sequence of one or more space separators is considered to be a single space.║
 
-c. If no match occurs, the comparison is repeated with each next successive occurrence of pseudo-text-1, until either a match is found or there is no next successive occurrence of pseudo-text-1.
+║c. If no match occurs, the comparison is repeated with each next successive occurrence of pseudo-text-1, until either a match is found or there is no next successive occurrence of pseudo-text-1.║
 
-d. When all occurrences of pseudo-text-1 have been compared and no match has occurred, the next successive source program text word is then considered as the leftmost source program text word, and the comparison cycle starts again with the first occurrence of pseudo-text-1.
+║d. When all occurrences of pseudo-text-1 have been compared and no match has occurred, the next successive source program text word is then considered as the leftmost source program text word, and the comparison cycle starts again with the first occurrence of pseudo-text-1.║
 
-e. Whenever a match occurs between pseudo-text-1 and the source program text, the corresponding pseudo-text-2 replaces the matched text in the source program. The source program text word immediately following the rightmost text word that participated in the match is then considered as the leftmost source program text word. The comparison cycle starts again with the first occurrence of pseudo-text-1.
+║e. Whenever a match occurs between pseudo-text-1 and the source program text, the corresponding pseudo-text-2 replaces the matched text in the source program. The source program text word immediately following the rightmost text word that participated in the match is then considered as the leftmost source program text word. The comparison cycle starts again with the first occurrence of pseudo-text-1.║
 
-f. The comparison operation continues until the rightmost text word in the source program text which is within the scope of the REPLACE statement has either participated in a match or been considered as a leftmost source program text word and participated in a complete comparison cycle.
+║f. The comparison operation continues until the rightmost text word in the source program text which is within the scope of the REPLACE statement has either participated in a match or been considered as a leftmost source program text word and participated in a complete comparison cycle.║
 
-(7) Comment lines or blank lines occurring in the source program text and in pseudo-text-1 are ignored for purposes of matching; and the sequence of text words in the source program text and in pseudo-text-1 is determined by the rules for reference format. (See page IV-41, Reference Format Representation.) Comment lines or blank lines in pseudo-text-2 are placed into the resultant program unchanged whenever pseudo-text-2 is placed into the source program as a result of text replacement. A comment line or blank line in source program text is not replaced if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.
+║(7) Comment lines or blank lines occurring in the source program text and in pseudo-text-1 are ignored for purposes of matching; and the sequence of text words in the source program text and in pseudo-text-1 is determined by the rules for reference format. (See page IV-41, Reference Format Representation.) Comment lines or blank lines in pseudo-text-2 are placed into the resultant program unchanged whenever pseudo-text-2 is placed into the source program as a result of text replacement. A comment line or blank line in source program text is not replaced if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.║
 
-(8) Debugging lines are permitted in pseudo-text. Text words within a debugging line participate in the matching rules as if the 'D' did not appear in the indicator area.
+║(8) Debugging lines are permitted in pseudo-text. Text words within a debugging line participate in the matching rules as if the 'D' did not appear in the indicator area.║
 
 XII-7
 
@@ -21069,13 +21069,13 @@ XII-7
 
 Source Text Manipulation - REPLACE
 
-(9) Except for COPY and REPLACE statements, the syntactic correctness of the source program text cannot be determined until after all COPY and REPLACE statements have been completely processed.
+║(9) Except for COPY and REPLACE statements, the syntactic correctness of the source program text cannot be determined until after all COPY and REPLACE statements have been completely processed.║
 
-(10) Text words inserted into the source program as a result of processing a REPLACE statement are placed in the source program according to the rules for reference format. (See page IV-41, Reference Format.) When inserting text words of pseudo-text-2 into the source program, additional spaces may be introduced only between text words where there already exists a space (including the assumed space between source lines).
+║(10) Text words inserted into the source program as a result of processing a REPLACE statement are placed in the source program according to the rules for reference format. (See page IV-41, Reference Format.) When inserting text words of pseudo-text-2 into the source program, additional spaces may be introduced only between text words where there already exists a space (including the assumed space between source lines).║
 
-(11) If additional lines are introduced into the source program as a result of the processing of REPLACE statements, the indicator area of the introduced lines contains the same character as the line on which the text being replaced begins, unless that line contains a hyphen, in which case the introduced line contains a space.
+║(11) If additional lines are introduced into the source program as a result of the processing of REPLACE statements, the indicator area of the introduced lines contains the same character as the line on which the text being replaced begins, unless that line contains a hyphen, in which case the introduced line contains a space.║
 
-If any literal within pseudo-text-2 is of a length too great to be accommodated on a single line without continuation to another line in the resultant program and the literal is not being placed on a debugging line, additional continuation lines are introduced which contain the remainder of the literal. If replacement requires the continued literal to be continued on a debugging line, the program is in error.
+║If any literal within pseudo-text-2 is of a length too great to be accommodated on a single line without continuation to another line in the resultant program and the literal is not being placed on a debugging line, additional continuation lines are introduced which contain the remainder of the literal. If replacement requires the continued literal to be continued on a debugging line, the program is in error.║
 
 XII-8
 
@@ -23589,7 +23589,7 @@ The Communication module provides the ability to access, process, and create mes
 
 Communication level 1 provides limited capabilities for the communication description entry. Within the Procedure Division, Communication level 1 provides limited capabilities for the RECEIVE and SEND statements and full capabilities for the ACCEPT MESSAGE COUNT statement.
 
-> Communication level 2 provides full capabilities for the communication description entry. Within the Procedure Division, Communication level 2 provides full capabilities for the ACCEPT MESSAGE COUNT, DISABLE, ENABLE, PURGE, RECEIVE, and SEND statements.
+> ║Communication level 2 provides full capabilities for the communication description entry. Within the Procedure Division, Communication level 2 provides full capabilities for the ACCEPT MESSAGE COUNT, DISABLE, ENABLE, PURGE, RECEIVE, and SEND statements.║
 
 XIV-1
 
@@ -23617,7 +23617,7 @@ The general format of the Communication Section is shown below:
 
 In a COBOL program the communication description entry (CD entry) represents the highest level of organization in the Communication Section. The Communication Section header is followed by a communication description entry consisting of a level indicator (CD), a cd-name, and a series of independent clauses. The entry itself is terminated by a period.
 
-For an input communication description entry the clauses specify the queue, sub-queues, message date, message time, symbolic source, text length, end key, status key, and message count. For an output communication description entry the clauses specify the destination count, text length, status key, error keys, and symbolic destinations. For an input-output communication description entry the clauses specify the message date, message time, symbolic terminal, text length, end key, and status key.
+For an input communication description entry the clauses specify the queue, ║sub-queues,║ message date, message time, symbolic source, text length, end key, status key, and message count. For an output communication description entry the clauses specify the destination count, text length, status key, error keys, and symbolic destinations. For an input-output communication description entry the clauses specify the message date, message time, symbolic terminal, text length, end key, and status key.
 
 #### 2.1.2 Record Description Structure
 
@@ -23714,7 +23714,7 @@ Communication - CD Entry
 
 <u>FORMATS 1 AND 3</u>:
 
-(2) Within a single program, the INITIAL clause may be specified in only one CD entry. The INITIAL clause must not be used in a program that specifies the USING phrase of the Procedure Division header. (See page X-25, The Procedure Division Header.)
+║(2) Within a single program, the INITIAL clause may be specified in only one CD entry. The INITIAL clause must not be used in a program that specifies the USING phrase of the Procedure Division header. (See page X-25, The Procedure Division Header.)║
 
 XIV-4
 
@@ -23722,7 +23722,7 @@ XIV-4
 
 Communication - CD Entry
 
-(3) Except for the INITIAL clause, the optional clauses may be written in any order.
+(3) ║Except for the INITIAL clause,║ the optional clauses may be written in any order.
 
 (4) If neither option for specifying the interface area is used, a level 01 data description entry must follow the CD entry. Either option may be followed by a level 01 data description entry.
 
@@ -23742,11 +23742,11 @@ Communication - CD Entry
 
 (10) Data-name-1, data-name-2, data-name-3, data-name-4, and data-name-5 must be unique within a CD entry.
 
-(11) If the DESTINATION TABLE OCCURS clause is not specified, one error key and one symbolic destination area are assumed. In this case, subscripting is not permitted when referencing these data items.
+(11) ║If the DESTINATION TABLE OCCURS clause is not specified,║ one error key and one symbolic destination area are assumed. In this case, subscripting is not permitted when referencing these data items.
 
-(12) If the DESTINATION TABLE OCCURS clause is specified, data-name-4 and data-name-5 may be referenced only by subscripting.
+║(12) If the DESTINATION TABLE OCCURS clause is specified, data-name-4 and data-name-5 may be referenced only by subscripting.║
 
-(13) In level 1, the value of the data item referenced by data-name-1 must be 1. In level 2, there is no restriction on the value of the data item referenced by data-name-1.
+(13) In level 1, the value of the data item referenced by data-name-1 must be 1. ║In level 2, there is no restriction on the value of the data item referenced by data-name-1.║
 
 FORMAT 3:
 
@@ -23772,11 +23772,11 @@ redefinitions of this record are permitted; however, only the first redefinition
 
 a. The SYMBOLIC QUEUE clause defines data-name-1 as the name of an elementary alphanumeric data item of 12 characters occupying positions 1 through 12 in the record.
 
-> b. The SYMBOLIC SUB-QUEUE-1 clause defines data-name-2 as the name of an elementary alphanumeric data item of 12 characters occupying positions 13 through 24 in the record.
+> ║b. The SYMBOLIC SUB-QUEUE-1 clause defines data-name-2 as the name of an elementary alphanumeric data item of 12 characters occupying positions 13 through 24 in the record.║
 >
-> c. The SYMBOLIC SUB-QUEUE-2 clause defines data-name-3 as the name of an elementary alphanumeric data item of 12 characters occupying positions 25 through 36 in the record.
+> ║c. The SYMBOLIC SUB-QUEUE-2 clause defines data-name-3 as the name of an elementary alphanumeric data item of 12 characters occupying positions 25 through 36 in the record.║
 >
-> d. The SYMBOLIC SUB-QUEUE-3 clause defines data-name-4 as the name of an elementary alphanumeric data item of 12 characters occupying positions 37 through 48 in the record.
+> ║d. The SYMBOLIC SUB-QUEUE-3 clause defines data-name-4 as the name of an elementary alphanumeric data item of 12 characters occupying positions 37 through 48 in the record.║
 
 e. The MESSAGE DATE clause defines data-name-5 as the name of a data item whose implicit description is that of an integer of 6 digits, without an operational sign, occupying character positions 49 through 54 in the record.
 
@@ -23798,7 +23798,7 @@ j. The STATUS KEY clause defines data-name-10 as the name of an elementary alpha
 
 k. The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits, without an operational sign, occupying character positions 82 through 87 in the record.
 
-The second option may be used to replace the above clauses by a series of data-names which, taken in order, correspond to the data-names defined by these clauses.
+║The second option may be used to replace the above clauses by a series of data-names which, taken in order, correspond to the data-names defined by these clauses.║
 
 Use of either option results in a record whose implicit description is equivalent to the following:
 
@@ -23806,8 +23806,8 @@ Use of either option results in a record whose implicit description is equivalen
 |---|---|
 | 01 data-name-0. | |
 | &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-1 PICTURE X(12). | SYMBOLIC QUEUE |
-| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-2 PICTURE X(12). | SYMBOLIC SUB-QUEUE-1 |
-| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-3 PICTURE X(12). | SYMBOLIC SUB-QUEUE-2 |
+| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-2 PICTURE X(12). | ║SYMBOLIC SUB-QUEUE-1║ |
+| ║&nbsp;&nbsp;&nbsp;&nbsp;02 data-name-3 PICTURE X(12). | SYMBOLIC SUB-QUEUE-║2 |
 | &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-4 PICTURE X(12). | SYMBOLIC SUB-QUEUE-3 |
 | &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-5 PICTURE 9(6). | MESSAGE DATE |
 | &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-6 PICTURE 9(8). | MESSAGE TIME |
@@ -23819,13 +23819,13 @@ Use of either option results in a record whose implicit description is equivalen
 
 NOTE: In the above, the information under 'COMMENT' is for clarification and is not part of the data description.
 
-(3) The contents of the data items referenced by data-name-2, data-name-3, and data-name-4, when not being used must contain spaces.
+(3) The contents of the data items referenced by data-name-2, data-name-3, and data-name-4, ║when not being used║ must contain spaces.
 
-(4) The data items referenced by data-name-1, data-name-2, data-name-3, and data-name-4 contain symbolic names designating queues, sub-queues, ... , respectively. These symbolic names must follow the rules for the formation of system-names, and must have been previously defined to the message control system (MCS).
+(4) The data items referenced by data-name-1, ║data-name-2, data-name-3, and data-name-4║ contain symbolic names designating queues, ║sub-queues, ... ,║ respectively. These symbolic names must follow the rules for the formation of system-names, and must have been previously defined to the message control system (MCS).
 
-(5) A RECEIVE statement causes the serial return of the next message or a portion of a message from the queue as specified by the entries in the CD.
+(5) A RECEIVE statement causes the serial return of the next message ║or a portion of a message║ from the queue as specified by the entries in the CD.
 
-At the time of execution of a RECEIVE statement, the input CD area must contain, in the content of data-name-1, the name of a symbolic queue. The data items specified by data-name-2, data-name-3, and data-name-4 may contain symbolic sub-queue names or spaces. When a given level of the queue structure is specified all higher levels must also be specified. If less than all the levels of the queue hierarchy are specified, the MCS determines the next message or portion of a message to be accessed within the queue and/or sub-queue specified in the input CD.
+At the time of execution of a RECEIVE statement, the input CD area must contain, in the content of data-name-1, the name of a symbolic queue. The data items specified by data-name-2, data-name-3, and data-name-4 ║may contain symbolic sub-queue names or spaces. When a given level of the queue structure is specified all higher levels must also be specified. If less than all the levels of the queue hierarchy are specified, the MCS determines the next message or portion of a message to be accessed within the queue and/or sub-queue specified in the input CD.║
 
 XIV-7
 
@@ -23835,13 +23835,13 @@ Communication - CD Entry
 
 After the execution of a RECEIVE statement, the contents of the data items referenced by data-name-1 through data-name-4 will contain the symbolic names of all the levels of the queue structure.
 
-(6) Whenever a program is scheduled by the message control system (MCS) to process a message, that program establishes a run unit and the symbolic names of the queue structure that demanded this activity will be placed in the data items referenced by data-name-1 through data-name-4 of the CD associated with the INITIAL clause as applicable. In all other cases, the contents of the data items referenced by data-name-1 through data-name-4 of the CD associated with the INITIAL clause are initialized to spaces.
+║(6) Whenever a program is scheduled by the message control system (MCS) to process a message, that program establishes a run unit and the symbolic names of the queue structure that demanded this activity will be placed in the data items referenced by data-name-1 through data-name-4 of the CD associated with the INITIAL clause as applicable. In all other cases, the contents of the data items referenced by data-name-1 through data-name-4 of the CD associated with the INITIAL clause are initialized to spaces.║
 
-The symbolic names are inserted or the initialization to spaces is completed prior to the execution of the first Procedure Division statement.
+║The symbolic names are inserted or the initialization to spaces is completed prior to the execution of the first Procedure Division statement.║
 
-The execution of a subsequent RECEIVE statement naming the same contents of the data items referenced by data-name-1 through data-name-4 will return the actual message that caused the program to be scheduled. Only at that time will the remainder of the CD be updated.
+║The execution of a subsequent RECEIVE statement naming the same contents of the data items referenced by data-name-1 through data-name-4 will return the actual message that caused the program to be scheduled. Only at that time will the remainder of the CD be updated.║
 
-(7) If the MCS attempts to schedule a program lacking an INITIAL clause, the results are undefined.
+║(7) If the MCS attempts to schedule a program lacking an INITIAL clause, the results are undefined.║
 
 (8) During the execution of a RECEIVE statement, the MCS provides, in the data item referenced by data-name-5, the date on which it recognized that the message was complete in the form 'YYMMDD' (year, month, day). The content of the data item referenced by data-name-5 is not updated by the MCS other than as part of the execution of a RECEIVE statement.
 
@@ -23865,7 +23865,7 @@ Communication - CD Entry
 
 2\) If an end of message has been detected, the content of the data item referenced by data-name-9 is set to 2;
 
-3\) If less than a message is transferred, the content of the data item referenced by data-name-9 is set to 0.
+║3\) If less than a message is transferred, the content of the data item referenced by data-name-9 is set to 0.║
 
 b. When the RECEIVE SEGMENT phrase is specified, then:
 
@@ -23879,17 +23879,17 @@ b. When the RECEIVE SEGMENT phrase is specified, then:
 
 c. When more than one of the above conditions is satisfied simultaneously, the rule first satisfied in the order listed determines the content of the data item referenced by data-name-9.
 
-(13) The content of the data item referenced by data-name-10 indicates the status condition of the previously executed RECEIVE, ACCEPT MESSAGE COUNT, ENABLE INPUT, or DISABLE INPUT statement.
+(13) The content of the data item referenced by data-name-10 indicates the status condition of the previously executed RECEIVE, ACCEPT MESSAGE COUNT, ║ENABLE INPUT, or DISABLE INPUT║ statement.
 
 The actual association between the content of the data item referenced by data-name-10 and the status condition itself is defined in table 1 on page XIV-15.
 
-(14) The content of the data item referenced by data-name-11 indicates the number of messages that exist in a queue, sub-queue-1, ... . The MCS updates the content of the data item referenced by data-name-11 only as part of the execution of an ACCEPT MESSAGE COUNT statement.
+(14) The content of the data item referenced by data-name-11 indicates the number of messages that exist in a queue, ║sub-queue-1, ...║ . The MCS updates the content of the data item referenced by data-name-11 only as part of the execution of an ACCEPT MESSAGE COUNT statement.
 
 <u>FORMAT 2</u>:
 
 (15) The nature of the output CD information is such that it is not sent to the terminal, but constitutes the communication between the program and the MCS about the message being handled.
 
-(16) In level 1 a record area of 23 contiguous character positions is allocated for each output CD. In level 2 a record area of contiguous character positions is allocated for each output CD according to the following formula: (10 plus (13 times integer-1)). The implicit description of this record area is:
+(16) In level 1 a record area of 23 contiguous character positions is allocated for each output CD. ║In level 2 a record area of contiguous character positions is allocated for each output CD according to the following formula: (10 plus (13 times integer-1)).║ The implicit description of this record area is:
 
 a. The DESTINATION COUNT clause defines data-name-1 as the name of a data item whose implicit description is that of an integer, without an operational sign, occupying character positions 1 through 4 in the record.
 
@@ -23905,7 +23905,7 @@ digits, without an operational sign, occupying character positions 5 through 8 i
 
 c. The STATUS KEY clause defines data-name-3 to be an elementary alphanumeric data item of 2 characters occupying positions 9 and 10 in the record.
 
-d. Character positions 11 through 23 and every set of 13 characters thereafter will form table items of the following description:
+d. Character positions 11 through 23 ║and every set of 13 characters thereafter║ will form table items of the following description:
 
 1\) The ERROR KEY clause defines data-name-4 as the name of an elementary alphanumeric data item of 1 character.
 
@@ -23919,19 +23919,19 @@ Use of the above clauses results in a record whose implicit description is equiv
 | &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-1 PICTURE 9(4). | DESTINATION COUNT |
 | &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-2 PICTURE 9(4). | TEXT LENGTH |
 | &nbsp;&nbsp;&nbsp;&nbsp;02 data-name-3 PICTURE XX. | STATUS KEY |
-| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name OCCURS integer-1 TIMES. | DESTINATION TABLE |
+| &nbsp;&nbsp;&nbsp;&nbsp;02 data-name ║OCCURS integer-1 TIMES.║ | DESTINATION TABLE |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;03 data-name-4 PICTURE X. | ERROR KEY |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;03 data-name-5 PICTURE X(12). | SYMBOLIC DESTINATION |
 
 NOTE: In the above, the information under 'COMMENT' is for clarification and is not part of the data description.
 
-(17) During the execution of a SEND, PURGE, ENABLE OUTPUT, or DISABLE OUTPUT statement, the content of the data item referenced by data-name-1 will indicate to the MCS the number of symbolic destinations that are to be used from the area referenced by data-name-5.
+(17) During the execution of a SEND, ║PURGE, ENABLE OUTPUT, or DISABLE OUTPUT║ statement, the content of the data item referenced by data-name-1 will indicate to the MCS the number of symbolic destinations that are to be used from the area referenced by data-name-5.
 
-The MCS finds the first symbolic destination name in the first occurrence of the area referenced by data-name-5, the second symbolic destination name in the second occurrence of the area referenced by data-name-5, ... , up to and including the occurrence of the area referenced by data-name-5 indicated by the content of data-name-1.
+The MCS finds the first symbolic destination name in the first occurrence of the area referenced by data-name-5, ║the second symbolic destination name in the second occurrence of the area referenced by data-name-5, ... , up to and including the occurrence of the area referenced by data-name-5 indicated by the content of data-name-1.║
 
-If during the execution of a SEND, PURGE, ENABLE OUTPUT, or DISABLE OUTPUT statement the value of the data item referenced by data-name-1 is outside the range of 1 through integer-1, an error condition is indicated, no action is taken for any destination, and the execution of the SEND, PURGE, ENABLE OUTPUT, or DISABLE OUTPUT statement is terminated.
+If during the execution of a SEND, ║PURGE, ENABLE OUTPUT, or DISABLE OUTPUT║ statement the value of the data item referenced by data-name-1 is outside the range of 1 ║through integer-1,║ an error condition is indicated, no action is taken for any destination, and the execution of the SEND, ║PURGE, ENABLE OUTPUT, or DISABLE OUTPUT║ statement is terminated.
 
-(18) It is the responsibility of the user to insure that the value of the data item referenced by data-name-1 is valid at the time of execution of the SEND, PURGE, ENABLE OUTPUT, or DISABLE OUTPUT statement.
+(18) It is the responsibility of the user to insure that the value of the data item referenced by data-name-1 is valid at the time of execution of the SEND, ║PURGE, ENABLE OUTPUT, or DISABLE OUTPUT║ statement.
 
 (19) As part of the execution of a SEND statement, the MCS will interpret the content of the data item referenced by data-name-2 to be the user's indication
 
@@ -23943,13 +23943,13 @@ Communication - CD Entry
 
 of the number of leftmost character positions of the data item referenced by the identifier in the associated SEND statement from which data is to be transferred. (See page XIV-26, The SEND Statement.)
 
-(20) Each occurrence of the data item referenced by data-name-5 contains a symbolic destination name previously known to the MCS. These symbolic destination names must follow the rules for the formation of system-names.
+(20) ║Each occurrence of║ the data item referenced by data-name-5 contains a symbolic destination name previously known to the MCS. These symbolic destination names must follow the rules for the formation of system-names.
 
-(21) The content of the data item referenced by data-name-3, indicates the status condition of the previously executed SEND, PURGE, ENABLE OUTPUT, or DISABLE OUTPUT statement.
+(21) The content of the data item referenced by data-name-3, indicates the status condition of the previously executed SEND, ║PURGE, ENABLE OUTPUT, or DISABLE OUTPUT║ statement.
 
 The actual association between the content of the data item referenced by data-name-3 and the status condition itself is defined in the table on page XIV-15.
 
-(22) If, during execution of a DISABLE OUTPUT, ENABLE OUTPUT, PURGE, or SEND statement, the MCS determines an error has occurred, the content of the data item referenced by data-name-3 and the content of each occurrence of data-name-4, up to and including the occurrence specified by the content of data-name-1, are updated.
+(22) If, during execution of a ║DISABLE OUTPUT, ENABLE OUTPUT, PURGE, or║ SEND statement, the MCS determines an error has occurred, the content of the data item referenced by data-name-3 and the content of ║each occurrence of║ data-name-4, ║up to and including the occurrence specified by the content of data-name-1,║ are updated.
 
 The actual association between the content of the data item referenced by data-name-4 and the error condition itself is defined in the table on page XIV-16.
 
@@ -23977,7 +23977,7 @@ Communication - CD Entry
 
 f. The STATUS KEY clause defines data-name-6 as the name of an elementary alphanumeric data item of 2 characters occupying positions 32 and 33 in the record.
 
-> The second option may be used to replace the above clauses by a series of data-names which, taken in order, correspond to the data-names defined by these clauses.
+> ║The second option may be used to replace the above clauses by a series of data-names which, taken in order, correspond to the data-names defined by these clauses.║
 
 Use of either option results in a record whose implicit description is equivalent to the following:
 
@@ -23995,7 +23995,7 @@ Use of either option results in a record whose implicit description is equivalen
 
 NOTE: In the above, the information under 'COMMENT' is for clarification and is not part of the data description.
 
-> (25) When a program is scheduled by the MCS to process a message, the first RECEIVE statement referencing the input-output CD with the INITIAL clause returns the actual message that caused the program to be scheduled.
+> ║(25) When a program is scheduled by the MCS to process a message, the first RECEIVE statement referencing the input-output CD with the INITIAL clause returns the actual message that caused the program to be scheduled.║
 
 (26) Data-name-1 has the format 'YYMMDD' (year, month, day). Its content represents the date on which the MCS recognizes that the message is complete.
 
@@ -24005,11 +24005,11 @@ The content of the data item referenced by data-name-1 is updated only by the MC
 
 The content of the data item referenced by data-name-2 is updated only by the MCS as part of the execution of the RECEIVE statement.
 
-> (28) Whenever a program is scheduled by the MCS to process a message, that program establishes a run unit and the symbolic name of the communication terminal that is the source of the message that invoked this program is placed in the data item referenced by data-name-3 of the input-output CD associated with the INITIAL clause as applicable. This symbolic name must follow the rules for the formation of system-names.
+> ║(28) Whenever a program is scheduled by the MCS to process a message, that program establishes a run unit and the symbolic name of the communication terminal that is the source of the message that invoked this program is placed in the data item referenced by data-name-3 of the input-output CD associated with the INITIAL clause as applicable. This symbolic name must follow the rules for the formation of system-names.║
 >
-> In all other cases, the content of the data item referenced by data-name-3 of the input-output CD associated with the INITIAL clause is initialized to spaces.
+> ║In all other cases, the content of the data item referenced by data-name-3 of the input-output CD associated with the INITIAL clause is initialized to spaces.║
 >
-> The symbolic name is inserted, or the initialization to spaces is completed, prior to the execution of the first Procedure Division statement.
+> ║The symbolic name is inserted, or the initialization to spaces is completed, prior to the execution of the first Procedure Division statement.║
 
 XIV-12
 
@@ -24019,9 +24019,9 @@ Communication - CD Entry
 
 (29) If the MCS attempts to schedule a program lacking an INITIAL clause, the results are undefined.
 
-(30) When the INITIAL clause is specified for an input-output CD and the program is scheduled by the MCS, the content of the data item referenced by data-name-3 must not be changed by the program. If this content is changed, the execution of any statement referencing cd-name-1 is unsuccessful, and the data item referenced by data-name-6 is set to indicate unknown source or destination, as applicable. (See table on page XIV-15.)
+║(30) When the INITIAL clause is specified for an input-output CD and the program is scheduled by the MCS, the content of the data item referenced by data-name-3 must not be changed by the program. If this content is changed, the execution of any statement referencing cd-name-1 is unsuccessful, and the data item referenced by data-name-6 is set to indicate unknown source or destination, as applicable. (See table on page XIV-15.)║
 
-(31) For an input-output CD without the INITIAL clause, or for an input-output CD with the INITIAL clause when the program is not scheduled by the MCS, the program must specify the symbolic name of the source or destination in data-name-3 prior to the execution of the first statement referencing cd-name-1.
+(31) For an input-output CD ║without the INITIAL clause, or for an input-output CD with the INITIAL clause║ when the program is not scheduled by the MCS, the program must specify the symbolic name of the source or destination in data-name-3 prior to the execution of the first statement referencing cd-name-1.
 
 After executing the first statement referencing cd-name-1, the content of the data item referenced by data-name-3 must not be changed by the program. If this content is changed, the execution of any statement referencing cd-name-1 is unsuccessful, and the data item referenced by data-name-6 is set to indicate unknown source or destination, as applicable. (See table on page XIV-15.)
 
@@ -24037,13 +24037,13 @@ a. When the RECEIVE MESSAGE phrase is specified:
 
 2\) If an end of message has been detected, the content of the data item referenced by data-name-5 is set to 2;
 
-3\) If less than a message is transferred, the content of the data item referenced by data-name-5 is set to 0.
+║3\) If less than a message is transferred, the content of the data item referenced by data-name-5 is set to 0.║
 
-b. When the RECEIVE SEGMENT phrase is specified:
+║b. When the RECEIVE SEGMENT phrase is specified:║
 
-1\) If an end of group has been detected, the content of the data item referenced by data-name-5 is set to 3;
+║1\) If an end of group has been detected, the content of the data item referenced by data-name-5 is set to 3;║
 
-2\) If an end of message has been detected, the content of the data item referenced by data-name-5 is set to 2;
+║2\) If an end of message has been detected, the content of the data item referenced by data-name-5 is set to 2;║
 
 XIV-13
 
@@ -24051,19 +24051,19 @@ XIV-13
 
 Communication - CD Entry
 
-3\) If an end of segment has been detected, the content of the data item referenced by data-name-5 is set to 1;
+║3\) If an end of segment has been detected, the content of the data item referenced by data-name-5 is set to 1;║
 
-4\) If less than a message segment is transferred, the content of the data item referenced by data-name-5 is set to 0.
+║4\) If less than a message segment is transferred, the content of the data item referenced by data-name-5 is set to 0.║
 
 c. When more than one of the conditions is satisfied simultaneously, the rule first satisfied in the order listed determines the content of the data item referenced by data-name-5.
 
-(34) The content of the data item referenced by data-name-6 indicates the status condition of the previously executed DISABLE, ENABLE, PURGE, RECEIVE, or SEND statement.
+(34) The content of the data item referenced by data-name-6 indicates the status condition of the previously executed ║DISABLE, ENABLE, PURGE,║ RECEIVE, or SEND statement.
 
 The actual association between the content of the data item referenced by data-name-6 and the status condition itself is defined in table 1 on page XIV-15.
 
 ### 2.2.5 Communication Status Key Conditions
 
-Table 1 on page XIV-15 indicates the possible contents of the data items referenced by data-name-10 for format 1, by data-name-3 for format 2, and by data-name-6 for format 3 at the completion of each statement shown. An 'X' on a line in a statement column indicates that the associated status key value shown for that line is possible for that statement. The symbol <sup>2</sup> indicates a level 2 element that is not available in level 1.
+Table 1 on page XIV-15 indicates the possible contents of the data items referenced by data-name-10 for format 1, by data-name-3 for format 2, and by data-name-6 for format 3 at the completion of each statement shown. An 'X' on a line in a statement column indicates that the associated status key value shown for that line is possible for that statement. ║The symbol <sup>2</sup> indicates a level 2 element that is not available in level 1.║
 
 XIV-14
 
@@ -24099,7 +24099,7 @@ Communication - Error Key Values
 
 ## 2.2.6 Error Key Values
 
-Table 2 below indicates the possible content of the data item referenced by data-name-4 for format 2 at the completion of each statement shown. An 'X' on a line in a statement column indicates that the associated error key value shown for that line is possible for that statement. The symbol ² indicates a level 2 element that is not available in level 1.
+Table 2 below indicates the possible content of the data item referenced by data-name-4 for format 2 at the completion of each statement shown. An 'X' on a line in a statement column indicates that the associated error key value shown for that line is possible for that statement. ║The symbol ² indicates a level 2 element that is not available in level 1.║
 
 | SEND | PURGE² | ENABLE OUTPUT² | DISABLE OUTPUT² | Error Key Value | |
 |---|---|---|---|---|---|
@@ -24140,7 +24140,7 @@ The ACCEPT MESSAGE COUNT statement causes the number of complete messages in a q
 
 #### 3.1.4 General Rules
 
-(1) The ACCEPT MESSAGE COUNT statement causes the message count data item specified for cd-name-1 to be updated to indicate the number of complete messages that exist in the queue structure designated by the contents of the data items specified by data-name-1 (SYMBOLIC QUEUE) through data-name-4 (SYMBOLIC SUB-QUEUE-3) of the area referenced by cd-name-1.
+(1) The ACCEPT MESSAGE COUNT statement causes the message count data item specified for cd-name-1 to be updated to indicate the number of complete messages that exist in the queue structure designated by the contents of the data items specified by data-name-1 (SYMBOLIC QUEUE) ║through data-name-4 (SYMBOLIC SUB-QUEUE-3)║ of the area referenced by cd-name-1.
 
 (2) Upon execution of the ACCEPT MESSAGE COUNT statement, the content of the area specified by a communication description entry must contain at least the name of the symbolic queue to be tested. Testing the condition causes the content of the data items referenced by data-name-10 (STATUS KEY) and data-name-11 (MESSAGE COUNT) of the area associated with the communication description entry to be appropriately updated. (See page XIV-3, The Communication Description Entry.)
 
@@ -24150,13 +24150,13 @@ XIV-17
 
 Communication - DISABLE
 
-## 3.2 THE DISABLE STATEMENT
+## ║3.2 THE DISABLE STATEMENT║
 
-### 3.2.1 Function
+### ║3.2.1 Function║
 
-The DISABLE statement notifies the message control system (MCS) to inhibit data transfer between specified output queues and destinations for output or between specified sources and input queues for input or between the program and one specified source or destination for input-output. The WITH KEY phrase is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
+║The DISABLE statement notifies the message control system (MCS) to inhibit data transfer between specified output queues and destinations for output or between specified sources and input queues for input or between the program and one specified source or destination for input-output. The WITH KEY phrase is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.║
 
-### 3.2.2 General Format
+### ║3.2.2 General Format║
 
 <pre style="line-height:1">
 ╔         ╭ <u>INPUT</u> [ <u>TERMINAL</u> ] ╮                                         ╗
@@ -24166,23 +24166,23 @@ The DISABLE statement notifies the message control system (MCS) to inhibit data 
 ╚         ╰ <u>OUTPUT</u>             ╯                                         ╝
 </pre>
 
-### 3.2.3 Syntax Rules
+### ║3.2.3 Syntax Rules║
 
-(1) Cd-name-1 must reference an input CD when the INPUT phrase is specified.
+║(1) Cd-name-1 must reference an input CD when the INPUT phrase is specified.║
 
-(2) Cd-name-1 must reference an input-output CD when the I-O TERMINAL phrase is specified.
+║(2) Cd-name-1 must reference an input-output CD when the I-O TERMINAL phrase is specified.║
 
-(3) Cd-name-1 must reference an output CD when the OUTPUT phrase is specified.
+║(3) Cd-name-1 must reference an output CD when the OUTPUT phrase is specified.║
 
-(4) Literal-1 or the content of the data item referenced by identifier-1 must be defined as alphanumeric.
+║(4) Literal-1 or the content of the data item referenced by identifier-1 must be defined as alphanumeric.║
 
-### 3.2.4 General Rules
+### ║3.2.4 General Rules║
 
-(1) The DISABLE statement provides a logical disconnection between the MCS and the specified sources or destinations. When this logical disconnection is already in existence, or is to be handled by some other means external to this program, the DISABLE statement is not required in this program. No action is taken when a DISABLE statement is executed which specifies a source or destination which is already disconnected, except that the value in the status key data item indicates this condition. The logical path for the transfer of data between the COBOL programs and the MCS is not affected by the DISABLE statement.
+║(1) The DISABLE statement provides a logical disconnection between the MCS and the specified sources or destinations. When this logical disconnection is already in existence, or is to be handled by some other means external to this program, the DISABLE statement is not required in this program. No action is taken when a DISABLE statement is executed which specifies a source or destination which is already disconnected, except that the value in the status key data item indicates this condition. The logical path for the transfer of data between the COBOL programs and the MCS is not affected by the DISABLE statement.║
 
-(2) The MCS will insure that the execution of a DISABLE statement will cause the logical disconnection at the earliest time the source or destination is inactive. The execution of the DISABLE statement will never cause the remaining portion of the message to be terminated during transmission to or from a terminal.
+║(2) The MCS will insure that the execution of a DISABLE statement will cause the logical disconnection at the earliest time the source or destination is inactive. The execution of the DISABLE statement will never cause the remaining portion of the message to be terminated during transmission to or from a terminal.║
 
-(3) When the INPUT phrase without the optional word TERMINAL is specified, the logical paths between the queue and sub-queues specified by the contents of data-name-1 (SYMBOLIC QUEUE) through data-name-4 (SYMBOLIC SUB-QUEUE-3) of the area referenced by cd-name-1 and all the associated enabled sources are deactivated.
+║(3) When the INPUT phrase without the optional word TERMINAL is specified, the logical paths between the queue and sub-queues specified by the contents of data-name-1 (SYMBOLIC QUEUE) through data-name-4 (SYMBOLIC SUB-QUEUE-3) of the area referenced by cd-name-1 and all the associated enabled sources are deactivated.║
 
 XIV-18
 
@@ -24190,15 +24190,15 @@ XIV-18
 
 Communication - DISABLE
 
-(4) When the INPUT phrase with the optional word TERMINAL is specified, the logical paths between the source (as defined by the content of the data item referenced by data-name-7 (SYMBOLIC SOURCE) and all of its associated queues and sub-queues are deactivated.
+║(4) When the INPUT phrase with the optional word TERMINAL is specified, the logical paths between the source (as defined by the content of the data item referenced by data-name-7 (SYMBOLIC SOURCE) and all of its associated queues and sub-queues are deactivated.║
 
-(5) When the I-O TERMINAL phrase is specified, the logical path between the source (as defined by the content of the data item referenced by data-name-3 (SYMBOLIC TERMINAL)) and the program is deactivated.
+║(5) When the I-O TERMINAL phrase is specified, the logical path between the source (as defined by the content of the data item referenced by data-name-3 (SYMBOLIC TERMINAL)) and the program is deactivated.║
 
-(6) When the OUTPUT phrase is specified, the logical paths are deactivated for all destinations specified by the content of each occurrence of data-name-5 up to and including the occurrence specified by the content of data-name-1 of the area referenced by cd-name-1.
+║(6) When the OUTPUT phrase is specified, the logical paths are deactivated for all destinations specified by the content of each occurrence of data-name-5 up to and including the occurrence specified by the content of data-name-1 of the area referenced by cd-name-1.║
 
-(7) Literal-1 or the content of the data item referenced by identifier-1 will be matched with a password built into the system. The DISABLE statement will be honored only if literal-1 or the content of the data item referenced by identifier-1 match the system password. When literal-1 or the content of the data item referenced by identifier-1 do not match the system password, the value of the STATUS KEY item in the area referenced by cd-name-1 is updated.
+║(7) Literal-1 or the content of the data item referenced by identifier-1 will be matched with a password built into the system. The DISABLE statement will be honored only if literal-1 or the content of the data item referenced by identifier-1 match the system password. When literal-1 or the content of the data item referenced by identifier-1 do not match the system password, the value of the STATUS KEY item in the area referenced by cd-name-1 is updated.║
 
-The message control system must be capable of handling a password of from one to ten characters inclusive.
+║The message control system must be capable of handling a password of from one to ten characters inclusive.║
 
 XIV-19
 
@@ -24206,13 +24206,13 @@ XIV-19
 
 Communication - ENABLE
 
-3.3 THE ENABLE STATEMENT
+║3.3 THE ENABLE STATEMENT║
 
-3.3.1 Function
+║3.3.1 Function║
 
-The ENABLE statement notifies the message control system (MCS) to allow data transfer between specified output queues and destinations for output or between specified sources and input queues for input or between the program and one specified source or destination for input-output. The WITH KEY phrase is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
+║The ENABLE statement notifies the message control system (MCS) to allow data transfer between specified output queues and destinations for output or between specified sources and input queues for input or between the program and one specified source or destination for input-output. The WITH KEY phrase is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.║
 
-3.3.2 General Format
+║3.3.2 General Format║
 
 <pre style="line-height:1">
 ╔        ╭ <u>INPUT</u> [ <u>TERMINAL</u> ] ╮                                         ╗
@@ -24222,25 +24222,25 @@ The ENABLE statement notifies the message control system (MCS) to allow data tra
 ╚        ╰ <u>OUTPUT</u>             ╯                                         ╝
 </pre>
 
-3.3.3 Syntax Rules
+║3.3.3 Syntax Rules║
 
-(1) Cd-name-1 must reference an input CD when the INPUT phrase is specified.
+║(1) Cd-name-1 must reference an input CD when the INPUT phrase is specified.║
 
-(2) Cd-name-1 must reference an input-output CD when the I-O TERMINAL phrase is specified.
+║(2) Cd-name-1 must reference an input-output CD when the I-O TERMINAL phrase is specified.║
 
-(3) Cd-name-1 must reference an output CD when the OUTPUT phrase is specified.
+║(3) Cd-name-1 must reference an output CD when the OUTPUT phrase is specified.║
 
-(4) Literal-1 or the content of the data item referenced by identifier-1 must be defined as alphanumeric.
+║(4) Literal-1 or the content of the data item referenced by identifier-1 must be defined as alphanumeric.║
 
-3.3.4 General Rules
+║3.3.4 General Rules║
 
-(1) The ENABLE statement provides a logical connection between the MCS and the specified sources or destinations. When this logical connection is already in existence, or is to be handled by some other means external to this program, the ENABLE statement is not required in this program. No action is taken when an ENABLE statement is executed which specifies a source or destination which is already connected, except that the value in the status key data item indicates this condition. The logical path for the transfer of data between the COBOL programs and the MCS is not affected by the ENABLE statement.
+║(1) The ENABLE statement provides a logical connection between the MCS and the specified sources or destinations. When this logical connection is already in existence, or is to be handled by some other means external to this program, the ENABLE statement is not required in this program. No action is taken when an ENABLE statement is executed which specifies a source or destination which is already connected, except that the value in the status key data item indicates this condition. The logical path for the transfer of data between the COBOL programs and the MCS is not affected by the ENABLE statement.║
 
-(2) When the INPUT phrase without the optional word TERMINAL is specified, the logical paths between the queue and sub-queues specified by the contents of data-name-1 (SYMBOLIC QUEUE) through data-name-4 (SYMBOLIC SUB-QUEUE-3) of the area referenced by cd-name-1 and all the associated sources are activated.
+║(2) When the INPUT phrase without the optional word TERMINAL is specified, the logical paths between the queue and sub-queues specified by the contents of data-name-1 (SYMBOLIC QUEUE) through data-name-4 (SYMBOLIC SUB-QUEUE-3) of the area referenced by cd-name-1 and all the associated sources are activated.║
 
-(3) When the INPUT phrase with the optional word TERMINAL is specified, the logical paths between the source (as defined by the content of the data item referenced by data-name-7 (SYMBOLIC SOURCE)) and all of its associated queues and sub-queues are activated.
+║(3) When the INPUT phrase with the optional word TERMINAL is specified, the logical paths between the source (as defined by the content of the data item referenced by data-name-7 (SYMBOLIC SOURCE)) and all of its associated queues and sub-queues are activated.║
 
-(4) When the I-O TERMINAL phrase is specified, the logical path between the source (as defined by the content of the data item referenced by data-name-3 (SYMBOLIC TERMINAL)) and the program is activated.
+║(4) When the I-O TERMINAL phrase is specified, the logical path between the source (as defined by the content of the data item referenced by data-name-3 (SYMBOLIC TERMINAL)) and the program is activated.║
 
 XIV-20
 
@@ -24248,11 +24248,11 @@ XIV-20
 
 Communication - ENABLE
 
-(5) When the OUTPUT phrase is specified, the logical paths are activated for all destinations specified by the content of each occurrence of data-name-5 up to and including the occurrence specified by the content of data-name-1 of the area referenced by cd-name-1.
+║(5) When the OUTPUT phrase is specified, the logical paths are activated for all destinations specified by the content of each occurrence of data-name-5 up to and including the occurrence specified by the content of data-name-1 of the area referenced by cd-name-1.║
 
-(6) Literal-1 or the content of the data item referenced by identifier-1 will be matched with a password built into the system. The ENABLE statement will be honored only if literal-1 or the content of the data item referenced by identifier-1 match the system password. When literal-1 or the content of the data item referenced by identifier-1 do not match the system password, the value of the STATUS KEY item in the area referenced by cd-name-1 is updated.
+║(6) Literal-1 or the content of the data item referenced by identifier-1 will be matched with a password built into the system. The ENABLE statement will be honored only if literal-1 or the content of the data item referenced by identifier-1 match the system password. When literal-1 or the content of the data item referenced by identifier-1 do not match the system password, the value of the STATUS KEY item in the area referenced by cd-name-1 is updated.║
 
-The message control system must be capable of handling a password of from one to ten characters inclusive.
+║The message control system must be capable of handling a password of from one to ten characters inclusive.║
 
 XIV-21
 
@@ -24260,29 +24260,29 @@ XIV-21
 
 Communication - PURGE
 
-3.4 THE PURGE STATEMENT
+║3.4 THE PURGE STATEMENT║
 
-**3.4.1 Function**
+║**3.4.1 Function**║
 
-The PURGE statement eliminates from the message control system (MCS) a partial message which has been released by one or more SEND statements.
+║The PURGE statement eliminates from the message control system (MCS) a partial message which has been released by one or more SEND statements.║
 
-**3.4.2 General Format**
+║**3.4.2 General Format**║
 
 <pre style="line-height:1">
 <u>PURGE</u> cd-name-1
 </pre>
 
-**3.4.3 Syntax Rules**
+║**3.4.3 Syntax Rules**║
 
-(1) Cd-name-1 must reference an output CD or input-output CD.
+║(1) Cd-name-1 must reference an output CD or input-output CD.║
 
-**3.4.4 General Rules**
+║**3.4.4 General Rules**║
 
-(1) Execution of a PURGE statement causes the MCS to eliminate any partial message awaiting transmission to the destinations specified in the CD referenced by cd-name-1.
+║(1) Execution of a PURGE statement causes the MCS to eliminate any partial message awaiting transmission to the destinations specified in the CD referenced by cd-name-1.║
 
-(2) Any message that has associated with it an EMI or EGI is not affected by the execution of a PURGE statement.
+║(2) Any message that has associated with it an EMI or EGI is not affected by the execution of a PURGE statement.║
 
-(3) The content of the status key data item and the content of the error key data item (if applicable) of the area referenced by cd-name-1 are updated by the MCS. (See page XIV-3, The Communication Description Entry.)
+║(3) The content of the status key data item and the content of the error key data item (if applicable) of the area referenced by cd-name-1 are updated by the MCS. (See page XIV-3, The Communication Description Entry.)║
 
 XIV-22
 
@@ -24294,7 +24294,7 @@ Communication - RECEIVE
 
 ### 3.5.1 Function
 
-The RECEIVE statement makes available a message or a message segment and information about that data.
+The RECEIVE statement makes available a message ║or a message segment║ and information about that data.
 
 ### 3.5.2 General Format
 
@@ -24313,11 +24313,11 @@ The RECEIVE statement makes available a message or a message segment and informa
 
 ### 3.5.4 General Rules
 
-(1) If cd-name-1 references an input CD, the contents of the data items specified by data-name-1 (SYMBOLIC QUEUE) through data-name-4 (SYMBOLIC SUB-QUEUE-3) of the area referenced by cd-name-1 designate the queue structure containing the message. (See page XIV-3, The Communication Description Entry.)
+(1) If cd-name-1 references an input CD, the contents of the data items specified by data-name-1 (SYMBOLIC QUEUE) ║through data-name-4 (SYMBOLIC SUB-QUEUE-3)║ of the area referenced by cd-name-1 designate the queue structure containing the message. (See page XIV-3, The Communication Description Entry.)
 
 (2) If cd-name-1 references an input-output CD, the content of the data item specified by data-name-3 (SYMBOLIC TERMINAL) of the area referenced by cd-name-1 designates the source of the message. (See page XIV-3, The Communication Description Entry.)
 
-(3) The message, message segment, or portion of a message or segment is transferred to the receiving character positions of the area referenced by identifier-1 aligned to the left without space fill.
+(3) The message, ║message segment, or portion of a message or segment║ is transferred to the receiving character positions of the area referenced by identifier-1 aligned to the left without space fill.
 
 (4) When, during the execution of a RECEIVE statement, the MCS makes data available in the data item referenced by identifier-1, the NO DATA phrase, if specified, is ignored and control is transferred to the end of the RECEIVE statement or, if the WITH DATA phrase is specified, to imperative-statement-2. If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the RECEIVE statement.
 
@@ -24333,11 +24333,11 @@ a. If the NO DATA phrase is specified in the RECEIVE statement, the RECEIVE oper
 
 b. If the NO DATA phrase is not specified in the RECEIVE statement, execution of the object program is suspended until data is made available in the data item referenced by identifier-1.
 
-c. If one or more queues or subqueues are unknown to the MCS, the appropriate status key code is stored and control is then transferred as if data had been made available. (See table on page XIV-15.)
+c. If one or more queues ║or subqueues║ are unknown to the MCS, the appropriate status key code is stored and control is then transferred as if data had been made available. (See table on page XIV-15.)
 
 (6) The data items identified by cd-name-1 are appropriately updated by the message control system (MCS) at each execution of a RECEIVE statement. (See page XIV-3, The Communication Description Entry.)
 
-(7) A single execution of a RECEIVE statement never returns to the data item referenced by identifier-1 more than a single message (when the MESSAGE phrase is used) or a single segment (when the SEGMENT phrase is used). However, the MCS does not pass any portion of a message to the object program until the entire message is available to the MCS, even if the SEGMENT phrase of the RECEIVE statement is specified.
+(7) A single execution of a RECEIVE statement never returns to the data item referenced by identifier-1 more than a single message (when the MESSAGE phrase is used) ║or a single segment (when the SEGMENT phrase is used). However, the MCS does not pass any portion of a message to the object program until the entire message is available to the MCS, even if the SEGMENT phrase of the RECEIVE statement is specified.║
 
 (8) When the MESSAGE phrase is used, end of segment indicators are ignored, and the following rules apply to the data transfer:
 
@@ -24345,7 +24345,7 @@ a. If a message is the same size as the area referenced by identifier-1, the mes
 
 b. If a message size is less than the area referenced by identifier-1, the message is aligned to the leftmost character position of the area referenced by identifier-1 and the contents of the character positions not occupied by characters of the message are not changed.
 
-c. If a message size is greater than the area referenced by identifier-1, the message fills the area referenced by identifier-1 left to right starting with the leftmost character of the message. In level 1, the disposition of the remainder of the message is undefined. In level 2, further RECEIVE statements which reference the same queue, sub-queue, ... , must be executed to transfer the remainder of the message into the area referenced by identifier-1. The remainder of the message, for the purposes of applying rules 8a, 8b, and 8c, is treated as a new message.
+c. If a message size is greater than the area referenced by identifier-1, the message fills the area referenced by identifier-1 left to right starting with the leftmost character of the message. In level 1, the disposition of the remainder of the message is undefined. ║In level 2, further RECEIVE statements which reference the same queue, sub-queue, ... , must be executed to transfer the remainder of the message into the area referenced by identifier-1. The remainder of the message, for the purposes of applying rules 8a, 8b, and 8c, is treated as a new message.║
 
 d. If an end of group indicator is associated with the text accessed by the RECEIVE statement, the existence of an end of message indicator is implied.
 
@@ -24355,17 +24355,17 @@ XIV-24
 
 Communication - RECEIVE
 
-(9) When the SEGMENT phrase is used, the following rules apply:
+║(9) When the SEGMENT phrase is used, the following rules apply:║
 
-a. If a segment is the same size as the area referenced by identifier-1, the segment is stored in the area referenced by identifier-1.
+║a. If a segment is the same size as the area referenced by identifier-1, the segment is stored in the area referenced by identifier-1.║
 
-b. If the segment size is less than the area referenced by identifier-1, the segment is aligned to the leftmost character position of the area referenced by identifier-1 and the contents of character positions not occupied by characters of the segment are not changed.
+║b. If the segment size is less than the area referenced by identifier-1, the segment is aligned to the leftmost character position of the area referenced by identifier-1 and the contents of character positions not occupied by characters of the segment are not changed.║
 
-c. If a segment size is greater than the area referenced by identifier-1, the segment fills the area referenced by identifier-1 left to right starting with the leftmost character of the segment. Further RECEIVE statements which reference the same queue, sub-queue, ... , must be executed to transfer the remainder of the segment into the area referenced by identifier-1. The remainder of the segment, for the purposes of applying rules 9a, 9b, and 9c, is treated as a new segment.
+║c. If a segment size is greater than the area referenced by identifier-1, the segment fills the area referenced by identifier-1 left to right starting with the leftmost character of the segment. Further RECEIVE statements which reference the same queue, sub-queue, ... , must be executed to transfer the remainder of the segment into the area referenced by identifier-1. The remainder of the segment, for the purposes of applying rules 9a, 9b, and 9c, is treated as a new segment.║
 
-d. If an end of message indicator or end of group indicator is associated with the text accessed by the RECEIVE statement, the existence of an end of segment indicator is implied.
+║d. If an end of message indicator or end of group indicator is associated with the text accessed by the RECEIVE statement, the existence of an end of segment indicator is implied.║
 
-(10) Once the execution of a RECEIVE statement has returned a portion of a message, only subsequent execution of RECEIVE statements in that run unit can cause the remaining portion of the message to be returned.
+║(10) Once the execution of a RECEIVE statement has returned a portion of a message, only subsequent execution of RECEIVE statements in that run unit can cause the remaining portion of the message to be returned.║
 
 (11) The END-RECEIVE phrase delimits the scope of the RECEIVE statement. (See page IV-40, Scope of Statements.)
 
@@ -24379,7 +24379,7 @@ Communication - SEND
 
 ### 3.6.1 Function
 
-The SEND statement causes a message, a message segment, or a portion of a message or segment to be released to one or more output queues maintained by the message control system (MCS).
+The SEND statement causes a message, ║a message segment, or a portion of a message or segment║ to be released to one ║or more║ output queues maintained by the message control system (MCS).
 
 ### 3.6.2 General Format
 
@@ -24411,11 +24411,11 @@ The SEND statement causes a message, a message segment, or a portion of a messag
 
 (1) Cd-name-1 must reference an output CD or input-output CD.
 
-(2) Identifier-2 must reference a one-character integer without an operational sign.
+║(2) Identifier-2 must reference a one-character integer without an operational sign.║
 
 (3) Identifier-3 must reference an integer data item.
 
-(4) When the mnemonic-name phrase is used, the name is identified with a particular feature specified by the implementor. The mnemonic-name is defined in the SPECIAL-NAMES paragraph in the Environment Division.
+║(4) When the mnemonic-name phrase is used, the name is identified with a particular feature specified by the implementor. The mnemonic-name is defined in the SPECIAL-NAMES paragraph in the Environment Division.║
 
 (5) Integer-1 or the value of the data item referenced by identifier-3 may be zero.
 
@@ -24431,13 +24431,13 @@ XIV-26
 
 Communication - SEND
 
-a. Each message or message segment begins at the leftmost character position of the physical line.
+a. Each message ║or message segment║ begins at the leftmost character position of the physical line.
 
-b. A message or message segment that is smaller than the physical line size is released so as to appear space filled to the right.
+b. A message ║or message segment║ that is smaller than the physical line size is released so as to appear space filled to the right.
 
-c. Excess characters of a message or message segment are not truncated. Characters are packed to a size equal to that of the physical line and then transmitted to the output device. The process continues on the next line with the excess characters.
+c. Excess characters of a message ║or message segment║ are not truncated. Characters are packed to a size equal to that of the physical line and then transmitted to the output device. The process continues on the next line with the excess characters.
 
-(2) When a receiving communication device (paper tape punch, another computer, etc.) is oriented to handle variable length messages, each message or message segment will begin on the next available character position of the communication device.
+(2) When a receiving communication device (paper tape punch, another computer, etc.) is oriented to handle variable length messages, each message ║or message segment║ will begin on the next available character position of the communication device.
 
 (3) As part of the execution of a SEND statement, the MCS will interpret the content of the text length data item of the area referenced by cd-name-1 to be the user's indication of the number of leftmost character positions of the data item referenced by identifier-1 from which data is to be transferred. (See page XIV-3, The Communication Description Entry.)
 
@@ -24449,13 +24449,13 @@ If the content of the text length data item of the area referenced by cd-name-1 
 
 (5) The effect of having special control characters within the content of the data item referenced by identifier-1 is undefined.
 
-(6) A single execution of a SEND statement represented by format 1 releases only a single portion of a message segment or a single portion of a message to the MCS.
+(6) ║A single execution of a SEND statement represented by format 1 releases only a single portion of a message segment or a single portion of a message to the MCS.║
 
-A single execution of a SEND statement represented by format 2 never releases to the MCS more than a single message or a single message segment as indicated by the content of the data item referenced by identifier-2 or by the specified indicator ESI, EMI, or EGI.
+A single execution of a SEND statement represented by format 2 never releases to the MCS more than a single message or a single message segment as indicated ║by the content of the data item referenced by identifier-2 or║ by the specified indicator ║ESI,║ EMI, or EGI.
 
 However, the MCS will not transmit any portion of a message to a communication device until the entire message has been released to the MCS.
 
-(7) During the execution of the run unit, the disposition of a portion of a message which is not terminated by an EMI or EGI or which has not been eliminated by the execution of a PURGE statement is undefined. However, the
+║(7) During the execution of the run unit, the disposition of a portion of a message which is not terminated by an EMI or EGI or which has not been eliminated by the execution of a PURGE statement is undefined. However, the║
 
 XIV-27
 
@@ -24463,32 +24463,32 @@ XIV-27
 
 Communication - SEND
 
-message does not logically exist for the MCS and hence cannot be sent to a destination.
+║message does not logically exist for the MCS and hence cannot be sent to a destination.║
 
-(8) Once the execution of a SEND statement has released a portion of a message to the MCS, only subsequent execution of SEND statements in the same run unit can cause the remaining portion of the message to be released.
+║(8) Once the execution of a SEND statement has released a portion of a message to the MCS, only subsequent execution of SEND statements in the same run unit can cause the remaining portion of the message to be released.║
 
 <u>FORMAT 2</u>:
 
-(9) The content of the data item referenced by identifier-2 indicates that the content of the data item referenced by identifier-1, when specified, is to have an associated end of segment indicator, end of message indicator, end of group indicator, or no indicator (which implies a portion of a message or a portion of a segment). If identifier-1 is not specified, only the indicator is transmitted to the MCS.
+║(9) The content of the data item referenced by identifier-2 indicates that the content of the data item referenced by identifier-1, when specified, is to have an associated end of segment indicator, end of message indicator, end of group indicator, or no indicator (which implies a portion of a message or a portion of a segment). If identifier-1 is not specified, only the indicator is transmitted to the MCS.║
 
-| If the content of the data item referenced by identifier-2 is | then the content of data item referenced by identifier-1 has an associated | which means |
+| ║If the content of the data item referenced by identifier-2 is | then the content of data item referenced by identifier-1 has an associated | which means║ |
 |---|---|---|
-| 0 | no indicator | portion of message or of a segment |
-| 1 | end of segment indicator (ESI) | end of current segment |
-| 2 | end of message indicator (EMI) | end of current message |
-| 3 | end of group indicator (EGI) | end of current group of messages |
+| ║0 | no indicator | portion of message or of a segment║ |
+| ║1 | end of segment indicator (ESI) | end of current segment║ |
+| ║2 | end of message indicator (EMI) | end of current message║ |
+| ║3 | end of group indicator (EGI) | end of current group of messages║ |
 
-Any character other than 1, 2, or 3 will be interpreted as 0.
+║Any character other than 1, 2, or 3 will be interpreted as 0.║
 
-If the content of the data item referenced by identifier-2 is other than 1, 2, or 3, and identifier-1 is not specified, then an error is indicated by the value in the status key data item of the area referenced by cd-name-1, and no data is transferred.
+║If the content of the data item referenced by identifier-2 is other than 1, 2, or 3, and identifier-1 is not specified, then an error is indicated by the value in the status key data item of the area referenced by cd-name-1, and no data is transferred.║
 
 (10) The WITH EGI phrase indicates to the MCS that the group of messages is complete.
 
 The WITH EMI phrase indicates to the MCS that the message is complete.
 
-The WITH ESI phrase indicates to the MCS that the message segment is complete.
+║The WITH ESI phrase indicates to the MCS that the message segment is complete.║
 
-The MCS will recognize these indications and establish whatever is necessary to maintain segment, message, or group control.
+The MCS will recognize these indications and establish whatever is necessary to maintain ║segment,║ message, or group control.
 
 XIV-28
 
@@ -24496,11 +24496,11 @@ XIV-28
 
 Communication - SEND
 
-(11) The hierarchy of ending indicators is EGI, EMI, and ESI. An EGI need not be preceded by an ESI or EMI. An EMI need not be preceded by an ESI.
+(11) The hierarchy of ending indicators is EGI, EMI, ║and ESI.║ An EGI need not be preceded by an ║ESI or║ EMI. ║An EMI need not be preceded by an ESI.║
 
 (12) The ADVANCING phrase allows control of the vertical positioning of each message or message segment on a communication device where vertical positioning is applicable. If vertical positioning is not applicable on the device, the MCS will ignore the vertical positioning specified or implied.
 
-(13) If identifier-2 is specified and the content of the data item referenced by identifier-2 is zero, the ADVANCING phrase and the REPLACING phrase, if specified, are ignored by the MCS.
+║(13) If identifier-2 is specified and the content of the data item referenced by identifier-2 is zero, the ADVANCING phrase and the REPLACING phrase, if specified, are ignored by the MCS.║
 
 (14) On a device where vertical positioning is applicable and the ADVANCING phrase is not specified, automatic advancing will be provided by the implementor to act as if the user had specified AFTER ADVANCING 1 LINE.
 
@@ -24510,17 +24510,17 @@ a. If integer-1 or identifier-3 is specified, characters transmitted to the comm
 
 b. If the value of the data item referenced by identifier-3 is negative, the results are undefined.
 
-c. If mnemonic-name-1 is specified, characters transmitted to the communication device are positioned according to the rules specified by the implementor for that communication device.
+║c. If mnemonic-name-1 is specified, characters transmitted to the communication device are positioned according to the rules specified by the implementor for that communication device.║
 
-d. If the BEFORE phrase is used, the message or message segment is represented on the communication device before vertical repositioning according to general rules 15a and 15c above.
+d. If the BEFORE phrase is used, the message ║or message segment║ is represented on the communication device before vertical repositioning according to general rules 15a ║and 15c║ above.
 
-e. If the AFTER phrase is used, the message or message segment is represented on the communication device after vertical positioning according to general rules 15a and 15c above.
+e. If the AFTER phrase is used, the message ║or message segment║ is represented on the communication device after vertical positioning according to general rules 15a ║and 15c║ above.
 
 f. If PAGE is specified, characters transmitted to the communication device are represented on the device before or after (depending upon the phrase used) the device is repositioned to the next (new) page. If PAGE is specified but page has no meaning in conjunction with a specific device, then advancing is provided by the implementor to act as if the user had specified BEFORE or AFTER (depending upon the phrase used) ADVANCING 1 LINE.
 
 (16) When a receiving communication device is a character-imaging device on which it is possible to present two or more characters at the same position and the device permits the choice of either the second or subsequent characters appearing superimposed on characters already displayed at that position or each character appearing in the place of the characters previously transmitted to that line:
 
-a. If the REPLACING phrase is specified, the characters transmitted by the SEND statement replace all characters which may have previously been
+║a. If the REPLACING phrase is specified, the characters transmitted by the SEND statement replace all characters which may have previously been║
 
 XIV-29
 
@@ -24528,13 +24528,13 @@ XIV-29
 
 Communication - SEND
 
-transmitted to the same line beginning with the leftmost character position of the line.
+║transmitted to the same line beginning with the leftmost character position of the line.║
 
-b. If the REPLACING phrase is not specified, the characters transmitted by the SEND statement appear superimposed upon the characters which may have previously been transmitted to the same line beginning with the leftmost character position of the line.
+b. ║If the REPLACING phrase is not specified,║ the characters transmitted by the SEND statement appear superimposed upon the characters which may have previously been transmitted to the same line beginning with the leftmost character position of the line.
 
-(17) When a receiving communication device does not support the replacement of characters, regardless of whether or not the REPLACING phrase is specified, the characters transmitted by the SEND statement appear superimposed upon the characters which may have previously been transmitted to the same line, beginning with the leftmost character position of the line.
+(17) When a receiving communication device does not support the replacement of characters, ║regardless of whether or not the REPLACING phrase is specified,║ the characters transmitted by the SEND statement appear superimposed upon the characters which may have previously been transmitted to the same line, beginning with the leftmost character position of the line.
 
-(18) When a receiving communication device does not support the superimposition of two or more characters at the same position, regardless of whether or not the REPLACING phrase is specified, the characters transmitted by the SEND statement replace all characters which may have previously been transmitted to the same line beginning with the leftmost character position of the line.
+(18) When a receiving communication device does not support the superimposition of two or more characters at the same position, ║regardless of whether or not the REPLACING phrase is specified,║ the characters transmitted by the SEND statement replace all characters which may have previously been transmitted to the same line beginning with the leftmost character position of the line.
 
 XIV-30
 
@@ -24560,7 +24560,7 @@ The Debug module is an obsolete element in Standard COBOL because it is to be de
 
 Debug level 1 provides a basic debugging capability including the ability to specify selective procedure monitoring.
 
-| Debug level 2 provides the full COBOL debugging facility. |
+| ║Debug level 2 provides the full COBOL debugging facility.║ |
 |---|
 
 ### 1.3 LANGUAGE CONCEPTS
@@ -24688,19 +24688,19 @@ The USE FOR DEBUGGING statement identifies the user items that are to be monitor
 
 (5) Procedure-names defined within debugging sections must not appear within USE FOR DEBUGGING statements.
 
-(6) Any given identifier, cd-name, file-name, or procedure-name may appear in only one USE FOR DEBUGGING statement and may appear only once in that statement.
+(6) Any given ║identifier, cd-name, file-name, or║ procedure-name may appear in only one USE FOR DEBUGGING statement and may appear only once in that statement.
 
 (7) The ALL PROCEDURES phrase can appear only once in a program.
 
 (8) When the ALL PROCEDURES phrase is specified, procedure-name-1 must not be specified in any USE FOR DEBUGGING statement.
 
-(9) Identifier-1 must not reference any data item defined in the Report Section except sum counters.
+║(9) Identifier-1 must not reference any data item defined in the Report Section except sum counters.║
 
-(10) If the data description entry of the data item referenced by identifier-1 contains an OCCURS clause or is subordinate to a data description entry that contains an OCCURS clause, identifier-1 must be specified without the subscripting or indexing normally required.
+║(10) If the data description entry of the data item referenced by identifier-1 contains an OCCURS clause or is subordinate to a data description entry that contains an OCCURS clause, identifier-1 must be specified without the subscripting or indexing normally required.║
 
 (11) References to the special register DEBUG-ITEM are restricted to references from within a debugging section.
 
-(12) Identifier-1 must not be reference modified.
+║(12) Identifier-1 must not be reference modified.║
 
 XV-5
 
@@ -24712,13 +24712,13 @@ Debug - USE FOR DEBUGGING
 
 (1) Automatic execution of a debugging section is not caused by a statement appearing in a debugging section.
 
-(2) When file-name-1 is specified in a USE FOR DEBUGGING statement, that debugging section is executed:
+║(2) When file-name-1 is specified in a USE FOR DEBUGGING statement, that debugging section is executed:║
 
-a. After the execution of any OPEN or CLOSE statement that references file-name-1, and
+║a. After the execution of any OPEN or CLOSE statement that references file-name-1, and║
 
-b. After the execution of any READ statement (after any other specified USE procedure) not resulting in the execution of an associated AT END or INVALID KEY imperative statement, and
+║b. After the execution of any READ statement (after any other specified USE procedure) not resulting in the execution of an associated AT END or INVALID KEY imperative statement, and║
 
-c. After the execution of any DELETE or START statement that references file-name-1.
+║c. After the execution of any DELETE or START statement that references file-name-1.║
 
 (3) When procedure-name-1 is specified in a USE FOR DEBUGGING statement that debugging section is executed:
 
@@ -24728,17 +24728,17 @@ b. Immediately after the execution of an ALTER statement which references proced
 
 (4) The ALL PROCEDURES phrase causes the effects described in general rule 3 to occur for every procedure-name in the program, except those appearing within a debugging section.
 
-(5) When the ALL REFERENCES OF identifier-1 phrase is specified, that debugging section is executed for every statement that explicitly references identifier-1 at each of the following times:
+║(5) When the ALL REFERENCES OF identifier-1 phrase is specified, that debugging section is executed for every statement that explicitly references identifier-1 at each of the following times:║
 
-a. In the case of a WRITE or REWRITE statement immediately before the execution of that WRITE or REWRITE statement and after the execution of any implicit move resulting from the presence of the FROM phrase.
+║a. In the case of a WRITE or REWRITE statement immediately before the execution of that WRITE or REWRITE statement and after the execution of any implicit move resulting from the presence of the FROM phrase.║
 
-b. In the case of a GO TO statement with a DEPENDING ON phrase, immediately before control is transferred and prior to the execution of any debugging section associated with the procedure-name to which control is to be transferred.
+║b. In the case of a GO TO statement with a DEPENDING ON phrase, immediately before control is transferred and prior to the execution of any debugging section associated with the procedure-name to which control is to be transferred.║
 
-c. In the case of a PERFORM statement in which a VARYING, AFTER, or UNTIL phrase references identifier-1, immediately after each initialization, modification, or evaluation of the content of the data item referenced by identifier-1.
+║c. In the case of a PERFORM statement in which a VARYING, AFTER, or UNTIL phrase references identifier-1, immediately after each initialization, modification, or evaluation of the content of the data item referenced by identifier-1.║
 
-d. In the case of any other COBOL statement, immediately after execution of that statement.
+║d. In the case of any other COBOL statement, immediately after execution of that statement.║
 
-If identifier-1 is specified in a phrase that is not executed or evaluated, the associated debugging section is not executed.
+║If identifier-1 is specified in a phrase that is not executed or evaluated, the associated debugging section is not executed.║
 
 XV-6
 
@@ -24746,29 +24746,29 @@ XV-6
 
 Debug - USE FOR DEBUGGING
 
-(6) When identifier-1 is specified without the ALL REFERENCES OF phrase, that debugging section is executed at each of the following times:
+║(6) When identifier-1 is specified without the ALL REFERENCES OF phrase, that debugging section is executed at each of the following times:║
 
-a. In the case of a WRITE or REWRITE statement that explicitly references identifier-1, immediately before the execution of that WRITE or REWRITE statement and after the execution of any implicit move resulting from the presence of the FROM phrase.
+║a. In the case of a WRITE or REWRITE statement that explicitly references identifier-1, immediately before the execution of that WRITE or REWRITE statement and after the execution of any implicit move resulting from the presence of the FROM phrase.║
 
-b. In the case of a PERFORM statement in which a VARYING, AFTER, or UNTIL phrase references identifier-1, immediately after each initialization, modification, or evaluation of the content of the data item referenced by identifier-1.
+║b. In the case of a PERFORM statement in which a VARYING, AFTER, or UNTIL phrase references identifier-1, immediately after each initialization, modification, or evaluation of the content of the data item referenced by identifier-1.║
 
-c. Immediately after the execution of any other COBOL statement that explicitly references and causes the content of the data item referenced by identifier-1 to be changed.
+║c. Immediately after the execution of any other COBOL statement that explicitly references and causes the content of the data item referenced by identifier-1 to be changed.║
 
-If identifier-1 is specified in a phrase that is not executed or evaluated, the associated debugging section is not executed.
+║If identifier-1 is specified in a phrase that is not executed or evaluated, the associated debugging section is not executed.║
 
 (7) The associated debugging section is not executed for a specific operand more than once as a result of the execution of a single statement, regardless of the number of times that operand is explicitly specified. In the case of a PERFORM statement which causes iterative execution of a referenced procedure, the associated debugging section is executed once for each iteration.
 
 Within an imperative statement, each individual occurrence of an imperative verb identifies a separate statement for the purpose of debugging.
 
-(8) When cd-name-1 is specified in a USE FOR DEBUGGING statement, that debugging section is executed:
+║(8) When cd-name-1 is specified in a USE FOR DEBUGGING statement, that debugging section is executed:║
 
-a. After the execution of any ENABLE, DISABLE, and SEND statement that references cd-name-1,
+║a. After the execution of any ENABLE, DISABLE, and SEND statement that references cd-name-1,║
 
-b. After the execution of a RECEIVE statement referencing cd-name-1 that does not result in the execution of the NO DATA imperative-statement, and
+║b. After the execution of a RECEIVE statement referencing cd-name-1 that does not result in the execution of the NO DATA imperative-statement, and║
 
-c. After the execution of an ACCEPT MESSAGE COUNT statement that references cd-name-1.
+║c. After the execution of an ACCEPT MESSAGE COUNT statement that references cd-name-1.║
 
-(9) A reference to identifier-1, cd-name-1, file-name-1, or procedure-name-1 as a qualifier does not constitute reference to that item for the debugging described in the general rules above.
+(9) A reference to ║identifier-1, cd-name-1, file-name-1, or║ procedure-name-1 as a qualifier does not constitute reference to that item for the debugging described in the general rules above.
 
 XV-7
 
@@ -24803,7 +24803,7 @@ Updating is accomplished in accordance with the rules for the MOVE statement, th
 
 All qualifiers of the name are separated in DEBUG-NAME by the word 'IN' or 'OF'. Subscripts/indices, if any, are not entered into DEBUG-NAME.
 
-> (14) If the reference to a data item that causes the debugging section to be executed is subscripted or indexed, the occurrence number of each level is entered in DEBUG-SUB-1, DEBUG-SUB-2, DEBUG-SUB-3 respectively as necessary.
+> ║(14) If the reference to a data item that causes the debugging section to be executed is subscripted or indexed, the occurrence number of each level is entered in DEBUG-SUB-1, DEBUG-SUB-2, DEBUG-SUB-3 respectively as necessary.║
 
 (15) DEBUG-CONTENTS is a data item that is large enough to contain the data required by the following general rules.
 
@@ -24879,25 +24879,25 @@ b. DEBUG-NAME contains procedure-name-1.
 
 c. DEBUG-CONTENTS contains 'FALL THROUGH'.
 
-(23) If reference to file-name-1 or cd-name-1 causes the debugging section to be executed, then:
+║(23) If reference to file-name-1 or cd-name-1 causes the debugging section to be executed, then:║
 
-a. DEBUG-LINE identifies the source statement that references file-name-1 or cd-name-1.
+║a. DEBUG-LINE identifies the source statement that references file-name-1 or cd-name-1.║
 
-b. DEBUG-NAME contains the name of file-name-1 or cd-name-1.
+║b. DEBUG-NAME contains the name of file-name-1 or cd-name-1.║
 
-c. For READ, DEBUG-CONTENTS contains the entire record read.
+║c. For READ, DEBUG-CONTENTS contains the entire record read.║
 
-d. For all other references to file-name-1, DEBUG-CONTENTS contains spaces.
+║d. For all other references to file-name-1, DEBUG-CONTENTS contains spaces.║
 
-e. For any reference to cd-name-1, DEBUG-CONTENTS contains the content of the area associated with the cd-name.
+║e. For any reference to cd-name-1, DEBUG-CONTENTS contains the content of the area associated with the cd-name.║
 
-(24) If a reference to identifier-1 causes the debugging section to be executed, then:
+║(24) If a reference to identifier-1 causes the debugging section to be executed, then:║
 
-a. DEBUG-LINE identifies the source statement that references identifier-1.
+║a. DEBUG-LINE identifies the source statement that references identifier-1.║
 
-b. DEBUG-NAME contains the name of identifier-1, and
+║b. DEBUG-NAME contains the name of identifier-1, and║
 
-c. DEBUG-CONTENTS contains the content of the data item referenced by identifier-1 at the time that control passes to the debugging section (see general rules 5 and 6).
+║c. DEBUG-CONTENTS contains the content of the data item referenced by identifier-1 at the time that control passes to the debugging section (see general rules 5 and 6).║
 
 XV-10
 
@@ -24921,7 +24921,7 @@ The Segmentation module is an obsolete element in Standard COBOL because it is t
 
 Segmentation level 1 provides a facility for specifying permanent and independent segments (see paragraph 1.4.1 below). All sections with the same segment-number must be contiguous in the source program. All segments specified as permanent segments must be contiguous in the source program.
 
-Segmentation level 2 provides the facility for intermixing sections with different segment-numbers and allows the fixed portion of the source program to contain segments that may be overlaid (see paragraph 1.4.1 below).
+║Segmentation level 2 provides the facility for intermixing sections with different segment-numbers and allows the fixed portion of the source program to contain segments that may be overlaid (see paragraph 1.4.1 below).║
 
 ### 1.3 SCOPE
 
@@ -24935,7 +24935,7 @@ Although it is not mandatory, the Procedure Division for a source program is usu
 
 #### 1.4.2 Fixed Portion
 
-The fixed portion is defined as that part of the object program which is logically treated as if it were always in memory. This portion of the program is composed of two types of segments: fixed permanent segments and fixed overlayable segments.
+The fixed portion is defined as that part of the object program which is logically treated as if it were always in memory. This portion of the program is composed of ║two types of segments:║ fixed permanent segments ║and fixed overlayable segments.║
 
 XVI-1
 
@@ -24943,11 +24943,11 @@ XVI-1
 
 Segmentation - Introduction
 
-A fixed permanent segment is a segment in the fixed portion which cannot be overlaid by any other part of the program. A fixed overlayable segment is a segment in the fixed portion which, although logically treated as if it were always in memory, can be overlaid by another segment to optimize memory utilization. Variation of the number of fixed permanent segments in the fixed portion can be accomplished by using a special facility called the SEGMENT-LIMIT clause (see page XVI-5, The SEGMENT-LIMIT Clause). Such a segment, if called for by the program, is always made available in its last used state.
+A fixed permanent segment is a segment in the fixed portion which cannot be overlaid by any other part of the program. ║A fixed overlayable segment is a segment in the fixed portion which, although logically treated as if it were always in memory, can be overlaid by another segment to optimize memory utilization. Variation of the number of fixed permanent segments in the fixed portion can be accomplished by using a special facility called the SEGMENT-LIMIT clause (see page XVI-5, The SEGMENT-LIMIT Clause). Such a segment, if called for by the program, is always made available in its last used state.║
 
 ### 1.4.3 Independent Segments
 
-An independent segment is defined as part of the object program which can overlay, and can be overlaid by, either a fixed overlayable segment or another independent segment. An independent segment is in its initial state whenever control is transferred (either implicitly or explicitly) to that segment for the first time during the execution of a program. On subsequent transfers of control to the segment, an independent segment is also in its initial state when:
+An independent segment is defined as part of the object program which can overlay, and can be overlaid by, ║either a fixed overlayable segment or║ another independent segment. An independent segment is in its initial state whenever control is transferred (either implicitly or explicitly) to that segment for the first time during the execution of a program. On subsequent transfers of control to the segment, an independent segment is also in its initial state when:
 
 (1) Control is transferred to that segment as a result of the implicit transfer of control between consecutive statements from a segment with a different segment-number.
 
@@ -24967,7 +24967,7 @@ See paragraph 4.4.2, Explicit and Implicit Transfers of Control, page IV-25.
 
 Sections which are to be segmented are classified, using a system of segment-numbers (see page XVI-7, Segment-Numbers) and the following criteria:
 
-(1) Logic Requirements - Sections which must be available for reference at all times, or which are referred to very frequently, are normally classified as belonging to one of the permanent segments; sections which are used less frequently are normally classified as belonging either to one of the overlayable fixed segments or to one of the independent segments, depending on logic requirements.
+(1) Logic Requirements - Sections which must be available for reference at all times, or which are referred to very frequently, are normally classified as belonging to one of the permanent segments; sections which are used less frequently are normally classified as belonging ║either to one of the overlayable fixed segments or║ to one of the independent segments, depending on logic requirements.
 
 XVI-2
 
@@ -24989,19 +24989,19 @@ XVI-3
 
 Segmentation - OBJECT-COMPUTER
 
-## 2. <u>ENVIRONMENT DIVISION IN THE SEGMENTATION MODULE</u>
+## ║2. <u>ENVIRONMENT DIVISION IN THE SEGMENTATION MODULE</u>║
 
-### 2.1 CONFIGURATION SECTION
+### ║2.1 CONFIGURATION SECTION║
 
-Information concerning the Configuration Section is located on page VI-9.
+║Information concerning the Configuration Section is located on page VI-9.║
 
-### 2.2 THE OBJECT-COMPUTER PARAGRAPH
+### ║2.2 THE OBJECT-COMPUTER PARAGRAPH║
 
-#### 2.2.1 Function
+#### ║2.2.1 Function║
 
-The OBJECT-COMPUTER paragraph provides a means of describing the computer on which the program is to be executed.
+║The OBJECT-COMPUTER paragraph provides a means of describing the computer on which the program is to be executed.║
 
-#### 2.2.2 General Format
+#### ║2.2.2 General Format║
 
 <pre style="line-height:1">
 ╔ <u>OBJECT-COMPUTER</u>. [ computer-name                  ╗
@@ -25016,17 +25016,17 @@ The OBJECT-COMPUTER paragraph provides a means of describing the computer on whi
 ╚ [ <u>SEGMENT-LIMIT</u> IS segment-number ] . ]           ╝
 </pre>
 
-#### 2.2.3 Syntax Rules
+#### ║2.2.3 Syntax Rules║
 
-(1) Computer-name is a system-name.
+║(1) Computer-name is a system-name.║
 
-#### 2.2.4 General Rules
+#### ║2.2.4 General Rules║
 
-(1) All clauses of the OBJECT-COMPUTER paragraph apply to the program in which they are explicitly or implicitly specified and to any program contained within that program.
+║(1) All clauses of the OBJECT-COMPUTER paragraph apply to the program in which they are explicitly or implicitly specified and to any program contained within that program.║
 
-(2) General rules concerning computer-name, the MEMORY SIZE clause, and the PROGRAM COLLATING SEQUENCE clause are presented in the Nucleus module on page VI-11.
+║(2) General rules concerning computer-name, the MEMORY SIZE clause, and the PROGRAM COLLATING SEQUENCE clause are presented in the Nucleus module on page VI-11.║
 
-(3) The SEGMENT-LIMIT clause is presented on page XVI-5.
+║(3) The SEGMENT-LIMIT clause is presented on page XVI-5.║
 
 XVI-4
 
@@ -25034,25 +25034,25 @@ XVI-4
 
 Segmentation - SEGMENT-LIMIT
 
-## 2.3 THE SEGMENT-LIMIT CLAUSE
+## ║2.3 THE SEGMENT-LIMIT CLAUSE║
 
-### 2.3.1 Function
+### ║2.3.1 Function║
 
-Ideally, all program segments having segment-numbers ranging from 0 through 49 should be specified as permanent segments. However, when insufficient memory is available to contain all permanent segments plus the largest overlayable segment, it becomes necessary to decrease the number of permanent segments. The SEGMENT-LIMIT feature provides the user with a means by which he can reduce the number of permanent segments in his program, while still retaining the logical properties of fixed portion segments (segment-numbers 0 through 49).
+║Ideally, all program segments having segment-numbers ranging from 0 through 49 should be specified as permanent segments. However, when insufficient memory is available to contain all permanent segments plus the largest overlayable segment, it becomes necessary to decrease the number of permanent segments. The SEGMENT-LIMIT feature provides the user with a means by which he can reduce the number of permanent segments in his program, while still retaining the logical properties of fixed portion segments (segment-numbers 0 through 49).║
 
-### 2.3.2 General Format
+### ║2.3.2 General Format║
 
 <pre style="line-height:1">
 <u>SEGMENT-LIMIT</u> IS segment-number
 </pre>
 
-### 2.3.3 Syntax Rules
+### ║2.3.3 Syntax Rules║
 
-(1) Segment-number must be an integer ranging in value from 1 through 49.
+║(1) Segment-number must be an integer ranging in value from 1 through 49.║
 
-### 2.3.4 General Rules
+### ║2.3.4 General Rules║
 
-(1) When the SEGMENT-LIMIT clause is specified, only those segments having segment-numbers from 0 up to, but not including, the segment-number designated as the segment-limit, are considered as permanent segments of the object program.
+║(1) When the SEGMENT-LIMIT clause is specified, only those segments having segment-numbers from 0 up to, but not including, the segment-number designated as the segment-limit, are considered as permanent segments of the object program.║
 
 (2) Those segments having segment-numbers from the segment-limit through 49 are considered as overlayable fixed segments.
 
@@ -25120,7 +25120,7 @@ section-name <u>SECTION</u> [ segment-number ] .
 
 #### 3.2.4 General Rules
 
-(1) All sections which have the same segment-number constitute a program segment. In level 1 all sections which have the same segment-number must be together in the source program. In level 2 sections with the same segment-numbers need not be physically contiguous in the source program.
+(1) All sections which have the same segment-number constitute a program segment. In level 1 all sections which have the same segment-number must be together in the source program. ║In level 2 sections with the same segment-numbers need not be physically contiguous in the source program.║
 
 (2) Segments with segment-number 0 through 49 belong to the fixed portion of the object program. In level 1 all sections with segment-number 0 through 49 must be together in the source program.
 
@@ -33412,7 +33412,7 @@ The American National Standards Institute does not develop standards and will in
 
 **CAUTION NOTICE:** This American National Standard may be revised or withdrawn at any time. The procedures of the American National Standards Institute require that action be taken periodically to reaffirm, revise, or withdraw this standard. Purchasers of American National Standards may receive current information on all standards by calling or writing the American National Standards Institute.
 
-**CAUTION:** The developers of this standard have requested that holders of patents that may be required for the implementation of the standard disclose such patents to the publisher. However, neither the developers nor the publisher have undertaken a patent search in order to identify which, if any, patents may apply to this standard. As of the date of publication of this standard and following calls for the identification of patents that may be required for the implementation of the standard, no such claims have been made. No further patent search is conducted by the developer or publisher in respect to any standard it processes. No representation is made or implied that licenses are not required to avoid infringement in the use of this standard.
+**║CAUTION:** The developers of this standard have requested that holders of patents that may be required for the implementation of the standard disclose such patents to the publisher. However, neither the developers nor the publisher have undertaken a patent search in order to identify which, if any, patents may apply to this standard. As of the date of publication of this standard and following calls for the identification of patents that may be required for the implementation of the standard, no such claims have been made. No further patent search is conducted by the developer or publisher in respect to any standard it processes. No representation is made or implied that licenses are not required to avoid infringement in the use of this standard.║
 
 Published by
 
@@ -33729,7 +33729,7 @@ ANSI X3.23b-1993
 | IV-45 | Paragraph 8 entitled *COBOL Reserved Words*, add the word FUNCTION between the words FROM and GENERATE in the list of COBOL reserved words. |
 | IV-46 (A-14) | Paragraph 8 entitled *COBOL Reserved Words*, delete the following text:<br><br>The following is a list of COBOL reserved words for the optional Intrinsic Function module.<br><br>FUNCTION |
 | V-24 | General format of the IF statement, delete the braces surrounding statement-1; delete the ellipsis following statement-1; delete the braces surrounding statement-2; delete the ellipsis following statement-2. |
-| VI-15 | Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, second sentence, change "The collating sequence identified" to "The character code set and/or collating sequence identified". |
+| VI-15 | Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, second sentence, change "║The collating sequence identified║" to "║The character code set and/or collating sequence identified║". |
 
 B-7
 
@@ -33768,7 +33768,7 @@ ANSI X3.23b-1993
 | Page No. | Description of Change |
 |---|---|
 | VI-91 | Paragraph 6.16.4 of the IF statement, general rule 2e, add the following as the new last sentence:<br><br>This has the effect of causing a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period. |
-| VI-91 | Paragraph 6.16.4 of the IF statement, general rule 3, second paragraph, replace with the following:<br><br>IF statements within IF statements are considered matched IF, ELSE, and END-IF ordered combinations, proceeding from left to right. Thus, any ELSE encountered is matched with the nearest preceding IF that either has not been already matched with an ELSE or has not been implicitly or explicitly terminated. Any END-IF encountered is matched with the nearest preceding IF that has not been implicitly or explicitly terminated. |
+| VI-91 | Paragraph 6.16.4 of the IF statement, general rule 3, second paragraph, replace with the following:<br><br>IF statements within IF statements are considered matched IF, ELSE, and END-IF ordered combinations, proceeding from left to right. Thus, any ELSE encountered is matched with the nearest preceding IF that either has not been already matched with an ELSE or has not been ║implicitly or║ explicitly terminated. Any END-IF encountered is matched with the nearest preceding IF that has not been ║implicitly or║ explicitly terminated. |
 | VI-95 | Paragraph 6.18.3 of the INSPECT statement, change syntax rule 8 to read:<br><br>(8) When the CHARACTERS phrase is used, literal-3 or the size of the data item referenced by identifier-5 must be one character in length. |
 | VI-96 | Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19.<br><br>(1) For the purpose of determining its length, identifier-1 is treated as if it were a sending data item. (See page VI-26, The OCCURS Clause). |
 | VI-96 | Paragraph 6.18.4, new general rule 2, last line, change "general rules 5 through 7." to "general rules 6 through 8.". |
@@ -33870,7 +33870,7 @@ ANSI X3.23b-1993
 | VII-48<br>(A-19) | Paragraph 4.5.3 of the REWRITE statement in the Sequential I-O module, syntax rule 1, second sentence, change to read:<br><br>Record-name-1 and identifier-1 must not reference the same storage area. |
 | VII-50 | Paragraph 4.6.3 of the USE statement in the Sequential I-O module, syntax rule 3, change to read:<br><br>(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division. |
 | VII-52<br>(A-19) | Paragraph 4.7.3 of the WRITE statement in the Sequential I-O module, syntax rule 1, second sentence, change to read:<br><br>Record-name-1 and identifier-1 must not reference the same storage area. |
-| VII-53 | Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, replace general rule 9, including subparagraphs a and b, with the following:<br><br>(9) If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 after execution of the input-output operation. |
+| VII-53 | Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, replace general rule 9, including subparagraphs a and b, with the following:<br><br>║(9) If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 after execution of the input-output operation.║ |
 | VII-54 | Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, renumber general rules 10 through 17 as new general rules 11 through 18. |
 
 B-15
@@ -33910,7 +33910,7 @@ ANSI X3.23b-1993
 |---|---|
 | VIII-37<br>(A-19) | Paragraph 4.9.3 of the WRITE statement in the Relative I-O module, syntax rule 1, second sentence, change to read:<br><br>Record-name-1 and identifier-1 must not reference the same storage area. |
 | VIII-38 | Paragraph 4.9.4 of the WRITE statement in the Relative I-O module, replace general rule 9, including subparagraphs a and b, with the following:<br><br>(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page VIII-5, The Invalid Key Condition.) |
-| IX-4 | Paragraph 1.3.4, I-O status in the Indexed I-O module, item 3b for I-O status 22, change to read:<br><br>b. I-O Status = 22. An attempt is made either:<br><br>1) to write a record that would create a duplicate prime record key; or<br><br>2) to write or rewrite a record that would create a duplicate alternate record key when the DUPLICATES phrase is not specified for that alternate record key. |
+| IX-4 | Paragraph 1.3.4, I-O status in the Indexed I-O module, item 3b for I-O status 22, change to read:<br><br>b. I-O Status = 22. An attempt is made ║either:║<br><br>║1)║ to write a record that would create a duplicate prime record key║; or║<br><br>║2) to write or rewrite a record that would create a duplicate alternate record key when the DUPLICATES phrase is not specified for that alternate record key║. |
 | IX-7 | Delete paragraph 1.3.7 entitled *The File Attribute Conflict Condition.* |
 | IX-26 | Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, general rule 8, change to read:<br><br>(8) If during the execution of the OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of the fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.) |
 
@@ -33952,9 +33952,9 @@ ANSI X3.23b-1993
 | IX-39 | Paragraph 4.8.3 of the USE statement in the Indexed I-O module, syntax rule 3, change to read:<br><br>(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division. |
 | IX-41 (A-20) | Paragraph 4.9.3 of the WRITE statement in the Indexed I-O module, syntax rule 1, second sentence, change to read;<br><br>Record-name-1 and identifier-1 must not reference the same storage area. |
 | IX-42 | Paragraph 4.9.4 of the WRITE statement in the Indexed I-O module, general rule 9, including subparagraphs a and b, change to read:<br><br>(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page IX-6, The Invalid Key Condition.) |
-| X-7 | Paragraph 1.3.8.3, Conventions for Index-Names, change the first sentence to read: "If a data item possessing the global attribute includes a table described with an index-name, that index-name also possesses the global attribute." |
-| X-23 | Paragraph 4.5.3 of the EXTERNAL clause, syntax rule 3, change the first sentence to read: "The VALUE clause must not be used in any data description entry that includes, or is subordinate to an entry that includes, the EXTERNAL clause." |
-| X-33 | Paragraph 5.4.4 of the EXIT PROGRAM statement, add the following as the new general rule 4:<br><br>(4) An EXIT PROGRAM statement must not be executed while executing within the range of a declarative procedure in which the GLOBAL phrase is specified, except within a program called while executing within the range of that declarative procedure. |
+| X-7 | Paragraph 1.3.8.3, Conventions for Index-Names, change the first sentence to read: "║If a data item possessing the global attribute includes a table described with an index-name, that index-name also possesses the global attribute.║" |
+| X-23 | Paragraph 4.5.3 of the EXTERNAL clause, syntax rule 3, change the first sentence to read: "║The VALUE clause must not be used in any data description entry that includes, or is subordinate to an entry that includes, the EXTERNAL clause.║" |
+| X-33 | Paragraph 5.4.4 of the EXIT PROGRAM statement, add the following as the new general rule 4:<br><br>║(4) An EXIT PROGRAM statement must not be executed while executing within the range of a declarative procedure in which the GLOBAL phrase is specified, except within a program called while executing within the range of that declarative procedure.║ |
 
 B-20
 
@@ -34014,9 +34014,9 @@ ANSI X3.23b-1993
 |---|---|
 | XI-20 | Paragraph 4.4.4 of the SORT statement, general rule 12b, add the following as the new last sentence in the first paragraph:<br><br>If the file referenced by file-name-3 is described with variable length records, the size of any record written to file-name-3 is the size of that record when it was read from file-name-1, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the file description entry for file-name-3. |
 | XI-20 | Paragraph 4.4.4 of the SORT statement, general rule 12, last paragraph, last sentence beginning with "On the first attempt", replace with the following:<br><br>On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-3 is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 12c above.<br><br>The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file-name-1 is undefined upon completion of the SORT statement for which the GIVING phrase is specified. |
-| XII-3 | Paragraph 2.4 of the COPY statement, general rule 5b, add the following as the new last sentence:<br><br>Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.) |
+| XII-3 | Paragraph 2.4 of the COPY statement, general rule 5b, add the following as the new last sentence:<br><br>║Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)║ |
 | XII-5 | Paragraph 2.4 of the COPY statement, add the following as a new general rule 12:<br><br>(12) The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement. |
-| XII-7 | Paragraph 3.4 of the REPLACE statement, general rule 5, change to read:<br><br>(5) The text produced as a result of the processing of a REPLACE statement must contain neither a COPY statement nor a REPLACE statement. |
+| XII-7 | Paragraph 3.4 of the REPLACE statement, general rule 5, change to read:<br><br>║(5) The text produced as a result of the processing of a REPLACE statement must contain neither a COPY statement nor a REPLACE statement.║ |
 
 B-23
 
@@ -34026,8 +34026,8 @@ ANSI X3.23b-1993
 
 | Page No. | Description of Change |
 |---|---|
-| XII-7 | Paragraph 3.4 of the REPLACE statement, general rule 6b, add the following as the new last sentence:<br><br>Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.) |
-| XII-7 | Paragraph 3.4 of the REPLACE statement, general rule 7, change the last sentence to read:<br><br>A comment line or blank line in source program text is not placed into the resultant program if that comment line or blank line appears within the sequence of text words that match pseudo-text-1. |
+| XII-7 | Paragraph 3.4 of the REPLACE statement, general rule 6b, add the following as the new last sentence:<br><br>║Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)║ |
+| XII-7 | Paragraph 3.4 of the REPLACE statement, general rule 7, change the last sentence to read:<br><br>║A comment line or blank line in source program text is not placed into the resultant program if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.║ |
 | XIII-34 | Paragraph 3.10.8 entitled *Body Group Presentation Rules*, rule 4b, second paragraph, fourth line, change "current page group" to "current body group". |
 | XIII-71 | Paragraph 4.5.4 of the OPEN statement in the Report Writer module, general rule 6, change to read:<br><br>(6) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.) |
 | XIII-78 | Paragraph 4.9.3 of the USE BEFORE REPORTING statement, syntax rule 2, change to read:<br><br>(2) Identifier-1 must reference a report group. The same identifier-1 must not appear in more than one USE BEFORE REPORTING statement within the same Procedure Division. |
