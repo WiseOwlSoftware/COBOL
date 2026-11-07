@@ -1063,8 +1063,8 @@ internal static class RuntimeApi
         $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.IntegerArgExact)}({exact})";
 
     /// <summary>A result or argument the value alone describes, carried as an exact value (<c>FunctionValueField.OfExact</c>).</summary>
-    public static string FunctionFieldOfExact(string exact) =>
-        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfExact)}({exact})";
+    public static string FunctionFieldOfExact(string exact, string mode) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfExact)}({exact}, {mode})";
 
     /// <summary>The exact §2023:15.27.3 r3 FUNCTION E constant under a standard mode — <c>CobolDec.E</c> (kb/Work R18).</summary>
     public static string DecE => $"{nameof(CobolDec)}.{nameof(CobolDec.E)}";
