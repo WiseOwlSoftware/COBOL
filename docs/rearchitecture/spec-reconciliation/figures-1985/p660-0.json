@@ -1,0 +1,20 @@
+{
+ "page": 660,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>COMMUNICATION</u> <u>SECTION</u>.",
+  "",
+  "┌communication-description-entry     ┐",
+  "│                                    │",
+  "└[record-description-entry] ...      ┘ ..."
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  " <u>COMMUNICATION</u> <u>SECTION</u>.",
+  "",
+  "[communication-description-entry",
+  "",
+  "[record-description-entry] … ] …"
+ ],
+ "reason": "The printed page sets the Communication Section in typed one-row brackets: [communication-description-entry on one row and [record-description-entry] ... ] ... on the next; the batch redrew the outer pair as a multi-row bracket the page does not draw. Drawn as printed."
+}

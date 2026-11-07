@@ -6,12 +6,12 @@
   "<u>VALUE</u> <u>OF</u> ⎨implementor-name-1 IS ⎨           ⎬⎬ ...",
   "         ⎩                      ⎩literal-1  ⎭⎭"
  ],
- "decided": "generated",
+ "decided": "neither",
  "figure_lines": [
-  "         ╭                       ╭ ║ data-name-1 ║ ╮",
-  "<u>VALUE</u> <u>OF</u> ┤ implementor-name-1 IS │                 ├ ╮ …",
-  "         │                       ┤                 │ ├",
+  "         ╭                       ╭ ║ data-name-1 ║ ╮ ╮",
+  "<u>VALUE</u> <u>OF</u> ┤ implementor-name-1 IS ┤                 ├ ├ …",
+  "         │                       │                 │ │",
   "         ╰                       ╰   literal-1     ╯ ╯"
  ],
- "reason": "The printed page draws a level-2 box around exactly the span the regeneration boxes (checked on the rendered page and against the box pass's list of the page's boxes); the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment."
+ "reason": "The printed page draws a level-2 box around exactly the span the regeneration boxes (checked on the rendered page and against the box pass's list of the page's boxes); the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment. The regeneration set this brace's two points on different rows (the scan's measured middle pieces disagree by a row); both are drawn on the row of the label beside the brace, as printed. The outer brace's closing piece is drawn over the same four rows as its opening piece, its point and the ellipsis on the VALUE OF row."
 }

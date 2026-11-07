@@ -1,0 +1,16 @@
+{
+ "page": 888,
+ "figure": 1,
+ "drawn_lines": [
+  "        ┌+┐         ⎧digit [ . [digit]]⎫",
+  "[space] │ │ [space] ⎨                  ⎬ [space]",
+  "        └-┘         ⎩. digit           ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "        ┌ + ┐         ╭ digit [ . [digit]] ╮",
+  "[space] │   │ [space] ┤                    ├ [space]",
+  "        └ - ┘         ╰ . digit            ╯"
+ ],
+ "reason": "The printed page (2.29.3, NUMVAL argument-1 first format) sets [space] [+/-] [space] {digit [. [digit]] / . digit} [space] as the batch drew it. Drawn in the house style (figure_reading.restyle)."
+}

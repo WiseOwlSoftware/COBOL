@@ -1,0 +1,24 @@
+{
+ "page": 225,
+ "figure": 2,
+ "drawn_lines": [
+  "<i>RI</i> <u>WRITE</u> record-name-1  [<u>FROM</u> identifier-1]",
+  "",
+  "    [<u>INVALID</u> KEY imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-2]",
+  "",
+  "    [<u>END-WRITE</u>]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "&lt;i&gt;RI&lt;/i&gt; <u>WRITE</u> record-name-1  [<u>FROM</u> identifier-1]",
+  "",
+  "    [<u>INVALID</u> KEY imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-2]",
+  "",
+  "    [<u>END-WRITE</u>]"
+ ],
+ "reason": "The printed page sets RI WRITE as the batch drew it, the italic RI module mark at its left: [FROM identifier-1] and the three optional phrases (split from the S WRITE format the batch had set in the same pre). Drawn in the house style (figure_reading.restyle)."
+}
