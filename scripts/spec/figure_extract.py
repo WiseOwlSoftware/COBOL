@@ -179,6 +179,20 @@ def extract(page, band=None):
     return sorted(out, key=lambda w: (round(w["y0"], 0), w["x0"]))
 
 
+def page_extractor(edition: int):
+    """The page -> words function of `edition`'s measuring arm (spec_pdf.geometry): `extract` over a PyMuPDF page's text
+    layer and vector underlines, or `figure_raster.extract` over a `figure_raster.RasterPage`, whose words are the
+    converted figures' words paired with the scan's pixels (`figure_raster.measure_figures`, PB4849). The stems' twin is
+    `figure_geometry.page_classifier`."""
+    arm = spec_pdf.geometry(edition)
+    if arm == "vector":
+        return extract
+    if arm == "raster":
+        import figure_raster
+        return figure_raster.extract
+    raise ValueError(f"spec_pdf.EDITIONS[{edition}].geometry is {arm!r}, not 'vector' or 'raster'")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("page", type=int)

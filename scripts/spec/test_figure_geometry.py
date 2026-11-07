@@ -8,7 +8,6 @@ a bracket turned the wrong way (kb/Work PB3530). The genuine brackets beside tho
 """
 import pathlib
 import sys
-import types
 from typing import NamedTuple
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -59,35 +58,26 @@ def main() -> int:
     return 1 if fails else 0
 
 
-#: How many checks `edition_dispatch` makes: two vector editions, the raster arm called, the raster arm absent.
-EDITION_CASES = 4
+#: How many checks `edition_dispatch` makes: the stems and the words of two vector editions and of the raster one.
+EDITION_CASES = 6
 
 
 def edition_dispatch() -> list[str]:
-    """`page_classifier` picks the arm the edition table records (kb/Work PB4815), on a planted raster module."""
+    """`page_classifier` and `figure_extract.page_extractor` pick the arm the edition table records (kb/Work PB4815): the
+    vector readers of a PyMuPDF page, or the raster ones of a `figure_raster.RasterPage` (PB4849). One table, one
+    dispatch: a raster stem read with words read from vectors would draw a scan's figure with no underline at all."""
+    import figure_extract as X
+    import figure_raster
     fails = []
     for edition in (2002, 2023):
         if G.page_classifier(edition) is not G.classify_page:
             fails.append(f"{edition} is a vector edition and must read strokes with classify_page")
-    planted = types.ModuleType("figure_raster")
-    planted.measure_page = lambda edition, page: [("measured", edition, page)]
-    saved = sys.modules.get("figure_raster", False)
-    try:
-        sys.modules["figure_raster"] = planted
-        if G.page_classifier(1985)("a page") != [("measured", 1985, "a page")]:
-            fails.append("1985 is a raster edition and must call figure_raster.measure_page(edition, page)")
-        sys.modules["figure_raster"] = None          # an import of None raises ModuleNotFoundError: the module is absent
-        try:
-            G.page_classifier(1985)
-            fails.append("1985 with no figure_raster module must exit, not read strokes from a scan")
-        except SystemExit as ex:
-            if "PB4817" not in str(ex.code):
-                fails.append("1985 with no figure_raster module must exit naming PB4817")
-    finally:
-        if saved is False:
-            sys.modules.pop("figure_raster", None)
-        else:
-            sys.modules["figure_raster"] = saved
+        if X.page_extractor(edition) is not X.extract:
+            fails.append(f"{edition} is a vector edition and must read words with figure_extract.extract")
+    if G.page_classifier(1985) is not figure_raster.classify_page:
+        fails.append("1985 is a raster edition and must read stems with figure_raster.classify_page")
+    if X.page_extractor(1985) is not figure_raster.extract:
+        fails.append("1985 is a raster edition and must read words with figure_raster.extract")
     return fails
 
 

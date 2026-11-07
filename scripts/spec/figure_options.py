@@ -242,7 +242,7 @@ def read(pages: Iterable[tuple[int, list[dict], list[dict]]]) -> Reading:
     return Reading(out, unpaired)
 
 
-_MARK = {"bracket": "[", "bar": "|", "brace": "{", "paren": "("}
+_MARK = {"bracket": "[", "bar": "|", "brace": "{", "paren": "(", "box": "║"}   # box: a scan's level-2 box (PB4849)
 
 
 def describe(words: list[Word]) -> list[str]:

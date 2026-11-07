@@ -24,6 +24,10 @@ THE SHAPES (FIGURE-STYLE.md, "Layout rules, for the generator"; kb/Work PB3530):
                                                it; nothing that brace holds disagrees, so the row is not torn.
   CHOICE_BARS_BESIDE_A_TALLER_BRACE          — WRITE's `{ | BEFORE / AFTER | }` bars stop at the last row they hold.
   LABEL_ON_ITS_OWN_POINT_ROW                 — ACCEPT Format 3's `LINE NUMBER` stays on its own brace's point row.
+  ONE_ROW_BOXES                              — a 1985 level-2 box one row tall is `║ … ║`, in its own column beside
+                                               the typed bracket it encloses (FIGURE-STYLE.md rule 9; kb/Work PB4849).
+  BOX_AROUND_A_BRACE_GROUP                   — a box several rows tall is `╔ ║ ╚` / `╗ ║ ╝`, holding every row
+                                               of the brace it encloses.
 """
 import pathlib
 import sys
@@ -505,6 +509,83 @@ FIGURES = {
             '                                     └   ╰ OMITTED                 ╯     ┘',
         ],
     ),
+    # 1985 PDF page 389 (VII-15, I-O-CONTROL), band y 295-340, measured from the scan (figure_raster; kb/Work PB4849)
+    'ONE_ROW_BOXES': (
+        [
+            ('[', 91.3, 93.6, 302.4, False),
+            ('SAME', 95.6, 115.9, 302.4, True),
+            ('[', 129.1, 131.6, 302.4, False),
+            ('RECORD', 133.0, 164.9, 302.4, True),
+            (']', 166.3, 168.7, 302.4, False),
+            ('AREA', 181.3, 203.0, 302.4, False),
+            ('FOR', 208.3, 224.8, 302.4, False),
+            ('file-name-3', 230.6, 288.7, 302.4, False),
+            ('{', 301.0, 304.0, 302.4, False),
+            ('file-name-4', 306.2, 364.3, 302.4, False),
+            ('}', 366.5, 369.5, 302.4, False),
+            ('...', 377.5, 390.2, 302.4, False),
+            (']', 398.7, 401.0, 302.4, False),
+            ('...', 410.2, 422.6, 302.4, False),
+            ('[', 91.4, 93.8, 324.7, False),
+            ('MULTIPLE', 94.9, 137.5, 324.7, True),
+            ('FILE', 144.0, 164.7, 324.7, True),
+            ('TAPE', 170.8, 191.5, 324.7, False),
+            ('CONTAINS', 198.0, 239.8, 324.7, False),
+            ('{', 252.7, 255.6, 324.7, False),
+            ('file-name-5', 257.8, 315.5, 324.7, False),
+            ('[', 329.2, 331.4, 324.7, False),
+            ('POSITION', 332.6, 375.8, 324.7, True),
+            ('integer-3', 382.1, 429.1, 324.7, False),
+            (']', 431.3, 433.4, 324.7, False),
+            ('}', 437.0, 439.9, 324.7, False),
+            ('...', 448.4, 460.6, 324.7, False),
+            (']', 469.3, 471.4, 324.7, False),
+            ('...', 480.4, 493.0, 324.7, False),
+            ('.', 502.4, 504.0, 324.7, False),
+            (']', 507.1, 509.0, 324.7, False),
+        ],
+        [
+            (125.5, 299.9, 312.7, 'box', 'L'),
+            (173.7, 299.9, 312.7, 'box', 'R'),
+            (88.6, 320.4, 335.0, 'box', 'L'),
+            (496.6, 320.4, 335.0, 'box', 'R'),
+        ],
+        [
+            '  [ SAME ║ [ RECORD ] ║ AREA FOR file-name-3 { file-name-4 } … ] …',
+            '║ [ MULTIPLE FILE TAPE CONTAINS { file-name-5 [ POSITION integer-3 ] } … ] … ║ . ]',
+        ],
+    ),
+    # 1985 PDF page 303 (VI-71, ACCEPT Format 2), band y 241-306; the box's rules lie outside the band (measured as above)
+    'BOX_AROUND_A_BRACE_GROUP': (
+        [
+            ('ì', 226.62, 226.62, 250.38, False),
+            ('DATE', 234.9, 258.5, 252.2, True),
+            ('ü', 301.32, 301.32, 252.0, False),
+            ('DAY', 234.9, 252.4, 264.4, True),
+            ('ACCEPT', 72.9, 108.7, 269.8, True),
+            ('identifier-2', 115.9, 186.3, 269.8, False),
+            ('FROM', 193.3, 217.4, 269.8, True),
+            ('í', 226.62, 226.62, 269.58, False),
+            ('ý', 301.32, 301.32, 271.38, False),
+            ('DAY-OF-WEEK', 234.9, 301.0, 276.1, True),
+            ('TIME', 235.3, 259.0, 288.4, True),
+            ('î', 226.62, 226.62, 289.14, False),
+            ('þ', 301.32, 301.32, 290.76, False),
+        ],
+        [
+            (68.6, 222.7, 308.2, 'box', 'L'),
+            (321.8, 222.7, 308.2, 'box', 'R'),
+        ],
+        [
+            '╔                          ╭ DATE        ╮ ╗',
+            '║                          │             │ ║',
+            '║                          │ DAY         │ ║',
+            '║ ACCEPT identifier-2 FROM ┤             ├ ║',
+            '║                          │ DAY-OF-WEEK │ ║',
+            '║                          │             │ ║',
+            '╚                          ╰ TIME        ╯ ╝',
+        ],
+    ),
 }
 
 
@@ -521,7 +602,7 @@ def piece(text, x, y):
     return {"text": text, "x0": x, "x1": x + 5.0, "y0": y, "underlined": False}
 
 
-UNIT_CHECKS = 10                      # the checks unit_failures makes, so the verdict counts every one
+UNIT_CHECKS = 11                      # the checks unit_failures makes, so the verdict counts every one
 
 
 def unit_failures():
@@ -554,6 +635,14 @@ def unit_failures():
     got = [(e.x_open, e.x_close, e.stems == (bars[0], bars[1]), e.family) for e in R.enclosures([], bars)]
     if got != [(5, 50, True, "bar")]:
         fails.append(f"enclosures: a pair of choice bars paired as {got}, want [(5, 50, True, 'bar')]")
+    # A level-2 box's two sides pair as one enclosure of the box family, around a bracket of the same height inside it.
+    boxed = [{"x": 0, "y0": 0, "y1": 30, "h": 30, "kind": "box", "side": "L"},
+             {"x": 5, "y0": 0, "y1": 30, "h": 30, "kind": "bracket", "side": "L"},
+             {"x": 50, "y0": 0, "y1": 30, "h": 30, "kind": "bracket", "side": "R"},
+             {"x": 60, "y0": 0, "y1": 30, "h": 30, "kind": "box", "side": "R"}]
+    got = sorted((e.x_open, e.x_close, e.family) for e in R.enclosures([], boxed))
+    if got != [(0, 60, "box"), (5, 50, "bracket")]:
+        fails.append(f"enclosures: a box around a bracket paired as {got}, want [(0, 60, box), (5, 50, bracket)]")
     # Each pair names its family and how low its opener reaches, which is where a glyph delimiter's band ends.
     got = sorted((e.x_open, e.family, e.low) for e in R.enclosures(nested, []))
     if got != [(0, "brace", 60), (10, "brace", 45)]:

@@ -41,8 +41,9 @@ render the page. What the tool is authoritative about is the BARS — and those 
 
 EDITIONS (kb/Work PB4815). `spec_pdf.EDITIONS` records, per edition, whether its general formats are VECTOR strokes (2002,
 2023: measured here) or RASTER pixels (1985, a scan). `page_classifier(edition)` returns the page -> stems function of the
-edition's arm; the raster arm is `figure_raster.measure_page(edition, page)` (PB4817), and until that module exists the arm
-exits naming PB4817 rather than report "no stems" for a page it cannot read.
+edition's arm; the raster arm is `figure_raster.classify_page`, whose page is the scan measured by
+`figure_raster.measure_figures` (PB4817, PB4849). This command line reads vector pages only: a scan's page needs the
+converted figures' words to be measured against, and `render_figure.py --edition 1985` is the command that has them.
 """
 from __future__ import annotations
 
@@ -119,21 +120,16 @@ def classify_page(page):
 
 
 def page_classifier(edition: int):
-    """The page -> delimiter stems function of `edition`'s measuring arm (spec_pdf.geometry): the vector strokes read by
-    `classify_page`, or the scanned pixels read by `figure_raster.measure_page` (PB4817)."""
+    """The page -> delimiter stems function of `edition`'s measuring arm (spec_pdf.geometry): `classify_page` over a
+    PyMuPDF page's vector strokes, or `figure_raster.classify_page` over a `figure_raster.RasterPage`, the scan measured
+    by `figure_raster.measure_figures` (PB4817, PB4849). `figure_extract.page_extractor` is the same dispatch for the
+    words, so a caller takes both from one edition and hands them the same page."""
     arm = spec_pdf.geometry(edition)
     if arm == "vector":
         return classify_page
     if arm == "raster":
-        try:
-            import figure_raster
-        except ModuleNotFoundError as ex:
-            if ex.name != "figure_raster":
-                raise
-            sys.exit(f"FATAL: the {edition} PDF is a scan, so its delimiters are measured from pixels by "
-                     "scripts/spec/figure_raster.py, which PB4817 creates and does not exist yet. A vector read of a scan "
-                     "finds no strokes and would report a clean page.")
-        return lambda page: figure_raster.measure_page(edition, page)
+        import figure_raster
+        return figure_raster.classify_page
     raise ValueError(f"spec_pdf.EDITIONS[{edition}].geometry is {arm!r}, not 'vector' or 'raster'")
 
 
@@ -171,6 +167,7 @@ def main() -> int:
     spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
 
+    spec_pdf.require_vector(args.edition, "figure_geometry.py")
     pdf = spec_pdf.require(args.edition)
     import pymupdf
 

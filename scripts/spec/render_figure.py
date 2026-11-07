@@ -53,6 +53,13 @@ PAREN_L   = ("╭", "│", "╰")        # curved like a brace, but POINTLESS �
 PAREN_R   = ("╮", "│", "╯")
 BAR       = "│"
 BRACE_EXT = "│"                    # a brace's straight run between hook and point
+# A BOX marks syntax unique to level 2 of a module in a scanned edition (1985: PDF pages 23 and 147; kb/Work PB4849).
+# It groups and chooses nothing, so it is a fourth family, drawn in DOUBLE lines to stay tellable from the three
+# single-line ones (FIGURE-STYLE.md rule 9). Only its two sides are drawn: a top or bottom rule would need a row that
+# is no printed line.
+BOX_L     = ("╔", "║", "╚")
+BOX_R     = ("╗", "║", "╝")
+BOX_ONE_ROW = "║"                  # a box one row tall: corners would join nothing (rule 7's reason)
 
 # Symbol-face extensible DELIMITER pieces, as they decode from the PDF's text layer, each as
 # (family, side, role). A tall delimiter is assembled from a top hook, extenders and a bottom hook; a brace
@@ -201,7 +208,8 @@ class Enclosure(NamedTuple):
     top: float                  # the y at or below which a row is enclosed
     bottom: float | None        # the y at or above which a row is enclosed; None for a glyph delimiter
     stems: tuple                # the pair's two vector stems, (None, None) for a glyph delimiter
-    family: str                 # "bracket" or "bar" (vector stems), "brace" or "paren" (Symbol-face glyphs)
+    family: str                 # "bracket" or "bar" (vector stems), "box" (a scan's level-2 box sides),
+                                # "brace" or "paren" (Symbol-face glyphs)
     low: float                  # the lowest y the opener itself reaches: a stem's foot, a glyph's bottom piece
 
 
@@ -237,7 +245,7 @@ def enclosures(glyphs, stems) -> list[Enclosure]:
             delims.append((min(b["x0"] for b in g), family, side, y_top, y_bot, tops[0] - HOOK_REACH, None,
                            None))
     for st in stems:
-        delims.append((st["x"], st["kind"], st["side"] if st["kind"] == "bracket" else None, st["y0"], st["y1"],
+        delims.append((st["x"], st["kind"], st["side"] if st["kind"] != "bar" else None, st["y0"], st["y1"],
                        st["y0"] - TOP_SLACK, st["y1"] - BOTTOM_INSET, st))
     out, open_ = [], []
     for d in sorted(delims, key=lambda d: (d[0], d[2] != "R")):
@@ -470,8 +478,9 @@ def build(page, lo, hi, extract, classify_page):
     # and delimiters together cannot distinguish "the same column, one row down" from "two adjacent things" —
     # and a shared key is precisely what lets a delimiter overwrite a word. Keys carry the representative x
     # first so packing still runs strictly left to right; the rank only breaks exact ties.
-    brackets = [s for s in stems if s["kind"] != "bar"]
+    brackets = [s for s in stems if s["kind"] == "bracket"]
     bars = [s for s in stems if s["kind"] == "bar"]
+    boxes = [s for s in stems if s["kind"] == "box"]
 
     def keyed(values, rank, tol=X_TOL):
         rep = cluster(values, tol)
@@ -480,7 +489,8 @@ def build(page, lo, hi, extract, classify_page):
     xbrk = keyed([s["x"] for s in brackets], 0)
     xbar = keyed([s["x"] for s in bars], 1)
     xbrace = keyed([b["x0"] for b in glyphs], 2)
-    stemx = lambda s: (xbar if s["kind"] == "bar" else xbrk)[s["x"]]
+    xbox = keyed([s["x"] for s in boxes], 3)
+    stemx = lambda s: {"bar": xbar, "box": xbox}.get(s["kind"], xbrk)[s["x"]]
 
     # A brace arrives as separate glyph pieces, but it OCCUPIES every row from its top hook to its bottom one.
     # Reserving only the rows a piece happens to sit on lets text pack straight through the rows between —
@@ -523,7 +533,9 @@ def build(page, lo, hi, extract, classify_page):
     # that group — which is the same trap that defeated gap-based band detection one level up. The enclosures
     # already state it: two adjacent rows belong together when some delimiter spans both, and otherwise they
     # are separate groups. Rows outside every enclosure stay tight against each other.
-    spans = [(c[0], c[-1]) for st in stems for c in [covers(st)] if c]
+    # A level-2 BOX is no group (it marks a module level, FIGURE-STYLE.md rule 9): the groups inside one keep the blank
+    # rows between them, and its sides run through those rows.
+    spans = [(c[0], c[-1]) for st in stems if st["kind"] != "box" for c in [covers(st)] if c]
     spans += [(r0, r1) for _, r0, r1, _ in glyph_raw]
     inside = {r for a, b in spans for r in range(a, b + 1)}
     joined = {r for a, b in spans for r in range(a, b)}      # r and r+1 lie in one enclosure
@@ -545,7 +557,7 @@ def build(page, lo, hi, extract, classify_page):
     # break the match: in the relation condition the operand braces cover rows 4-8 only, so `IS <>` measured
     # depth 3 and the row below it depth 1, and the two failed to pair despite being plain siblings.
     spans = [(min(b["x0"] for b in grp), dr0, dr1) for _, dr0, dr1, grp in glyph_raw]
-    spans += [(st["x"], c[0], c[-1]) for st in stems for c in [covers(st)] if c]
+    spans += [(st["x"], c[0], c[-1]) for st in stems if st["kind"] != "box" for c in [covers(st)] if c]
     words_in = collections.defaultdict(list)
     for w in text_w:
         words_in[rindex[rowof[w["y0"]]]].append(w["x0"])
@@ -662,6 +674,9 @@ def build(page, lo, hi, extract, classify_page):
         for n, r in enumerate(span):
             if s["kind"] == "bar":
                 put(r, c, BAR)
+            elif s["kind"] == "box":
+                g = BOX_L if opening else BOX_R
+                put(r, c, BOX_ONE_ROW if len(span) == 1 else g[0] if n == 0 else g[2] if n == len(span) - 1 else g[1])
             elif len(span) == 1:
                 # One row tall: the printed page draws a single-height bracket, and box-drawing corners
                 # cannot express that — `┌ … ┐` on one row reads as an unclosed group. The ASCII separator
@@ -1031,6 +1046,31 @@ def sheet(doc, pages, out_path, extract, classify_page, folio_offset):
     return len(parts)
 
 
+def raster_page(args, doc) -> int:
+    """A scanned edition's page: every figure the transcription draws on it, regenerated from the measured scan
+    (`sweep_figures.regenerated`, kb/Work PB4849), each followed by what the pairing of its words could not read."""
+    if args.band or args.sheet or args.bands_only:
+        sys.exit(f"FATAL: the {args.edition} edition is a scan: its figures are found by the transcription's words, so "
+                 "--band, --bands-only and --sheet do not apply; give the page alone")
+    import sweep_figures
+    lines = spec_pdf.markdown(args.edition).read_text(encoding="utf-8").splitlines()
+    drawn = [d for d in sweep_figures.drawn_figures(lines) if d.page == args.page]
+    if not drawn:
+        sys.exit(f"no figure is drawn on page {args.page} of {spec_pdf.markdown(args.edition).name}")
+    for n, (d, body, bad, _) in enumerate(sweep_figures.regenerated(args.edition, doc, drawn, sys.modules[__name__]), 1):
+        print(f"<!-- figure {n} of {len(drawn)}, {spec_pdf.markdown(args.edition).name} lines {d.start + 1}-{d.end + 1} -->")
+        if body is None:
+            print("<!-- not located on the page -->")
+            continue
+        print(PRE_OPEN)
+        for line in body if not args.plain else [re.sub(r"</?u>", "", b) for b in body]:
+            print(line)
+        print("</pre>")
+        for b in bad:
+            print(f"<!-- unread: {b.get('reason')} {b.get('text', '')} -->")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("page", type=int, help="PDF page number (printed folio + the edition's folio offset)")
@@ -1042,16 +1082,17 @@ def main() -> int:
     ap.add_argument("--also", nargs="*", type=int, default=[], help="further pages for --sheet")
     spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
-    spec_pdf.require_vector(args.edition, "render_figure.py")
     pdf = spec_pdf.require(args.edition)
     import pymupdf
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-    from figure_extract import extract
+    from figure_extract import page_extractor
     from figure_geometry import page_classifier
 
-    classify_page = page_classifier(args.edition)
+    extract, classify_page = page_extractor(args.edition), page_classifier(args.edition)
     doc = pymupdf.open(pdf)
+    if spec_pdf.geometry(args.edition) == "raster":
+        return raster_page(args, doc)
     page = doc[args.page - 1]
 
     if args.sheet:
