@@ -9,7 +9,7 @@ and the audits' raster arms stay open on the note.
 **The write rule.** A `<pre>` block is written in the house style only when it is decided: a refuter's verdict file
 decides it (`docs/rearchitecture/spec-reconciliation/figures-1985/p<page>-<figure>.json`, read by `load_verdicts`,
 which refuses a malformed file, two verdicts on one block, a decision outside generated / drawn / neither /
-not-a-format, a missing figure or reason, and a verdict whose block moved), or the block is a general format whose
+not-a-format, a missing figure, reason or `drawn_lines`, and a verdict whose block moved), or the block is a general format whose
 words were all read and whose two drawings agree on every word, the four things and the boxes. `--check` is clean when
 every block is in its decided form, none awaits a verdict and every verdict names a block.
 
@@ -46,3 +46,10 @@ and 40 unlocated. `--apply` wrote 148 general formats in the house style. The 30
 general format is printed, so they were left as drawn. The re-run `--check` finds all 148 in their decided form and
 none drifted. 353 blocks await a verdict: 277 general formats and 76 other blocks. The local build gate ran on this
 head; its verdict line is in the wave report.
+
+**Review round 1 (wave 20261897 A finisher).** One blocking finding, R1-1: `decide` guarded a verdict against its
+block having moved by comparing only the clause and label, but the blocks of a page usually share both, so removing
+an earlier `<pre>` (the furniture cleanup this entry's report proposes) shifted a verdict onto the next block without
+the FATAL firing. A verdict now carries `drawn_lines`, the block's lines as drawn (the cross-check ledger's new
+`drawn`), and `decide` accepts the block its ordinal names only when it holds those lines or the decided figure. The
+clause and label left the verdict format. The self-test plants the review's page 202 shape (23/23).

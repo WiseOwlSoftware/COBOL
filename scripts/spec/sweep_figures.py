@@ -471,10 +471,11 @@ def cross_check(edition: int, doc, lines: list[str], R, pages: tuple | None, lim
         for t in things:
             stats[f"disagree on {t}"] += 1
         stats["boxes measured"] += len(boxes)
-        # `page` and `figure` are the key a refuter's verdict file names (`load_verdicts`); `general_format` is whether
-        # the block sits where a general format is printed (`Drawn.general_format`).
+        # `page` and `figure` are the key a refuter's verdict file names, and `drawn` the block's lines it copies as its
+        # `drawn_lines` (`load_verdicts`, `decide`); `general_format` is whether the block sits where a general format
+        # is printed (`Drawn.general_format`).
         results.append({"page": d.page, "figure": k, "lines": [d.start + 1, d.end + 1], "clause": d.clause,
-                        "label": d.label, "general_format": d.general_format, "verdict": verdict,
+                        "label": d.label, "general_format": d.general_format, "verdict": verdict, "drawn": d.rows,
                         "differences": {t: diff[t] for t in things} if diff else {},
                         "pairing": bad, "boxes": len(boxes), "generated": body})
     print(f"drawn figures                    : {len(drawn)}")
@@ -506,11 +507,13 @@ DECIDED = ("generated", "drawn", "neither", NOT_A_FORMAT)
 
 class Verdict(NamedTuple):
     """A refuter's decision on one disputed figure of a scanned edition (kb/Work PB4849): the figure is the `figure`-th
-    drawn format (from 0) of PDF page `page`, under `clause` and `label` as `drawn_figures` reads them."""
+    `<pre>` block (from 0) of PDF page `page`, and `drawn` is that block's lines as the batch drew them when the refuter
+    decided it (the cross-check ledger's `drawn`). The ordinal is the key and `drawn` the identity: `<pre>` blocks
+    added or removed earlier on the page shift every later ordinal, and the blocks of a page usually share one clause
+    and label, so only the block's own lines can say the ordinal still names it (`decide`)."""
     page: int
     figure: int
-    clause: str | None
-    label: str | None
+    drawn: tuple
     decided: str
     lines: tuple
     reason: str
@@ -530,10 +533,13 @@ def load_verdicts(directory: pathlib.Path) -> dict[tuple[int, int], Verdict]:
     for f in sorted(directory.glob("*.json")) if directory.is_dir() else []:
         try:
             j = json.loads(f.read_text(encoding="utf-8"))
-            v = Verdict(int(j["page"]), int(j["figure"]), j.get("clause"), j.get("label"), j["decided"],
+            v = Verdict(int(j["page"]), int(j["figure"]), tuple(j["drawn_lines"]), j["decided"],
                         tuple(j.get("figure_lines") or ()), str(j.get("reason", "")))
         except (ValueError, KeyError, TypeError) as exc:
-            sys.exit(f"FATAL: {f} is not a figure verdict ({exc}); it needs page, figure and decided")
+            sys.exit(f"FATAL: {f} is not a figure verdict ({exc}); it needs page, figure, drawn_lines and decided")
+        if not v.drawn or not all(isinstance(x, str) for x in v.drawn):
+            sys.exit(f"FATAL: {f}: `drawn_lines` must be the block's lines as drawn (the ledger's `drawn`), "
+                     "the identity that says which block the verdict decides")
         if v.decided not in DECIDED:
             sys.exit(f"FATAL: {f}: `decided` must be one of {DECIDED}")
         if (v.decided == NOT_A_FORMAT) == bool(v.lines) or not all(isinstance(x, str) for x in v.lines):
@@ -570,9 +576,12 @@ def decide(d: Drawn, figure: int, body: list[str] | None, bad: list, diff: dict 
       no agreement rewrites one: it waits for a refuter to say what it is;
     - (None, "awaiting"): any other general format stays as the batch drew it until a refuter decides it."""
     if verdict is not None:
-        if (verdict.clause, verdict.label) != (d.clause, d.label):
-            sys.exit(f"FATAL: the verdict on figure {figure} of page {d.page} is for {verdict.clause} {verdict.label}, but "
-                     f"that figure now sits under {d.clause} {d.label}: the transcription moved under the verdict")
+        # The block the ordinal names holds either the lines the refuter decided on, or (written) the decided figure;
+        # a `not-a-format` block stays as drawn. Any other block is a different one, shifted under the ordinal.
+        if tuple(d.rows) not in (verdict.drawn,) + ((verdict.lines,) if verdict.lines else ()):
+            sys.exit(f"FATAL: the verdict on figure {figure} of page {d.page} decides a block that begins "
+                     f"{verdict.drawn[0]!r}, but figure {figure} of that page is now the block that begins "
+                     f"{(d.rows or [''])[0]!r}: the transcription moved under the verdict")
         return (None, NOT_A_FORMAT) if verdict.decided == NOT_A_FORMAT else (list(verdict.lines), "verdict")
     if not d.general_format:
         return None, "unclassified"
@@ -686,20 +695,36 @@ def self_test() -> int:
           decide(d, 0, house, [], dict(none, underlines=["x: drawn [], generated [0]"]), None) == (None, "awaiting"))
     check("an unread word awaits a verdict", decide(d, 0, house, [{"reason": "unpaired"}], none, None) == (None, "awaiting"))
     check("an unlocated figure awaits a verdict", decide(d, 0, None, [], None, None) == (None, "awaiting"))
-    v = Verdict(304, 0, "6.6.2 General Format", "Format 1:", "neither", ("<u>ADD</u> <u>x</u>",), "the page underlines x")
+    v = Verdict(304, 0, ("<u>ADD</u> x",), "neither", ("<u>ADD</u> <u>x</u>",), "the page underlines x")
     check("a verdict outranks an agreement", decide(d, 0, house, [], none, v) == (["<u>ADD</u> <u>x</u>"], "verdict"))
-    moved = v._replace(label="Format 2:")
+    written = d._replace(rows=["<u>ADD</u> <u>x</u>"])
+    check("a written verdict names its own block",
+          decide(written, 0, house, [], none, v) == (["<u>ADD</u> <u>x</u>"], "verdict"))
+    moved = v._replace(drawn=("<u>SUBTRACT</u> y",))
     check("a verdict on a figure that moved is fatal", (exits(lambda: decide(d, 0, house, [], none, moved)) or "")
           .startswith("FATAL: the verdict on figure 0 of page 304"))
+    # The review's scenario (wave 20261897, R1-1): three blocks on one page under one clause and no label; the
+    # furniture block 0 is removed, so the format the verdict on figure 1 decides becomes figure 0, and figure 1 is the
+    # trailing furniture, under the same clause and label. The verdict must refuse it, not decide the furniture.
+    page = ["## Page 202", "### 5.1 FILE DESCRIPTION", "<pre>", "GENERAL FORMAT", "</pre>", "<pre>", "<u>FD</u> file-name",
+            "</pre>", "<pre>", "V-10", "</pre>"]
+    before, after = drawn_figures(page), drawn_figures(page[:2] + page[5:])
+    fd = Verdict(202, 1, tuple(before[1].rows), "neither", ("<u>FD</u> <u>file-name</u>",), "the page underlines")
+    check("the planted page keeps one clause and label on every block",
+          {(b.clause, b.label) for b in before + after} == {("5.1 FILE DESCRIPTION", None)}, str(before + after))
+    check("a verdict on a block shifted by an earlier block's removal is fatal",
+          (exits(lambda: decide(after[1], 1, house, [], none, fd)) or "").startswith("FATAL: the verdict on figure 1 of page 202"))
+    check("the shifted block's verdict decides it while its ordinal stands",
+          decide(before[1], 1, house, [], none, fd) == (["<u>FD</u> <u>file-name</u>"], "verdict"))
     example = got[3]
     check("an agreed example is never rewritten", decide(example, 0, ["01 TABLE-1."], [], none, None) == (None, "unclassified"))
-    nf = Verdict(306, 0, "4.1 TABLE DEFINITION", None, NOT_A_FORMAT, (), "a COBOL example of a table")
+    nf = Verdict(306, 0, tuple(example.rows), NOT_A_FORMAT, (), "a COBOL example of a table")
     check("a not-a-format verdict leaves the block as drawn",
           decide(example, 0, ["01 TABLE-1."], [], none, nf) == (None, NOT_A_FORMAT))
 
     with tempfile.TemporaryDirectory() as tmp:
         root = pathlib.Path(tmp)
-        good = {"page": 304, "figure": 0, "clause": "6.6.2 General Format", "label": "Format 1:", "decided": "neither",
+        good = {"page": 304, "figure": 0, "drawn_lines": ["<u>ADD</u> x"], "decided": "neither",
                 "figure_lines": ["<u>ADD</u> <u>x</u>"], "reason": "the page underlines x"}
         (root / "p0304-0.json").write_text(json.dumps(good), encoding="utf-8", newline="\n")
         check("a verdict file loads", load_verdicts(root) == {(304, 0): v}, str(load_verdicts(root)))
@@ -715,7 +740,9 @@ def self_test() -> int:
                 ("a not-a-format verdict carrying a figure is fatal", dict(good, figure=1, decided=NOT_A_FORMAT),
                  "carries no figure_lines"),
                 ("a decided verdict without its figure is fatal", dict(good, figure=1, figure_lines=[]), "needs `figure_lines`"),
-                ("a verdict without its reason is fatal", dict(good, figure=1, reason=" "), "states its `reason`")):
+                ("a verdict without its reason is fatal", dict(good, figure=1, reason=" "), "states its `reason`"),
+                ("a verdict without the block's drawn lines is fatal", dict(good, figure=1, drawn_lines=[]),
+                 "`drawn_lines` must be the block's lines")):
             second.write_text(json.dumps(body), encoding="utf-8", newline="")
             check(name, says in (exits(lambda: load_verdicts(root)) or ""))
 
