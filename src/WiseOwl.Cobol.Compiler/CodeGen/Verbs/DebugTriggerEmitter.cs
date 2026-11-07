@@ -9,22 +9,22 @@ namespace WiseOwl.Cobol.CodeGen;
 using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 
 /// <summary>
-/// ⛔ THE BACKEND HALF OF THE X3.23-1985 DATA-NAME, ALL REFERENCES OF AND CD-NAME USE FOR DEBUGGING TRIGGERS (general rules 5-8, 11, 14,
+/// ⛔ THE BACKEND HALF OF THE X3.23-1985 DATA-NAME, ALL REFERENCES OF, FILE-NAME AND CD-NAME USE FOR DEBUGGING TRIGGERS (general rules 2, 5-8, 11, 14,
 /// 15, 23, 24; docs/CONTROL_FLOW_DESIGN.md D20). The binder decided every <see cref="DebugFire"/> (<c>DebugTriggerPlanner</c>); this
 /// places them. Each fire renders ONE guarded call, <c>if (__DebugReady) __RunDebugRef(line, name, contents, section, occurrences…)</c>:
 /// the register is space-filled and set (<c>DebugItem.PopulateReference</c>) and the debugging section runs over its pc range. The guard
 /// comes first, so a program run with the object-time switch off evaluates no operand it would not otherwise read.
 /// <para>WHERE A FIRE LANDS is its <see cref="DebugWhen"/>. <see cref="DebugWhen.Before"/> and <see cref="DebugWhen.After"/> bracket the
 /// statement here. <see cref="DebugWhen.BeforeIo"/> (WRITE, REWRITE: after the FROM move) and <see cref="DebugWhen.AfterAction"/> (a RECEIVE that
-/// took its data) are interior to a verb, so the wrapper only HOLDS them and the verb's emitter lands them at its own point
+/// took its data, a READ that delivered a record, the I-O of a DELETE or START) are interior to a verb, so the wrapper only HOLDS them and the verb's emitter lands them at its own point
 /// (<see cref="LandBeforeIo"/>, <see cref="LandAfterAction"/>); the loop phases are held for the PERFORM emitter the same way
 /// (<see cref="TakeLoopFires"/>). A fire the verb never landed is an internal error raised at the wrapper — never a trigger that silently
 /// did not run.</para>
 /// <para>DEBUG-CONTENTS is the item's storage image (rule 24 c: "the content of the data item referenced by identifier-1 at the time that
-/// control passes to the debugging section"; rule 11: no conversion), the CD's record-area image for a cd-name (rule 23 e); DEBUG-SUB-n are the occurrence numbers of
+/// control passes to the debugging section"; rule 11: no conversion), the CD's record-area image for a cd-name (rule 23 e), the file's record area for a READ and spaces for every other file-name fire (rule 23 c, d); DEBUG-SUB-n are the occurrence numbers of
 /// the reference's subscripted levels, outermost first (rule 14).</para>
 /// </summary>
-internal sealed class DebugTriggerEmitter(EmitContext ctx)
+internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places)
 {
     private IReadOnlyList<DebugFire> _beforeIo = [];
     private IReadOnlyList<DebugFire> _afterAction = [];
@@ -107,9 +107,16 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx)
     /// transfer reaches the statement's ordinary after-statement fires, so each path runs each section once.</summary>
     public void LandBeforeTransfer()
     {
-        foreach (var (fires, line, flags) in _owedAfter)
-            foreach (var fire in fires) EmitFire(fire, line, flags);
+        foreach (var text in OwedTexts()) ctx.Writer.Line(text);
     }
+
+    /// <summary>The same sections as <see cref="LandBeforeTransfer"/>, as the text of their statements joined into one string, for a transfer
+    /// the emitter spells as one string (the RESUME landing, <c>DispatchState.ResumeTransfer</c>); empty when nothing is owed.</summary>
+    public string OwedBeforeTransferText() => string.Join(" ", OwedTexts());
+
+    /// <summary>The statement of each section owed, innermost statement first.</summary>
+    private IEnumerable<string> OwedTexts() =>
+        _owedAfter.SelectMany(owed => owed.Fires.Select(fire => FireText(fire, owed.Line, owed.Flags)));
 
     private static List<DebugFire> Of(BoundDebugTriggered n, DebugWhen when) => n.Fires.Where(f => f.When == when).ToList();
 
@@ -131,8 +138,12 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx)
         return flags;
     }
 
-    /// <summary>A RECEIVE emitter calls this where the verb's own action is done and the data arrived, before the phrases' imperative
-    /// statements (general rule 8 b).</summary>
+    /// <summary>Whether the statement now being emitted holds a fire its verb's emitter has yet to land at <see cref="LandAfterAction"/>:
+    /// a verb whose success block exists only for its phrases (the keyed READ) opens it for these too.</summary>
+    public bool HasAfterAction => _afterAction.Count > 0;
+
+    /// <summary>A READ, RETURN, RECEIVE, DELETE or START emitter calls this where the verb's own action is done, before the phrases' imperative
+    /// statements (general rules 2 and 8 b; a READ's, RETURN's and RECEIVE's only on the path that delivered data).</summary>
     public void LandAfterAction()
     {
         var fires = _afterAction;
@@ -161,15 +172,21 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx)
     public static bool HasLoopPhase(LoopFires? loop, DebugWhen when, int level) =>
         loop is not null && loop.Fires.Any(f => f.When == when && f.Level == level);
 
-    private void EmitFire(DebugFire fire, int line, PhraseFlags flags)
+    private void EmitFire(DebugFire fire, int line, PhraseFlags flags) => ctx.Writer.Line(FireText(fire, line, flags));
+
+    private string FireText(DebugFire fire, int line, PhraseFlags flags)
     {
-        string contents = fire.Target.Kind is DebugTargetKind.CdName
-            ? OperandText.RecordAreaImage(fire.Referenced)
-            : DataItemImage(fire.Referenced);
-        string occurrences = string.Concat(OccurrenceNumbers(fire.Referenced).Select(o => ", " + o));
+        string contents = fire.Contents switch
+        {
+            DebugContents.Spaces => "\"\"",   // rule 23 d: the register is space-filled, and nothing is moved into it
+            DebugContents.FileRecord => places.RecordArea(fire.Target.File!) is { } area ? OperandText.RecordAreaImage(area) : "\"\"",   // rule 23 c
+            _ when fire.Target.Kind is DebugTargetKind.CdName => OperandText.RecordAreaImage(fire.Referenced!),
+            _ => DataItemImage(fire.Referenced!),
+        };
+        string occurrences = fire.Referenced is null ? "" : string.Concat(OccurrenceNumbers(fire.Referenced).Select(o => ", " + o));
         string guard = flags.Guard(fire) is { } phrases ? $"__DebugReady && ({phrases})" : "__DebugReady";
-        ctx.Writer.Line($"if ({guard}) __RunDebugRef({line}, {CsLiteral(fire.Target.Name)}, {contents}, "
-            + $"{fire.Target.SectionStartPc}, {fire.Target.SectionEndPc}{occurrences});");
+        return $"if ({guard}) __RunDebugRef({line}, {CsLiteral(fire.Target.Name)}, {contents}, "
+            + $"{fire.Target.SectionStartPc}, {fire.Target.SectionEndPc}{occurrences});";
     }
 
     /// <summary>⛔ DEBUG-CONTENTS of a data-name target: "the content of the data item referenced by identifier-1" (X3.23-1985 USE FOR

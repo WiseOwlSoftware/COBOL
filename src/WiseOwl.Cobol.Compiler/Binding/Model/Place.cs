@@ -786,16 +786,33 @@ public sealed record TableAllPlace(Place Element, LocalVector Indices, IReadOnly
 /// current capacity.</summary>
 public abstract record AllCount
 {
+    /// <summary>The places the count READS to give its range: the OCCURS DEPENDING ON item, the capacity register — none for a fixed count. A
+    /// statement that holds a count holds these for its meaning, never because the program wrote them (X3.23-1985 USE FOR DEBUGGING
+    /// general rule 5: "explicitly references"; <c>IBoundImplicitOperands</c>), and the one list is the single answer.</summary>
+    public abstract IEnumerable<Place> Places { get; }
+
     /// <summary>A fixed table: <c>OCCURS integer-2</c> occurrences.</summary>
-    public sealed record Fixed(int Occurs) : AllCount;
+    public sealed record Fixed(int Occurs) : AllCount
+    {
+        /// <inheritdoc/>
+        public override IEnumerable<Place> Places => [];
+    }
 
     /// <summary>An OCCURS DEPENDING table: data-name-1's current value, which §13.18.38.4 GR7 requires to lie in
     /// [integer-1, integer-2] (EC-BOUND-ODO outside — the same clamp the sending image applies).</summary>
-    public sealed record Odo(Place Depending, int MinOccurs, int MaxOccurs) : AllCount;
+    public sealed record Odo(Place Depending, int MinOccurs, int MaxOccurs) : AllCount
+    {
+        /// <inheritdoc/>
+        public override IEnumerable<Place> Places => [Depending];
+    }
 
     /// <summary>A dynamic-capacity table: its current capacity — the register view over the table (a nested table's
     /// path carries the OUTER index variables, so the capacity is the right occurrence's).</summary>
-    public sealed record Capacity(CapacityRegisterPlace Register) : AllCount;
+    public sealed record Capacity(CapacityRegisterPlace Register) : AllCount
+    {
+        /// <inheritdoc/>
+        public override IEnumerable<Place> Places => [Register];
+    }
 
     /// <summary>A REPORT WRITER OCCURS … DEPENDING level (ISO §13.18.38 Format 3) — GR13's count, which is NOT the
     /// data division's: "If the value of data-name-1 is not in the range integer-1 to (integer-2 - 1), the report
@@ -804,7 +821,11 @@ public abstract record AllCount
     /// both its readers: the report engine's per-repetition presence test and a table(ALL) argument over a
     /// REPEATING sum counter (§15.3 — "the range of values is determined by the object of the OCCURS DEPENDING ON
     /// clause"; kb/Work PB1271).</summary>
-    public sealed record ReportDepending(Place Depending, int MinOccurs, int MaxOccurs) : AllCount;
+    public sealed record ReportDepending(Place Depending, int MinOccurs, int MaxOccurs) : AllCount
+    {
+        /// <inheritdoc/>
+        public override IEnumerable<Place> Places => [Depending];
+    }
 }
 
 /// <summary>

@@ -279,7 +279,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <paramref name="Written"/> and its subscripts rendered to <paramref name="IndexExprs"/> (every OCCURS level
     /// bound, §8.4.2.3.3 SR3; empty for a property temp, whose subscripts were identifier-3's). Never both.</summary>
     private readonly record struct Identified(
-        RefResolution? Answer, DataItem? Item, WrittenReference Written, List<Position>? IndexExprs);
+        RefResolution? Answer, DataItem? Item, WrittenReference Written, List<Position>? IndexExprs, Place? ImplicitPlace = null);
 
     private RefResolution ResolveImplCore(Core.DataReferenceContext dref, bool report)
     {
@@ -298,7 +298,10 @@ public sealed class ReferenceResolver(DataBinder data)
         // character of the span, and `RN(2:N)` with N = 0 overwrote the span instead of raising EC-BOUND-REF-MOD
         // (§7.3.23.3 GR1, directive omitted). Both forms were dropped: the THROUGH form's RenamesPlace AND the
         // no-THROUGH form's forward to data-name-2's place.
-        if (Places.PlaceForItem(item, id.IndexExprs!, out var gap) is not { } inner) return ItemFailure(dref, gap);
+        // An implicitly-defined name that is no storage item (DEBUG-CONTENTS) brings its own place; every other item's is built.
+        PlaceGap gap = default;
+        var inner = id.ImplicitPlace ?? Places.PlaceForItem(item, id.IndexExprs!, out gap);
+        if (inner is null) return ItemFailure(dref, gap);
 
         if (cleanRef is null) return RefResolution.Resolved(inner, "");
         // identifier-1's DESCRIPTION is the item its place stands for, not the name as written: for a no-THROUGH
@@ -380,10 +383,17 @@ public sealed class ReferenceResolver(DataBinder data)
         // The X3.23-1985 DEBUG-ITEM special register / member (VCR Table 7 row 7.17): an IMPLICITLY-defined read-only
         // VIEW over the program-instance __dbgItem — not in ByName, so resolved HERE (before ordinary name lookup) to
         // a DebugRegisterPlace. Registered ONLY when a procedure-subject debugging declarative is active under WITH
-        // DEBUGGING MODE (DebugRegisters empty otherwise → this never fires for a non-debug program). Only the plain
-        // unqualified/unsubscripted form is covered — a reference-modified/qualified DEBUG-* falls through to loud.
-        if (data.State.Implicit.DebugRegisters.TryGetValue(name, out var dbg) && dref.dataReferenceSuffix().Length == 0)
-            return Ends(Resolved(new DebugRegisterPlace(dbg.Item, dbg.Member)));
+        // DEBUGGING MODE (DebugRegisters empty otherwise → this never fires for a non-debug program). The unqualified,
+        // unsubscripted form is covered, with or without a reference modifier: DEBUG-CONTENTS (1:12) is the reference
+        // modification of an alphanumeric item like any other (§8.4.3.3.3 SR1; X3.23-1985 USE FOR DEBUGGING general rule 10
+        // describes DEBUG-CONTENTS as PICTURE X(n), kb/Work PB4858), so the register's place meets the reference-modification
+        // tail below. A qualified DEBUG-* falls through to loud.
+        if (data.State.Implicit.DebugRegisters.TryGetValue(name, out var dbg) && dref.dataReferenceSuffix().All(suffix => suffix.refModPart() is not null))
+        {
+            var debugWritten = ReadWritten(dref);
+            if (!RefMods.ScreenRefModCount(dref, debugWritten, name)) return Ends(Refused());
+            return new Identified(null, dbg.Item, debugWritten, [], new DebugRegisterPlace(dbg.Item, dbg.Member));
+        }
 
         // A REPORT SECTION SUM COUNTER (ISO §13.18.54.4 GR5 — the data-name after the level number names the
         // COUNTER, not the printable item; GR12 permits procedure division statements to read and alter it): an
@@ -593,16 +603,19 @@ public sealed class ReferenceResolver(DataBinder data)
         // (§8.4.3.11.3 SR1) or a reference already refused: null, and the caller names the operand-shape rule unless
         // the resolver has (WasDiagnosed). What stays HERE is the address-specific tail.
         var id = Identify(dref, report: true, forAddressOf: true);
-        if (id.Item is not { } item) return null;
+        if (id.Item is not { } item || id.ImplicitPlace is not null) return null;   // a register is no data item of a section
         var written = id.Written;
         var subCtx = written.SubscriptGroup;
         var exprs = id.IndexExprs!;
         RefModSpec? refMod = null;
         Place? bitPlace = null;
         OdoGroupPlace? extent = null;
+        // The reference as written, for the statement that holds the operand to name it among its operands (X3.23-1985 USE FOR DEBUGGING
+        // general rule 5: "explicitly references"; kb/Work PB4855); null for a shape the place builder cannot model.
+        var operandPlace = Places.PlaceForItem(item, exprs);
         if (written.IsReferenceModified || BitLayout.IsBitItem(item))
         {
-            var inner = Places.PlaceForItem(item, exprs);
+            var inner = operandPlace;
             if (written.IsReferenceModified)
             {
                 if (RefMods.ReadScreenedRefMod(dref, written, inner?.Item ?? item, out _) is not { } spec) return null;
@@ -614,7 +627,7 @@ public sealed class ReferenceResolver(DataBinder data)
             }
             if (BitLayout.IsBitItem(item)) bitPlace = inner;
         }
-        if (subCtx is null) return new AddressOfOperand(item, null, refMod, bitPlace, extent);
+        if (subCtx is null) return new AddressOfOperand(item, null, refMod, bitPlace, extent, operandPlace);
         // The in-class OCCURS levels outer→inner — the PlaceForItem Tier-B walk (same layout, same formula).
         var occursLevels = new List<DataItem>();
         bool underDynamicTable = false;
@@ -624,12 +637,12 @@ public sealed class ReferenceResolver(DataBinder data)
             underDynamicTable |= n.IsDynamicTable;
         }
         // SR6's refusal is the binder's, and it needs the operand: a dynamic level has no fixed stride to render.
-        if (underDynamicTable) return new AddressOfOperand(item, null, refMod, bitPlace, extent);
+        if (underDynamicTable) return new AddressOfOperand(item, null, refMod, bitPlace, extent, operandPlace);
         occursLevels.Reverse();
         if (occursLevels.Count != exprs.Count) return null;   // wrong subscript count → loud
         // The ONE displacement term of a fixed level (FixedLevelTerm), the one the Tier-B view window takes.
         var disp = occursLevels.Select((lv, k) => PlaceBuilder.FixedLevelTerm(lv, exprs[k])).ToList();
-        return new AddressOfOperand(item, disp, refMod, bitPlace, extent);
+        return new AddressOfOperand(item, disp, refMod, bitPlace, extent, operandPlace);
     }
 
     /// <summary>What an <c>ADDRESS OF identifier-1</c> operand (ISO §8.4.3.11) resolves to: the item, the OCCURS
@@ -645,12 +658,14 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <param name="RefMod">The screened reference modifier, or null when none is written. §8.4.3.11.4 GR1's
     /// "address of identifier-1" is then the address of the unique data item reference modification creates
     /// (§8.4.3.3.4 GR5), i.e. of its leftmost position.</param>
+    /// <param name="Written">The item's place with its subscripts as the operand wrote them, for every item the place builder models; the bound
+    /// <c>BoundAddressOf.Written</c>, the operand the statement explicitly references.</param>
     /// <param name="SubscriptedPlace">The item's place with its subscripts and WITHOUT the reference modification,
     /// built only for a bit item (SR4's proof is a walk over a place); null for any other item and for a shape the
     /// place builder cannot model, which the proof then accepts rather than reject what it cannot prove.</param>
     internal readonly record struct AddressOfOperand(
         DataItem Item, IReadOnlyList<OffsetTerm>? OccursDisplacement, RefModSpec? RefMod, Place? SubscriptedPlace,
-        OdoGroupPlace? CurrentExtent);
+        OdoGroupPlace? CurrentExtent, Place? Written);
 
     /// <summary>Why a written reference that NAMES a CAPACITY register still has no place (kb/Work PB457). Each arm
     /// is a syntax rule, not a hole: the register's name identifies it outright (§13.18.38.3 SR30 first sentence),

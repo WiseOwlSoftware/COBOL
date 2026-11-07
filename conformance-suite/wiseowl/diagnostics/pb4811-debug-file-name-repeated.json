@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL6335: declarative section 'DB2': USE FOR DEBUGGING ON 'F' names a file-name"}
