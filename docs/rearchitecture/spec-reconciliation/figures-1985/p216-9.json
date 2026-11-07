@@ -1,0 +1,26 @@
+{
+ "page": 216,
+ "figure": 9,
+ "drawn_lines": [
+  "<u>INSPECT</u> identifier-1 <u>REPLACING</u>",
+  "⎧<u>CHARACTERS</u> <u>BY</u> ⎧identifier-5⎫ ┌⎧<u>BEFORE</u>⎫ INITIAL ⎧identifier-4⎫┐ ...                     ⎫",
+  "⎪              ⎩literal-3   ⎭ └⎩<u>AFTER</u> ⎭         ⎩literal-2   ⎭┘                         ⎪",
+  "⎨                                                                                       ⎬ ...",
+  "⎪⎧<u>ALL</u>    ⎫ ⎧⎧identifier-3⎫ <u>BY</u> ⎧identifier-5⎫ ┌⎧<u>BEFORE</u>⎫ INITIAL ⎧identifier-4⎫┐ ...⎫ ... ⎪",
+  "⎪⎨<u>LEADING</u>⎬ ⎨⎩literal-1   ⎭    ⎩literal-3   ⎭ └⎩<u>AFTER</u> ⎭         ⎩literal-2   ⎭┘    ⎬     ⎪",
+  "⎩⎩<u>FIRST</u>  ⎭ ⎩                                                                      ⎭     ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>INSPECT</u> identifier-1 <u>REPLACING</u>",
+  "╭<u>CHARACTERS</u> <u>BY</u> ╭identifier-5╮ ┌ ╭<u>BEFORE</u>╮ INITIAL  ╭identifier-4╮ ┐  …                          ╮",
+  "│              ┤            ├ │ ┤      ├          ┤            ├ │                             │",
+  "│              ╰literal-3   ╯ └ ╰<u>AFTER</u> ╯          ╰literal-2   ╯ ┘                             │",
+  "┤                                                                                              ├ …",
+  "│╭<u>ALL</u>    ╮ ╭╭identifier-3╮ <u>BY</u> ╭ identifier-5╮ ┌╭ <u>BEFORE</u>╮ INITIAL  ╭ identifier-4 ╮ ┐ …   ╮ …   │",
+  "││       │ │┤            ├    ┤             ├ │┤       ├          ┤              ├ │     │     │",
+  "│┤<u>LEADING</u>├ ┤╰literal-1   ╯    ╰ literal-3   ╯ └╰ <u>AFTER</u> ╯          ╰ literal-2    ╯ ┘     ├     │",
+  "╰╰<u>FIRST</u>  ╯ ╰                                                                             ╯     ╯"
+ ],
+ "reason": "The printed page sets INSPECT REPLACING as the batch drew it: the CHARACTERS BY and ALL/LEADING/FIRST alternatives in one brace, the identifier-3 BY identifier-5 group closed with its own brace and ellipsis, and the ellipsis after the outer brace. Drawn in the house style (figure_reading.restyle)."
+}

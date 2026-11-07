@@ -1,0 +1,27 @@
+{
+ "page": 217,
+ "figure": 6,
+ "drawn_lines": [
+  "<u>MULTIPLY</u> ⎧identifier-1⎫ <u>BY</u> {identifier-2 [<u>ROUNDED</u>]} ...",
+  "         ⎩literal-1   ⎭",
+  "",
+  "    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]",
+  "",
+  "    [<u>END-MULTIPLY</u>]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>MULTIPLY</u> ╭identifier-1╮ <u>BY</u> {identifier-2 [<u>ROUNDED</u>]} …",
+  "         ┤            ├",
+  "         ╰literal-1   ╯",
+  "",
+  "    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]",
+  "",
+  "    [<u>END-MULTIPLY</u>]"
+ ],
+ "reason": "The printed page sets MULTIPLY as the batch drew it: the identifier-1/literal-1 brace, BY {identifier-2 [ROUNDED]} ..., and the three optional phrases. Drawn in the house style (figure_reading.restyle)."
+}

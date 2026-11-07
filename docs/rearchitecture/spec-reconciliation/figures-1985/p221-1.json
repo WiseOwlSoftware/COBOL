@@ -1,0 +1,39 @@
+{
+ "page": 221,
+ "figure": 1,
+ "drawn_lines": [
+  "<u>SEARCH</u> <u>ALL</u> identifier-1  [AT <u>END</u> imperative-statement-1]",
+  "",
+  "         ⎧data-name-1 ⎧IS <u>EQUAL</u> TO⎫ ⎧identifier-3           ⎫⎫",
+  "    <u>WHEN</u> ⎨            ⎩IS =       ⎭ ⎨literal-1              ⎬⎬",
+  "         ⎩condition-name-1          ⎩arithmetic-expression-1⎭⎭",
+  "",
+  "     ┌    ⎧data-name-2 ⎧IS <u>EQUAL</u> TO⎫ ⎧identifier-4           ⎫⎫┐",
+  "     │<u>AND</u> ⎨            ⎩IS =       ⎭ ⎨literal-2              ⎬⎬│ ...",
+  "     └    ⎩condition-name-2          ⎩arithmetic-expression-2⎭⎭┘",
+  "     ⎧imperative-statement-2⎫",
+  "     ⎩<u>NEXT</u> <u>SENTENCE</u>         ⎭",
+  "",
+  "    [<u>END-SEARCH</u>]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>SEARCH</u> <u>ALL</u> identifier-1  [AT <u>END</u> imperative-statement-1]",
+  "",
+  "         ╭data-name-1 ╭IS <u>EQUAL</u> TO╮ ╭identifier-3           ╮ ╮",
+  "         │            ┤           ├ │                       │ │",
+  "    <u>WHEN</u> ┤            ╰IS =       ╯ ┤literal-1              ├ ├",
+  "         ╰condition-name-1          ╰arithmetic-expression-1╯ ╯",
+  "",
+  "     ┌    ╭data-name-2 ╭IS <u>EQUAL</u> TO╮ ╭identifier-4            ╮ ╮ ┐",
+  "     │    │            ┤           ├ │                        │ │ │",
+  "     │<u>AND</u> ┤            ╰IS =       ╯ ┤literal-2               ├ ├ │ …",
+  "     └    ╰condition-name-2          ╰arithmetic-expression-2 ╯ ╯ ┘",
+  "     ╭imperative-statement-2╮",
+  "     ┤                      ├",
+  "     ╰<u>NEXT</u> <u>SENTENCE</u>         ╯",
+  "",
+  "    [<u>END-SEARCH</u>]"
+ ],
+ "reason": "The printed page sets SEARCH ALL as the batch drew it: WHEN with the data-name-1 {IS EQUAL TO / IS =} {identifier-3 / literal-1 / arithmetic-expression-1} or condition-name-1 brace, the AND bracket with its ellipsis, the imperative-statement-2 / NEXT SENTENCE brace and [END-SEARCH]. Drawn in the house style (figure_reading.restyle)."
+}

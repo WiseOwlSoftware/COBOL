@@ -8751,11 +8751,11 @@ V-27
 
 ## Page 220
 
-<pre>
 Verb Formats (READ - REWRITE)
 
-                         <u>GENERAL FORMAT FOR COBOL VERBS</u>
+## GENERAL FORMAT FOR COBOL VERBS
 
+<pre>
 I <u>READ</u> file-name-1 RECORD  [<u>INTO</u> identifier-1]
 
      [<u>KEY</u> IS data-name-1]
@@ -8765,7 +8765,9 @@ I <u>READ</u> file-name-1 RECORD  [<u>INTO</u> identifier-1]
      [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-4]
 
      [<u>END-READ</u>]
+</pre>
 
+<pre>
                   ⎧<u>MESSAGE</u>⎫
   <u>RECEIVE</u> cd-name-1 ⎨       ⎬ <u>INTO</u> identifier-1
                   ⎩<u>SEGMENT</u>⎭
@@ -8775,9 +8777,13 @@ I <u>READ</u> file-name-1 RECORD  [<u>INTO</u> identifier-1]
      [WITH <u>DATA</u> imperative-statement-2]
 
      [<u>END-RECEIVE</u>]
+</pre>
 
+<pre>
   <u>RELEASE</u> record-name-1  [<u>FROM</u> identifier-1]
+</pre>
 
+<pre>
   <u>RETURN</u> file-name-1 RECORD  [<u>INTO</u> identifier-1]
 
      AT <u>END</u> imperative-statement-1
@@ -8785,9 +8791,13 @@ I <u>READ</u> file-name-1 RECORD  [<u>INTO</u> identifier-1]
      [<u>NOT</u> AT <u>END</u> imperative-statement-2]
 
      [<u>END-RETURN</u>]
+</pre>
 
+<pre>
 S <u>REWRITE</u> record-name-1  [<u>FROM</u> identifier-1]
+</pre>
 
+<pre>
 RI <u>REWRITE</u> record-name-1  [<u>FROM</u> identifier-1]
 
      [<u>INVALID</u> KEY imperative-statement-1]
@@ -9072,8 +9082,9 @@ V-32
     └       ⎩<u>EOP</u>        ⎭                        ┘
 
     [<u>END-WRITE</u>]
+</pre>
 
-
+<pre>
 <i>RI</i> <u>WRITE</u> record-name-1  [<u>FROM</u> identifier-1]
 
     [<u>INVALID</u> KEY imperative-statement-1]
@@ -9087,13 +9098,11 @@ V-33
 
 ## Page 226
 
-<pre>
 COPY & REPLACE Statements
 
+## GENERAL FORMAT FOR COPY AND REPLACE STATEMENTS
 
-                    <u>GENERAL FORMAT FOR COPY AND REPLACE STATEMENTS</u>
-
-
+<pre>
 <u>COPY</u> text-name-1 ┌⎧<u>OF</u>⎫ library-name-1┐
                  └⎩<u>IN</u>⎭                ┘
 
@@ -9102,10 +9111,13 @@ COPY & REPLACE Statements
    │ <u>REPLACING</u>  ⎨⎨literal-1        ⎬  <u>BY</u>  ⎨literal-2        ⎬⎬ ... │
    │            ⎪⎪word-1           ⎪      ⎪word-2           ⎪⎪     │
    └            ⎩⎩                 ⎭      ⎩                 ⎭⎭     ┘
+</pre>
 
+<pre>
 <u>REPLACE</u>  {==pseudo-text-1==  <u>BY</u>  ==pseudo-text-2==} ...
+</pre>
 
-
+<pre>
 <u>REPLACE</u> <u>OFF</u>
 </pre>
 

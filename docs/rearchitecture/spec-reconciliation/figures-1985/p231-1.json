@@ -1,0 +1,39 @@
+{
+ "page": 231,
+ "figure": 1,
+ "drawn_lines": [
+  " <u>IDENTIFICATION</u> <u>DIVISION</u>.",
+  "",
+  " <u>PROGRAM-ID</u>.  program-name-2  ┌IS ⎧│<u>COMMON</u> │⎫ PROGRAM┐ .",
+  "                             └   ⎩│<u>INITIAL</u>│⎭        ┘",
+  "",
+  "[<u>ENVIRONMENT</u> <u>DIVISION</u>.  environment-division-content]",
+  "",
+  "[<u>DATA</u> <u>DIVISION</u>.  data-division-content]",
+  "",
+  "[<u>PROCEDURE</u> <u>DIVISION</u>.  procedure-division-content]",
+  "",
+  "[nested-source-program] ...",
+  "",
+  " <u>END</u> <u>PROGRAM</u> program-name-2."
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  " <u>IDENTIFICATION</u> <u>DIVISION</u>.",
+  "",
+  "                            ┌    ╭ │ <u>COMMON</u>  │ ╮         ┐",
+  " <u>PROGRAM-ID</u>. program-name-2 │ IS ┤ │         │ ├ PROGRAM │ .",
+  "                            └    ╰ │ <u>INITIAL</u> │ ╯         ┘",
+  "",
+  "[<u>ENVIRONMENT</u> <u>DIVISION</u>. environment-division-content]",
+  "",
+  "[<u>DATA</u> <u>DIVISION</u>. data-division-content]",
+  "",
+  "[<u>PROCEDURE</u> <u>DIVISION</u>. procedure-division-content]",
+  "",
+  "[nested-source-program] …",
+  "",
+  " <u>END</u> <u>PROGRAM</u> program-name-2."
+ ],
+ "reason": "The printed page (GENERAL FORMAT FOR NESTED-SOURCE-PROGRAM) sets PROGRAM-ID. program-name-2 [IS {COMMON/INITIAL} PROGRAM] . with choice bars round COMMON and INITIAL (drawn as the decided page-194 Identification Division figure draws them), and the rest in typed one-row delimiters; the batch's brace and bracket columns were off. Drawn from the page."
+}
