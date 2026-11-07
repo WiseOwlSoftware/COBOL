@@ -44,3 +44,7 @@ rule cited to the 1985 pages read (cite.py has no 1985 or 2002 transcription in 
 were checked). Performance: no new work on a program without a debug target, and the nodes' implicit lists are computed only when the walk asks.
 Duplication: `LandBeforeTransfer` and `OwedBeforeTransferText` share `OwedTexts`; `EmitFire` and the transfer text share `FireText`. Found and fixed on
 the way: the keyed and sequential READ early returns would have left a fire unlanded.
+
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 22,406/22,406 · Unit 40,356/40,356 · Characterization 37/37 cases ran (skipped 0) (run 000002-20261107T013136Z) ===`;
+the first run was RED on LINE ENDINGS only (the three new `.out` goldens written CRLF by the Windows run; `scripts/line_endings.py --fix`), with no test run.
+`scripts/semgrep/verify.py`: PASS, no rule's count raised.
