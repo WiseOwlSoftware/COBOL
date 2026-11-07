@@ -48,15 +48,24 @@ public readonly struct CobolExact
     private readonly CobolBig _big;
     private readonly bool _isBig;
     private readonly int _precision;
-    private readonly double _approximation;
+    private readonly double _binary64;
     private readonly bool _isApproximation;
+    private readonly bool _isFloatContent;
 
     private CobolExact(CobolWide wide, int scale, int precision) => (_wide, _scale, _precision) = (wide, scale, precision);
 
     private CobolExact(CobolDec dec, int precision) => (_dec, _sdidi, _precision) = (dec, true, precision);
 
     private CobolExact(CobolDec dec, int precision, double approximation) =>
-        (_dec, _sdidi, _precision, _approximation, _isApproximation) = (dec, true, precision, approximation, true);
+        (_dec, _sdidi, _precision, _binary64, _isApproximation) = (dec, true, precision, approximation, true);
+
+    /// <summary><paramref name="expansion"/>, the exact expansion of <paramref name="binary64"/>, marked as that binary64's content
+    /// (<see cref="FromBinary64"/>).</summary>
+    private CobolExact(CobolExact expansion, double binary64)
+    {
+        this = expansion;
+        (_binary64, _isFloatContent) = (binary64, true);
+    }
 
     private CobolExact(CobolBig big, int precision) => (_big, _isBig, _precision) = (big, true, precision);
 
@@ -106,6 +115,12 @@ public readonly struct CobolExact
     public static CobolExact FromBinary64(double value)
     {
         CobolDec.RejectNonFinite(value);
+        return new(Expansion(value), value);
+    }
+
+    /// <summary>The exact expansion <c>m × 2^e</c> of a finite binary64, unmarked (<see cref="FromBinary64"/> marks it).</summary>
+    private static CobolExact Expansion(double value)
+    {
         if (value == 0) return From(0, 0);
         var (negative, mantissa, exponent) = CobolBig.SplitBinary64(value);
         // The 256-bit form first: m × 2^e is the integer m << e (mantissa below 2^53, so e up to 203), m × 5^k at scale k for e = -k
@@ -138,8 +153,19 @@ public readonly struct CobolExact
     /// <summary>The binary64 this value is the approximation of, when it is one (<see cref="FromApproximation"/>).</summary>
     internal bool TryApproximation(out double approximation)
     {
-        approximation = _approximation;
+        approximation = _binary64;
         return _isApproximation;
+    }
+
+    /// <summary>⛔ IS THIS VALUE A BINARY64 (kb/Work PB4891), and which: a float item's content (<see cref="FromBinary64"/>) or an engine's
+    /// approximation (<see cref="FromApproximation"/>), carried whole through a selection (MAX, MIN and an odd MEDIAN return "the content of
+    /// the argument", §2023:15.59.4 1), §2023:15.63.4 1)) and a negation. Which argument a selection returns is a run-time fact, so a body
+    /// whose evaluation turns on an operand's kind (an even MEDIAN's mean, §2023:15.61.4 2), docs/CONFORMANCE.md DOC-A.1-92b) reads it here,
+    /// from the value, never from a compile-time list of the written arguments' kinds. Every other operation forms a new value without it.</summary>
+    internal bool TryBinary64(out double binary64)
+    {
+        binary64 = _binary64;
+        return _isApproximation || _isFloatContent;
     }
 
     /// <summary>The exact magnitude's binary64-rounding questions (<see cref="FloatResultant.FromExact"/>), on the arbitrary-precision form.</summary>
@@ -305,12 +331,16 @@ public readonly struct CobolExact
 
     /// <summary>The negation, on the value's own carrier; the same precision. ⛔ AN APPROXIMATION NEGATES AS THE BINARY64 IT REMEMBERS
     /// (kb/Work PB4753): the sign flip of a binary64 is exact, so <c>- FUNCTION MAX (F FUNCTION EXP10 (-3))</c> lands the negated double,
-    /// not the truncation of the negated decimal one binary64 below it. Every other operation forms a new value and drops the memory.</summary>
-    public static CobolExact Negate(CobolExact a) =>
-        a._isBig ? new(CobolBig.Negate(a._big), a._precision)
-        : a._isApproximation ? new(CobolDec.Negate(a._dec), a._precision, -a._approximation)
-        : a._sdidi ? new(CobolDec.Negate(a._dec), a._precision)
-        : new(CobolWide.Negate(a._wide), a._scale, a._precision);
+    /// not the truncation of the negated decimal one binary64 below it; a float item's content stays the content of the negated binary64
+    /// (kb/Work PB4891, <see cref="TryBinary64"/>). Every other operation forms a new value and drops the memory.</summary>
+    public static CobolExact Negate(CobolExact a)
+    {
+        CobolExact negated = a._isBig ? new(CobolBig.Negate(a._big), a._precision)
+            : a._isApproximation ? new(CobolDec.Negate(a._dec), a._precision, -a._binary64)
+            : a._sdidi ? new(CobolDec.Negate(a._dec), a._precision)
+            : new(CobolWide.Negate(a._wide), a._scale, a._precision);
+        return a._isFloatContent ? new(negated, -a._binary64) : negated;
+    }
 
     /// <summary>⛔ THE NATIVE POWER TO AN INTEGER EXPONENT (kb/Work PB2617, PB4575, PB4587): the EXACT power, GnuCOBOL's
     /// <c>cob_decimal_pow</c> (<c>mpz_pow_ui</c> with scale × n, CLAUDE.md rule 1), for a positive exponent — on the wide form while it
@@ -347,8 +377,12 @@ public readonly struct CobolExact
     }
 
     /// <summary>This value with the fraction digits <paramref name="precision"/> (an integer function's value is held at 0).</summary>
-    internal CobolExact WithPrecision(int precision) =>
-        _isBig ? new(_big, precision) : _isApproximation ? new(_dec, precision, _approximation) : _sdidi ? new(_dec, precision) : new(_wide, _scale, precision);
+    internal CobolExact WithPrecision(int precision)
+    {
+        CobolExact value = _isBig ? new(_big, precision) : _isApproximation ? new(_dec, precision, _binary64)
+            : _sdidi ? new(_dec, precision) : new(_wide, _scale, precision);
+        return _isFloatContent ? new(value, _binary64) : value;
+    }
 
     /// <summary>⛔ THE FINAL TRANSFER (kb/Work PB1900, PB4575, PB4592): this value moved to the receiver's <paramref name="toScale"/> and
     /// rounded ONCE with the receiver's <paramref name="mode"/>, through <see cref="CobolWide.ToUnscaled"/> for the wide form (an SDIDI

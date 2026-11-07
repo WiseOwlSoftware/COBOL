@@ -797,7 +797,8 @@ public static class DiagnosticCatalog
         "A CALL operand shall reference a data item defined in the file, working-storage, local-storage, or "
         + "linkage section — ISO §2023:14.9.4.3 syntax rule 3 for an argument, rule 7 for the RETURNING item. A "
         + "SCREEN SECTION entry is not such an item (and the SCREEN SECTION is an unsupported optional "
-        + "facility — COBOL1560).",
+        + "facility — COBOL1560). At COBOL-85 the rule is §1985:X.5.2.3 SR3 (File, Working-Storage, "
+        + "Communication or Linkage Section), which refuses the DEBUG-ITEM register's subordinates alike.",
         "ISO §2023:14.9.4.3 SR3/SR7");
     public static readonly DiagnosticDescriptor CallByReferenceObjectData = new(
         "COBOL1678", "call-by-reference-object-data", EditionSeverity.Error,
