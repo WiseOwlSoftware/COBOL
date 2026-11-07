@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Validate a spec citation against the transcription of the standard (`--edition`, default 2023: `specs/ISO_COBOL_2023.md`)
-— the mechanical check for CLAUDE.md rule 1.
+"""Validate a spec citation against the transcription of the edition it names — the mechanical check for CLAUDE.md
+rule 1. `--check` takes a WHOLE citation in the format `scripts/spec/citation.py` specifies (`§<edition>:<locator>[ <rule>]`,
+kb/Work PB4887); `--find` searches the transcription `--edition` names (default 2023: `specs/ISO_COBOL_2023.md`).
 
 WHY THIS EXISTS. Rule 1 requires the exact §/GR for any semantics question, and the failure mode is not
 inventing a citation — it is INHERITING one. A fix-queue entry or design doc carries "§8.4.1.2 GR2", the text
@@ -14,7 +15,8 @@ items (§14.8.2.3.3 is one — checking against the catalog reports a real citat
 is a per-block count that does NOT track the printed rule number once a rule has sub-letters (the abs rule
 prints as 6)d)2.b) and the catalog calls it 2). Both produce confident wrong answers.
 
-    python scripts/spec/cite.py --check 8.4.2.3.4 "EC-BOUND-SUBSCRIPT exception condition is set to exist"
+    python scripts/spec/cite.py --check "§2023:8.4.2.3.4 GR1" "EC-BOUND-SUBSCRIPT exception condition is set to exist"
+    python scripts/spec/cite.py --check "§1985:VI.5.3.1" "A data description entry specifies the characteristics"
     python scripts/spec/cite.py --find  "shall fall within the bounds from integer-1"
 
 `--check` exits non-zero unless the text appears INSIDE that clause's own region, so a wrong clause number
@@ -35,6 +37,7 @@ same clause, and the rule path reported for a quotation of the printed form is t
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import functools
 import pathlib
 import re
@@ -44,15 +47,10 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
+import citation  # noqa: E402  (scripts/spec: the one citation format and its parser, kb/Work PB4887)
 
-# A clause number is either the body's dotted decimal (14.9.39.4) or an ANNEX's letter-headed form
-# (E.2, A.4.14, D.2.2.5.1). The annex alternative requires at least one dot segment, which is what keeps it
-# from swallowing the annex TITLE headings ("## Annex A") — those name the annex, they are not a clause.
-# ⛔ Without the second alternative the whole of Annexes A–G is uncitable: `--check E.2 …` answers
-# "there is no clause §E.2", which reads as a bad citation rather than a blind tool.
-# The TITLE is optional: all 178 headings of clause 3 (Terms and definitions) are a bare number, the term
-# itself being the bold line beneath. Requiring a title made every definition in the standard uncitable.
-HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(?:\s+(.*?))?\s*$")
+# The citation itself — its edition, its locator and the regions of each edition's transcription a locator names — is
+# `citation.py`'s (kb/Work PB4887): `--check` takes a WHOLE citation and checks its text inside that edition's region.
 # The transcription escapes a rule label's delimiter (`1\)`) so Markdown does not eat it as a list — see
 # repairs/rule_numbering.py. Match both forms so this works on any revision.
 TOP = re.compile(r"^(\d+)\\?\)\s")
@@ -73,13 +71,6 @@ def norm(s: str) -> str:
     every line of the spec per call, and `audit_doc_citations.py` (kb/Work PB2525) spent 25 of its 33 s re-running
     these two regular expressions over the same ~47,500 lines for 59 `find` calls."""
     return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", s)).strip().lower()
-
-
-def clauses(lines):
-    """(number, title, start, end) for every clause heading, in order."""
-    heads = [(m.group(1), m.group(2) or "", i) for i, l in enumerate(lines) if (m := HEADING.match(l))]
-    return [(n, t, s, heads[k + 1][2] if k + 1 < len(heads) else len(lines))
-            for k, (n, t, s) in enumerate(heads)]
 
 
 def _indent(line: str) -> int:
@@ -140,8 +131,8 @@ def _label(line: str):
     return None
 
 
-def find(lines, cls, text):
-    """(exit code, output lines) for `--find`: every clause line that contains TEXT (words only)."""
+def find(lines, cls, text, edition: int):
+    """(exit code, output lines) for `--find`: every region line of `edition`'s transcription that contains TEXT."""
     needle = norm(text)
     if not needle:
         return 1, [f"REFUSED: {EMPTY_NEEDLE}"]
@@ -151,67 +142,93 @@ def find(lines, cls, text):
         return 1, [f"NO CLAUSE contains {text!r} — the citation names text the standard does not have"]
     out = []
     for n, t, s, _e, i in hits[:12]:
-        out.append(f"§{n} {rule_path(lines, i, s)}  ({t})\n    {lines[i].strip()[:190]}\n")
+        out.append(f"§{edition}:{n} {rule_path(lines, i, s)}  ({t})\n    {lines[i].strip()[:190]}\n")
     out.append(f"{len(hits)} occurrence(s)")
     return 0, out
 
 
-def check(lines, cls, clause, text):
-    """(exit code, output lines) for `--check`: TEXT must appear inside CLAUSE's own region."""
-    region = [c for c in cls if c[0] == clause]
+def check(lines, cls, cited: citation.Citation, text):
+    """(exit code, output lines) for `--check`: TEXT must appear inside the cited locator's own region, and, when the
+    citation of an ISO edition names a syntax or general rule (`GR6d.2`), under that rule: the printed path must open
+    with `6)`. A 1985 rule is not checked: that transcription numbers its rules in another style, which `rule_path`
+    does not read (its reconciliation is kb/Work PB4850).
+
+    ⛔ THE RULE ORDINAL IS CHECKED, NOT ONLY THE CLAUSE (kb/Work PB4887). A whole citation carries its rule, and a
+    sentence in the right clause under the wrong rule is the inherited-citation shape kb/Work PB388 measured."""
+    shown = citation.render(dataclasses.replace(cited, rule=None))
+    region = [c for c in cls if c[0] == cited.locator]
     if not region:
-        return 1, [f"FAIL: there is no clause §{clause} in the transcription"]
+        return 1, [f"FAIL: there is no {shown} in the {cited.edition} transcription"]
     needle = norm(text)
     if not needle:
         return 1, [f"FAIL: {EMPTY_NEEDLE}"]
+    iso = citation.EDITIONS[cited.edition].locator == "clause"
+    ordinal = m.group(1) if iso and cited.rule and (m := re.match(r"(?:SR|GR)(\d+)", cited.rule)) else None
+    elsewhere = []
     for n, t, s, e in region:
         for i in range(s, e):
             if needle in norm(lines[i]):
-                return 0, [f"OK  §{n} {rule_path(lines, i, s)}  ({t})\n    {lines[i].strip()[:220]}"]
-    return 1, [f"FAIL: §{clause} exists but does NOT contain {text!r}",
+                path = rule_path(lines, i, s)
+                if ordinal is None or path.split(" ")[0] == f"{ordinal})":
+                    return 0, [f"OK  §{cited.edition}:{n} {path}  ({t})\n    {lines[i].strip()[:220]}"]
+                elsewhere.append(path or "(no rule)")
+    if elsewhere:
+        return 1, [f"FAIL: {shown} contains {text!r}, but under rule {elsewhere[0]}, not {cited.rule}"]
+    return 1, [f"FAIL: {shown} exists but does NOT contain {text!r}",
                "      run --find to locate the text and get the clause it is really in"]
 
 
-def load(edition: int = spec_pdf.DEFAULT_EDITION, repo: pathlib.Path = spec_pdf.REPO):
-    """The lines and clause regions of `edition`'s transcription."""
-    path = spec_pdf.markdown(edition, repo)
-    if not path.is_file():
-        sys.exit(f"FATAL: the {edition} transcription ({path.relative_to(repo).as_posix()}) does not exist in this tree.")
-    lines = path.read_text(encoding="utf-8").splitlines()
-    return lines, clauses(lines)
+def load(edition: int, repo: pathlib.Path = spec_pdf.REPO):
+    """The lines and citable regions of `edition`'s transcription (`citation.regions`); exits while it is absent."""
+    loaded = citation.regions(edition, repo)
+    if loaded is None:
+        where = f"({spec_pdf.markdown(edition, repo).relative_to(repo).as_posix()}) " if edition in spec_pdf.EDITIONS else ""
+        sys.exit(f"FATAL: the {edition} transcription {where}does not exist in this tree.")
+    return loaded
 
 
 def self_test() -> int:
     """Each guard is shown to FIRE on its defect and to stay SILENT on its neighbour (kb/Work PB308, PB309)."""
-    lines, cls = load()
+    lines, cls = load(2023)
+
+    def c(text: str) -> citation.Citation:
+        return citation.parse(text)
+
     with tempfile.TemporaryDirectory() as td:
         planted = pathlib.Path(td)
         planted_md = spec_pdf.markdown(2002, planted)
         planted_md.parent.mkdir()
         planted_md.write_text("## 9.9 Planted\n\nthe planted sentence\n", encoding="utf-8", newline="\n")
-        edition_2002 = check(*load(2002, planted), "9.9", "the planted sentence")[0]
+        edition_2002 = check(*load(2002, planted), c("§2002:9.9"), "the planted sentence")[0]
         try:
             load(1985, planted)
             absent_1985 = False
         except SystemExit as ex:
             absent_1985 = "1985" in str(ex.code)
     cases = [
-        ("reads the transcription of the edition named (2002), not 2023's", edition_2002 == 0),
+        ("reads the transcription of the edition the citation names (2002), not 2023's", edition_2002 == 0),
         ("an edition whose transcription is absent exits naming it", absent_1985),
-        ("fires EMPTY-NEEDLE (check)", check(lines, cls, "7.1", "| + | + | - |")[0] == 1),
-        ("fires EMPTY-NEEDLE (find)", find(lines, cls, "| + | - |")[0] == 1),
-        ("silent on a needle carrying digits", check(lines, cls, "15.43.4", "| S999 | +999 |")[0] == 0),
-        ("pins 14.9.8.4 1) b)", "1) b)" in check(lines, cls, "14.9.8.4", "Otherwise, arithmetic-expression-1 is evaluated to produce an algebraic value")[1][0]),
-        ("pins 14.7.7 2) bare (trailing paragraph)", check(lines, cls, "14.7.7", "The composite of operands is a hypothetical data item")[1][0].startswith("OK  §14.7.7 2)  (")),
+        ("checks a 1985 citation against the 1985 transcription",
+         check(*load(1985), c("§1985:VI.5.3.1"), "A data description entry specifies the characteristics")[0] == 0),
+        ("fires on a 1985 paragraph of the wrong section",
+         check(*load(1985), c("§1985:VII.5.3.1"), "A data description entry specifies the characteristics")[0] == 1),
+        ("fires EMPTY-NEEDLE (check)", check(lines, cls, c("§2023:7.1"), "| + | + | - |")[0] == 1),
+        ("fires EMPTY-NEEDLE (find)", find(lines, cls, "| + | - |", 2023)[0] == 1),
+        ("silent on a needle carrying digits", check(lines, cls, c("§2023:15.43.4"), "| S999 | +999 |")[0] == 0),
+        ("pins 14.9.8.4 1) b)", "1) b)" in check(lines, cls, c("§2023:14.9.8.4"), "Otherwise, arithmetic-expression-1 is evaluated to produce an algebraic value")[1][0]),
+        ("accepts the rule the text is under (GR1)", check(lines, cls, c("§2023:14.9.8.4 GR1"), "Otherwise, arithmetic-expression-1 is evaluated to produce an algebraic value")[0] == 0),
+        ("fires on a rule the text is not under (GR2)", check(lines, cls, c("§2023:14.9.8.4 GR2"), "Otherwise, arithmetic-expression-1 is evaluated to produce an algebraic value")[0] == 1),
+        ("pins 14.7.7 2) bare (trailing paragraph)", check(lines, cls, c("§2023:14.7.7"), "The composite of operands is a hypothetical data item")[1][0].startswith("OK  §2023:14.7.7 2)  (")),
         # PB55 review R1-1: a letter AFTER a nested `N.` list at its own indent is the list's sibling, not inside it
-        ("pins 7.2.3.4 9) d) (letter after a nested list)", check(lines, cls, "7.2.3.4", "If no match occurs, the comparison is repeated with each")[1][0].startswith("OK  §7.2.3.4 9) d)  (")),
-        ("pins 12.3.7.3 17) d) (letter after a nested list)", check(lines, cls, "12.3.7.3", "Alphabet-name-4 shall not reference an alphabet specified with the LOCALE phrase")[1][0].startswith("OK  §12.3.7.3 17) d)  (")),
-        ("pins 7.2.3.4 9) c) 2. (the nested item keeps its letter)", check(lines, cls, "7.2.3.4", "Each operand and operator of a concatenation expression is a separate text-word")[1][0].startswith("OK  §7.2.3.4 9) c) 2.  (")),
-        ("pins 8.8.3.3 3)",check(lines, cls, "8.8.3.3", "equivalent to a literal")[1][0].startswith("OK  §8.8.3.3 3)")),
-        ("accepts the CORRECTED form (C6)", check(lines, cls, "14.9.10.4", "The value '62' is placed into the I-O status")[0] == 0),
-        ("accepts the PRINTED form (C6)", check(lines, cls, "14.9.10.4", "The valu62' is placed into the I-O status")[0] == 0),
-        ("accepts the PRINTED form (C12)", check(lines, cls, "14.9.30.4", "whose key value is greater than or equal to the key value in the file position indicator")[0] == 0),
-        ("fires on a wrong clause", check(lines, cls, "14.9.27.4", "The valu62' is placed into the I-O status")[0] == 1),
+        ("pins 7.2.3.4 9) d) (letter after a nested list)", check(lines, cls, c("§2023:7.2.3.4"), "If no match occurs, the comparison is repeated with each")[1][0].startswith("OK  §2023:7.2.3.4 9) d)  (")),
+        ("pins 12.3.7.3 17) d) (letter after a nested list)", check(lines, cls, c("§2023:12.3.7.3"), "Alphabet-name-4 shall not reference an alphabet specified with the LOCALE phrase")[1][0].startswith("OK  §2023:12.3.7.3 17) d)  (")),
+        ("pins 7.2.3.4 9) c) 2. (the nested item keeps its letter)", check(lines, cls, c("§2023:7.2.3.4"), "Each operand and operator of a concatenation expression is a separate text-word")[1][0].startswith("OK  §2023:7.2.3.4 9) c) 2.  (")),
+        ("pins 8.8.3.3 3)", check(lines, cls, c("§2023:8.8.3.3"), "equivalent to a literal")[1][0].startswith("OK  §2023:8.8.3.3 3)")),
+        ("accepts the CORRECTED form (C6)", check(lines, cls, c("§2023:14.9.10.4"), "The value '62' is placed into the I-O status")[0] == 0),
+        ("accepts the PRINTED form (C6)", check(lines, cls, c("§2023:14.9.10.4"), "The valu62' is placed into the I-O status")[0] == 0),
+        ("accepts the PRINTED form (C12)", check(lines, cls, c("§2023:14.9.30.4"), "whose key value is greater than or equal to the key value in the file position indicator")[0] == 0),
+        ("fires on a wrong clause", check(lines, cls, c("§2023:14.9.27.4"), "The valu62' is placed into the I-O status")[0] == 1),
+        ("--find prints the edition form", find(lines, cls, "equivalent to a literal", 2023)[1][0].startswith("§2023:")),
     ]
     for name, ok in cases:
         print(f"{'PASS' if ok else 'FAIL'}  {name}")
@@ -222,9 +239,10 @@ def self_test() -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--check", nargs=2, metavar=("CLAUSE", "TEXT"),
-                    help="assert TEXT appears inside CLAUSE's own region; exit 1 if not")
-    ap.add_argument("--find", metavar="TEXT", help="which clause(s) contain this text")
+    ap.add_argument("--check", nargs=2, metavar=("CITATION", "TEXT"),
+                    help="assert TEXT appears inside the cited region (and rule, when the citation names one): "
+                         "--check \"§2023:14.9.8.4 GR1\" \"<text>\"; exit 1 if not")
+    ap.add_argument("--find", metavar="TEXT", help="which region(s) of --edition's transcription contain this text")
     ap.add_argument("--self-test", action="store_true", help="prove each guard fires and stays silent")
     spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
@@ -233,8 +251,18 @@ def main() -> int:
     if not (args.find or args.check):
         ap.print_help()
         return 2
-    lines, cls = load(args.edition)
-    code, out = find(lines, cls, args.find) if args.find else check(lines, cls, *args.check)
+    if args.find:
+        code, out = find(*load(args.edition), args.find, args.edition)
+    elif any(a == "--edition" or a.startswith("--edition=") for a in sys.argv[1:]):
+        print("FAIL: --check takes the edition from the citation (§1985:VI.5.3.2); --edition is --find's")
+        return 2
+    else:
+        try:
+            cited = citation.parse(args.check[0])
+        except citation.CitationError as e:
+            print(f"FAIL: {e}")
+            return 1
+        code, out = check(*load(cited.edition), cited, args.check[1])
     print("\n".join(out))
     return code
 

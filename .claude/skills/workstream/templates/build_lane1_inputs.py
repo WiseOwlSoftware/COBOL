@@ -135,7 +135,8 @@ CONVENTIONS = {
     "compiler": "src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe <file.cob> --std <85|2002|2014|2023> --run  (run in a "
                 "scratch dir; never dotnet build/test — the tree is shared and a guard refuses builds while a fleet "
                 "is live).",
-    "citation-check": "python scripts/spec/cite.py --check <clause> \"<quoted text>\"  — every § you cite, no exceptions.",
+    "citation-check": "python scripts/spec/cite.py --check \"§2023:<clause>[ <rule>]\" \"<quoted text>\"  — every citation you write, "
+                      "in the edition form §<edition>:<locator>[ <rule>] (scripts/spec/citation.py), no exceptions.",
     "record-shape": "{'rule-id','verdict','code-location','test-ref','editions','notes'} — strings only; editions as "
                     "\"85,2002,2014,2023\" (ascending, no spaces: the one spelling record_verdicts.py accepts).",
 }

@@ -45,9 +45,11 @@ from prose alone.
 
 The base's triple (citation · derived expectation · applicability) is what a golden's expected value is computed
 from — never an oracle's output. Applicability here is the edition: does this differ across 85/2002/2014/2023?
-Check Annex E. **Check the citation mechanically:** `python scripts/spec/cite.py --check <clause> "<text>"`
-(CLAUDE.md rule 1 — a citation you did not run `--check` on is not a citation, and an INHERITED one is the usual
-failure).
+Check Annex E. **Write the citation with its edition** — `§<edition>:<locator>[ <rule>]`, e.g. `§2023:14.9.25.3 SR1`,
+`§1985:VI.5.3.2 GR3` (the Roman section, then that section's own paragraph); `scripts/spec/citation.py` is the format's
+specification and its parser (kb/Work PB4887). **Check it mechanically:**
+`python scripts/spec/cite.py --check "§2023:<clause>[ <rule>]" "<text>"` (CLAUDE.md rule 1 — a citation you did not run
+`--check` on is not a citation, and an INHERITED one is the usual failure); a rule in the citation is checked too.
 
 ## 4. Latitude and defects in the standard
 
