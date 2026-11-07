@@ -1,4 +1,4 @@
-## PB4916: the API key file holds one labeled key per Claude account, and every API tool names the account it bills
+## Entry 3256 — 2026-11-07 09:48 PST — PB4916: the API key file holds one labeled key per Claude account, and every API tool names the account it bills
 
 **Re-probe.** A planted key file of two labeled entries (invented labels, two keys) made `api_key.read_api_key` return
 the first label: every tool that bills a Claude call (fuzz_claude through differential_fuzz, fuzz_batch,
@@ -25,3 +25,4 @@ fuzz_claude, fuzz_batch, differential_fuzz and transcribe_pdf self-tests.
 **Self-review.** One reader, one help text, one rule for a run's recorded account. An unreadable accounts table falls
 back to matching by name, and the error that follows names the labels, so no key is chosen silently. The account lookup
 restores the caller's `sys.path`. The gate's verdict is in the branch's gate record.
+
