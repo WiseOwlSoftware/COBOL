@@ -276,6 +276,88 @@ def check_corrections(text: str) -> list[str]:
     return failures
 
 
+#: The reconciliation ledger of a transcription that keeps its pages (`## Page N`), by edition (kb/Work PB4850): every
+#: batch claim with its decision, every repair, and every level-2 box. 2023 dropped its pages; its reconciliation is
+#: LEDGER.json (merge_reconciliation.py) and its corrections the Addendum (check_corrections).
+LEDGER: dict[int, str] = {1985: "docs/rearchitecture/spec-reconciliation/LEDGER-1985.json"}
+#: What a claim's decision may be; each but APPLIED states its reason.
+DECISIONS = {"APPLIED", "REFUTED", "ALREADY", "FORMAT", "BOX", "FIGURE", "KEPT"}
+BOX_SIDE = spec_pdf.BOX_SIDE
+PAGE_HEADING = re.compile(r"^## Page (\d+)$", re.M)
+CODE_SPAN = re.compile(r"`[^`\n]*`")
+
+
+def pages_of(text: str) -> dict[int, str]:
+    """The transcription's text by PDF page (`## Page N` opens page N); the front matter before page 1 is page 0."""
+    cuts = [(int(m.group(1)), m.start()) for m in PAGE_HEADING.finditer(text)]
+    out = {0: text[:cuts[0][1]] if cuts else text}
+    for (page, at), (_, end) in zip(cuts, cuts[1:] + [(0, len(text))]):
+        out[page] = text[at:end]
+    return out
+
+
+def prose_box_sides(page: str) -> int:
+    """The ║ of `page` outside a figure (`<pre>`), a fenced block and a code span: the sides of its prose boxes."""
+    count, figure, fence = 0, False, False
+    for line in page.split("\n"):
+        if line.lstrip().startswith("```"):
+            fence = not fence
+            continue
+        if "<pre" in line:
+            figure = True
+        if not figure and not fence:
+            count += CODE_SPAN.sub("", line).count(BOX_SIDE)
+        if "</pre>" in line:
+            figure = False
+    return count
+
+
+def check_ledger(text: str, ledger: dict) -> list[str]:
+    """The transcription agrees with its reconciliation ledger: every applied repair and sweep is on its page, every claim
+    is decided, every marked box opens where the ledger says, and each page's prose carries exactly the box sides its
+    marked boxes account for (two per marked block), so a box added, lost or moved without the ledger is refused."""
+    failures: list[str] = []
+    pages = pages_of(text)
+    print(f"\nreconciliation ledger ({len(ledger['claims'])} claims, {len(ledger['sweeps'])} sweeps, "
+          f"{len(ledger['boxes'])} boxes) — the transcription must agree:")
+
+    def on_page(page: int, now: str, what: str) -> None:
+        if now not in pages.get(page, ""):
+            failures.append(f"{what} (page {page}): {now[:70]!r} is not on the page")
+
+    for c in ledger["claims"]:
+        label = f"claim p{c['page']}-{c['i']}"
+        if c.get("decision") not in DECISIONS:
+            failures.append(f"{label}: decision {c.get('decision')!r} is not one of {sorted(DECISIONS)}")
+        elif c["decision"] == "APPLIED":
+            for e in c.get("edits") or [None]:
+                if e is None:
+                    failures.append(f"{label}: APPLIED with no edit")
+                else:
+                    on_page(c["page"], e["now"], label)
+        elif not c.get("reason"):
+            failures.append(f"{label}: {c['decision']} with no reason")
+    for s in ledger["sweeps"]:
+        on_page(s["page"], s["now"], f"sweep {s['sweep']}")
+    sides: dict[int, int] = {}
+    for b in ledger["boxes"]:
+        if b["decision"] == "MARKED":
+            sides[b["page"]] = sides.get(b["page"], 0) + 2 * b["blocks"]
+            for opening in b["opens"]:
+                on_page(b["page"], opening, f"box {b['n']}")
+    for page, body in pages.items():
+        found = prose_box_sides(body)
+        if found != sides.get(page, 0):
+            failures.append(f"page {page}: its prose carries {found} box sides (║) and its marked boxes account for "
+                            f"{sides.get(page, 0)}")
+    for f in failures[:20]:
+        print(f"  ✗ {f}")
+    if not failures:
+        print(f"  ✓ every repair on its page, every claim decided, {sum(sides.values()) // 2} boxed blocks where the ledger "
+              "puts them")
+    return failures
+
+
 def check_stamp(lines: list[str], edition: int) -> list[str]:
     """The stamp shapes of `edition` must be absent from `lines`; an edition the table lacks exits naming the table."""
     forbidden = spec_pdf.edition_data(FORBIDDEN, edition, "per-copy stamp shapes (verify_publishable.FORBIDDEN)")
@@ -330,6 +412,9 @@ def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
 
     failures = check_text(text, edition)
     failures.extend(check_corrections(text))
+    if edition in LEDGER:
+        import json
+        failures.extend(check_ledger(text, json.loads((REPO / LEDGER[edition]).read_text(encoding="utf-8"))))
     failures.extend(check_tree())
 
     if failures:
@@ -403,6 +488,21 @@ def self_test() -> int:
     check("2023 requires its Addendum, so deleting it with its flags is still refused",
           "missing: the Addendum that lists every correction (check_corrections)"
           in quietly(check_text, good.replace("# Addendum\n", ""), 2023))
+    planted_pages = ("# Preface\n\nthe notation `║boxed║`\n\n## Page 1\n\n<u>Format 1</u>:\n\n(4) a rule ║or extend║ here.\n\n"
+                     "<pre style=\"line-height:1\">\n║ a drawn box ║\n</pre>\n\n## Page 2\n\nplain\n")
+    planted_ledger = {"claims": [{"page": 1, "i": 0, "decision": "APPLIED",
+                                  "edits": [{"was": "Format 1:", "now": "<u>Format 1</u>:"}]},
+                                 {"page": 2, "i": 0, "decision": "REFUTED", "reason": "the page prints it so"}],
+                      "sweeps": [], "boxes": [{"page": 1, "n": 0, "decision": "MARKED", "blocks": 1, "opens": ["║or extend║"]},
+                                              {"page": 1, "n": 1, "decision": "FORMAT", "reason": "drawn"}]}
+    check("a transcription that agrees with its ledger passes: a code span and a drawn box are not prose box sides",
+          quietly(check_ledger, planted_pages, planted_ledger) == [])
+    check("a box side the ledger does not account for is refused",
+          len(quietly(check_ledger, planted_pages.replace("plain", "║plain║"), planted_ledger)) == 1)
+    check("a lost repair is refused", len(quietly(check_ledger, planted_pages.replace("<u>Format 1</u>", "Format 1"),
+                                                  planted_ledger)) == 1)
+    undecided = dict(planted_ledger, claims=planted_ledger["claims"] + [{"page": 2, "i": 1, "decision": "REFUTED"}])
+    check("a claim decided with no reason is refused", len(quietly(check_ledger, planted_pages, undecided)) == 1)
     check("the tree shapes of every edition are searched on every run",
           (r"\border\s*#\s*[A-Za-z_]*\d{4,}", "reseller order number") in tree_shapes()
           and (r"\bX_\d{6}\b", "reseller order number") in tree_shapes())

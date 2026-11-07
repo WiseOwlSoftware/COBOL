@@ -63,6 +63,12 @@ EDITIONS: dict[int, Edition] = {
 }
 
 
+#: The side of a level-2 box, as a transcription that draws the boxes writes it (1985: a `║` at each end of each boxed
+#: block of prose, the Preface's notation note, and `║` columns in a general format, FIGURE-STYLE.md rule 9; kb/Work
+#: PB4850). It is notation, never part of a heading's number or title, so every reader of a heading skips it.
+BOX_SIDE = "║"
+
+
 def path(edition: int = DEFAULT_EDITION, private: pathlib.Path = PRIVATE) -> pathlib.Path | None:
     """The licensed PDF of `edition`, or None when it is absent. An edition this module does not name is a KeyError."""
     p = private / EDITIONS[edition].pdf

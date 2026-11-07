@@ -102,8 +102,9 @@ RESERVED = re.compile(r"^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*$")
 # Words that are structural in the grammar rather than COBOL keywords, or that carry their own rules.
 SKIP = {"ISO", "IEC", "NOTE", "FORMAT", "FORMATS", "GENERAL", "TRUE", "FALSE", "ALL"}
 
-#: A markdown clause heading: `##### 14.9.49.2 General formats`.
-MD_HEADING = re.compile(r"^#{2,6}\s+(\d+(?:\.\d+)*)\s+(\S.*?)\s*$")
+#: A markdown clause heading: `##### 14.9.49.2 General formats`; a level-2 box's sides (spec_pdf.BOX_SIDE, the 1985
+#: transcription's `### ║6.13.2 General Format║`) are no part of its number or title.
+MD_HEADING = re.compile(rf"^#{{2,6}}\s+{spec_pdf.BOX_SIDE}?(\d+(?:\.\d+)*)\s+(\S.*?){spec_pdf.BOX_SIDE}?\s*$")
 #: The sub-clause that carries the printed diagram(s). Singular in most clauses, plural where there are several.
 #: A construct's ANCHOR KEYWORD is the leading all-caps COBOL word of its clause title — `USE statement`,
 #: `OCCURS clause`, `>>DEFINE directive`, `ABS function`. A title that does not start with one (`Qualification`,

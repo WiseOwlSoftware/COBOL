@@ -50,7 +50,8 @@ from standard_streams import ensure_utf8  # noqa: E402
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 
 PAGE_ANCHOR = re.compile(r'^<a id="page-(\d+)"></a>\s*$')
-MD_HEADING = re.compile(r"^\s*#{1,6}\s+\**(\d+(?:\.\d+)+)\s+(.+?)\**\s*$")
+#: A clause heading, read through its bold and a level-2 box's sides (spec_pdf.BOX_SIDE).
+MD_HEADING = re.compile(rf"^\s*#{{1,6}}\s+[*{spec_pdf.BOX_SIDE}]*(\d+(?:\.\d+)+)\s+(.+?)[*{spec_pdf.BOX_SIDE}]*\s*$")
 MD_FORMAT = re.compile(r"^\s*\**Formats?\s+(\d+)")
 ADDENDUM_REF = re.compile(r"see the Addendum \(C\d+\)")
 # A fence may carry a LANGUAGE TAG (```cobol on the example programs). Not matching it would leave the
@@ -393,7 +394,8 @@ class Drawn(NamedTuple):
 
 PAGE_HEADING = re.compile(r"^## Page (\d+)\s*$")
 PRE_OPEN_LINE = re.compile(r"^\s*<pre(?:\s[^>]*)?>\s*$")
-CLAUSE_LINE = re.compile(r"^\s*#*\s*\**(\d+(?:\.\d+)+)\s+(.+?)\**\s*$")
+#: A clause's opening line, headed or not, read through its bold and a level-2 box's sides (spec_pdf.BOX_SIDE).
+CLAUSE_LINE = re.compile(rf"^\s*#*\s*[*{spec_pdf.BOX_SIDE}]*(\d+(?:\.\d+)+)\s+(.+?)[*{spec_pdf.BOX_SIDE}]*\s*$")
 
 
 def drawn_figures(lines: list[str], furniture: re.Pattern) -> list[Drawn]:
@@ -724,6 +726,10 @@ def self_test() -> int:
           str([(b.rows, b.general_format) for b in drawn_figures(skeleton, furniture)]))
     check("a figure's ordinal counts from 0 on each page", figure_ordinals(got) == [0, 0, 1, 0, 0, 1],
           str(figure_ordinals(got)))
+    boxed = [CLAUSE_LINE.match("### ║6.13.2 General Format║"), MD_HEADING.match("## ║6.13 THE EVALUATE STATEMENT║")]
+    check("a clause heading boxed as level 2 is read through the box's sides (kb/Work PB4850)",
+          [(m.group(1), m.group(2)) if m else None for m in boxed]
+          == [("6.13.2", "General Format"), ("6.13", "THE EVALUATE STATEMENT")], str(boxed))
 
     d = got[0]
     house = ["<u>ADD</u> x"]

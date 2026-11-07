@@ -452,6 +452,9 @@ jobs:
       - name: Spec corrections — every flag, Addendum entry, printed form and page agree (verify_publishable.py)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/verify_publishable.py
+      - name: Spec 1985 — publishable, and the transcription agrees with its reconciliation ledger (verify_publishable.py --edition 1985)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/spec/verify_publishable.py --edition 1985
       # One line ending, LF (kb/Work PB3029): no tracked text file's blob or checkout holds a CR, and every Python writer
       # states newline=. Here it guards the INDEX (a commit made outside git's attributes); windows-self-tests runs it
       # again over a Windows checkout, the bytes `core.autocrlf` used to turn CRLF.

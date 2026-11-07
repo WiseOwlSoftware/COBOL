@@ -55,10 +55,11 @@ publications.
 > (`docs/rearchitecture/spec-reconciliation/FIGURE-STYLE.md`). The standard encloses every specification unique to
 > level 2 of a module (the high level) in a box (Section I, 1.3; Section IV, 1). The box is drawn as its two sides,
 > double lines, wherever it falls: in a general format as `║` columns beside the rows it holds, and in prose as a `║`
-> at each end of the boxed text. A boxed paragraph, rule, list item or table cell opens and closes with `║`
-> (`║(4) Any necessary conversion …║`); a box around words inside a sentence encloses those words (`opened in the
-> output ║or extend║ mode`). A box never nests, so every `║` that opens a box is followed by the one that closes it.
-> The amendments draw boxes the same way.
+> at each end of the boxed text. A boxed heading, paragraph, rule or list item opens and closes with `║`
+> (`║(4) Any necessary conversion …║`), a boxed table row opens in its first cell and closes in its last, and a box
+> around words inside a sentence encloses those words (`opened in the output ║or extend║ mode`). Where a box holds
+> several paragraphs, each of them opens and closes with `║`. A box never nests, so every `║` that opens a box is
+> followed by the one that closes it. The amendments draw boxes the same way.
 
 # Front matter: title, foreword, preface and contents
 
@@ -11939,7 +11940,7 @@ b. If the size of the transferred data exceeds the size of the receiving data it
 
 (5) ║If the FROM option is not given,║ the device that the implementor specifies as standard is used.
 
-<u>║FORMAT 2</u>:║
+║<u>FORMAT 2</u>:║
 
 ║(6) The ACCEPT statement causes the information requested to be transferred to the data item specified by identifier-2 according to the rules for the MOVE statement. (See page VI-103, The MOVE Statement.) DATE, DAY, DAY-OF-WEEK, and TIME are conceptual data items and, therefore, are not described in the COBOL program.║
 
@@ -12799,7 +12800,7 @@ Nucleus - INSPECT
 
 (8) When the CHARACTERS phrase is used, literal-2, literal-3, or the size of the data item referenced by identifier-4, identifier-5 must be one character in length.
 
-<u>║FORMAT 4</u>:║
+║<u>FORMAT 4</u>:║
 
 ║(9) The size of literal-5 or the data item referenced by identifier-7 must be equal to the size of literal-4 or the data item referenced by identifier-6. When a figurative constant is used as literal-5, the size of the figurative constant is equal to the size of literal-4 or the size of the data item referenced by identifier-6.║
 
@@ -12916,7 +12917,7 @@ d. When the adjective FIRST is specified, the leftmost occurrence of literal-1 m
 
 (15) A format 3 INSPECT statement is interpreted and executed as though two successive INSPECT statements specifying the same identifier-1 had been written with one statement being a format 1 statement with TALLYING phrases identical to those specified in the format 3 statement, and the other statement being a format 2 statement with REPLACING phrases identical to those specified in the format 3 statement. The general rules given for matching and counting apply to the format 1 statement and the general rules given for matching and replacing apply to the format 2 statement. Subscripting associated with any identifier in the format 2 statement is evaluated only once before executing the format 1 statement.
 
-<u>║FORMAT 4</u>:║
+║<u>FORMAT 4</u>:║
 
 ║(16) A format 4 INSPECT statement is interpreted and executed as though a format 2 INSPECT statement specifying the same identifier-1 had been written with a series of ALL phrases, one for each character of literal-4. The effect is as if each of these ALL phrases referenced, as literal-1, a single character║
 
@@ -13968,7 +13969,7 @@ in Format 1 SET Statements
 
 (6) The status of each external switch associated with the specified mnemonic-name-1 is modified such that the truth value resultant from evaluation of a condition-name associated with that switch will reflect an on status if the ON phrase is specified, or an off status if the OFF phrase is specified. (See page VI-58, Switch-Status Condition.)
 
-<u>║FORMAT 4</u>:║
+║<u>FORMAT 4</u>:║
 
 ║(7) The literal in the VALUE clause associated with condition-name-1 is placed in the conditional variable according to the rules of the VALUE clause (see page VI-48, The VALUE Clause). If more than one literal is specified in the VALUE clause, the conditional variable is set to the value of the first literal that appears in the VALUE clause.║
 
@@ -15398,7 +15399,7 @@ The RECORD clause specifies the number of character positions in a fixed length 
 
 (1) No record description entry for the file may specify a number of character positions greater than integer-1.
 
-<u>║FORMAT 2</u>:║
+║<u>FORMAT 2</u>:║
 
 ║(2) Record descriptions for the file must not describe records which contain a lesser number of character positions than that specified by integer-2 nor records which contain a greater number of character positions than that specified by integer-3.║
 
@@ -15424,7 +15425,7 @@ Sequential I-O - RECORD
 
 (3) Format 1 is used to specify fixed length records. Integer-1 specifies the number of character positions contained in each record in the file.
 
-<u>║FORMAT 2</u>:║
+║<u>FORMAT 2</u>:║
 
 ║(4) Format 2 is used to specify variable length records. Integer-2 specifies the minimum number of character positions to be contained in any record of the file. Integer-3 specifies the maximum number of character positions in any record of the file.║
 
@@ -33412,7 +33413,7 @@ The American National Standards Institute does not develop standards and will in
 
 **CAUTION NOTICE:** This American National Standard may be revised or withdrawn at any time. The procedures of the American National Standards Institute require that action be taken periodically to reaffirm, revise, or withdraw this standard. Purchasers of American National Standards may receive current information on all standards by calling or writing the American National Standards Institute.
 
-**║CAUTION:** The developers of this standard have requested that holders of patents that may be required for the implementation of the standard disclose such patents to the publisher. However, neither the developers nor the publisher have undertaken a patent search in order to identify which, if any, patents may apply to this standard. As of the date of publication of this standard and following calls for the identification of patents that may be required for the implementation of the standard, no such claims have been made. No further patent search is conducted by the developer or publisher in respect to any standard it processes. No representation is made or implied that licenses are not required to avoid infringement in the use of this standard.║
+║**CAUTION:** The developers of this standard have requested that holders of patents that may be required for the implementation of the standard disclose such patents to the publisher. However, neither the developers nor the publisher have undertaken a patent search in order to identify which, if any, patents may apply to this standard. As of the date of publication of this standard and following calls for the identification of patents that may be required for the implementation of the standard, no such claims have been made. No further patent search is conducted by the developer or publisher in respect to any standard it processes. No representation is made or implied that licenses are not required to avoid infringement in the use of this standard.║
 
 Published by
 
