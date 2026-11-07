@@ -86,8 +86,8 @@ public sealed class DeclinedFacilityOperandDriftTests
     public void TheClauseConstants_CiteTheirOwnStatementsAndNeverBothInOneSentence()
     {
         string facility = CodeOf(MessagingBinderPath);
-        Assert.Matches(@"SendClause\s*=\s*""ISO §14\.9\.38\.2""", facility);
-        Assert.Matches(@"ReceiveClause\s*=\s*""ISO §14\.9\.31\.2""", facility);
+        Assert.Matches(@"SendClause\s*=\s*""ISO §2023:14\.9\.38\.2""", facility);
+        Assert.Matches(@"ReceiveClause\s*=\s*""ISO §2023:14\.9\.31\.2""", facility);
         Assert.DoesNotMatch(@"14\.9\.38\.2[^;]*14\.9\.31\.2|14\.9\.31\.2[^;]*14\.9\.38\.2", facility);
     }
 

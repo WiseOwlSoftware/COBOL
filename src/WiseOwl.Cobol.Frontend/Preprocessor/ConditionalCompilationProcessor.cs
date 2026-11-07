@@ -1047,7 +1047,7 @@ public static partial class ConditionalCompilationProcessor
                 $"a compiler directive is specified within a {statementKeyword} statement — the statement has no separator "
                 + "period before this line (ISO §2023:7.3.3 SR8 b)"
                 + (inPseudoText
-                    ? $"; the line stands inside pseudo-text, which §{(statementKeyword == "COPY" ? "7.2.3.3" : "7.2.4.3")} SR10 "
+                    ? $"; the line stands inside pseudo-text, which §2023:{(statementKeyword == "COPY" ? "7.2.3.3" : "7.2.4.3")} SR10 "
                     + "also forbids: \"Compiler directive lines shall not be specified within pseudo-text-1, pseudo-text-2, "
                     + "partial-word-1, or partial-word-2\""
                     : ""));

@@ -918,7 +918,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         if (ItemCategory.IsAlphanumericOrNational(name)) return true;
         ctx.Edition.Error(code,
-            $"{prefix}: identifier-1 shall be of category alphanumeric or national (ISO §{rule}) — '{word}' is {ItemCategory.Face(name)}");
+            $"{prefix}: identifier-1 shall be of category alphanumeric or national (ISO §2023:{rule}) — '{word}' is {ItemCategory.Face(name)}");
         return false;
     }
 
@@ -951,7 +951,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (place is not null && ScreenAddressName(place, prefix, text, code, rule)) return (null, place);
         if (place is null)
             ctx.Edition.Error(code,
-                $"{prefix}: identifier-1 shall be of category alphanumeric or national (ISO §{rule}) — '{text}' is of "
+                $"{prefix}: identifier-1 shall be of category alphanumeric or national (ISO §2023:{rule}) — '{text}' is of "
                 + $"category {IntrinsicResultType.OperandCategory(operand)?.ToString().ToLowerInvariant() ?? "(none)"}");
         return null;
     }

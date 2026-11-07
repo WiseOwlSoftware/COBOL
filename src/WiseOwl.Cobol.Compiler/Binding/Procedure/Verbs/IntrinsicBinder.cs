@@ -1085,7 +1085,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (argCtxs.Count < operandCount || argCtxs.Count > operandCount + 1)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name} takes {operandCount}..{operandCount + 1} argument(s); "
-                + $"{argCtxs.Count} given (ISO §{LocaleFunctionClause(sig.Name)}.2)");
+                + $"{argCtxs.Count} given (ISO §2023:{LocaleFunctionClause(sig.Name)}.2)");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
         var operands = new List<BoundOperand>(operandCount);
@@ -1111,7 +1111,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             else
             {
                 ctx.Edition.Error(DiagnosticCatalog.LocaleNameUndeclared, $"{site}: the position after the operand(s) admits only a locale-name declared by a "
-                    + $"SPECIAL-NAMES LOCALE clause ({rule}; the general format is §{LocaleFunctionClause(sig.Name)}.2)");
+                    + $"SPECIAL-NAMES LOCALE clause ({rule}; the general format is §2023:{LocaleFunctionClause(sig.Name)}.2)");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
             }
         }
@@ -1847,7 +1847,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 if (anycase)
                 {
                     ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name}: the ANYCASE keyword is repeated "
-                        + $"(ISO §{fmt} — argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE])");
+                        + $"(ISO §2023:{fmt} — argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE])");
                     return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} format");
                 }
                 anycase = true;
@@ -1861,7 +1861,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (anycase)
             {
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name}: an argument follows ANYCASE, which "
-                    + $"the format places last (ISO §{fmt})");
+                    + $"the format places last (ISO §2023:{fmt})");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} format");
             }
             // The LOCALE keyword (§2023:15.68.3 r5a; kb/Work PB64 T6): optionally followed by a locale-name declared
@@ -1889,13 +1889,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // §2023:15.68.2's bracketed stack: argument-2 and the LOCALE keyword are ALTERNATIVES (§2023:5.2.6.2 — at
             // most one of a bracketed stack may be written).
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name}: argument-2 and the LOCALE keyword are "
-                + $"alternatives — at most one may be written (ISO §{fmt}; §2023:5.2.6.2)");
+                + $"alternatives — at most one may be written (ISO §2023:{fmt}; §2023:5.2.6.2)");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} format");
         }
         if (operands.Count is < 1 or > 2)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name} takes argument-1 [argument-2 | LOCALE "
-                + $"[locale-name-1]] [ANYCASE] (ISO §{fmt}); {operands.Count} operand argument(s) given");
+                + $"[locale-name-1]] [ANYCASE] (ISO §2023:{fmt}); {operands.Count} operand argument(s) given");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
         // ⛔ THE §2023:15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
@@ -2811,7 +2811,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             string fsec = sig.Name == "SMALLEST-ALGEBRAIC" ? "15.83.3"
                 : sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3";
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentDataItemRule, $"FUNCTION {sig.Name}: argument-1 is a FUNCTION RESULT, and "
-                + $"ISO §{fsec} rule 1 admits a data item and \"shall not be an integer function or numeric "
+                + $"ISO §2023:{fsec} rule 1 admits a data item and \"shall not be an integer function or numeric "
                 + "function\" — name the data item whose description defines the range instead");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} function argument");
         }
@@ -2845,14 +2845,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             {
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentDataItemRule, $"FUNCTION {sig.Name}: under STANDARD-DECIMAL arithmetic "
                     + "argument-1 shall not specify a standard binary floating-point usage "
-                    + $"(ISO §{fsec3} rule 2)");
+                    + $"(ISO §2023:{fsec3} rule 2)");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} float argument");
             }
             if (ctx.Options.Arithmetic == ArithmeticMode.StandardBinary && stdDecimalUsage)
             {
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentDataItemRule, $"FUNCTION {sig.Name}: under STANDARD-BINARY arithmetic "
                     + "argument-1 shall not specify a standard decimal floating-point usage "
-                    + $"(ISO §{fsec3} rule 3)");
+                    + $"(ISO §2023:{fsec3} rule 3)");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} float argument");
             }
             // §2023:15.83.4 r1 (kb/Work PB122; the float-ITEM twin of the float-EDITED screen below): the entry
@@ -2880,7 +2880,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                         + $"argument-1's usage describes values as far from zero as 1E+{farthestExp} and as near "
                         + $"as 1E{closestExp}, outside the {ArithmeticModes.IntermediateName(ctx.Options.Arithmetic)} "
                         + "intermediate's range — the entry shall be such that its values pass an "
-                        + $"IN-ARITHMETIC-RANGE test (ISO §{fsec3[..^2]}.4 rule 1; §2023:8.8.4.4.4 GR3 l)");
+                        + $"IN-ARITHMETIC-RANGE test (ISO §2023:{fsec3[..^2]}.4 rule 1; §2023:8.8.4.4.4 GR3 l)");
                     return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} float argument");
                 }
             }
@@ -2969,7 +2969,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         string sec = sig.Name == "SMALLEST-ALGEBRAIC" ? "15.83.3" : sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3";
         ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentDataItemRule, $"FUNCTION {sig.Name} argument-1 shall be a {cat} DATA ITEM — not a "
             + "literal, an arithmetic expression, a group item, a reference-modified item, an index, or another "
-            + $"function (ISO §{sec} rule 1)");
+            + $"function (ISO §2023:{sec} rule 1)");
         return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} argument");
     }
 

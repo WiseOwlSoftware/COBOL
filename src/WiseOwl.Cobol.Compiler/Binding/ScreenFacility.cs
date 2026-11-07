@@ -128,7 +128,7 @@ internal static class ScreenFacility
         string rule = Core.ruleNames[inner.RuleIndex];
         if (!ClauseFacts.TryGetValue(rule, out var fact) || !seen.Add(rule)) return;
         using var _ = edition.At(inner);
-        edition.Declined(DiagnosticCatalog.ScreenFacilityUnsupported, $"{fact.Phrase} (ISO §{fact.Iso})");
+        edition.Declined(DiagnosticCatalog.ScreenFacilityUnsupported, $"{fact.Phrase} (ISO §2023:{fact.Iso})");
     }
 
     /// <summary>Refuse the SPECIAL-NAMES CURSOR and CRT STATUS clauses (ISO §2023:12.3.7; Annex A.4.2 item 25). Both

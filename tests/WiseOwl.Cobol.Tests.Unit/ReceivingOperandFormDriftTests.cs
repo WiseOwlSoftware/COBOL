@@ -58,7 +58,7 @@ public sealed class ReceivingOperandFormDriftTests
                 $"NonReceivableForm.{form} has no row in ReceivingOperandForms.Rules — decide the rule that forbids it as a "
                 + "receiving operand before adding the form");
             string message = rule.Message("X");
-            Assert.Matches(@"ISO §8\.4\.3\.\d+\.3 SR\d", message);
+            Assert.Matches(@"ISO §2023:8\.4\.3\.\d+\.3 SR\d", message);
             Assert.StartsWith("ISO §2023:8.4.3.", rule.Descriptor.IsoSection, StringComparison.Ordinal);
         }
     }

@@ -96,9 +96,9 @@ public sealed class CompilerDirectiveCatalogDriftTests
     {
         var wrong = new List<string>();
         foreach (var (word, clause) in SpecDirectives())
-            if (CompilerDirectiveCatalog.Find(word) is { } row && !row.Citation.Contains("§" + clause + ";")
-                && !row.Citation.Contains("§" + clause + " "))
-                wrong.Add($"{word} is §{clause} but its row cites \"{row.Citation}\"");
+            if (CompilerDirectiveCatalog.Find(word) is { } row && !row.Citation.Contains("§2023:" + clause + ";")
+                && !row.Citation.Contains("§2023:" + clause + " "))
+                wrong.Add($"{word} is §2023:{clause} but its row cites \"{row.Citation}\"");
 
         Assert.True(wrong.Count == 0, string.Join("\n", wrong));
     }

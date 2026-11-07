@@ -64,5 +64,5 @@ internal readonly record struct EcRaiseSite(string Verb, string Clause, int Leve
 
     /// <summary>This site's citation of one of its own rules — <c>Cite(Level3Rule)</c> → "ISO §2023:14.9.14.3 SR3".
     /// <paramref name="sub"/> spells a sub-item ("a", "d").</summary>
-    public string Cite(int rule, string sub = "") => $"ISO §{Clause} SR{rule}{sub}";
+    public string Cite(int rule, string sub = "") => $"ISO §2023:{Clause} SR{rule}{sub}";
 }

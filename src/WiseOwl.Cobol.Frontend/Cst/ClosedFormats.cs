@@ -36,7 +36,7 @@ public sealed record ClosedFormat(string Clause, string FormatLabel, string Subj
     /// <paramref name="owner"/> is the entry's own name (<see cref="ClosedFormats.OwnerName"/>) or null.</summary>
     public string Refusal(string word, string? owner)
         => $"'{word}' is not a {Noun} of the {Subject}{(owner is { Length: > 0 } n ? $" for '{n}'" : "")} — the ISO "
-           + $"§{Clause} {FormatLabel}general format lists the {Noun}s that may be specified, and it is a closed list";
+           + $"§2023:{Clause} {FormatLabel}general format lists the {Noun}s that may be specified, and it is a closed list";
 }
 
 /// <summary>

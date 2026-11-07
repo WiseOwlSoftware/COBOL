@@ -36,7 +36,7 @@ public sealed class DeclinedFacilityAnnexDriftTests
     /// <c>§2023:4.2.6</c> from matching inside a longer path, and keeps <c>§2023:4.2.16</c> (the conformance-claim clause,
     /// which several of these Titles legitimately mention) out of the §2023:4.2.1 family entirely.</summary>
     private static Regex Cites(string clause) =>
-        new(Regex.Escape("§" + clause) + @"(?![0-9.])", RegexOptions.CultureInvariant);
+        new(Regex.Escape("§2023:" + clause) + @"(?![0-9.])", RegexOptions.CultureInvariant);
 
     /// <summary>Every declined-facility descriptor — the ones that carry an annex, i.e. the ones whose posture
     /// this class is about.</summary>
@@ -100,7 +100,7 @@ public sealed class DeclinedFacilityAnnexDriftTests
         {
             Assert.NotNull(d.PostureClause);
             foreach (string clause in d.PostureClause!.Split(" / "))
-                if (!Cites(clause.TrimStart('§')).IsMatch(d.IsoSection))
+                if (!Cites(clause["§2023:".Length..]).IsMatch(d.IsoSection))
                     missing.Add($"{d.Code} ({d.Id}) is Annex {d.Annex}, whose licence is {clause}, but its "
                         + $"IsoSection '{d.IsoSection}' does not cite it");
         }
@@ -165,7 +165,7 @@ public sealed class DeclinedFacilityAnnexDriftTests
             Annex: DeclinedAnnex.A3 | DeclinedAnnex.A4);
         Assert.Equal("§2023:4.2.6 / §2023:4.2.7", both.PostureClause);
         foreach (string clause in both.PostureClause!.Split(" / "))
-            Assert.Matches(Cites(clause.TrimStart('§')), both.IsoSection);
+            Assert.Matches(Cites(clause["§2023:".Length..]), both.IsoSection);
 
         // A descriptor that is not a decline carries no clause at all — the None arm of the derivation.
         Assert.Null(new DiagnosticDescriptor("COBOL9994", "fabricated-none", EditionSeverity.Error,

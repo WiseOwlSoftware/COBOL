@@ -119,7 +119,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
         Assert.True(missing.Count == 0,
             $"§15 prohibits a zero-length literal argument for {string.Join(", ", missing)}, but the schema does "
             + $"not declare it — so `FUNCTION {missing.FirstOrDefault() ?? "X"}(\"\" …)` compiles clean at every "
-            + $"edition.{Environment.NewLine}Add `noZeroLen: \"§15.N.3 rM\"` to the row (the rule's OWN ordinal, "
+            + $"edition.{Environment.NewLine}Add `noZeroLen: \"§2023:15.N.3 rM\"` to the row (the rule's OWN ordinal, "
             + "which is NOT the class rule's), or adjudicate it into this test's Adjudicated map with its reason.");
 
         static bool DeclaresZeroLengthRule(ArgSchema schema) =>
@@ -142,7 +142,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
                 Assert.True(zl != rule.Clause,
                     $"{name} cites the same clause ({zl}) for its zero-length rule as for its class rule — one of "
                     + "them is pointing at the wrong ordinal");
-                Assert.Matches(@"^§15\.\d+\.3 r\d+$", zl);
+                Assert.Matches(@"^§2023:15\.\d+\.3 r\d+$", zl);
             }
         }
     }

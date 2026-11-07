@@ -67,7 +67,7 @@ public sealed class IntrinsicArgumentDomainDriftTests
             }
             withRule++;
             var expected = DomainOf(valueRule.Value);
-            string cite = $"§{sec}.3 rule {valueRule.Groups[1].Value}";
+            string cite = $"§2023:{sec}.3 rule {valueRule.Groups[1].Value}";
             if (expected is null)
                 problems.Add($"{name}: §{sec}.3 rule {valueRule.Groups[1].Value} states a value domain this test cannot classify — add its IntrinsicDomain: \"{valueRule.Groups[2].Value}\"");
             else if (sig.Domain != expected)

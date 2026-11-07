@@ -42,7 +42,7 @@ internal static class ChoiceIndicators
                                    string statement, string alternative, string clause)
         where T : ParserRuleContext
     {
-        AtMostOnce(edition, occurrences.Length, statement, alternative, $"ISO §{clause}");
+        AtMostOnce(edition, occurrences.Length, statement, alternative, $"ISO §2023:{clause}");
         return occurrences.Length > 0 ? occurrences[0] : null;
     }
 
