@@ -1,4 +1,4 @@
-## PB4849: the 1985 figure refuter step continued, and the batch's drawing redrawn in the house style
+## Entry 3261 — 2026-11-07 11:13 PST — PB4849: the 1985 figure refuter step continued, and the batch's drawing redrawn in the house style
 
 Wave 20261902 group A continued kb/Work PB4849's step 1: decide the 1985 `<pre>` blocks awaiting a verdict from the
 printed page.
@@ -63,3 +63,4 @@ no verdict until now). The renderer root cause is filed as a lead in the wave re
 
 **Gate.** Run 000002-20261107T175931Z: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,463/22,463 · Unit 40,427/40,427 ·
 Characterization 37/37 cases ran (skipped 0)`.
+
