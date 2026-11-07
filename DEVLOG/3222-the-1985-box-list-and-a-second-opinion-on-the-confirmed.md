@@ -1,3 +1,4 @@
-## The 1985 box list and a second opinion on the confirmed claims
+## Entry 3222 — 2026-11-06 16:40 PST — The 1985 box list and a second opinion on the confirmed claims
 
 With the month's API cap raised to $400, two more batch passes ran over the raw 1985 pages for $14.79. A box pass, first proved on a 5-page pilot checked by eye, listed 722 printed boxes on 297 pages. The standard boxes everything unique to level 2 of a module, and the transcription had lost every box, so this list is what PB4850 restores and what PB4849's measured rectangles are checked against. A second opinion re-checked the 150 confirmed and unsure claims. It confirmed 139 again, which leaves 139 claims confirmed twice, 142 refuted and 11 disputed for the repair step. Both results are recorded in kb/Work PB4850.
+
