@@ -1,4 +1,4 @@
-## PB4890: the screen entry's name is the entry-name clause, so a reserved name draws COBOL0901
+## Entry 3273 — 2026-11-07 14:19 PST — PB4890: the screen entry's name is the entry-name clause, so a reserved name draws COBOL0901
 
 **Mechanism.** The screen description entry had a name rule of its own, `screenName : cobolWord | FILLER`, which admitted no
 reservation-gated word. `01 SCREEN LINE 1.` in the SCREEN SECTION therefore left the section loop's `constantEntry` as its one
@@ -34,3 +34,4 @@ is a user word there). Unit: `ScreenFacilityConstructDriftTests.AReservedWordAsA
 
 **Found, not fixed.** At COBOL-85 a program that names a screen item SCREEN draws COBOL0001 at the `SCREEN SECTION` header: the
 reservation gate retypes every SCREEN token once the free word is declared, the header's included (reported as a lead).
+
