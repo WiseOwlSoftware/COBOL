@@ -42,8 +42,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from citation import (AMENDMENT_85, APPENDIX_85, FOLIO_85, PAGE_85, PARAGRAPH_85, SECTION_85,  # noqa: E402
+from citation import (AMENDMENT_85, APPENDIX_85, FOLIO_85, MARK_85, PAGE_85, PARAGRAPH_85, SECTION_85,  # noqa: E402
                       SECTIONS_85)  # (THE readers of the 1985 document's structure, kb/Work PB4887)
+from spec_pdf import BOX_SIDE  # noqa: E402  (THE side of a level-2 box, kb/Work PB4850)
 from spec_headings import GENERAL_FORMAT_TITLE  # noqa: E402  (THE spelling of a general-format heading, kb/Work PB284)
 # THE singular form of a block title, any Markdown heading, and a printed band inside a rule list ("FORMAT 2",
 # "SEQUENTIAL FILES"): the 2023 arm's, one definition each.
@@ -81,10 +82,11 @@ KINDS = {"syntax rule": "SR", "general rule": "GR", "argument": "AR", "returned 
 #: is an adjudication (the 2023 catalog's §2023:5.3.2/5.3.3 typing has no 1985 counterpart), never a guess here.
 RULE_SHAPED = re.compile(r"\brules?\b", re.IGNORECASE)
 #: A top-level rule: `(1)` at column 0 (the transcription may escape the parentheses).
-ORDINAL = re.compile(r"^\\?\((?P<n>\d+)\\?\)\s+(?P<text>.*)$")
-#: THE LEVEL-2 BOX of a prose span. ⛔ ONE definition: the transcription's markup for a boxed span in prose
-#: (docs/rearchitecture/spec-reconciliation/TRANSCRIPTION-STATE.md, kb/Work PB4850) is read here and nowhere else.
-BOX_SPAN = re.compile(r"<ins>(?P<boxed>.*?)</ins>", re.S)
+#: A boxed rule opens with the box's side (`║(1) …║`), which stays with the rule's text so `box_of` sees the whole box.
+ORDINAL = re.compile(rf"^(?P<box>{BOX_SIDE}?)\\?\((?P<n>\d+)\\?\)\s+(?P<text>.*)$")
+#: THE LEVEL-2 BOX of a prose span: a `║` at each end of each boxed block or span (spec_pdf.BOX_SIDE; the markup is
+#: TRANSCRIPTION-STATE.md "The 1985 transcription", kb/Work PB4850). A box never nests, so its sides pair in order.
+BOX_SPAN = re.compile(rf"{BOX_SIDE}(?P<boxed>[^{BOX_SIDE}]*){BOX_SIDE}")
 #: The level-2 box of a general format: FIGURE-STYLE.md rule 9 draws it in DOUBLE lines.
 BOX_GLYPHS = re.compile(r"[╔╗╚╝║═]")
 #: A change row of an amendment's table: `| VI-104 | Paragraph 5.8 entitled ..., general rule 4, ... |`, the page cell a
@@ -246,8 +248,8 @@ def parse(lines: list[str]) -> Catalog:
         if p is not None:
             close_block()
             num = (p.group(1) or p.group(2)).rstrip(".")
-            title = re.sub(r"^#*\s*(?:<u>|\*\*)?" + re.escape(num) + r"\.?\s*", "", line).strip()
-            title = re.sub(r"</?u>|\*\*", "", title).strip()
+            title = re.sub(r"^#*\s*" + MARK_85 + re.escape(num) + r"\.?\s*", "", line).strip()
+            title = re.sub(rf"</?u>|\*\*|{BOX_SIDE}", "", title).strip()
             loc = f"{section}.{num}"
             titles[num] = title
             kind = kind_of(title)
@@ -286,7 +288,7 @@ def parse(lines: list[str]) -> Catalog:
             last = n
             block_rules += 1
             start = {"n": n, "sublist": sublist, "page": page, "band": band}
-            buf = [m.group("text")]
+            buf = [m.group("box") + m.group("text")]
         elif buf:
             buf.append(line.strip())
     close_block()
@@ -432,7 +434,7 @@ level-number
 
 (2) A planted second rule with items:
 
-a. its first item, <ins>boxed in part</ins>, and
+a. its first item, ║boxed in part║, and
 
 b. its second item.
 
@@ -444,9 +446,9 @@ Nucleus - Level-Number
 
 continued on the next page.
 
-### 5.7.4 General Rules
+### ║5.7.4 General Rules║
 
-(1) <ins>A planted rule boxed whole.</ins>
+║(1) A planted rule boxed whole.║
 
 FORMAT 2
 
@@ -481,7 +483,7 @@ VI-26
 
 ### 4.3.3 Syntax Rules
 
-(1) <ins>A box in a one-level module.</ins>
+║(1) A box in a one-level module.║
 
 XI-3
 

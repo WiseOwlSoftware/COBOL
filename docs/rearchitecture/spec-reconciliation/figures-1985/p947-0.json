@@ -4,7 +4,7 @@
  "drawn_lines": [
   "01  GROUP-ITEM-1.",
   "    05  ODO-DEPEND  PIC 9.",
-  "    05  ODO-TABL.",
+  "    05  0D0-TABL.",
   "        10  ELEM  OCCURS 0 TO 9 TIMES",
   "                DEPENDING ON ODO-DEPEND",
   "                PIC X.",
