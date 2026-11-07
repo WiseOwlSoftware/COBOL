@@ -1,3 +1,4 @@
-## The 1985 conformance claim and the 1985 audit
+## Entry 3224 — 2026-11-06 17:05 PST — The 1985 conformance claim and the 1985 audit
 
 The 1985 standard defines three conformance subsets built from module levels, and a printed box marks what is unique to level 2. The owner decided that `--std=1985` is documented as the high subset plus every level of all four optional modules (PB4885). That claim is written only after each element has been checked against the compiler, with every open gap listed by its note. The owner also observed that, with the actual 1985 text, the 1985 compiler can be validated against the standard itself rather than against the reconstructed change reference and NIST CCVS85 alone. PB4886 plans that audit: a 1985 rule catalog and traceability inventory, built as an edition parameter of the existing audit. It starts once PB4850 has reconciled the file.
+
