@@ -636,7 +636,13 @@ the entry parses as its clauses — asked of the grammar by a speculative `Parse
 `dataDescriptionBody` (a COMPLETE reading, `ReadingParses`: the parse takes every token up to the entry's period, since
 `FollowSet(dataDescriptionBody)` is the period alone, which `ReadingParsesFollowDriftTests` pins), so every gated
 clause-leading word (each USAGE keyword, ALIGNED, BASED, GROUP-USAGE) is covered by construction. Where the clause reading fails (`05 DEFAULT PIC X.`) the name stands and the funnel's
-COBOL0901 names the word.
+COBOL0901 names the word. The report group description entry's name slot is the same `dataName` rule, and §2023:13.15.2
+prints the same `[ entry-name-clause ]` and `[ USAGE IS ] { DISPLAY | NATIONAL }`, so it asks the same predicate
+(kb/Work PB4889: `10 NATIONAL COLUMN 1 PIC N(3) VALUE N"ABC".` drew COBOL0901). The predicate takes the rule that reads
+the rest of its entry, `entryNameHere(RULE_dataDescriptionBody)` and `entryNameHere(RULE_reportGroupBody)`; that is why
+the report entry's clause list is a rule of its own (`reportGroupBody : reportGroupClause*`), and
+`ReadingParsesFollowDriftTests` reads every `entryNameHere(RULE_…)` the grammar writes and holds each such rule to the
+period-alone FOLLOW set. The screen description entry needs no predicate: its `screenName` admits no reservation-gated word.
 
 ⛔ **A KEYWORD SLOT MAY NOT BORROW `cobolWord` (kb/Work PB693).** The gate gives `cobolWord` one meaning —
 *user-defined word* — so a rule that used it to match a reserved KEYWORD that happens to carry a lexer token is

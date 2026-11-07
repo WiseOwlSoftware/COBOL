@@ -451,8 +451,12 @@ public abstract class CobolParserCoreBase : Parser
         if (offending is not null && CobolLexer.IsReservationGated(offending.Type)) gatedDeclaration(offending);
     }
 
-    /// <summary>⛔ THE ENTRY-NAME SLOT YIELDS TO THE CLAUSE A RESERVED WORD BEGINS (kb/Work PB845, PB2501) — the
-    /// predicate on the optional entry-name of <c>dataDescriptionEntry</c>. ISO §2023:13.16.3 SR4: "If no entry-name clause
+    /// <summary>⛔ THE ENTRY-NAME SLOT YIELDS TO THE CLAUSE A RESERVED WORD BEGINS (kb/Work PB845, PB2501, PB4889) — the
+    /// predicate on the optional entry-name of every entry whose name slot admits a reservation-gated word:
+    /// <c>dataDescriptionEntry</c>, and <c>reportGroupEntry</c>, whose §2023:13.15.2 format prints the same
+    /// <c>[ entry-name-clause ]</c> and <c>[ USAGE IS ] { DISPLAY | NATIONAL }</c>. Each entry passes the rule that reads the
+    /// rest of it as <paramref name="bodyRule"/> (<c>dataDescriptionBody</c>, <c>reportGroupBody</c>), a rule followed by
+    /// the period alone (<c>ReadingParsesFollowDriftTests</c>). ISO §2023:13.16.3 SR4: "If no entry-name clause
     /// is specified, it is as though the filler format of the entry-name clause were specified"; §2023:13.18.60.2 prints
     /// <c>[ USAGE IS ]</c> as optional, so <c>05 NATIONAL PIC N(3).</c> is a conforming unnamed USAGE NATIONAL item
     /// wherever §2023:8.9 reserves NATIONAL — and there §2023:8.3.2.1 1) ("Reserved words shall not be used as user-defined
@@ -467,16 +471,16 @@ public abstract class CobolParserCoreBase : Parser
     /// so every gated word that begins a clause — every USAGE keyword (BINARY-LONG, FLOAT-LONG, PROGRAM-POINTER …),
     /// ALIGNED, BASED, GROUP-USAGE — is covered by construction. It runs only for a gated word §2023:8.9 reserves here
     /// at the head of an entry, which conforming source writes only as an unnamed clause.</para></summary>
-    protected bool entryNameHere()
+    protected bool entryNameHere(int bodyRule)
     {
         if (TokenStream.LT(1) is not { } word || ReservedGatedWord(word) is null) return true;
-        if (_entryClauseProbe is { } p && p.Index == word.TokenIndex) return !p.Parses;
-        bool parses = ReadingParses(CobolParserCore.RULE_dataDescriptionBody);
-        _entryClauseProbe = (word.TokenIndex, parses);
+        if (_entryClauseProbe is { } p && p.Index == word.TokenIndex && p.Rule == bodyRule) return !p.Parses;
+        bool parses = ReadingParses(bodyRule);
+        _entryClauseProbe = (word.TokenIndex, bodyRule, parses);
         return !parses;
     }
 
-    private (int Index, bool Parses)? _entryClauseProbe;
+    private (int Index, int Rule, bool Parses)? _entryClauseProbe;
 
     /// <summary>⛔ A GATED WORD IS A DATA-NAME ONLY WHERE IT WRITES NO HEADER (kb/Work PB4706) — the predicate on
     /// <c>dataName</c>'s <c>reservedGatedWord</c> alternative, the one way a keyword token reaches the name. <c>01</c> with its
@@ -626,8 +630,8 @@ public abstract class CobolParserCoreBase : Parser
     /// follow the rule somewhere in the grammar (its context-free FOLLOW set, <see cref="FollowSet"/>, read off the
     /// generated ATN, so a construct the grammar gains is covered by construction). A reading that stops at any other
     /// token parsed only a prefix of what is written, and the token it stopped at is the one the outer parse would
-    /// refuse next. For the no-entry-name reading of <see cref="entryNameHere"/> (<c>dataDescriptionBody</c>, whose one
-    /// call site is followed by the period alone) that is every token up to the period; for one statement of a sentence
+    /// refuse next. For the no-entry-name reading of <see cref="entryNameHere"/> (<c>dataDescriptionBody</c> or <c>reportGroupBody</c>,
+    /// each followed by the period alone) that is every token up to the period; for one statement of a sentence
     /// (<see cref="ReadStatementAt"/>) it is the statement up to the next statement, a scope
     /// terminator, a phrase of the enclosing statement or the period. A speculative parse by a
     /// <see cref="ParserInterpreter"/> over THIS grammar's ATN on a copy of the tokens up to the period, so the outer
