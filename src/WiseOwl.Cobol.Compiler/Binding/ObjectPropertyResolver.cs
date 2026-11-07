@@ -327,9 +327,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
     }
 
     private static OoMethodSymbol? Accessor(PropertyReceiver receiver, string accessorName) =>
-        receiver.Interface is { } iface
-            ? iface.AllPrototypes().FirstOrDefault(p => CobolNames.Same(p.ExternalizedName, accessorName))
-            : receiver.Factory ? receiver.Class!.FindFactoryMethod(accessorName) : receiver.Class!.FindMethod(accessorName);
+        new MethodRoster(receiver.Class, receiver.Interface, receiver.Factory).Find(accessorName);
 
     /// <summary>Identifier-3 of a property reference written as a word chain: the written reference less its head word
     /// (the property-name) and its reference modifiers (§2023:8.4.3.1.4 GR1 g) applies them to the property's value, last),

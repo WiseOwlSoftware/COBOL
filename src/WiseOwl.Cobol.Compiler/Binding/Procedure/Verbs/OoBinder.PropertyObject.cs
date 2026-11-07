@@ -67,14 +67,10 @@ internal sealed partial class OoBinder
             ? new(InvokeForm.Instance, temp, null, null, false)
             : null;
 
-        // A probe's reading of a view: the roster its LAST phrase describes, looked up without a diagnostic.
-        PropertyReceiver? DescribedByView(Core.ObjectViewContext view)
-        {
-            var last = view.objectViewPhrase()[^1];
-            if (last.UNIVERSAL() is not null) return null;
-            var found = OoNameResolution.Lookup(host.OoClasses, last, last.className().GetText(), OoNameResolution.Want.Either);
-            return found.Ok ? new(InvokeForm.Instance, null, found.Class, found.Interface, last.FACTORY() is not null) : null;
-        }
+        // A probe's reading of a view: the roster its LAST phrase describes, looked up without a diagnostic (the ONE reading
+        // the invocation probe asks too, kb/Work PB4893).
+        PropertyReceiver? DescribedByView(Core.ObjectViewContext view) =>
+            ViewRoster(view) is { } roster ? new(InvokeForm.Instance, null, roster.Class, roster.Interface, roster.Factory) : null;
 
         // A probe's reading of a function-identifier (kb/Work PB2073): activating it is a side effect, so the probe takes
         // the description its result temporary WOULD carry — §2023:8.4.3.2.4 GR1: "the description, class, and category of
@@ -83,7 +79,7 @@ internal sealed partial class OoBinder
         // the committing arm reads off the bound temporary. An intrinsic function, or one that returns no object
         // reference, answers null: it is no property's object.
         PropertyReceiver? DescribedByFunction(Core.FunctionCallContext fc) =>
-            host.Intrinsic.ReturningItemOf(fc) is { Pic.Category: PicCategory.ObjectReference } item
+            host.Intrinsic.SignatureOf(fc)?.Returning is { Pic.Category: PicCategory.ObjectReference } item
                 ? new(InvokeForm.Instance, null, null, null, false, item)
                 : null;
     }

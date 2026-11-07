@@ -256,7 +256,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         FunctionPointerItemNamed(name) is { } only ? ctx.Refs.Places.ResolveItem(only) : null;
 
     /// <summary><see cref="FunctionPointerNamed"/>'s test, answering the declared item itself — for the readers that
-    /// need its description and no <see cref="Place"/> (<see cref="ReturningItemOf(string)"/>).</summary>
+    /// need its description and no <see cref="Place"/> (<see cref="SignatureOf(string)"/>).</summary>
     private DataItem? FunctionPointerItemNamed(string name)
     {
         if (!ctx.Symbols.TryResolveUnqualified(name, ctx.ActiveScope, out var candidates)) return null;
@@ -270,28 +270,28 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return only is not null && only.SubscriptLevels().Count == 0 ? only : null;
     }
 
-    /// <summary>⛔ THE ONE DIAGNOSTIC-FREE ANSWER TO "WHAT DOES THIS FUNCTION-IDENTIFIER RETURN" (§2023:8.4.3.2.4 GR1): the
-    /// RETURNING item whose "description, class, and category" the identifier's temporary takes — of the REPOSITORY-declared
-    /// user function or the containing function itself (function-prototype-name-1) and of a FUNCTION-POINTER
-    /// (function-pointer-name-1, through the prototype its USAGE TO phrase names) — or null for an intrinsic function (its
-    /// description is the catalog's, <see cref="IntrinsicCatalog"/>), a name that is neither, and a function whose
-    /// definition has no RETURNING item. Nothing is bound and nothing is reported, so a resolver PROBE may ask it
-    /// (kb/Work PB2073) and so may a routing predicate (<see cref="ConditionBinder"/>'s boolean-operand test); the
-    /// activation (<see cref="UdfBinder"/>) reads the same <see cref="UserFunctionSignature.Returning"/> when it binds.</summary>
-    internal DataItem? ReturningItemOf(Core.FunctionCallContext fc) =>
-        fc.functionName() is { } written ? ReturningItemOf(FunctionWord.OfToken(written.Start, ctx.CobolWords).Name) : null;
+    /// <summary>⛔ THE ONE DIAGNOSTIC-FREE ANSWER TO "WHICH USER FUNCTION DOES THIS FUNCTION-IDENTIFIER ACTIVATE": the signature of
+    /// the REPOSITORY-declared user function or the containing function itself (function-prototype-name-1) and of a
+    /// FUNCTION-POINTER (function-pointer-name-1, through the prototype its USAGE TO phrase names) — or null for an intrinsic
+    /// function (its description is the catalog's, <see cref="IntrinsicCatalog"/>) and a name that is neither. Its
+    /// <see cref="UserFunctionSignature.Returning"/> is the item whose "description, class, and category" the identifier's
+    /// temporary takes (§2023:8.4.3.2.4 GR1), null for a function whose definition has none; its formals are the parameters the
+    /// arguments conform to (§2023:14.8.2). Nothing is bound and nothing is reported, so a resolver PROBE may ask it (kb/Work
+    /// PB2073), so may a routing predicate (<see cref="ConditionBinder"/>'s boolean-operand test) and the statement funnel
+    /// (<c>StatementBinder.NamesGatedMessageTag</c>, kb/Work PB4893); the activation (<see cref="UdfBinder"/>) reads the same
+    /// signature when it binds.</summary>
+    internal UserFunctionSignature? SignatureOf(Core.FunctionCallContext fc) =>
+        fc.functionName() is { } written ? SignatureOf(FunctionWord.OfToken(written.Start, ctx.CobolWords).Name) : null;
 
-    /// <summary><see cref="ReturningItemOf(Core.FunctionCallContext)"/> for a function name already resolved through
+    /// <summary><see cref="SignatureOf(Core.FunctionCallContext)"/> for a function name already resolved through
     /// >>COBOL-WORDS (<see cref="FunctionWord.Name"/>), in <see cref="BindFunctionResult"/>'s dispatch order: the user
     /// function first (§2023:12.3.8.4 GR12), the function-pointer second.</summary>
-    internal DataItem? ReturningItemOf(string name)
+    internal UserFunctionSignature? SignatureOf(string name)
     {
         string? prototype = ctx.Data.State.Configuration.UserFunctionNames.Contains(name) || WiseOwl.Cobol.Runtime.CobolNames.Same(name, host.UdfSelfName)
             ? name
             : FunctionPointerItemNamed(name)?.Pic?.RestrictedPrototypeName;
-        return prototype is not null && host.UserFunctions is { } functions && functions.TryGetValue(prototype, out var fn)
-            ? fn.Returning
-            : null;
+        return prototype is not null && host.UserFunctions is { } functions && functions.TryGetValue(prototype, out var fn) ? fn : null;
     }
 
     /// <summary>The §2023:8.4.3.2 SR2 FUNCTION-keyword-OMITTED reference form (M2-UDF-4): a data reference whose head

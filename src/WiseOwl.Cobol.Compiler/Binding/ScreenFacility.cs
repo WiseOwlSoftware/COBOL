@@ -114,7 +114,7 @@ internal static class ScreenFacility
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var entry in scr.screenDescriptionEntry())
         {
-            if (entry.screenName()?.cobolWord()?.GetText() is { } sn) screenNames.Add(sn);
+            if (entry.dataName()?.cobolWord()?.GetText() is { } sn) screenNames.Add(sn);
             foreach (var clause in entry.screenDescriptionBody()?.screenClause() ?? [])
                 ReportClause(edition, clause, seen);
         }

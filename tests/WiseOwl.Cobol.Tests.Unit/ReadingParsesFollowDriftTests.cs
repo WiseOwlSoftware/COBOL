@@ -28,7 +28,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class ReadingParsesFollowDriftTests
 {
     /// <summary>Every rule an <c>entryNameHere</c> predicate in the grammar is asked to read (the data description entry's
-    /// <c>dataDescriptionBody</c>, the report group description entry's <c>reportGroupBody</c>, kb/Work PB4889) is followed
+    /// <c>dataDescriptionBody</c>, the report group description entry's <c>reportGroupBody</c>, kb/Work PB4889, the screen
+    /// description entry's <c>screenDescriptionBody</c>, kb/Work PB4890) is followed
     /// by the period alone. The rules are read off the grammar files, so the next entry that asks the predicate is held
     /// here without an edit.</summary>
     [Fact]
@@ -40,7 +41,7 @@ public sealed class ReadingParsesFollowDriftTests
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
             .ToList();
-        Assert.Subset(bodies.ToHashSet(), new HashSet<string> { "dataDescriptionBody", "reportGroupBody" });   // the scan found the predicates
+        Assert.Subset(bodies.ToHashSet(), new HashSet<string> { "dataDescriptionBody", "reportGroupBody", "screenDescriptionBody" });   // the scan found the predicates
         Assert.All(bodies, body =>
         {
             int rule = Array.IndexOf(CobolParserCore.ruleNames, body);

@@ -36,6 +36,10 @@ public sealed class OoMethodBinding
     /// value delivers it, §2023:14.9.23.4 GR8), or null for a void method.</summary>
     public DataItem? Returning { get; set; }
 
+    /// <summary>The items the signature describes: each formal parameter's, then the RETURNING item's when there is one.</summary>
+    public IEnumerable<DataItem> SignatureItems =>
+        Returning is { } returning ? Formals.Select(formal => formal.Item).Append(returning) : Formals.Select(formal => formal.Item);
+
     /// <summary>The §2023:9.3.6 description of each formal, with its OPTIONAL and BY VALUE phrases, in <see cref="Formals"/>
     /// order, each null for a formal with no universal crossing form: what the universal dispatch switch's case compares an
     /// argument with (§2023:14.9.23.4 GR7 b), c)). Built by the binder's one description builder (<c>ActivationDescriptions</c>), the

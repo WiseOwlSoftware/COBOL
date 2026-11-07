@@ -398,7 +398,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (searchRoot is null) return OoBindDeferredInvoke(site, $"INVOKE {predefined} \"{methodName}\"");
             // Roster selection by CONTEXT (§2023:14.9.23.3 SR4f/g/h/i): a factory method's SELF/SUPER resolve
             // over the FACTORY interface; an instance method's over the instance interface.
-            var sm = host.OoInFactory ? searchRoot.FindFactoryMethod(methodName) : searchRoot.FindMethod(methodName);
+            var sm = MethodRoster.Of(searchRoot, host.OoInFactory).Find(methodName);
             // Not in the definition bound as itself, nor in a written superclass: the method may be the formal
             // superclass's, which each expansion's actual decides (§2023:9.3.9, §2023:9.3.8.2.4; kb/Work PB2937).
             if (sm is null && cur.FormalBaseName is not null)
@@ -863,8 +863,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // the emitted call is static C# interface dispatch behind the same GR5 null guard.
         if (rdesc.Kind is ObjectRefKind.Interface && host.OoClasses?.FindInterface(className) is { } recvIface)
         {
-            var proto = recvIface.AllPrototypes()
-                .FirstOrDefault(pm => CobolNames.Same(pm.Name, method));
+            var proto = MethodRoster.Of(recvIface).Find(method);
             if (proto is null)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeMethodNotDefined,
@@ -885,7 +884,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // §2023:9.3.6: a class has TWO separate method interfaces, and which one a receiver selects is the FACTORY
         // axis of its own description — a FACTORY-OF reference holds the factory object (§2023:13.18.60.4 GR22 d)1.a.)
         // and therefore resolves the FACTORY roster (§2023:14.9.23.3 SR4b/SR4c). Both arms of ONE dispatch.
-        var m = rdesc.Factory ? cls.FindFactoryMethod(method) : cls.FindMethod(method);
+        var m = MethodRoster.Of(cls, rdesc.Factory).Find(method);
         // §2023:14.9.23.3 SR4 a)–d): the rule a typed receiver's method name answers to is chosen by its description's
         // two axes — object-class-name or ACTIVE-CLASS, with or without FACTORY — so the citation is derived from
         // the same two facts the roster lookup above used, never written per arm (kb/Work PB1136).
@@ -905,7 +904,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         if (m is null)
         {
             string other = rdesc.Factory ? "an INSTANCE" : "a FACTORY";
-            string hint = (rdesc.Factory ? cls.FindMethod(method) : cls.FindFactoryMethod(method)) is not null
+            string hint = MethodRoster.Of(cls, !rdesc.Factory).Find(method) is not null
                 ? $" ('{method}' IS {other} method of class '{cls.Name}' — the two interfaces are separate, "
                   + "§2023:9.3.6, and this receiver's description selects the "
                   + (rdesc.Factory ? "factory" : "instance") + " one)"
@@ -2105,13 +2104,14 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// literal names a method as the word in its METHOD-ID does, and the lexer wrote that word in the edition's Annex C
     /// spelling, so below 2023 INVOKE O "X&lt;final sigma&gt;" finds METHOD-ID X&lt;sigma&gt; (Annex E.2 item 14 deleted
     /// the pair's mapping at 2023 only). The ONE producer of a method-name literal's value, so the statement form and
-    /// every inline segment agree.</para></summary>
-    private string? OoMethodNameOf(Core.LiteralContext? lit) =>
-        OoMethodNameValueOf(lit) is { } value ? CobolNames.EditionSpelling(value, ctx.Edition.Edition.Year) : null;
+    /// every inline segment agree. A <paramref name="probe"/> (the statement funnel's diagnostic-free reading, kb/Work PB4893)
+    /// folds a concatenation without reporting its §2023:8.8.3.2 length rule, which the binding reports once.</para></summary>
+    private string? OoMethodNameOf(Core.LiteralContext? lit, bool probe = false) =>
+        OoMethodNameValueOf(lit, probe) is { } value ? CobolNames.EditionSpelling(value, ctx.Edition.Edition.Year) : null;
 
     /// <summary>The method-name a literal-alias word spells where literal-1 stands (ISO §2023:13.10.3 SR2; §2023:13.10.4 GR1 —
     /// "as if literal-1 … were written"; kb/Work PB780): an alphanumeric or national constant-name's value, written in
-    /// the edition's spelling exactly as <see cref="OoMethodNameOf(Core.LiteralContext?)"/> writes a written literal.
+    /// the edition's spelling exactly as <see cref="OoMethodNameOf(Core.LiteralContext?, bool)"/> writes a written literal.
     /// Null for any other alias — a numeric or boolean constant, or a symbolic-character, which is a figurative
     /// constant (§2023:12.3.7.4 GR11 a)) — none of them a literal "of class alphanumeric or national" (§2023:14.9.23.3 SR2).</summary>
     private string? OoMethodNameOf(ExpressionBinder.LiteralAlias alias) =>
@@ -2119,12 +2119,13 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             ? CobolNames.EditionSpelling(k.Text, ctx.Edition.Edition.Year) : null;
 
     /// <summary>The literal's decoded value, before <see cref="OoMethodNameOf"/> writes it in the edition's spelling.</summary>
-    private string? OoMethodNameValueOf(Core.LiteralContext? lit)
+    private string? OoMethodNameValueOf(Core.LiteralContext? lit, bool probe)
     {
         if (lit?.nonNumericLiteral() is not { } nn) return null;
         if (nn.concatenationExpression() is { } concat)
-            return ConcatFolder.ClassOf(concat, ctx.Data.LiteralEnv) is not PicCategory.Boolean
-                ? ConcatFolder.Fold(concat, ctx.Edition, ctx.Data.LiteralEnv).Value : null;
+            return ConcatFolder.ClassOf(concat, ctx.Data.LiteralEnv) is PicCategory.Boolean ? null
+                : probe ? ConcatFolder.Peek(concat, ctx.Data.LiteralEnv).Value
+                : ConcatFolder.Fold(concat, ctx.Edition, ctx.Data.LiteralEnv).Value;
         return (nn.STRINGLIT() ?? nn.NATLIT() ?? nn.HEXLIT()) is { } token ? CobolLiteral.Decode(token.GetText()) : null;
     }
 
